@@ -1059,7 +1059,10 @@
       }
     });
 
-    function openMedicineModal() {
+    let lastMedicineTrigger = null;
+
+    function openMedicineModal(trigger = document.activeElement) {
+      lastMedicineTrigger = trigger instanceof HTMLElement ? trigger : null;
       medicineModal.classList.add('is-open');
       medicineModal.setAttribute('aria-hidden', 'false');
     }
@@ -1067,7 +1070,11 @@
     function closeMedicineModal() {
       syncMedicineDetailsFromDom();
       medicineModal.classList.remove('is-open');
+      if (lastMedicineTrigger && typeof lastMedicineTrigger.focus === 'function') {
+        lastMedicineTrigger.focus();
+      }
       medicineModal.setAttribute('aria-hidden', 'true');
+      lastMedicineTrigger = null;
     }
 
     medicineModalClose.addEventListener('click', closeMedicineModal);
@@ -1588,7 +1595,7 @@
           renderMedicineDetails();
 
           if (shouldSelect || activeMedicine) {
-            openMedicineModal();
+            openMedicineModal(button);
           }
         }
       }
