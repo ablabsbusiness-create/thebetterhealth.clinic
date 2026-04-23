@@ -1140,6 +1140,32 @@
       return value && String(value).trim() ? `${value}${suffix}` : '';
     }
 
+    function getPatientDisplayName(patient) {
+      return (
+        patient.childName
+        || [patient.firstName, patient.middleName, patient.lastName].filter(Boolean).join(' ').trim()
+        || patient.patientId
+        || 'Unknown child'
+      );
+    }
+
+    function getPatientSearchText(patient) {
+      return [
+        patient.childName,
+        patient.firstName,
+        patient.middleName,
+        patient.lastName,
+        patient.patientId
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+    }
+
+    function sortByPatientName(left, right) {
+      return getPatientDisplayName(left).localeCompare(getPatientDisplayName(right));
+    }
+
     function getMeasurementEntries(patient) {
       const entries = Array.isArray(patient.measurementHistory) ? [...patient.measurementHistory] : [];
       if (patient.lastMeasurementRecord && entries.length === 0) {
@@ -1322,7 +1348,7 @@
       }
 
       resultsPanel.innerHTML = patients.map((patient) => {
-        const childName = formatMissing(patient.childName, 'Unknown child');
+        const childName = getPatientDisplayName(patient);
         const phone = formatMissing(patient.phone, 'Phone not saved');
         const parentName = formatMissing(patient.parentName, 'Parent not saved');
         const dob = formatDateDisplay(patient.dob);
@@ -1375,7 +1401,7 @@
     function filterPatients() {
       const searchValue = searchInput.value.trim().toLowerCase();
       const filteredPatients = searchValue
-        ? allPatients.filter((patient) => (patient.childName || '').toLowerCase().includes(searchValue))
+        ? allPatients.filter((patient) => getPatientSearchText(patient).includes(searchValue))
         : allPatients;
 
       renderPatients(filteredPatients);
@@ -1469,12 +1495,74 @@
           id: docSnapshot.id,
           ...docSnapshot.data()
         }));
-        allPatients = snapshot.docs
-          .map((docSnapshot) => ({
-            id: docSnapshot.id,
-            ...docSnapshot.data()
-          }))
-          .sort((a, b) => (a.childName || '').localeCompare(b.childName || ''));
+
+        const patientRecords = snapshot.docs.map((docSnapshot) => ({
+          id: docSnapshot.id,
+          ...docSnapshot.data()
+        }));
+        const historyByPatientId = new Map();
+
+        allHistory.forEach((entry) => {
+          const patientId = String(entry.patientId || '').trim().toUpperCase();
+          if (!patientId) {
+            return;
+          }
+
+          const entries = historyByPatientId.get(patientId) || [];
+          entries.push(entry);
+          historyByPatientId.set(patientId, entries);
+        });
+
+        historyByPatientId.forEach((entries) => {
+          entries.sort((left, right) => {
+            const leftTime = Date.parse(left.createdAtIso || '') || 0;
+            const rightTime = Date.parse(right.createdAtIso || '') || 0;
+            return rightTime - leftTime;
+          });
+        });
+
+        const mergedPatients = [];
+        const seenPatientIds = new Set();
+
+        patientRecords.forEach((patient) => {
+          const patientId = String(patient.patientId || '').trim().toUpperCase();
+          const historyEntries = patientId ? historyByPatientId.get(patientId) || [] : [];
+
+          mergedPatients.push({
+            ...patient,
+            measurementHistory: Array.isArray(patient.measurementHistory) ? patient.measurementHistory : historyEntries,
+            lastMeasurementRecord: patient.lastMeasurementRecord || historyEntries[0] || null
+          });
+
+          if (patientId) {
+            seenPatientIds.add(patientId);
+          }
+        });
+
+        historyByPatientId.forEach((entries, patientId) => {
+          if (seenPatientIds.has(patientId)) {
+            return;
+          }
+
+          const latest = entries[0] || {};
+          mergedPatients.push({
+            id: `history-${patientId}`,
+            patientId: latest.patientId || patientId,
+            childName: latest.childName || latest.patientName || '',
+            firstName: latest.firstName || '',
+            middleName: latest.middleName || '',
+            lastName: latest.lastName || '',
+            parentName: latest.parentName || '',
+            phone: latest.phone || '',
+            gender: latest.gender || '',
+            dob: latest.dob || '',
+            measurementHistory: entries,
+            lastMeasurementRecord: latest,
+            fromHistoryOnly: true
+          });
+        });
+
+        allPatients = mergedPatients.sort(sortByPatientName);
 
         if (allPatients.length === 0) {
           updateCount(0);
