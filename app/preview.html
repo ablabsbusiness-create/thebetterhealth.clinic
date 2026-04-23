@@ -448,27 +448,39 @@
 
     .mini-chart-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 12px;
-      margin-top: 10px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 14px;
+    }
+
+    .mini-chart-card {
+      padding: 14px;
+      border: 1px solid #d8e1da;
+      border-radius: 22px;
+      background: linear-gradient(180deg, #ffffff 0%, #fbfcfa 100%);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
     }
 
     .mini-chart-card strong {
       display: block;
-      margin-bottom: 6px;
-      font-size: 13px;
-      font-weight: 500;
+      margin-bottom: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #27352c;
     }
 
     .mini-chart-card img {
       display: block;
       width: 100%;
-      aspect-ratio: 1.25 / 1;
+      aspect-ratio: 1.08 / 1;
       object-fit: contain;
       object-position: center;
-      filter: grayscale(1) contrast(1.05);
+      filter: grayscale(1) contrast(1.03);
       background: #fff;
-      border-radius: 8px;
+      border: 1px solid #d8e1da;
+      border-radius: 16px;
+      padding: 10px;
+      box-sizing: border-box;
     }
 
     .rx-footer {
@@ -875,58 +887,6 @@
       return labels[index] || label || 'Growth Chart';
     }
 
-    function cropChartDataUrl(dataUrl) {
-      return new Promise((resolve) => {
-        if (!dataUrl) {
-          resolve('');
-          return;
-        }
-
-        const image = new Image();
-        image.onload = () => {
-          const crop = {
-            x: Math.round(image.width * 0.015),
-            y: Math.round(image.height * 0.03),
-            width: Math.round(image.width * 0.97),
-            height: Math.round(image.height * 0.82)
-          };
-          const canvas = document.createElement('canvas');
-          canvas.width = crop.width;
-          canvas.height = crop.height;
-          const context = canvas.getContext('2d');
-          context.imageSmoothingEnabled = true;
-          context.imageSmoothingQuality = 'high';
-          context.drawImage(
-            image,
-            crop.x,
-            crop.y,
-            crop.width,
-            crop.height,
-            0,
-            0,
-            crop.width,
-            crop.height
-          );
-          resolve(canvas.toDataURL('image/jpeg', 0.9));
-        };
-        image.onerror = () => resolve(dataUrl);
-        image.src = dataUrl;
-      });
-    }
-
-    async function enhanceChartThumbnails(record) {
-      const pages = record?.chartPages || [];
-      const images = [...document.querySelectorAll('[data-chart-index]')];
-
-      await Promise.all(images.map(async (image) => {
-        const page = pages[Number(image.dataset.chartIndex)];
-        const croppedDataUrl = await cropChartDataUrl(page?.dataUrl);
-        if (croppedDataUrl) {
-          image.src = croppedDataUrl;
-        }
-      }));
-    }
-
     function renderMiniCharts(record) {
       const pages = record?.chartPages || [];
       if (!pages.length) {
@@ -1006,7 +966,6 @@
           </div>
         </footer>
       `;
-      enhanceChartThumbnails(chartRecord);
     }
 
     function addTextLine(pdf, text, x, y, options = {}) {
@@ -1141,19 +1100,15 @@
         y += 3;
         const chartWidth = 36;
         const chartGap = 7;
-        const croppedPages = await Promise.all(chartPages.map(async (page) => ({
-          ...page,
-          dataUrl: await cropChartDataUrl(page.dataUrl)
-        })));
-        croppedPages.forEach((page, index) => {
-        const x = 15 + index * (chartWidth + chartGap);
-        pdf.setFont('helvetica', 'normal');
-        pdf.setFontSize(8);
-        pdf.text(chartTitle(page.label, index), x, y);
-        pdf.addImage(croppedPages[index].dataUrl, 'JPEG', x, y + 3, chartWidth, 31, undefined, 'FAST');
-      });
-      y += 40;
-    }
+        chartPages.forEach((page, index) => {
+          const x = 15 + index * (chartWidth + chartGap);
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(8);
+          pdf.text(chartTitle(page.label, index), x, y);
+          pdf.addImage(page.dataUrl, 'JPEG', x, y + 3, chartWidth, 31, undefined, 'FAST');
+        });
+        y += 40;
+      }
 
       pdf.line(15, 250, 38, 250);
       pdf.setFont('helvetica', 'bold');
