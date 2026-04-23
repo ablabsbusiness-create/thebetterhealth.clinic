@@ -1,0 +1,1388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #eef4ef;
+      --panel: #fcfdf8;
+      --ink: #1b2a21;
+      --muted: #607067;
+      --line: #d7e2d9;
+      --brand: #166534;
+      --brand-soft: #dcfce7;
+      --brand-strong: #14532d;
+      --shadow: 0 18px 45px rgba(22, 38, 29, 0.08);
+      --radius-lg: 24px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Outfit', system-ui, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(34, 197, 94, 0.14), transparent 28%),
+        linear-gradient(180deg, #f5faf3 0%, #edf5ef 100%);
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(12px);
+      background: rgba(248, 252, 248, 0.85);
+      border-bottom: 1px solid rgba(215, 226, 217, 0.95);
+      box-shadow: 0 8px 24px rgba(22, 38, 29, 0.05);
+    }
+
+    .topbar {
+      width: min(1180px, calc(100% - 28px));
+      margin: 0 auto;
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      background: linear-gradient(135deg, #166534, #22c55e);
+      color: #fff;
+      box-shadow: 0 10px 22px rgba(22, 101, 52, 0.22);
+    }
+
+    .brand-copy strong {
+      display: block;
+      font-size: 15px;
+      line-height: 1.1;
+    }
+
+    .brand-copy span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: 10px;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
+
+    .nav-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 999px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      transition: background 0.18s ease, color 0.18s ease;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      background: var(--brand-soft);
+      color: var(--brand-strong);
+    }
+
+    .menu-toggle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      margin-left: auto;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.82);
+      color: var(--ink);
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(22, 38, 29, 0.08);
+    }
+
+    .menu-toggle-inner {
+      display: grid;
+      gap: 4px;
+    }
+
+    .menu-toggle-bar {
+      display: block;
+      width: 18px;
+      height: 2px;
+      border-radius: 999px;
+      background: currentColor;
+      transition: transform 0.18s ease, opacity 0.18s ease;
+    }
+
+    .menu-toggle[aria-expanded="true"] .menu-toggle-bar:nth-child(1) {
+      transform: translateY(6px) rotate(45deg);
+    }
+
+    .menu-toggle[aria-expanded="true"] .menu-toggle-bar:nth-child(2) {
+      opacity: 0;
+    }
+
+    .menu-toggle[aria-expanded="true"] .menu-toggle-bar:nth-child(3) {
+      transform: translateY(-6px) rotate(-45deg);
+    }
+
+    .topbar-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      background: #f8fbf9;
+      border: 1px solid var(--line);
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.12);
+    }
+
+    .page-shell {
+      width: min(1180px, calc(100% - 32px));
+      margin: 22px auto 42px;
+    }
+
+    .content-panel {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 16px;
+      padding: 18px;
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(215, 226, 217, 0.95);
+      background: rgba(255, 255, 255, 0.84);
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow);
+    }
+
+    .preview-workbar {
+      position: sticky;
+      top: 86px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 12px 28px rgba(22, 38, 29, 0.08);
+    }
+
+    .preview-title {
+      min-width: 0;
+    }
+
+    .preview-title h1 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.15;
+    }
+
+    .preview-title p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .preview-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary,
+    .btn-secondary,
+    .btn-whatsapp {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 18px;
+      border-radius: 14px;
+      border: 0;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .btn-primary:disabled,
+    .btn-secondary:disabled,
+    .btn-whatsapp:disabled {
+      opacity: 0.65;
+      cursor: wait;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #166534, #22c55e);
+      color: #fff;
+      box-shadow: 0 12px 24px rgba(22, 101, 52, 0.18);
+    }
+
+    .btn-secondary {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--brand-strong);
+    }
+
+    .btn-whatsapp {
+      background: #25d366;
+      color: #fff;
+      box-shadow: 0 12px 24px rgba(37, 211, 102, 0.18);
+    }
+
+    .document-stage {
+      overflow: auto;
+      padding: 20px;
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(45deg, rgba(22, 101, 52, 0.035) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(22, 101, 52, 0.035) 25%, transparent 25%),
+        #eef4ef;
+      background-size: 18px 18px;
+    }
+
+    .rx-sheet {
+      width: min(794px, 100%);
+      min-height: 1123px;
+      margin: 0 auto;
+      padding: 48px 50px;
+      overflow: hidden;
+      border-radius: 6px;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      color: #111827;
+      box-shadow: 0 20px 45px rgba(22, 38, 29, 0.14);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .rx-sheet-header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 16px;
+      padding: 0 0 14px;
+      border-bottom: 1px solid #777;
+      background: #fff;
+    }
+
+    .clinic-title {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.1;
+      color: #111827;
+      font-weight: 800;
+    }
+
+    .clinic-address {
+      margin: 10px 0 0;
+      max-width: 310px;
+      color: #111827;
+      font-size: 13px;
+      line-height: 1.18;
+    }
+
+    .doctor-block {
+      text-align: right;
+      font-size: 12px;
+      line-height: 1.28;
+    }
+
+    .doctor-block strong {
+      display: block;
+      margin-bottom: 2px;
+      font-size: 13px;
+    }
+
+    .patient-band {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 0.9fr);
+      gap: 10px;
+      margin: 20px 0 18px;
+      padding: 9px 10px;
+      border: 1px solid #e5e7eb;
+      font-size: 13px;
+      line-height: 1.38;
+    }
+
+    .patient-band strong,
+    .text-row strong {
+      font-weight: 800;
+    }
+
+    .text-row {
+      margin: 9px 0;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .rx-section {
+      padding: 0;
+      border-bottom: 0;
+    }
+
+    .medicine-table {
+      width: 100%;
+      margin: 18px 0 16px;
+      border-collapse: collapse;
+      border: 1px solid #4b5563;
+      font-size: 12px;
+    }
+
+    .medicine-table-wrap {
+      overflow-x: auto;
+      margin: 18px 0 16px;
+    }
+
+    .medicine-table-wrap .medicine-table {
+      margin: 0;
+      min-width: 620px;
+    }
+
+    .medicine-table th,
+    .medicine-table td {
+      padding: 7px 8px;
+      border: 1px solid #4b5563;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .medicine-table th {
+      background: #e5e7eb;
+      color: #111827;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .medicine-table .medicine-name {
+      text-align: left;
+      font-weight: 800;
+    }
+
+    .medicine-table .medicine-sub {
+      display: block;
+      margin-top: 3px;
+      font-size: 9px;
+      font-style: italic;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .instructions-block {
+      margin-top: 10px;
+      font-size: 13px;
+      line-height: 1.32;
+    }
+
+    .instructions-block strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+
+    .instructions-block ul {
+      margin: 4px 0 0 22px;
+      padding: 0;
+    }
+
+    .mini-chart-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .mini-chart-card strong {
+      display: block;
+      margin-bottom: 3px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .mini-chart-card img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 1.15 / 1;
+      object-fit: contain;
+      object-position: center;
+      filter: grayscale(1) contrast(1.05);
+      background: #fff;
+    }
+
+    .rx-footer {
+      display: block;
+      margin-top: 28px;
+      font-size: 12px;
+      line-height: 1.25;
+    }
+
+    .signature-line {
+      width: 92px;
+      height: 34px;
+      margin-bottom: 8px;
+      border-bottom: 1px solid #111827;
+    }
+
+    .empty-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 900px) {
+      .topbar {
+        width: min(100% - 24px, 100%);
+        min-height: auto;
+        padding: 14px 0;
+        flex-wrap: wrap;
+      }
+
+      .page-shell {
+        width: min(100% - 24px, 100%);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .topbar {
+        width: min(100% - 20px, 100%);
+        padding: 12px 0;
+        gap: 12px;
+        align-items: stretch;
+      }
+
+      .brand {
+        width: auto;
+        flex: 1 1 auto;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .menu-toggle {
+        display: inline-flex;
+        flex-shrink: 0;
+      }
+
+      .nav-links {
+        width: 100%;
+        order: 3;
+        margin-left: 0;
+        display: none;
+        flex-direction: column;
+        gap: 6px;
+        padding: 10px;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.96);
+        box-shadow: 0 14px 28px rgba(22, 38, 29, 0.08);
+      }
+
+      .nav-links.is-open {
+        display: flex;
+      }
+
+      .topbar-actions {
+        margin-left: 0;
+        width: 100%;
+        order: 4;
+      }
+
+      .page-shell {
+        width: min(100% - 20px, 100%);
+        margin: 16px auto 22px;
+      }
+
+      .content-panel {
+        min-height: 260px;
+        padding: 12px;
+      }
+
+      .preview-workbar {
+        position: static;
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .preview-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+        width: 100%;
+      }
+
+      .document-stage {
+        padding: 8px;
+        border-radius: 16px;
+      }
+
+      .rx-sheet {
+        min-height: auto;
+        padding: 22px 16px;
+        font-size: 14px;
+      }
+
+      .patient-band,
+      .mini-chart-grid,
+      .rx-sheet-header {
+        grid-template-columns: 1fr;
+      }
+
+      .status-chip {
+        width: 100%;
+        justify-content: center;
+        border-radius: 14px;
+      }
+
+      .nav-link {
+        width: 100%;
+        min-height: 42px;
+        padding: 10px 12px;
+        border-radius: 14px;
+      }
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      .site-header,
+      .preview-workbar {
+        display: none !important;
+      }
+
+      .page-shell,
+      .content-panel,
+      .document-stage {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        box-shadow: none;
+        background: #fff;
+      }
+
+      .rx-sheet {
+        width: 100%;
+        min-height: auto;
+        padding: 12mm;
+        border: 0;
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-mark">+</div>
+        <div class="brand-copy">
+          <strong>thebetterhealthclinic</strong>
+          <span>Preview</span>
+        </div>
+      </div>
+
+      <button id="menu-toggle" class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" aria-label="Open navigation menu">
+        <span class="menu-toggle-inner" aria-hidden="true">
+          <span class="menu-toggle-bar"></span>
+          <span class="menu-toggle-bar"></span>
+          <span class="menu-toggle-bar"></span>
+        </span>
+      </button>
+
+      <nav id="primary-nav" class="nav-links" aria-label="Primary">
+        <a class="nav-link" href="index.html">Entry</a>
+        <a class="nav-link" href="clinci.html">Dashboard</a>
+        <a class="nav-link" href="choose.html">Patient Choice</a>
+        <a class="nav-link" href="new-patient.html">New Patient</a>
+        <a class="nav-link" href="growth-chart-dashboard.html">Growth Chart</a>
+        <a class="nav-link" href="prescription-growth-chart-dashboard.html">Prescription Chart</a>
+        <a class="nav-link" href="prescription.html">Prescription</a>
+        <a class="nav-link active" href="preview.html">Preview</a>
+        <a class="nav-link" href="search.html">Search</a>
+        <a class="nav-link" href="history.html">History</a>
+      </nav>
+
+      <div class="topbar-actions">
+        <div class="status-chip">
+          <span class="status-dot"></span>
+          Preview page ready
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="page-shell">
+    <section class="content-panel">
+      <div class="preview-workbar">
+        <div class="preview-title">
+          <h1>Review Prescription</h1>
+          <p>Check patient details, medicines, instructions, and chart images before sharing.</p>
+        </div>
+        <div class="preview-actions">
+          <button id="download-pdf-btn" class="btn-primary" type="button">Download PDF</button>
+          <button id="whatsapp-btn" class="btn-whatsapp" type="button">WhatsApp</button>
+          <button id="print-btn" class="btn-secondary" type="button">Print</button>
+        </div>
+      </div>
+      <div class="document-stage">
+        <article id="rx-sheet" class="rx-sheet"></article>
+      </div>
+    </section>
+  </div>
+
+  <script type="module">
+    import { jsPDF } from 'jspdf';
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
+    import { doc, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { getDownloadURL, getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
+
+    const menuToggle = document.getElementById('menu-toggle');
+    const primaryNav = document.getElementById('primary-nav');
+    const navLinks = [...document.querySelectorAll('#primary-nav .nav-link')];
+    const rxSheet = document.getElementById('rx-sheet');
+    const downloadPdfBtn = document.getElementById('download-pdf-btn');
+    const whatsappBtn = document.getElementById('whatsapp-btn');
+    const printBtn = document.getElementById('print-btn');
+    const PRESCRIPTION_DRAFT_STORAGE_KEY = 'prescriptionDraft';
+    const CHART_RECORD_STORAGE_KEY = 'growthChartRecentRecords';
+    const firebaseConfig = {
+      apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+      authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+      storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+      appId: import.meta.env.VITE_FIREBASE_APP_ID,
+      measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+    };
+    const firebaseConfigured = Object.values(firebaseConfig).every(Boolean);
+    const firebaseApp = firebaseConfigured ? initializeApp(firebaseConfig) : null;
+    const db = firebaseApp ? getFirestore(firebaseApp) : null;
+    const storage = firebaseApp ? getStorage(firebaseApp) : null;
+    const statusChip = document.querySelector('.status-chip');
+    let prescriptionSavePromise = null;
+    let savedPrescriptionRecord = null;
+
+    function setPreviewStatus(message) {
+      statusChip.innerHTML = `<span class="status-dot"></span>${escapeHtml(message)}`;
+    }
+
+    function closeMobileMenu() {
+      menuToggle.setAttribute('aria-expanded', 'false');
+      primaryNav.classList.remove('is-open');
+    }
+
+    function toggleMobileMenu() {
+      const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
+      menuToggle.setAttribute('aria-expanded', String(!isOpen));
+      primaryNav.classList.toggle('is-open', !isOpen);
+    }
+
+    menuToggle.addEventListener('click', toggleMobileMenu);
+    navLinks.forEach((link) => link.addEventListener('click', closeMobileMenu));
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 640) {
+        closeMobileMenu();
+      }
+    });
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function readJson(key, fallback) {
+      try {
+        return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback));
+      } catch (error) {
+        return fallback;
+      }
+    }
+
+    function getPatientIdFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      return (params.get('patientId') || '').trim().toUpperCase();
+    }
+
+    function getActivePrescriptionDraft() {
+      const draft = readJson(PRESCRIPTION_DRAFT_STORAGE_KEY, null);
+      if (!draft || Number(draft.expiresAt) <= Date.now()) {
+        localStorage.removeItem(PRESCRIPTION_DRAFT_STORAGE_KEY);
+        return null;
+      }
+      return draft;
+    }
+
+    function getActiveChartRecord() {
+      const patientId = getPatientIdFromUrl();
+      const activeRecords = readJson(CHART_RECORD_STORAGE_KEY, [])
+        .filter((record) => record.keepUntilPrescription || Number(record.expiresAt) > Date.now());
+      const records = activeRecords
+        .filter((record) => !patientId || (record.patientId || '').toUpperCase() === patientId)
+        .sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
+
+      if (activeRecords.length) {
+        localStorage.setItem(CHART_RECORD_STORAGE_KEY, JSON.stringify(activeRecords));
+      } else {
+        localStorage.removeItem(CHART_RECORD_STORAGE_KEY);
+      }
+
+      return records[0] || null;
+    }
+
+    function formatDate(value) {
+      const date = value ? new Date(value) : new Date();
+      if (Number.isNaN(date.getTime())) {
+        return value || '';
+      }
+      return date.toLocaleString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+      });
+    }
+
+    function formatShortDate(value) {
+      const date = value ? new Date(value) : new Date();
+      if (Number.isNaN(date.getTime())) {
+        return value || '';
+      }
+      return date.toLocaleString('en-IN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+      });
+    }
+
+    function listText(values) {
+      return values?.length ? values.join(', ') : '-';
+    }
+
+    function renderTextRow(label, values) {
+      return `<p class="text-row"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(listText(values))}</p>`;
+    }
+
+    function formatDuration(value) {
+      const rawValue = String(value || '').trim();
+      const match = rawValue.match(/^(\d+)(d|w|m|y)$/i);
+
+      if (!match) {
+        return rawValue;
+      }
+
+      const count = Number(match[1]);
+      const unitMap = {
+        d: 'Day',
+        w: 'Week',
+        m: 'Month',
+        y: 'Year'
+      };
+      const unit = unitMap[match[2].toLowerCase()];
+      return `${count} ${unit}${count === 1 ? '' : 's'}`;
+    }
+
+    function getMedicineRows(draft) {
+      const medicines = draft?.sections?.Medicens || [];
+      const details = draft?.medicineDetails || {};
+      return medicines.map((medicine) => {
+        const detail = details[medicine] || {};
+        return {
+          medicine,
+          dose: detail.dose || detail.doseChip || '',
+          timing: Array.isArray(detail.timings) ? detail.timings.join(', ') : '',
+          food: detail.food || '',
+          duration: formatDuration(detail.duration),
+          note: detail.note || ''
+        };
+      });
+    }
+
+    function renderMedicineTable(rows) {
+      if (!rows.length) {
+        return '<p class="empty-note">No medicines selected.</p>';
+      }
+
+      return `
+        <div class="medicine-table-wrap">
+        <table class="medicine-table">
+          <thead>
+            <tr>
+              <th style="width: 7%"></th>
+              <th>Medicine</th>
+              <th>Quantity</th>
+              <th>Frequency</th>
+              <th>Duration</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map((row, index) => `
+              <tr>
+                <td><strong>${index + 1}</strong></td>
+                <td class="medicine-name">
+                  ${escapeHtml(row.medicine)}
+                  <span class="medicine-sub">${escapeHtml(row.note || row.food || '')}</span>
+                </td>
+                <td><strong>${escapeHtml(row.dose || '-')}</strong></td>
+                <td><strong>${escapeHtml(row.timing || '-')}</strong></td>
+                <td><strong>${escapeHtml(row.duration || '-')}</strong></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        </div>
+      `;
+    }
+
+    function chartTitle(label, index) {
+      const labels = ['Height vs Age', 'Weight vs Age', 'OFC vs Age', 'BMI vs Age'];
+      return labels[index] || label || 'Growth Chart';
+    }
+
+    function cropChartDataUrl(dataUrl) {
+      return new Promise((resolve) => {
+        if (!dataUrl) {
+          resolve('');
+          return;
+        }
+
+        const image = new Image();
+        image.onload = () => {
+          const crop = {
+            x: Math.round(image.width * 0.06),
+            y: Math.round(image.height * 0.11),
+            width: Math.round(image.width * 0.88),
+            height: Math.round(image.height * 0.68)
+          };
+          const canvas = document.createElement('canvas');
+          canvas.width = crop.width;
+          canvas.height = crop.height;
+          const context = canvas.getContext('2d');
+          context.imageSmoothingEnabled = true;
+          context.imageSmoothingQuality = 'high';
+          context.drawImage(
+            image,
+            crop.x,
+            crop.y,
+            crop.width,
+            crop.height,
+            0,
+            0,
+            crop.width,
+            crop.height
+          );
+          resolve(canvas.toDataURL('image/jpeg', 0.9));
+        };
+        image.onerror = () => resolve(dataUrl);
+        image.src = dataUrl;
+      });
+    }
+
+    async function enhanceChartThumbnails(record) {
+      const pages = record?.chartPages || [];
+      const images = [...document.querySelectorAll('[data-chart-index]')];
+
+      await Promise.all(images.map(async (image) => {
+        const page = pages[Number(image.dataset.chartIndex)];
+        const croppedDataUrl = await cropChartDataUrl(page?.dataUrl);
+        if (croppedDataUrl) {
+          image.src = croppedDataUrl;
+        }
+      }));
+    }
+
+    function renderMiniCharts(record) {
+      const pages = record?.chartPages || [];
+      if (!pages.length) {
+        return '<p class="empty-note">Growth chart preview is not available. Generate charts again, then continue to prescription.</p>';
+      }
+
+      return `
+        <div class="mini-chart-grid">
+          ${pages.slice(0, 4).map((page, index) => `
+            <div class="mini-chart-card">
+              <strong>${escapeHtml(chartTitle(page.label, index))}</strong>
+              <img data-chart-index="${index}" src="${escapeHtml(page.dataUrl)}" alt="${escapeHtml(page.label)} chart">
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function buildPreviewHtml() {
+      const draft = getActivePrescriptionDraft();
+      const chartRecord = getActiveChartRecord();
+      const sections = draft?.sections || {};
+      const medicineRows = getMedicineRows(draft);
+      const patientId = draft?.patientId || chartRecord?.patientId || getPatientIdFromUrl() || '-';
+      const now = new Date().toISOString();
+      const instructions = sections.Instruction || [];
+
+      rxSheet.innerHTML = `
+        <header class="rx-sheet-header">
+          <div>
+            <h1 class="clinic-title">thebetterhealthclinic</h1>
+            <p class="clinic-address">thebetterhealthclinic - Paediatrician #118, 5th Cross, Omkar Nagar Akere, Bannerghatta road 560076 Bengaluru Karnataka</p>
+          </div>
+          <div class="doctor-block">
+            <strong>Dr. Gunda Srinivas</strong>
+            MBBS, DCH, DNB - Paediatrics, PGDDN, FPEM
+          </div>
+        </header>
+
+        <section class="patient-band">
+          <div>
+            <div><strong>Name:</strong> ${escapeHtml(chartRecord?.childName || '-')}</div>
+            <div><strong>Age/Sex:</strong> ${escapeHtml(chartRecord?.age || '-')} / ${escapeHtml(chartRecord?.gender || '-')}</div>
+            <div><strong>Office ID:</strong> ${escapeHtml(patientId)}</div>
+          </div>
+          <div>
+            <div><strong>Date:</strong> ${escapeHtml(formatShortDate(now))}</div>
+            <div><strong>Mobile:</strong> ${escapeHtml(chartRecord?.phone || '-')}</div>
+          </div>
+          <div>
+            <div><strong>Weight:</strong> ${escapeHtml(chartRecord?.weight || '-')} kg</div>
+            <div><strong>Height:</strong> ${escapeHtml(chartRecord?.height || '-')} cm</div>
+          </div>
+        </section>
+
+        ${renderTextRow('Symptoms', sections.Symptoms)}
+        ${renderTextRow('Findings', sections.Finding)}
+        ${renderTextRow('Diagnosis', sections.Diagnosis)}
+
+        ${renderMedicineTable(medicineRows)}
+
+        <section class="instructions-block">
+          <strong>Instructions:</strong>
+          ${instructions.length
+            ? `<ul>${instructions.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`
+            : '<p class="empty-note">No instructions selected.</p>'}
+        </section>
+
+        ${renderMiniCharts(chartRecord)}
+
+        <footer class="rx-footer">
+          <div>
+            <div class="signature-line"></div>
+            <strong>Dr. Gunda Srinivas</strong><br>
+            MBBS, DCH, DNB - Paediatrics, PGDDN, FPEM<br>
+            71826
+          </div>
+        </footer>
+      `;
+      enhanceChartThumbnails(chartRecord);
+    }
+
+    function addTextLine(pdf, text, x, y, options = {}) {
+      const lines = pdf.splitTextToSize(String(text || '-'), options.maxWidth || 175);
+      pdf.text(lines, x, y);
+      return y + lines.length * (options.lineHeight || 6);
+    }
+
+    function addWrappedSection(pdf, title, values, y) {
+      if (y > 250) {
+        pdf.addPage();
+        y = 16;
+      }
+
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(8.8);
+      pdf.text(title, 14, y);
+      y += 5;
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(8.2);
+      return addTextLine(pdf, values?.length ? values.join(', ') : 'No items selected.', 14, y, { maxWidth: 182, lineHeight: 4.2 }) + 3;
+    }
+
+    async function buildPdf() {
+      const draft = getActivePrescriptionDraft();
+      const chartRecord = getActiveChartRecord();
+      const sections = draft?.sections || {};
+      const medicineRows = getMedicineRows(draft);
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const patientId = draft?.patientId || chartRecord?.patientId || getPatientIdFromUrl() || '-';
+      const now = new Date().toISOString();
+
+      pdf.setTextColor(17, 24, 39);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(12);
+      pdf.text('thebetterhealthclinic', 15, 16);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(8.5);
+      pdf.text(['thebetterhealthclinic - Paediatrician #118, 5th', 'Cross, Omkar Nagar Akere, Bannerghatta', 'road 560076 Bengaluru Karnataka'], 15, 25);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(8.5);
+      pdf.text('Dr. Gunda Srinivas', 170, 16, { align: 'right' });
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('MBBS, DCH, DNB - Paediatrics, PGDDN, FPEM', 170, 23, { align: 'right' });
+      pdf.line(15, 42, 195, 42);
+
+      pdf.rect(15, 50, 180, 18);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(8.5);
+      pdf.text('Name:', 18, 57);
+      pdf.text('Age/Sex:', 18, 63);
+      pdf.text('Office ID:', 18, 67);
+      pdf.text('Date:', 87, 57);
+      pdf.text('Mobile:', 87, 63);
+      pdf.text('Weight:', 165, 57);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(chartRecord?.childName || '-', 31, 57);
+      pdf.text(`${chartRecord?.age || '-'} / ${chartRecord?.gender || '-'}`, 35, 63);
+      pdf.text(patientId, 36, 67);
+      pdf.text(formatShortDate(now), 98, 57);
+      pdf.text(chartRecord?.phone || '-', 102, 63);
+      pdf.text(`${chartRecord?.weight || '-'} kg`, 181, 57);
+
+      let y = 79;
+      pdf.setFontSize(8.8);
+      y = addWrappedSection(pdf, 'Symptoms', sections.Symptoms, y);
+      y = addWrappedSection(pdf, 'Findings', sections.Finding, y - 2);
+      y = addWrappedSection(pdf, 'Diagnosis', sections.Diagnosis, y - 2);
+
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(8.5);
+      const tableTop = y + 3;
+      pdf.rect(15, tableTop, 180, 7);
+      pdf.setFillColor(229, 231, 235);
+      pdf.rect(15, tableTop, 180, 7, 'F');
+      pdf.setDrawColor(75, 85, 99);
+      pdf.rect(15, tableTop, 180, 7);
+      pdf.text('', 18, tableTop + 5);
+      pdf.text('Medicines', 52, tableTop + 5);
+      pdf.text('Quantity', 105, tableTop + 5);
+      pdf.text('Frequency', 136, tableTop + 5);
+      pdf.text('Duration', 169, tableTop + 5);
+      y = tableTop + 7;
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(8);
+      if (medicineRows.length) {
+        medicineRows.forEach((row, index) => {
+          const rowHeight = 12;
+          pdf.rect(15, y, 180, rowHeight);
+          pdf.line(26, y, 26, y + rowHeight);
+          pdf.line(94, y, 94, y + rowHeight);
+          pdf.line(125, y, 125, y + rowHeight);
+          pdf.line(158, y, 158, y + rowHeight);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text(String(index + 1), 19, y + 7);
+          pdf.text(row.medicine || '-', 28, y + 5);
+          pdf.text(row.dose || '-', 108, y + 7);
+          pdf.text(row.timing || '-', 138, y + 7);
+          pdf.text(row.duration || '-', 170, y + 7);
+          pdf.setFont('helvetica', 'italic');
+          pdf.setFontSize(6.5);
+          pdf.text((row.note || row.food || '').slice(0, 34), 28, y + 10);
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(8);
+          y += rowHeight;
+        });
+      } else {
+        pdf.rect(15, y, 180, 9);
+        pdf.text('No medicines selected.', 18, y + 6);
+        y += 9;
+      }
+
+      y += 8;
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(9);
+      pdf.text('Instructions:', 15, y);
+      y += 5;
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(8);
+      const instructions = sections.Instruction || [];
+      if (instructions.length) {
+        instructions.forEach((item) => {
+          y = addTextLine(pdf, `• ${item}`, 20, y, { maxWidth: 170, lineHeight: 5 });
+        });
+      } else {
+        pdf.text('No instructions selected.', 20, y);
+        y += 4.5;
+      }
+
+      const chartPages = (chartRecord?.chartPages || []).slice(0, 4);
+      if (chartPages.length) {
+        y += 3;
+        const chartWidth = 36;
+        const chartGap = 7;
+        const croppedPages = await Promise.all(chartPages.map(async (page) => ({
+          ...page,
+          dataUrl: await cropChartDataUrl(page.dataUrl)
+        })));
+        croppedPages.forEach((page, index) => {
+          const x = 15 + index * (chartWidth + chartGap);
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(8);
+          pdf.text(chartTitle(page.label, index), x, y);
+          pdf.addImage(page.dataUrl, 'JPEG', x, y + 3, chartWidth, 31, undefined, 'FAST');
+        });
+        y += 40;
+      }
+
+      pdf.line(15, 250, 38, 250);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(8.5);
+      pdf.text('Dr. Gunda Srinivas', 15, 258);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('MBBS, DCH, DNB - Paediatrics, PGDDN, FPEM', 15, 264);
+      pdf.setFontSize(7);
+      pdf.text('71826', 15, 269);
+
+      return {
+        pdf,
+        draftId: draft?.draftId || '',
+        patientId,
+        childName: chartRecord?.childName || '',
+        parentName: chartRecord?.parentName || '',
+        phone: chartRecord?.phone || '',
+        gender: chartRecord?.gender || '',
+        dob: chartRecord?.dob || '',
+        age: chartRecord?.age || '',
+        charts: chartRecord?.charts || chartRecord?.selectedCharts || [],
+        weight: chartRecord?.weight || '',
+        height: chartRecord?.height || '',
+        head: chartRecord?.head || '',
+        spo2: chartRecord?.spo2 || '',
+        pulse: chartRecord?.pulse || '',
+        systolic: chartRecord?.systolic || '',
+        diastolic: chartRecord?.diastolic || '',
+        temp: chartRecord?.temp || ''
+      };
+    }
+
+    async function savePrescriptionPdfToFirebase(pdfBlob, fileName, details, saveId) {
+      if (!db || !storage) {
+        return { ok: false, reason: 'Firebase Storage is not configured.' };
+      }
+
+      const patientId = details.patientId || 'UNKNOWN';
+      const storagePath = `prescriptions/${patientId}/${fileName}`;
+      const storageRef = ref(storage, storagePath);
+
+      await uploadBytes(storageRef, pdfBlob, {
+        contentType: 'application/pdf'
+      });
+      const downloadURL = await getDownloadURL(storageRef);
+
+      await setDoc(doc(db, 'history', saveId), {
+        prescriptionSaveId: saveId,
+        patientId,
+        childName: details.childName || '',
+        parentName: details.parentName || '',
+        phone: details.phone || '',
+        gender: details.gender || '',
+        dob: details.dob || '',
+        age: details.age || '',
+        charts: details.charts || [],
+        weight: details.weight || '',
+        height: details.height || '',
+        head: details.head || '',
+        spo2: details.spo2 || '',
+        pulse: details.pulse || '',
+        systolic: details.systolic || '',
+        diastolic: details.diastolic || '',
+        temp: details.temp || '',
+        fileName,
+        storagePath,
+        downloadURL,
+        source: 'prescription-pdf',
+        type: 'prescription',
+        createdAt: serverTimestamp(),
+        createdAtIso: new Date().toISOString(),
+        createdAtDisplay: new Date().toLocaleString('en-IN')
+      }, { merge: true });
+
+      return { ok: true, downloadURL, storagePath };
+    }
+
+    async function ensurePrescriptionSaved() {
+      if (savedPrescriptionRecord) {
+        return savedPrescriptionRecord;
+      }
+
+      if (prescriptionSavePromise) {
+        return prescriptionSavePromise;
+      }
+
+      prescriptionSavePromise = (async () => {
+        setPreviewStatus('Saving prescription...');
+        const details = await buildPdf();
+        const { pdf, patientId, childName, phone } = details;
+        const saveId = details.draftId || `rx-${patientId || 'UNKNOWN'}-${new Date().toISOString().slice(0, 10)}`;
+        const fileName = `${saveId}.pdf`;
+        const pdfBlob = pdf.output('blob');
+        const saveResult = await savePrescriptionPdfToFirebase(pdfBlob, fileName, {
+          ...details,
+          patientId,
+          childName,
+          phone
+        }, saveId);
+
+        if (!saveResult.ok) {
+          throw new Error(saveResult.reason || 'Unable to save prescription.');
+        }
+
+        savedPrescriptionRecord = {
+          pdf,
+          patientId,
+          childName,
+          phone,
+          saveId,
+          fileName,
+          pdfBlob,
+          ...saveResult
+        };
+        setPreviewStatus('Prescription saved');
+        return savedPrescriptionRecord;
+      })().catch((error) => {
+        prescriptionSavePromise = null;
+        setPreviewStatus(`Save failed: ${error.message}`);
+        throw error;
+      });
+
+      return prescriptionSavePromise;
+    }
+
+    function clearPrescriptionLocalData() {
+      localStorage.removeItem(PRESCRIPTION_DRAFT_STORAGE_KEY);
+      localStorage.removeItem(CHART_RECORD_STORAGE_KEY);
+      localStorage.removeItem('prescriptionMedicineDetails');
+    }
+
+    function normalizeWhatsAppPhone(phone) {
+      const digits = String(phone || '').replace(/\D/g, '');
+      if (digits.length === 10) {
+        return `91${digits}`;
+      }
+      return digits;
+    }
+
+    function openWhatsAppChat(phone, message) {
+      const normalizedPhone = normalizeWhatsAppPhone(phone);
+      const encodedMessage = encodeURIComponent(message);
+      const targetUrl = normalizedPhone
+        ? `https://wa.me/${normalizedPhone}?text=${encodedMessage}`
+        : `https://wa.me/?text=${encodedMessage}`;
+      window.open(targetUrl, '_blank', 'noopener,noreferrer');
+    }
+
+    function buildShortPrescriptionLink(saveId) {
+      if (!saveId) {
+        return '';
+      }
+
+      const url = new URL('rx.html', window.location.href);
+      url.searchParams.set('i', saveId);
+      return url.toString();
+    }
+
+    downloadPdfBtn.addEventListener('click', async () => {
+      downloadPdfBtn.disabled = true;
+      downloadPdfBtn.textContent = 'Preparing...';
+
+      try {
+        const savedRecord = await ensurePrescriptionSaved();
+        savedRecord.pdf.save(savedRecord.fileName);
+        clearPrescriptionLocalData();
+      } catch (error) {
+        console.warn(`Unable to save prescription PDF: ${error.message}`);
+      } finally {
+        downloadPdfBtn.disabled = false;
+        downloadPdfBtn.textContent = 'Download PDF';
+      }
+    });
+
+    whatsappBtn.addEventListener('click', async () => {
+      whatsappBtn.disabled = true;
+      whatsappBtn.textContent = 'Opening...';
+
+      try {
+        const savedRecord = await ensurePrescriptionSaved();
+        const chartRecord = getActiveChartRecord();
+        const shortLink = buildShortPrescriptionLink(savedRecord.saveId) || savedRecord.downloadURL;
+        const message = [
+          `Hello ${chartRecord?.childName || 'Patient'},`,
+          '',
+          `You can see your prescription here:`,
+          shortLink,
+          '',
+          `Patient ID: ${savedRecord.patientId || chartRecord?.patientId || '-'}`,
+          `Clinic: thebetterhealthclinic`,
+          '',
+          `Regards,`,
+          `AB Labs`
+        ].join('\n');
+        openWhatsAppChat(chartRecord?.phone || savedRecord.phone || '', message);
+      } catch (error) {
+        console.warn(`Unable to prepare WhatsApp prescription link: ${error.message}`);
+      } finally {
+        whatsappBtn.disabled = false;
+        whatsappBtn.textContent = 'WhatsApp';
+      }
+    });
+
+    printBtn.addEventListener('click', () => window.print());
+    buildPreviewHtml();
+    ensurePrescriptionSaved().catch((error) => {
+      console.warn(`Prescription auto-save failed: ${error.message}`);
+    });
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Patient</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #eef4ef;
+      --panel: #fcfdf8;
+      --panel-strong: #ffffff;
+      --ink: #1b2a21;
+      --muted: #607067;
+      --line: #d7e2d9;
+      --brand: #166534;
+      --brand-soft: #dcfce7;
+      --brand-strong: #14532d;
+      --accent-soft: #ffedd5;
+      --shadow: 0 18px 45px rgba(22, 38, 29, 0.08);
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Outfit', system-ui, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(34, 197, 94, 0.14), transparent 28%),
+        linear-gradient(180deg, #f5faf3 0%, #edf5ef 100%);
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(12px);
+      background: rgba(248, 252, 248, 0.85);
+      border-bottom: 1px solid rgba(215, 226, 217, 0.95);
+      box-shadow: 0 8px 24px rgba(22, 38, 29, 0.05);
+    }
+
+    .topbar {
+      width: min(1180px, calc(100% - 28px));
+      margin: 0 auto;
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      background: linear-gradient(135deg, #166534, #22c55e);
+      color: #fff;
+      box-shadow: 0 10px 22px rgba(22, 101, 52, 0.22);
+    }
+
+    .brand-copy strong {
+      display: block;
+      font-size: 15px;
+      line-height: 1.1;
+    }
+
+    .brand-copy span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: 10px;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
+
+    .nav-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 999px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      transition: background 0.18s ease, color 0.18s ease;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      background: var(--brand-soft);
+      color: var(--brand-strong);
+    }
+
+    .menu-toggle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      margin-left: auto;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.82);
+      color: var(--ink);
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(22, 38, 29, 0.08);
+    }
+
+    .menu-toggle-inner {
+      display: grid;
+      gap: 4px;
+    }
+
+    .menu-toggle-bar {
+      display: block;
+      width: 18px;
+      height: 2px;
+      border-radius: 999px;
+      background: currentColor;
+      transition: transform 0.18s ease, opacity 0.18s ease;
+    }
+
+    .menu-toggle[aria-expanded="true"] .menu-toggle-bar:nth-child(1) {
+      transform: translateY(6px) rotate(45deg);
+    }
+
+    .menu-toggle[aria-expanded="true"] .menu-toggle-bar:nth-child(2) {
+      opacity: 0;
+    }
+
+    .menu-toggle[aria-expanded="true"] .menu-toggle-bar:nth-child(3) {
+      transform: translateY(-6px) rotate(-45deg);
+    }
+
+    .topbar-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      background: #f8fbf9;
+      border: 1px solid var(--line);
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.12);
+    }
+
+    .page-shell {
+      width: min(1040px, calc(100% - 32px));
+      margin: 34px auto;
+    }
+
+    .intro {
+      margin-bottom: 22px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--brand-soft);
+      color: var(--brand-strong);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 12px 0 8px;
+      font-size: clamp(28px, 3.6vw, 42px);
+      line-height: 1.04;
+    }
+
+    .intro p {
+      margin: 0;
+      max-width: 58ch;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .content-panel {
+      padding: 24px;
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(215, 226, 217, 0.95);
+      background: rgba(255, 255, 255, 0.84);
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow);
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    .panel-head h2 {
+      margin: 0 0 6px;
+      font-size: 24px;
+    }
+
+    .panel-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .panel-note {
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: var(--accent-soft);
+      color: #9a3412;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .intake-form {
+      display: grid;
+      gap: 18px;
+    }
+
+    .panel-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 280px;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .sidebar-stack {
+      display: grid;
+      gap: 12px;
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field-full {
+      grid-column: 1 / -1;
+    }
+
+    label,
+    .field-label {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    input[type="text"],
+    input[type="tel"],
+    input[type="email"] {
+      width: 100%;
+      min-height: 48px;
+      padding: 0 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      outline: none;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    input:focus {
+      border-color: rgba(22, 101, 52, 0.55);
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12);
+    }
+
+    .field-hint {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .dob-group {
+      display: grid;
+      grid-template-columns: 84px 84px minmax(112px, 1fr);
+      gap: 10px;
+    }
+
+    .dob-group input {
+      text-align: center;
+    }
+
+    .required {
+      color: #b91c1c;
+    }
+
+    .radio-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .radio-pill input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .radio-pill label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0 18px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: #fff;
+      cursor: pointer;
+      font-weight: 600;
+      transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+    }
+
+    .radio-pill input:checked + label {
+      border-color: rgba(22, 101, 52, 0.38);
+      background: var(--brand-soft);
+      color: var(--brand-strong);
+    }
+
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 20px;
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .btn-primary {
+      border: 0;
+      background: linear-gradient(135deg, #166534, #22c55e);
+      color: #fff;
+      box-shadow: 0 12px 24px rgba(22, 101, 52, 0.2);
+    }
+
+    .btn-secondary {
+      border: 1px solid var(--line);
+      background: #f8fbf9;
+      color: var(--ink);
+    }
+
+    .btn-primary:hover,
+    .btn-secondary:hover {
+      transform: translateY(-1px);
+    }
+
+    .patient-id-box {
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(244, 250, 245, 0.96));
+    }
+
+    .patient-id-box h3 {
+      margin: 0 0 8px;
+      font-size: 16px;
+    }
+
+    .patient-id-box p {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .patient-id-value {
+      display: inline-flex;
+      align-items: center;
+      min-height: 46px;
+      padding: 0 14px;
+      border-radius: 14px;
+      background: #f8fbf9;
+      border: 1px solid var(--line);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--brand-strong);
+    }
+
+    @media (max-width: 900px) {
+      .topbar {
+        width: min(100% - 24px, 100%);
+        min-height: auto;
+        padding: 14px 0;
+        flex-wrap: wrap;
+      }
+
+      .page-shell {
+        width: min(100% - 24px, 100%);
+      }
+
+      .panel-head {
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .topbar {
+        width: min(100% - 20px, 100%);
+        padding: 12px 0;
+        gap: 12px;
+        align-items: stretch;
+      }
+
+      .brand {
+        width: auto;
+        flex: 1 1 auto;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .menu-toggle {
+        display: inline-flex;
+        flex-shrink: 0;
+      }
+
+      .nav-links {
+        width: 100%;
+        order: 3;
+        margin-left: 0;
+        display: none;
+        flex-direction: column;
+        gap: 6px;
+        padding: 10px;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.96);
+        box-shadow: 0 14px 28px rgba(22, 38, 29, 0.08);
+      }
+
+      .nav-links.is-open {
+        display: flex;
+      }
+
+      .topbar-actions {
+        margin-left: 0;
+        width: 100%;
+        order: 4;
+      }
+
+      .page-shell {
+        width: min(100% - 20px, 100%);
+        margin: 16px auto 22px;
+      }
+
+      .brand-mark {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        font-size: 18px;
+      }
+
+      .brand-copy strong {
+        font-size: 14px;
+      }
+
+      .brand-copy span {
+        font-size: 11px;
+      }
+
+      .content-panel {
+        padding: 16px;
+      }
+
+      .status-chip {
+        width: 100%;
+        justify-content: center;
+        border-radius: 14px;
+      }
+
+      .nav-link {
+        width: 100%;
+        min-height: 42px;
+        padding: 10px 12px;
+        border-radius: 14px;
+      }
+
+      .panel-layout,
+      .field-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .dob-group {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .radio-row {
+        flex-direction: column;
+      }
+
+      .radio-pill label,
+      .btn-primary,
+      .btn-secondary {
+        width: 100%;
+      }
+
+      .intro p,
+      .panel-head p,
+      .patient-id-box p {
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-mark">+</div>
+        <div class="brand-copy">
+          <strong>thebetterhealthclinic</strong>
+          <span>New Patient</span>
+        </div>
+      </div>
+
+      <button id="menu-toggle" class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" aria-label="Open navigation menu">
+        <span class="menu-toggle-inner" aria-hidden="true">
+          <span class="menu-toggle-bar"></span>
+          <span class="menu-toggle-bar"></span>
+          <span class="menu-toggle-bar"></span>
+        </span>
+      </button>
+
+      <nav id="primary-nav" class="nav-links" aria-label="Primary">
+        <a class="nav-link" href="index.html">Entry</a>
+        <a class="nav-link" href="clinci.html">Dashboard</a>
+        <a class="nav-link" href="choose.html">Patient Choice</a>
+        <a class="nav-link active" href="new-patient.html">New Patient</a>
+        <a class="nav-link" href="growth-chart-dashboard.html">Growth Chart</a>
+        <a class="nav-link" href="prescription-growth-chart-dashboard.html">Prescription Chart</a>
+        <a class="nav-link" href="prescription.html">Prescription</a>
+        <a class="nav-link" href="preview.html">Preview</a>
+        <a class="nav-link" href="search.html">Search</a>
+        <a class="nav-link" href="history.html">History</a>
+      </nav>
+
+      <div class="topbar-actions">
+        <div class="status-chip">
+          <span class="status-dot"></span>
+          New patient setup ready
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="page-shell">
+    <section class="intro">
+      <div class="eyebrow">Prescription</div>
+      <h1>Create the new patient record before continuing.</h1>
+      <p>Fill the clinic intake details below and continue into the prescription growth chart page.</p>
+    </section>
+
+    <section class="content-panel">
+      <div class="panel-head">
+        <div>
+          <h2>New Patient Intake</h2>
+          <p>Enter the patient record details for this visit.</p>
+        </div>
+        <div class="panel-note">Required fields must be filled before continuing.</div>
+      </div>
+
+      <div class="panel-layout">
+        <form id="new-patient-form" class="intake-form" novalidate>
+          <div class="field-grid">
+            <div class="field">
+              <label for="first-name">First Name <span class="required">*</span></label>
+              <input id="first-name" name="firstName" type="text" placeholder="Enter first name" required>
+              <span class="field-hint">This will be used as part of the patient name.</span>
+            </div>
+
+            <div class="field">
+              <label for="middle-name">Middle Name</label>
+              <input id="middle-name" name="middleName" type="text" placeholder="Enter middle name">
+              <span class="field-hint">Leave blank if not used.</span>
+            </div>
+
+            <div class="field">
+              <label for="last-name">Last Name</label>
+              <input id="last-name" name="lastName" type="text" placeholder="Enter last name">
+              <span class="field-hint">Leave blank if not used.</span>
+            </div>
+
+            <div class="field">
+              <label for="mobile-number">Mobile Number <span class="required">*</span></label>
+              <input id="mobile-number" name="mobileNumber" type="tel" inputmode="tel" placeholder="Enter mobile number" required>
+              <span class="field-hint">Use the main contact number for this patient.</span>
+            </div>
+
+            <div class="field">
+              <label for="email">Email</label>
+              <input id="email" name="email" type="email" placeholder="Enter email address">
+              <span class="field-hint">Leave blank if not available.</span>
+            </div>
+
+            <div class="field">
+              <label for="blood-group">Blood Group</label>
+              <input id="blood-group" name="bloodGroup" type="text" placeholder="e.g. O+">
+              <span class="field-hint">Leave blank if not known.</span>
+            </div>
+
+            <div class="field field-full">
+              <span class="field-label">Gender <span class="required">*</span></span>
+              <div class="radio-row" role="radiogroup" aria-label="Gender selection">
+                <div class="radio-pill">
+                  <input id="gender-male" name="gender" type="radio" value="Male" required>
+                  <label for="gender-male">Male</label>
+                </div>
+                <div class="radio-pill">
+                  <input id="gender-female" name="gender" type="radio" value="Female" required>
+                  <label for="gender-female">Female</label>
+                </div>
+              </div>
+              <span class="field-hint">Choose the patient gender used for clinic charting.</span>
+            </div>
+
+            <div class="field">
+              <span class="field-label">Date of Birth <span class="required">*</span></span>
+              <div class="dob-group">
+                <input id="dob-day" name="dobDay" type="text" inputmode="numeric" placeholder="DD" maxlength="2" required>
+                <input id="dob-month" name="dobMonth" type="text" inputmode="numeric" placeholder="MM" maxlength="2" required>
+                <input id="dob-year" name="dobYear" type="text" inputmode="numeric" placeholder="YYYY" maxlength="4" required>
+              </div>
+              <span class="field-hint">Enter date of birth as day, month, and year.</span>
+            </div>
+
+            <div class="field">
+              <label for="referred-by">Referred By</label>
+              <input id="referred-by" name="referredBy" type="text" placeholder="Enter referral name">
+              <span class="field-hint">Leave blank if there is no referral.</span>
+            </div>
+          </div>
+        </form>
+
+        <div class="sidebar-stack">
+          <div class="patient-id-box">
+            <h3>Patient ID</h3>
+            <p>The patient code is created automatically for this new record.</p>
+            <div id="patient-id-output" class="patient-id-value">Preparing...</div>
+          </div>
+
+          <button id="continue-btn" class="btn-primary" type="submit" form="new-patient-form">Continue</button>
+        </div>
+      </div>
+
+    </section>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
+    import { getFirestore, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+
+    const menuToggle = document.getElementById('menu-toggle');
+    const primaryNav = document.getElementById('primary-nav');
+    const navLinks = [...document.querySelectorAll('#primary-nav .nav-link')];
+    const newPatientForm = document.getElementById('new-patient-form');
+    const continueBtn = document.getElementById('continue-btn');
+    const patientIdOutput = document.getElementById('patient-id-output');
+    const dobDayInput = document.getElementById('dob-day');
+    const dobMonthInput = document.getElementById('dob-month');
+    const dobYearInput = document.getElementById('dob-year');
+    const firebaseConfig = {
+      apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+      authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+      storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+      appId: import.meta.env.VITE_FIREBASE_APP_ID,
+      measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+    };
+    const firebaseConfigured = Object.values(firebaseConfig).every(Boolean);
+    let db = null;
+
+    if (firebaseConfigured) {
+      const app = initializeApp(firebaseConfig);
+      db = getFirestore(app);
+    }
+
+    function closeMobileMenu() {
+      menuToggle.setAttribute('aria-expanded', 'false');
+      primaryNav.classList.remove('is-open');
+    }
+
+    function toggleMobileMenu() {
+      const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
+      menuToggle.setAttribute('aria-expanded', String(!isOpen));
+      primaryNav.classList.toggle('is-open', !isOpen);
+    }
+
+    function buildPatientId() {
+      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let suffix = '';
+
+      for (let index = 0; index < 3; index += 1) {
+        const randomIndex = Math.floor(Math.random() * characters.length);
+        suffix += characters[randomIndex];
+      }
+
+      return `SX${suffix}`;
+    }
+
+    function buildFullName() {
+      return [
+        newPatientForm.elements.firstName.value.trim(),
+        newPatientForm.elements.middleName.value.trim(),
+        newPatientForm.elements.lastName.value.trim()
+      ].filter(Boolean).join(' ');
+    }
+
+    function parseDobInput(dayValue, monthValue, yearValue) {
+      const day = Number.parseInt(dayValue.trim(), 10);
+      const month = Number.parseInt(monthValue.trim(), 10);
+      const year = Number.parseInt(yearValue.trim(), 10);
+
+      if (!day || !month || !yearValue.trim().match(/^\d{4}$/)) {
+        return '';
+      }
+
+      const parsed = new Date(year, month - 1, day);
+
+      if (
+        Number.isNaN(parsed.getTime()) ||
+        parsed.getFullYear() !== year ||
+        parsed.getMonth() !== month - 1 ||
+        parsed.getDate() !== day
+      ) {
+        return '';
+      }
+
+      return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    }
+
+    async function savePatientToFirebase(patientId) {
+      const normalizedDob = parseDobInput(dobDayInput.value, dobMonthInput.value, dobYearInput.value);
+      const patientRecord = {
+        patientId,
+        firstName: newPatientForm.elements.firstName.value.trim(),
+        middleName: newPatientForm.elements.middleName.value.trim(),
+        lastName: newPatientForm.elements.lastName.value.trim(),
+        childName: buildFullName(),
+        parentName: '',
+        gender: newPatientForm.elements.gender.value,
+        dob: normalizedDob,
+        phone: newPatientForm.elements.mobileNumber.value.trim(),
+        mobileNumber: newPatientForm.elements.mobileNumber.value.trim(),
+        email: newPatientForm.elements.email.value.trim(),
+        bloodGroup: newPatientForm.elements.bloodGroup.value.trim(),
+        referredBy: newPatientForm.elements.referredBy.value.trim(),
+        createdAt: firebaseConfigured ? serverTimestamp() : new Date().toISOString()
+      };
+
+      sessionStorage.setItem('newPatientDraft', JSON.stringify(patientRecord));
+
+      if (!db) {
+        return false;
+      }
+
+      await setDoc(doc(db, 'patients', patientId), patientRecord);
+      return true;
+    }
+
+    const autoPatientId = buildPatientId();
+    patientIdOutput.textContent = autoPatientId;
+    sessionStorage.setItem('newPatientId', autoPatientId);
+
+    newPatientForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const normalizedDob = parseDobInput(dobDayInput.value, dobMonthInput.value, dobYearInput.value);
+      if (!normalizedDob) {
+        dobYearInput.setCustomValidity('Please enter a valid date of birth.');
+      } else {
+        dobYearInput.setCustomValidity('');
+      }
+
+      if (!newPatientForm.reportValidity()) {
+        return;
+      }
+
+      continueBtn.disabled = true;
+      continueBtn.textContent = 'Saving...';
+
+      try {
+        const savedToFirebase = await savePatientToFirebase(autoPatientId);
+        console.log(savedToFirebase
+          ? `Saved to Firebase with Patient ID ${autoPatientId}.`
+          : `Patient ID ${autoPatientId} generated locally. Add Firebase config to store this in Firestore.`);
+        window.location.href = `prescription-growth-chart-dashboard.html?patientId=${encodeURIComponent(autoPatientId)}`;
+      } catch (error) {
+        console.error(`Firebase save failed: ${error.message}`);
+      } finally {
+        continueBtn.disabled = false;
+        continueBtn.textContent = 'Continue';
+      }
+    });
+
+    [dobDayInput, dobMonthInput, dobYearInput].forEach((input) => {
+      input.addEventListener('input', () => {
+        dobYearInput.setCustomValidity('');
+      });
+    });
+
+    menuToggle.addEventListener('click', toggleMobileMenu);
+    navLinks.forEach((link) => link.addEventListener('click', closeMobileMenu));
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 640) {
+        closeMobileMenu();
+      }
+    });
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,1730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prescription</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #eef4ef;
+      --panel: #fcfdf8;
+      --ink: #1b2a21;
+      --muted: #607067;
+      --line: #d7e2d9;
+      --brand: #166534;
+      --brand-soft: #dcfce7;
+      --brand-strong: #14532d;
+      --shadow: 0 18px 45px rgba(22, 38, 29, 0.08);
+      --radius-lg: 24px;
+      --radius-md: 16px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Outfit', system-ui, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(34, 197, 94, 0.14), transparent 28%),
+        linear-gradient(180deg, #f5faf3 0%, #edf5ef 100%);
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(12px);
+      background: rgba(248, 252, 248, 0.85);
+      border-bottom: 1px solid rgba(215, 226, 217, 0.95);
+      box-shadow: 0 8px 24px rgba(22, 38, 29, 0.05);
+    }
+
+    .topbar {
+      width: min(1180px, calc(100% - 28px));
+      margin: 0 auto;
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      background: linear-gradient(135deg, #166534, #22c55e);
+      color: #fff;
+      box-shadow: 0 10px 22px rgba(22, 101, 52, 0.22);
+    }
+
+    .brand-copy strong {
+      display: block;
+      font-size: 15px;
+      line-height: 1.1;
+    }
+
+    .brand-copy span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: 10px;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
+
+    .nav-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 999px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      transition: background 0.18s ease, color 0.18s ease;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      background: var(--brand-soft);
+      color: var(--brand-strong);
+    }
+
+    .menu-toggle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      margin-left: auto;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.82);
+      color: var(--ink);
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(22, 38, 29, 0.08);
+    }
+
+    .menu-toggle-inner {
+      display: grid;
+      gap: 4px;
+    }
+
+    .menu-toggle-bar {
+      display: block;
+      width: 18px;
+      height: 2px;
+      border-radius: 999px;
+      background: currentColor;
+      transition: transform 0.18s ease, opacity 0.18s ease;
+    }
+
+    .menu-toggle[aria-expanded="true"] .menu-toggle-bar:nth-child(1) {
+      transform: translateY(6px) rotate(45deg);
+    }
+
+    .menu-toggle[aria-expanded="true"] .menu-toggle-bar:nth-child(2) {
+      opacity: 0;
+    }
+
+    .menu-toggle[aria-expanded="true"] .menu-toggle-bar:nth-child(3) {
+      transform: translateY(-6px) rotate(-45deg);
+    }
+
+    .topbar-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      background: #f8fbf9;
+      border: 1px solid var(--line);
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .status-chip.is-warning {
+      color: #9a3412;
+      background: #fff7ed;
+      border-color: #fed7aa;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.12);
+    }
+
+    .page-shell {
+      width: min(1120px, calc(100% - 32px));
+      margin: 34px auto;
+    }
+
+    .page-intro {
+      margin-bottom: 22px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--brand-soft);
+      color: var(--brand-strong);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 12px 0 8px;
+      font-size: clamp(28px, 3.6vw, 42px);
+      line-height: 1.04;
+    }
+
+    .page-intro p {
+      margin: 0;
+      max-width: 62ch;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .content-panel {
+      padding: 24px;
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(215, 226, 217, 0.95);
+      background: rgba(255, 255, 255, 0.84);
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow);
+    }
+
+    .content-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 720px) minmax(120px, 1fr);
+      gap: 28px;
+      align-items: start;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+
+    .page-action-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 22px;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 22px;
+      border-radius: var(--radius-md);
+      border: 0;
+      background: linear-gradient(135deg, #166534, #22c55e);
+      color: #fff;
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 700;
+      box-shadow: 0 12px 24px rgba(22, 101, 52, 0.2);
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 28px rgba(22, 101, 52, 0.24);
+    }
+
+    .rx-card {
+      display: grid;
+      gap: 16px;
+      padding: 18px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(244, 250, 245, 0.96));
+      box-shadow: 0 16px 30px rgba(22, 38, 29, 0.05);
+    }
+
+    .rx-card-head {
+      display: grid;
+      gap: 6px;
+    }
+
+    .rx-card-head h2 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .rx-card-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .search-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+    }
+
+    .search-row input {
+      width: 100%;
+      min-height: 46px;
+      padding: 0 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      outline: none;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .search-row input:focus {
+      border-color: rgba(22, 101, 52, 0.55);
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12);
+    }
+
+    .selected-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      min-height: 24px;
+    }
+
+    .selected-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 34px;
+      padding: 0 12px;
+      border: 0;
+      border-radius: 999px;
+      background: var(--brand-soft);
+      color: var(--brand-strong);
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .selected-item-remove {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: rgba(20, 83, 45, 0.12);
+      font-size: 11px;
+      line-height: 1;
+    }
+
+    .selection-divider {
+      height: 1px;
+      background: linear-gradient(90deg, rgba(22, 101, 52, 0.18), rgba(22, 101, 52, 0.04));
+      margin: -2px 0 2px;
+    }
+
+    .selected-placeholder {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .bubble-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .bubble-empty {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .add-option-btn {
+      min-height: 40px;
+      padding: 0 14px;
+      border: 1px dashed rgba(22, 101, 52, 0.35);
+      border-radius: 14px;
+      background: rgba(220, 252, 231, 0.45);
+      color: var(--brand-strong);
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      justify-self: start;
+    }
+
+    .bubble-btn {
+      min-height: 38px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+
+    .bubble-btn.is-selected {
+      border-color: rgba(22, 101, 52, 0.3);
+      background: var(--brand-soft);
+      color: var(--brand-strong);
+    }
+
+    .bubble-btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(22, 101, 52, 0.3);
+      background: var(--brand-soft);
+    }
+
+    .medicine-detail-panel {
+      width: min(900px, calc(100vw - 24px));
+      max-height: min(98vh, 960px);
+      display: grid;
+      gap: 0;
+      padding: 0;
+      border-radius: 22px;
+      border: 1px solid rgba(215, 226, 217, 0.96);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 252, 249, 0.98));
+      box-shadow: 0 32px 80px rgba(10, 24, 17, 0.28);
+      overflow: hidden;
+    }
+
+    .medicine-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: none;
+      place-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at top left, rgba(34, 197, 94, 0.2), transparent 28%),
+        rgba(10, 24, 17, 0.52);
+      backdrop-filter: blur(10px);
+    }
+
+    .medicine-modal.is-open {
+      display: grid;
+    }
+
+    .medicine-modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(215, 226, 217, 0.94);
+      background:
+        linear-gradient(135deg, rgba(220, 252, 231, 0.88), rgba(255, 255, 255, 0.96));
+      text-align: center;
+    }
+
+    .medicine-modal-title-wrap {
+      display: block;
+      flex: 1;
+    }
+
+    .modal-close-btn {
+      width: 36px;
+      height: 36px;
+      border: 1px solid rgba(22, 101, 52, 0.12);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.78);
+      color: var(--ink);
+      font: inherit;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(22, 38, 29, 0.08);
+    }
+
+    .medicine-detail-content {
+      display: grid;
+      grid-auto-flow: row;
+      grid-auto-columns: unset;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      overflow-x: auto;
+      overflow-y: visible;
+      padding: 14px 18px 18px;
+      scroll-snap-type: x proximity;
+      scrollbar-width: thin;
+      max-height: none;
+    }
+
+    .medicine-detail-panel h2 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.1;
+    }
+
+    .medicine-detail-panel p {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .medicine-empty {
+      padding: 16px;
+      border-radius: 16px;
+      background: #f8fbf9;
+      border: 1px dashed var(--line);
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .medicine-detail-card {
+      display: grid;
+      width: 100%;
+      min-width: 0;
+      gap: 0;
+      padding: 0;
+      border-radius: 18px;
+      border: 1px solid rgba(215, 226, 217, 0.95);
+      background: #fff;
+      scroll-snap-align: start;
+      overflow: hidden;
+      box-shadow: 0 16px 32px rgba(22, 38, 29, 0.06);
+    }
+
+    .medicine-table-body {
+      max-height: calc(98vh - 270px);
+      overflow-y: auto;
+      scrollbar-width: thin;
+    }
+
+    .medicine-question {
+      display: grid;
+      gap: 0;
+    }
+
+    .question-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 34px;
+      padding: 0 14px;
+      background: #e7eefb;
+      color: #1e3a5f;
+      font-size: 13px;
+      font-weight: 700;
+      border-top: 1px solid #dbe5f5;
+    }
+
+    .dose-entry-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 88px;
+      width: 100%;
+      border-bottom: 1px solid #eef2f7;
+      background: #fbfdff;
+    }
+
+    .dose-entry-row span {
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      color: #475569;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .dose-entry-row .unit-cell {
+      justify-content: center;
+      border-left: 1px solid #eef2f7;
+      font-size: 12px;
+    }
+
+    .medicine-question input[type="text"] {
+      width: 100%;
+      min-height: 38px;
+      padding: 0 12px;
+      border-radius: 0;
+      border: 0;
+      border-left: 1px solid #eef2f7;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      outline: none;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .medicine-question input[type="text"]:focus {
+      box-shadow: inset 0 0 0 2px rgba(14, 165, 233, 0.18);
+    }
+
+    .dose-row,
+    .timing-row,
+    .duration-row {
+      display: grid;
+      gap: 0;
+      width: 100%;
+    }
+
+    .dose-row {
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      padding: 6px 16px;
+      border-bottom: 1px solid #eef2f7;
+      background: #fbfdff;
+    }
+
+    .timing-main-row {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .timing-food-row {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .timing-extra-row {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .duration-row {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    .duration-row.duration-final-row {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .duration-row.duration-third-row {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .option-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 32px;
+      width: 100%;
+      padding: 0 8px;
+      border-radius: 0;
+      border: 0;
+      border-right: 1px solid #eef2f7;
+      border-bottom: 1px solid #eef2f7;
+      background: #fff;
+      color: #334155;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    .dose-row .option-pill {
+      min-height: 30px;
+      width: min(30px, 100%);
+      height: 30px;
+      justify-self: center;
+      border: 1px solid #dfe6ef;
+      border-radius: 999px;
+      background: #f8fafc;
+      box-shadow: 0 4px 10px rgba(22, 38, 29, 0.04);
+    }
+
+    .option-pill input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .option-pill:has(input:checked) {
+      border-color: #166534;
+      background: #dcfce7;
+      color: #14532d;
+      box-shadow: inset 0 0 0 1px rgba(22, 101, 52, 0.22);
+    }
+
+    .note-area {
+      display: grid;
+      gap: 8px;
+      position: sticky;
+      bottom: 0;
+      z-index: 2;
+      border-top: 1px solid #dbe5f5;
+      background: #fff;
+    }
+
+    .note-area textarea {
+      width: 100%;
+      min-height: 74px;
+      padding: 12px;
+      border: 0;
+      border-top: 1px solid #eef2f7;
+      resize: vertical;
+      font: inherit;
+      outline: none;
+      background: #fbfdff;
+    }
+
+    @media (max-width: 900px) {
+      .topbar {
+        width: min(100% - 24px, 100%);
+        min-height: auto;
+        padding: 14px 0;
+        flex-wrap: wrap;
+      }
+
+      .page-shell {
+        width: min(100% - 24px, 100%);
+      }
+
+      .content-layout {
+        grid-template-columns: 1fr;
+        gap: 0;
+      }
+
+      .medicine-detail-content {
+        grid-auto-flow: row;
+        grid-auto-columns: unset;
+        overflow-x: visible;
+        padding-bottom: 0;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .topbar {
+        width: min(100% - 20px, 100%);
+        padding: 12px 0;
+        gap: 12px;
+        align-items: stretch;
+      }
+
+      .brand {
+        width: auto;
+        flex: 1 1 auto;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .menu-toggle {
+        display: inline-flex;
+        flex-shrink: 0;
+      }
+
+      .nav-links {
+        width: 100%;
+        order: 3;
+        margin-left: 0;
+        display: none;
+        flex-direction: column;
+        gap: 6px;
+        padding: 10px;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.96);
+        box-shadow: 0 14px 28px rgba(22, 38, 29, 0.08);
+      }
+
+      .nav-links.is-open {
+        display: flex;
+      }
+
+      .topbar-actions {
+        margin-left: 0;
+        width: 100%;
+        order: 4;
+      }
+
+      .page-shell {
+        width: min(100% - 20px, 100%);
+        margin: 16px auto 22px;
+      }
+
+      .content-panel {
+        padding: 16px;
+      }
+
+      .status-chip {
+        width: 100%;
+        justify-content: center;
+        border-radius: 14px;
+      }
+
+      .page-action-row,
+      .btn-primary {
+        width: 100%;
+      }
+
+      .nav-link {
+        width: 100%;
+        min-height: 42px;
+        padding: 10px 12px;
+        border-radius: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-mark">+</div>
+        <div class="brand-copy">
+          <strong>thebetterhealthclinic</strong>
+          <span>Prescription</span>
+        </div>
+      </div>
+
+      <button id="menu-toggle" class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" aria-label="Open navigation menu">
+        <span class="menu-toggle-inner" aria-hidden="true">
+          <span class="menu-toggle-bar"></span>
+          <span class="menu-toggle-bar"></span>
+          <span class="menu-toggle-bar"></span>
+        </span>
+      </button>
+
+      <nav id="primary-nav" class="nav-links" aria-label="Primary">
+        <a class="nav-link" href="index.html">Entry</a>
+        <a class="nav-link" href="clinci.html">Dashboard</a>
+        <a class="nav-link" href="choose.html">Patient Choice</a>
+        <a class="nav-link" href="new-patient.html">New Patient</a>
+        <a class="nav-link" href="growth-chart-dashboard.html">Growth Chart</a>
+        <a class="nav-link" href="prescription-growth-chart-dashboard.html">Prescription Chart</a>
+        <a class="nav-link active" href="prescription.html">Prescription</a>
+        <a class="nav-link" href="preview.html">Preview</a>
+        <a class="nav-link" href="search.html">Search</a>
+        <a class="nav-link" href="history.html">History</a>
+      </nav>
+
+      <div class="topbar-actions">
+        <div class="status-chip">
+          <span class="status-dot"></span>
+          Prescription page ready
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="page-shell">
+    <section class="page-intro">
+      <div class="eyebrow">Prescription</div>
+      <h1>Build the prescription notes for this visit.</h1>
+      <p>Search within each section and use the quick bubbles below to start filling the prescription workflow faster.</p>
+    </section>
+
+    <section class="content-panel">
+      <div class="content-layout">
+        <div class="card-grid">
+          <article class="rx-card">
+            <div class="rx-card-head">
+              <h2>Symptoms</h2>
+              <p>Search common complaint terms and tap the bubbles to add quick starters.</p>
+            </div>
+            <div class="search-row" data-search-section="symptoms">
+              <input type="text" placeholder="Search symptoms">
+            </div>
+            <div class="selected-list" data-selected-list>
+              <span class="selected-placeholder">Selected items will appear here.</span>
+            </div>
+            <div class="selection-divider" aria-hidden="true"></div>
+            <div class="bubble-wrap" data-bubble-wrap>
+            </div>
+          </article>
+
+          <article class="rx-card">
+            <div class="rx-card-head">
+              <h2>Finding</h2>
+              <p>Use this area for examination findings and quick clinic observation tags.</p>
+            </div>
+            <div class="search-row" data-search-section="finding">
+              <input type="text" placeholder="Search findings">
+            </div>
+            <div class="selected-list" data-selected-list>
+              <span class="selected-placeholder">Selected items will appear here.</span>
+            </div>
+            <div class="selection-divider" aria-hidden="true"></div>
+            <div class="bubble-wrap" data-bubble-wrap>
+            </div>
+          </article>
+
+          <article class="rx-card">
+            <div class="rx-card-head">
+              <h2>Notes</h2>
+              <p>Search and add quick note phrases for visit-specific observations.</p>
+            </div>
+            <div class="search-row" data-search-section="notes">
+              <input type="text" placeholder="Search notes">
+            </div>
+            <div class="selected-list" data-selected-list>
+              <span class="selected-placeholder">Selected items will appear here.</span>
+            </div>
+            <div class="selection-divider" aria-hidden="true"></div>
+            <div class="bubble-wrap" data-bubble-wrap>
+            </div>
+          </article>
+
+          <article class="rx-card">
+            <div class="rx-card-head">
+              <h2>Diagnosis</h2>
+              <p>Search working diagnosis terms and keep the most common options one tap away.</p>
+            </div>
+            <div class="search-row" data-search-section="diagnosis">
+              <input type="text" placeholder="Search diagnosis">
+            </div>
+            <div class="selected-list" data-selected-list>
+              <span class="selected-placeholder">Selected items will appear here.</span>
+            </div>
+            <div class="selection-divider" aria-hidden="true"></div>
+            <div class="bubble-wrap" data-bubble-wrap>
+            </div>
+          </article>
+
+          <article class="rx-card">
+            <div class="rx-card-head">
+              <h2>Investigation</h2>
+              <p>Search investigation names and keep the routine clinic tests one tap away.</p>
+            </div>
+            <div class="search-row" data-search-section="investigation">
+              <input type="text" placeholder="Search investigation">
+            </div>
+            <div class="selected-list" data-selected-list>
+              <span class="selected-placeholder">Selected items will appear here.</span>
+            </div>
+            <div class="selection-divider" aria-hidden="true"></div>
+            <div class="bubble-wrap" data-bubble-wrap>
+            </div>
+          </article>
+
+          <article class="rx-card">
+            <div class="rx-card-head">
+              <h2>Medicens</h2>
+              <p>Search medicine names and keep the common options ready for quick prescription use.</p>
+            </div>
+            <div class="search-row" data-search-section="medicens">
+              <input type="text" placeholder="Search medicens">
+            </div>
+            <div class="selected-list" data-selected-list>
+              <span class="selected-placeholder">Selected items will appear here.</span>
+            </div>
+            <div class="selection-divider" aria-hidden="true"></div>
+            <div class="bubble-wrap" data-bubble-wrap>
+            </div>
+          </article>
+
+          <article class="rx-card">
+            <div class="rx-card-head">
+              <h2>Instruction</h2>
+              <p>Search advice and home-care instructions to add common directions faster.</p>
+            </div>
+            <div class="search-row" data-search-section="instruction">
+              <input type="text" placeholder="Search instruction">
+            </div>
+            <div class="selected-list" data-selected-list>
+              <span class="selected-placeholder">Selected items will appear here.</span>
+            </div>
+            <div class="selection-divider" aria-hidden="true"></div>
+            <div class="bubble-wrap" data-bubble-wrap>
+            </div>
+          </article>
+
+        </div>
+      </div>
+
+      <div class="page-action-row">
+        <a id="continue-preview-btn" class="btn-primary" href="preview.html">Continue</a>
+      </div>
+    </section>
+  </div>
+
+      <div id="medicine-modal" class="medicine-modal" aria-hidden="true">
+    <aside id="medicine-detail-panel" class="medicine-detail-panel" role="dialog" aria-modal="true" aria-labelledby="medicine-modal-title">
+      <div class="medicine-modal-head">
+        <div class="medicine-modal-title-wrap">
+          <h2 id="medicine-modal-title">Medicine Details</h2>
+          <p>Select a medicine to add dose, timing, and duration.</p>
+        </div>
+        <button id="medicine-modal-close" class="modal-close-btn" type="button" aria-label="Close medicine details">x</button>
+      </div>
+      <div id="medicine-detail-content" class="medicine-detail-content medicine-empty">
+        No medicine selected yet.
+      </div>
+    </aside>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+
+    const menuToggle = document.getElementById('menu-toggle');
+    const primaryNav = document.getElementById('primary-nav');
+    const navLinks = [...document.querySelectorAll('#primary-nav .nav-link')];
+    const rxCards = [...document.querySelectorAll('.rx-card')];
+    const statusChip = document.querySelector('.status-chip');
+    const medicineModal = document.getElementById('medicine-modal');
+    const medicineModalClose = document.getElementById('medicine-modal-close');
+    const medicineModalTitle = document.getElementById('medicine-modal-title');
+    const medicineDetailContent = document.getElementById('medicine-detail-content');
+    const continuePreviewBtn = document.getElementById('continue-preview-btn');
+    const selectedMedicines = new Set();
+    const medicineDetails = new Map();
+    const prescriptionSelections = {};
+    let activeMedicine = '';
+    const MEDICINE_DETAIL_STORAGE_KEY = 'prescriptionMedicineDetails';
+    const PRESCRIPTION_DRAFT_STORAGE_KEY = 'prescriptionDraft';
+    const MEDICINE_DETAIL_TTL_MS = 10 * 60 * 1000;
+    const CHART_RECORD_STORAGE_KEY = 'growthChartRecentRecords';
+    const PRESCRIPTION_DRAFT_TTL_MS = 10 * 60 * 1000;
+    const prescriptionTemplates = {
+      Symptoms: ['Fever', 'Cold', 'Cough', 'Vomiting', 'Loose stools'],
+      Finding: ['Throat congestion', 'Wheeze', 'Pallor', 'Dehydrated', 'Active child'],
+      Notes: ['Follow up advised', 'Review after 3 days', 'Vitals stable', 'Parent counselled', 'Medication explained'],
+      Diagnosis: ['Viral fever', 'URTI', 'Gastroenteritis', 'Allergic rhinitis', 'Observation advised'],
+      Investigation: ['CBC', 'CRP', 'Urine routine', 'Chest X-ray', 'Dengue test'],
+      Medicens: ['Paracetamol', 'Cetirizine', 'Ondansetron', 'Azithromycin', 'ORS'],
+      Instruction: ['Plenty of fluids', 'Steam inhalation', 'Soft diet', 'Review if fever persists', 'Emergency visit if breathing worsens']
+    };
+    const firebaseConfig = {
+      apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+      authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+      storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+      appId: import.meta.env.VITE_FIREBASE_APP_ID,
+      measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+    };
+    const firebaseConfigured = Object.values(firebaseConfig).every(Boolean);
+    const db = firebaseConfigured ? getFirestore(initializeApp(firebaseConfig)) : null;
+
+    function closeMobileMenu() {
+      menuToggle.setAttribute('aria-expanded', 'false');
+      primaryNav.classList.remove('is-open');
+    }
+
+    function toggleMobileMenu() {
+      const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
+      menuToggle.setAttribute('aria-expanded', String(!isOpen));
+      primaryNav.classList.toggle('is-open', !isOpen);
+    }
+
+    menuToggle.addEventListener('click', toggleMobileMenu);
+    navLinks.forEach((link) => link.addEventListener('click', closeMobileMenu));
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 640) {
+        closeMobileMenu();
+      }
+    });
+
+    function openMedicineModal() {
+      medicineModal.classList.add('is-open');
+      medicineModal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeMedicineModal() {
+      syncMedicineDetailsFromDom();
+      medicineModal.classList.remove('is-open');
+      medicineModal.setAttribute('aria-hidden', 'true');
+    }
+
+    medicineModalClose.addEventListener('click', closeMedicineModal);
+    medicineModal.addEventListener('click', (event) => {
+      if (event.target === medicineModal) {
+        closeMedicineModal();
+      }
+    });
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        closeMedicineModal();
+      }
+    });
+
+    function renderSelectedItems(selectedList, values) {
+      selectedList.innerHTML = '';
+
+      if (!values.length) {
+        const placeholder = document.createElement('span');
+        placeholder.className = 'selected-placeholder';
+        placeholder.textContent = 'Selected items will appear here.';
+        selectedList.appendChild(placeholder);
+        return;
+      }
+
+      values.forEach((value) => {
+        const item = document.createElement('button');
+        item.className = 'selected-item';
+        item.type = 'button';
+        item.dataset.selectedValue = value;
+        item.textContent = value;
+
+        const removeIcon = document.createElement('span');
+        removeIcon.className = 'selected-item-remove';
+        removeIcon.textContent = 'x';
+        item.appendChild(removeIcon);
+
+        selectedList.appendChild(item);
+      });
+    }
+
+    function toTitleCase(value) {
+      return value
+        .trim()
+        .toLowerCase()
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ');
+    }
+
+    function renderBubbleButtons(wrap, items, addableQuery = '') {
+      wrap.innerHTML = '';
+
+      if (!items.length) {
+        if (addableQuery) {
+          const addButton = document.createElement('button');
+          addButton.className = 'add-option-btn';
+          addButton.type = 'button';
+          addButton.dataset.addValue = addableQuery;
+          addButton.textContent = `Add "${addableQuery}"`;
+          wrap.appendChild(addButton);
+        } else {
+          const emptyState = document.createElement('span');
+          emptyState.className = 'bubble-empty';
+          emptyState.textContent = 'No matching items found.';
+          wrap.appendChild(emptyState);
+        }
+        return;
+      }
+
+      items.forEach((item) => {
+        const button = document.createElement('button');
+        button.className = 'bubble-btn';
+        button.type = 'button';
+        button.textContent = item;
+        wrap.appendChild(button);
+      });
+    }
+
+    function formatDateTime(value) {
+      if (!value) {
+        return '-';
+      }
+
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) {
+        return value;
+      }
+
+      return date.toLocaleString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: '2-digit',
+        hour: 'numeric',
+        minute: '2-digit'
+      });
+    }
+
+    function getCurrentPatientId() {
+      const params = new URLSearchParams(window.location.search);
+      return (params.get('patientId') || '').trim().toUpperCase();
+    }
+
+    function getRecentChartRecords() {
+      try {
+        const records = JSON.parse(localStorage.getItem(CHART_RECORD_STORAGE_KEY) || '[]');
+        const now = Date.now();
+        const activeRecords = records.filter((record) => record.keepUntilPrescription || Number(record.expiresAt) > now);
+
+        if (activeRecords.length) {
+          localStorage.setItem(CHART_RECORD_STORAGE_KEY, JSON.stringify(activeRecords));
+        } else {
+          localStorage.removeItem(CHART_RECORD_STORAGE_KEY);
+        }
+
+        const patientId = getCurrentPatientId();
+        const filteredRecords = patientId
+          ? activeRecords.filter((record) => (record.patientId || '').toUpperCase() === patientId)
+          : activeRecords;
+
+        return filteredRecords.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
+      } catch (error) {
+        console.warn(`Unable to load local chart records: ${error.message}`);
+        return [];
+      }
+    }
+
+    function getActiveChartRecord() {
+      const chartRecords = getRecentChartRecords();
+      return chartRecords[0] || null;
+    }
+
+    function getPreviewTargetUrl() {
+      const patientId = getCurrentPatientId() || getActiveChartRecord()?.patientId || '';
+      return patientId
+        ? `preview.html?patientId=${encodeURIComponent(patientId)}`
+        : 'preview.html';
+    }
+
+    function readLocalJson(key, fallback = null) {
+      try {
+        return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback));
+      } catch (error) {
+        return fallback;
+      }
+    }
+
+    function getPrescriptionDraftId(patientId) {
+      const existingDraft = readLocalJson(PRESCRIPTION_DRAFT_STORAGE_KEY, null);
+      if (existingDraft?.draftId && existingDraft?.patientId === patientId && Number(existingDraft.expiresAt) > Date.now()) {
+        return existingDraft.draftId;
+      }
+
+      const randomPart = window.crypto?.randomUUID
+        ? window.crypto.randomUUID().slice(0, 8)
+        : Math.random().toString(36).slice(2, 10);
+      return `rx-${patientId || 'UNKNOWN'}-${Date.now()}-${randomPart}`;
+    }
+
+    function savePrescriptionDraft() {
+      const chartRecord = getActiveChartRecord();
+      const patientId = getCurrentPatientId() || chartRecord?.patientId || '';
+      const sections = {};
+      const details = {};
+
+      Object.entries(prescriptionSelections).forEach(([sectionName, selectedSet]) => {
+        sections[sectionName] = [...selectedSet];
+      });
+
+      medicineDetails.forEach((detail, medicine) => {
+        details[medicine] = { ...detail };
+      });
+
+      localStorage.setItem(PRESCRIPTION_DRAFT_STORAGE_KEY, JSON.stringify({
+        draftId: getPrescriptionDraftId(patientId),
+        savedAt: new Date().toISOString(),
+        expiresAt: Date.now() + PRESCRIPTION_DRAFT_TTL_MS,
+        patientId,
+        sections,
+        medicineDetails: details
+      }));
+      continuePreviewBtn.href = getPreviewTargetUrl();
+    }
+
+    function slugify(value) {
+      return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    }
+
+    function getMedicineDetail(medicine) {
+      if (!medicineDetails.has(medicine)) {
+        medicineDetails.set(medicine, {
+          dose: '',
+          doseChip: '',
+          timings: [],
+          food: '',
+          duration: '',
+          note: '',
+          savedAt: Date.now()
+        });
+      }
+
+      return medicineDetails.get(medicine);
+    }
+
+    function loadMedicineDetailsFromStorage() {
+      try {
+        const savedPayload = JSON.parse(localStorage.getItem(MEDICINE_DETAIL_STORAGE_KEY) || '{}');
+        const now = Date.now();
+
+        Object.entries(savedPayload).forEach(([medicine, detail]) => {
+          if (!detail?.savedAt || now - detail.savedAt > MEDICINE_DETAIL_TTL_MS) {
+            return;
+          }
+
+          medicineDetails.set(medicine, {
+            dose: detail.dose || '',
+            doseChip: detail.doseChip || '',
+            timings: Array.isArray(detail.timings) ? detail.timings : [],
+            food: detail.food || '',
+            duration: detail.duration || '',
+            note: detail.note || '',
+            savedAt: detail.savedAt
+          });
+        });
+      } catch (error) {
+        console.warn(`Unable to load saved medicine details: ${error.message}`);
+      }
+    }
+
+    function saveMedicineDetailsToStorage() {
+      const now = Date.now();
+      const payload = {};
+
+      medicineDetails.forEach((detail, medicine) => {
+        if (!detail.savedAt || now - detail.savedAt <= MEDICINE_DETAIL_TTL_MS) {
+          payload[medicine] = {
+            ...detail,
+            savedAt: detail.savedAt || now
+          };
+        }
+      });
+
+      localStorage.setItem(MEDICINE_DETAIL_STORAGE_KEY, JSON.stringify(payload));
+    }
+
+    function cleanupExpiredMedicineDetails() {
+      const now = Date.now();
+
+      medicineDetails.forEach((detail, medicine) => {
+        if (detail.savedAt && now - detail.savedAt > MEDICINE_DETAIL_TTL_MS) {
+          medicineDetails.delete(medicine);
+        }
+      });
+
+      saveMedicineDetailsToStorage();
+      savePrescriptionDraft();
+    }
+
+    function syncMedicineDetailsFromDom() {
+      [...medicineDetailContent.querySelectorAll('.medicine-detail-card')].forEach((card) => {
+        const medicine = card.dataset.medicine;
+
+        if (!medicine) {
+          return;
+        }
+
+        const doseInput = card.querySelector('[data-field="dose"]');
+        const doseChip = card.querySelector('[data-field="doseChip"]:checked');
+        const timings = [...card.querySelectorAll('[data-field="timing"]:checked')].map((input) => input.value);
+        const food = card.querySelector('[data-field="food"]:checked');
+        const duration = card.querySelector('[data-field="duration"]:checked');
+        const note = card.querySelector('[data-field="note"]');
+
+        medicineDetails.set(medicine, {
+          dose: doseInput?.value || '',
+          doseChip: doseChip?.value || '',
+          timings,
+          food: food?.value || '',
+          duration: duration?.value || '',
+          note: note?.value || '',
+          savedAt: Date.now()
+        });
+      });
+
+      saveMedicineDetailsToStorage();
+    }
+
+    function checkedAttr(condition) {
+      return condition ? 'checked' : '';
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function renderMedicineDetails() {
+      syncMedicineDetailsFromDom();
+      medicineDetailContent.innerHTML = '';
+
+      if (!activeMedicine || !selectedMedicines.has(activeMedicine)) {
+        medicineModalTitle.textContent = 'Medicine Details';
+        medicineDetailContent.className = 'medicine-detail-content medicine-empty';
+        medicineDetailContent.textContent = 'Select a medicine to add its dose, timing, duration, and note.';
+        return;
+      }
+
+      medicineModalTitle.textContent = activeMedicine;
+      medicineDetailContent.className = 'medicine-detail-content';
+
+      [activeMedicine].forEach((medicine) => {
+        const medicineSlug = slugify(medicine);
+        const detail = getMedicineDetail(medicine);
+        const card = document.createElement('div');
+        card.className = 'medicine-detail-card';
+        card.dataset.medicine = medicine;
+        card.innerHTML = `
+          <div class="medicine-table-body">
+          <div class="medicine-question">
+            <div class="question-bar">
+              <span>Syrup</span>
+              <span>ml</span>
+            </div>
+            <div class="dose-row" aria-label="${medicine} dose options">
+              ${['1', '1.5', '2.5', '4', '5', '7.5', '10', '15'].map((value) => `
+                <label class="option-pill">
+                  <input type="radio" name="dose-chip-${medicineSlug}" value="${value}" data-field="doseChip" ${checkedAttr(detail.doseChip === value)}>
+                  ${value}
+                </label>
+              `).join('')}
+            </div>
+            <div class="dose-entry-row">
+              <span>Dose</span>
+              <input id="dose-${medicineSlug}" type="text" placeholder="Dose" data-field="dose" value="${escapeHtml(detail.dose)}">
+            </div>
+          </div>
+
+          <div class="medicine-question">
+            <div class="question-bar">
+              <span>Timing</span>
+              <span>Switch</span>
+            </div>
+            <div class="timing-row timing-main-row" aria-label="${medicine} timing options">
+              ${['M', 'A', 'E', 'N'].map((value) => `
+                <label class="option-pill">
+                  <input type="checkbox" name="timing-${medicineSlug}" value="${value}" data-field="timing" ${checkedAttr(detail.timings.includes(value))}>
+                  ${value}
+                </label>
+              `).join('')}
+            </div>
+            <div class="timing-row timing-food-row" aria-label="${medicine} food timing options">
+              ${['Before Food', 'With Food', 'After Food'].map((value) => `
+                <label class="option-pill">
+                  <input type="radio" name="food-${medicineSlug}" value="${value}" data-field="food" ${checkedAttr(detail.food === value)}>
+                  ${value}
+                </label>
+              `).join('')}
+            </div>
+            <div class="timing-row timing-extra-row" aria-label="${medicine} extra timing options">
+              ${['Empty Stomach', 'Bedtime'].map((value) => `
+                <label class="option-pill">
+                  <input type="radio" name="food-${medicineSlug}" value="${value}" data-field="food" ${checkedAttr(detail.food === value)}>
+                  ${value}
+                </label>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="medicine-question">
+            <div class="question-bar">
+              <span>Duration</span>
+              <span></span>
+            </div>
+            <div class="duration-row" aria-label="${medicine} duration options">
+              ${['1d', '2d', '3d', '4d', '5d', '1w', '10d', '2w', '15d', '3w', '4w', '1m'].map((value) => `
+                <label class="option-pill">
+                  <input type="radio" name="duration-${medicineSlug}" value="${value}" data-field="duration" ${checkedAttr(detail.duration === value)}>
+                  ${value}
+                </label>
+              `).join('')}
+            </div>
+            <div class="duration-row duration-third-row" aria-label="${medicine} longer duration options">
+              ${['2m', '3m', '6m', '1y'].map((value) => `
+                <label class="option-pill">
+                  <input type="radio" name="duration-${medicineSlug}" value="${value}" data-field="duration" ${checkedAttr(detail.duration === value)}>
+                  ${value}
+                </label>
+              `).join('')}
+            </div>
+            <div class="duration-row duration-final-row" aria-label="${medicine} special duration options">
+              ${['SoS', 'Till required', 'To Continue', 'Stat'].map((value) => `
+                <label class="option-pill">
+                  <input type="radio" name="duration-${medicineSlug}" value="${value}" data-field="duration" ${checkedAttr(detail.duration === value)}>
+                  ${value}
+                </label>
+              `).join('')}
+            </div>
+          </div>
+          </div>
+
+          <div class="note-area">
+            <div class="question-bar">
+              <span>Note</span>
+              <span></span>
+            </div>
+            <textarea placeholder="Add note" data-field="note">${escapeHtml(detail.note)}</textarea>
+          </div>
+        `;
+
+        medicineDetailContent.appendChild(card);
+      });
+    }
+
+    medicineDetailContent.addEventListener('input', syncMedicineDetailsFromDom);
+    medicineDetailContent.addEventListener('change', (event) => {
+      const input = event.target;
+      const card = input.closest('.medicine-detail-card');
+
+      if (input.matches('[data-field="doseChip"]') && card) {
+        const doseInput = card.querySelector('[data-field="dose"]');
+        if (doseInput) {
+          doseInput.value = input.value;
+        }
+      }
+
+      syncMedicineDetailsFromDom();
+    });
+
+    async function ensurePrescriptionCollection() {
+      if (!db) {
+        statusChip.textContent = 'Firebase config missing';
+        statusChip.classList.add('is-warning');
+        return prescriptionTemplates;
+      }
+
+      const entries = await Promise.all(
+        Object.entries(prescriptionTemplates).map(async ([sectionName, items]) => {
+          const sectionRef = doc(db, 'prescription', sectionName);
+          const snapshot = await getDoc(sectionRef);
+
+          if (!snapshot.exists()) {
+            await setDoc(sectionRef, {
+              name: sectionName,
+              items,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            });
+            return [sectionName, items];
+          }
+
+          const data = snapshot.data();
+          const savedItems = Array.isArray(data.items) && data.items.length ? data.items : items;
+          return [sectionName, savedItems];
+        })
+      );
+
+      statusChip.textContent = 'Prescription collection synced';
+      return Object.fromEntries(entries);
+    }
+
+    const sectionMap = new Map(rxCards.map((card) => [card.querySelector('h2').textContent.trim(), card]));
+    const boundSections = new Set();
+
+    function bindCardSelection(card, initialItems) {
+      const selectedList = card.querySelector('[data-selected-list]');
+      const bubbleWrap = card.querySelector('[data-bubble-wrap]');
+      const searchInput = card.querySelector('.search-row input');
+      const sectionName = card.querySelector('h2').textContent.trim();
+
+      if (boundSections.has(sectionName)) {
+        return;
+      }
+
+      boundSections.add(sectionName);
+
+      const sectionRef = db ? doc(db, 'prescription', sectionName) : null;
+      const selectedValues = new Set();
+      prescriptionSelections[sectionName] = selectedValues;
+      const allItems = [...initialItems];
+
+      function getBubbleButtons() {
+        return [...card.querySelectorAll('.bubble-btn')];
+      }
+
+      function toggleValue(value, shouldSelect) {
+        getBubbleButtons().forEach((button) => {
+          if (button.textContent.trim() === value) {
+            button.classList.toggle('is-selected', shouldSelect);
+          }
+        });
+
+        if (shouldSelect) {
+          selectedValues.add(value);
+        } else {
+          selectedValues.delete(value);
+        }
+
+        renderSelectedItems(selectedList, [...selectedValues]);
+        savePrescriptionDraft();
+
+        if (sectionName === 'Medicens') {
+          if (shouldSelect) {
+            selectedMedicines.add(value);
+            getMedicineDetail(value);
+            activeMedicine = value;
+          } else {
+            selectedMedicines.delete(value);
+            if (activeMedicine === value) {
+              activeMedicine = [...selectedMedicines][0] || '';
+            }
+          }
+
+          renderMedicineDetails();
+
+          if (shouldSelect || activeMedicine) {
+            openMedicineModal();
+          }
+        }
+      }
+
+      function bindBubbleClickHandlers() {
+        getBubbleButtons().forEach((button) => {
+          if (selectedValues.has(button.textContent.trim())) {
+            button.classList.add('is-selected');
+          }
+
+          button.addEventListener('click', () => {
+            const value = button.textContent.trim();
+            const isSelected = selectedValues.has(value);
+
+            toggleValue(value, !isSelected);
+          });
+        });
+      }
+
+      async function addNewItem(rawValue) {
+        const normalizedValue = toTitleCase(rawValue);
+
+        if (!normalizedValue) {
+          return;
+        }
+
+        const exists = allItems.some((item) => item.toLowerCase() === normalizedValue.toLowerCase());
+        if (!exists) {
+          allItems.push(normalizedValue);
+          allItems.sort((left, right) => left.localeCompare(right));
+
+          if (sectionRef) {
+            try {
+              await updateDoc(sectionRef, {
+                items: arrayUnion(normalizedValue),
+                updatedAt: serverTimestamp()
+              });
+            } catch (error) {
+              console.error(`Unable to add prescription item: ${error.message}`);
+            }
+          }
+        }
+
+        searchInput.value = normalizedValue;
+        applySearchFilter();
+        toggleValue(normalizedValue, true);
+      }
+
+      function applySearchFilter() {
+        const query = searchInput.value.trim().toLowerCase();
+        const filteredItems = query
+          ? allItems.filter((item) => item.toLowerCase().startsWith(query))
+          : allItems;
+        const exactExists = query
+          ? allItems.some((item) => item.toLowerCase() === query)
+          : true;
+        const addableQuery = query && !filteredItems.length && !exactExists
+          ? toTitleCase(searchInput.value)
+          : '';
+
+        renderBubbleButtons(bubbleWrap, filteredItems, addableQuery);
+        bindBubbleClickHandlers();
+      }
+
+      searchInput.addEventListener('input', applySearchFilter);
+
+      selectedList.addEventListener('click', (event) => {
+        const selectedButton = event.target.closest('.selected-item');
+
+        if (!selectedButton) {
+          return;
+        }
+
+        toggleValue(selectedButton.dataset.selectedValue, false);
+      });
+
+      bubbleWrap.addEventListener('click', async (event) => {
+        const addButton = event.target.closest('.add-option-btn');
+
+        if (!addButton) {
+          return;
+        }
+
+        await addNewItem(addButton.dataset.addValue);
+      });
+
+      applySearchFilter();
+    }
+
+    async function initPrescriptionData() {
+      loadMedicineDetailsFromStorage();
+      cleanupExpiredMedicineDetails();
+
+      Object.entries(prescriptionTemplates).forEach(([sectionName, items]) => {
+        const card = sectionMap.get(sectionName);
+
+        if (card) {
+          bindCardSelection(card, items);
+        }
+      });
+
+      try {
+        const prescriptionData = await ensurePrescriptionCollection();
+
+        Object.entries(prescriptionData).forEach(([sectionName, items]) => {
+          const card = sectionMap.get(sectionName);
+
+          if (!card) {
+            return;
+          }
+
+          bindCardSelection(card, items);
+        });
+      } catch (error) {
+        statusChip.textContent = 'Firebase sync failed';
+        statusChip.classList.add('is-warning');
+        console.error(`Prescription collection sync failed: ${error.message}`);
+
+        Object.entries(prescriptionTemplates).forEach(([sectionName, items]) => {
+          const card = sectionMap.get(sectionName);
+
+          if (!card) {
+            return;
+          }
+
+          bindCardSelection(card, items);
+        });
+      }
+    }
+
+    initPrescriptionData();
+    continuePreviewBtn.addEventListener('click', () => {
+      syncMedicineDetailsFromDom();
+      savePrescriptionDraft();
+    });
+    continuePreviewBtn.href = getPreviewTargetUrl();
+  </script>
+</body>
+</html>
+
