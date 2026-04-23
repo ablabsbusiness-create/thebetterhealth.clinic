@@ -4,13 +4,14 @@ import { resolve } from 'node:path';
 export default defineConfig({
   root: __dirname,
   envDir: __dirname,
+  base: '/app/',
   resolve: {
     alias: {
       jspdf: resolve(__dirname, 'node_modules/jspdf/dist/jspdf.es.min.js')
     }
   },
   build: {
-    outDir: resolve(__dirname, 'dist'),
+    outDir: resolve(__dirname, 'dist', 'app'),
     emptyOutDir: true,
     rollupOptions: {
       input: {
