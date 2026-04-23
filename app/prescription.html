@@ -1564,7 +1564,7 @@
         return [...card.querySelectorAll('.bubble-btn')];
       }
 
-      function toggleValue(value, shouldSelect) {
+      function toggleValue(value, shouldSelect, trigger = document.activeElement) {
         getBubbleButtons().forEach((button) => {
           if (button.textContent.trim() === value) {
             button.classList.toggle('is-selected', shouldSelect);
@@ -1595,7 +1595,7 @@
           renderMedicineDetails();
 
           if (shouldSelect || activeMedicine) {
-            openMedicineModal(button);
+            openMedicineModal(trigger);
           }
         }
       }
@@ -1610,7 +1610,7 @@
             const value = button.textContent.trim();
             const isSelected = selectedValues.has(value);
 
-            toggleValue(value, !isSelected);
+            toggleValue(value, !isSelected, button);
           });
         });
       }
@@ -1641,7 +1641,7 @@
 
         searchInput.value = normalizedValue;
         applySearchFilter();
-        toggleValue(normalizedValue, true);
+        toggleValue(normalizedValue, true, searchInput);
       }
 
       function applySearchFilter() {
@@ -1669,7 +1669,7 @@
           return;
         }
 
-        toggleValue(selectedButton.dataset.selectedValue, false);
+        toggleValue(selectedButton.dataset.selectedValue, false, selectedButton);
       });
 
       bubbleWrap.addEventListener('click', async (event) => {
