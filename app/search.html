@@ -735,14 +735,50 @@
       max-width: 100%;
     }
 
-    .prescription-preview-frame {
+    .prescription-preview-surface {
+      position: relative;
       width: 100%;
-      height: 100%;
       min-height: 606px;
-      border: 0;
       border-radius: 22px;
       background: rgba(255, 255, 255, 0.92);
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+    }
+
+    .prescription-preview-frame {
+      width: 100%;
+      height: auto;
+      min-height: 606px;
+      object-fit: contain;
+      object-position: top center;
+      background: rgba(255, 255, 255, 0.92);
       pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .prescription-preview-frame.is-ready {
+      opacity: 1;
+    }
+
+    .prescription-preview-placeholder {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      text-align: center;
+      color: #415146;
+      font-size: 13px;
+      line-height: 1.6;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.95), rgba(244, 248, 245, 0.96));
+    }
+
+    .prescription-preview-placeholder.is-error {
+      color: #8a3b12;
+      background: linear-gradient(180deg, #fff8f2, #fff0e6);
     }
 
     .pdf-preview-modal {
@@ -1009,6 +1045,7 @@
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
     import { collection, getDocs, getFirestore } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import * as pdfjsLib from 'https://mozilla.github.io/pdf.js/build/pdf.mjs';
 
     const searchInput = document.getElementById('search-input');
     const clearBtn = document.getElementById('clear-btn');
@@ -1022,6 +1059,10 @@
     const pdfPreviewFrame = document.getElementById('pdf-preview-frame');
     const pdfPreviewLink = document.getElementById('pdf-preview-link');
     const pdfPreviewClose = document.getElementById('pdf-preview-close');
+    const pdfPreviewImageCache = new Map();
+    let prescriptionPreviewObserver = null;
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://mozilla.github.io/pdf.js/build/pdf.worker.mjs';
 
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
@@ -1075,6 +1116,109 @@
       }
 
       return url.includes('#') ? url : `${url}#${options}`;
+    }
+
+    async function renderPrescriptionPreviewImage(imageElement) {
+      if (!(imageElement instanceof HTMLImageElement)) {
+        return;
+      }
+
+      if (imageElement.dataset.rendered === 'true') {
+        return;
+      }
+
+      const pdfUrl = imageElement.dataset.pdfUrl || '';
+      if (!pdfUrl) {
+        return;
+      }
+
+      const placeholder = imageElement.parentElement?.querySelector('.prescription-preview-placeholder');
+
+      try {
+        if (pdfPreviewImageCache.has(pdfUrl)) {
+          imageElement.src = pdfPreviewImageCache.get(pdfUrl);
+          imageElement.dataset.rendered = 'true';
+          imageElement.classList.add('is-ready');
+          if (placeholder) {
+            placeholder.hidden = true;
+          }
+          return;
+        }
+
+        const loadingTask = pdfjsLib.getDocument({
+          url: pdfUrl,
+          useWorkerFetch: true,
+          isEvalSupported: false
+        });
+        const pdfDocument = await loadingTask.promise;
+        const page = await pdfDocument.getPage(1);
+        const baseViewport = page.getViewport({ scale: 1 });
+        const targetWidth = 900;
+        const scale = targetWidth / Math.max(baseViewport.width, 1);
+        const viewport = page.getViewport({ scale });
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d', { alpha: false });
+
+        canvas.width = Math.ceil(viewport.width);
+        canvas.height = Math.ceil(viewport.height);
+
+        await page.render({
+          canvasContext: context,
+          viewport
+        }).promise;
+
+        const previewDataUrl = canvas.toDataURL('image/jpeg', 0.92);
+        pdfPreviewImageCache.set(pdfUrl, previewDataUrl);
+        imageElement.src = previewDataUrl;
+        imageElement.dataset.rendered = 'true';
+        imageElement.classList.add('is-ready');
+        if (placeholder) {
+          placeholder.hidden = true;
+        }
+
+        page.cleanup();
+        await pdfDocument.destroy();
+      } catch (error) {
+        console.warn(`Unable to render prescription preview image: ${error.message}`);
+        if (placeholder) {
+          placeholder.hidden = false;
+          placeholder.classList.add('is-error');
+          placeholder.textContent = 'Preview image could not be created. Tap to open the prescription.';
+        }
+      }
+    }
+
+    function attachPrescriptionPreviewRendering() {
+      const previewImages = [...resultsPanel.querySelectorAll('.prescription-preview-frame[data-pdf-url]')];
+      if (!previewImages.length) {
+        return;
+      }
+
+      if (!('IntersectionObserver' in window)) {
+        previewImages.forEach(renderPrescriptionPreviewImage);
+        return;
+      }
+
+      if (!prescriptionPreviewObserver) {
+        prescriptionPreviewObserver = new IntersectionObserver((entries, observer) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) {
+              return;
+            }
+
+            renderPrescriptionPreviewImage(entry.target);
+            observer.unobserve(entry.target);
+          });
+        }, {
+          root: null,
+          rootMargin: '240px 0px',
+          threshold: 0.01
+        });
+      }
+
+      previewImages.forEach((imageElement) => {
+        prescriptionPreviewObserver.observe(imageElement);
+      });
     }
 
     function formatDateDisplay(dateValue, fallback = 'DOB not saved') {
@@ -1322,13 +1466,17 @@
             ${entries.slice(0, 5).map((entry, index) => {
               const downloadUrl = entry.downloadURL || '';
               const cardUrl = escapeHtml(downloadUrl);
-              const previewUrl = escapeHtml(buildPdfPreviewUrl(downloadUrl));
 
               return `
                 <div class="prescription-preview-card" data-open-prescription-url="${cardUrl}">
                   <div class="prescription-date">${formatPrescriptionDate(entry)}</div>
                   ${downloadUrl
-                    ? `<iframe class="prescription-preview-frame" src="${previewUrl}" title="Prescription Review ${index + 1}"></iframe>`
+                    ? `
+                      <div class="prescription-preview-surface">
+                        <div class="prescription-preview-placeholder">Preparing preview...</div>
+                        <img class="prescription-preview-frame" data-pdf-url="${cardUrl}" alt="Prescription preview ${index + 1}">
+                      </div>
+                    `
                     : '<p>No prescription preview link was saved for this record.</p>'}
                 </div>
               `;
@@ -1396,6 +1544,8 @@
           </article>
         `;
       }).join('');
+
+      attachPrescriptionPreviewRendering();
     }
 
     function filterPatients() {
