@@ -1851,12 +1851,16 @@
         addMetricRequest(`${sexPrefix}Head${ageBand}`, 'head');
       }
 
-      if (selectedValues.includes('BMI')) {
-        addMetricRequest(`${sexPrefix}Bmi${ageBand}`, 'bmi');
+      if (selectedValues.includes('Height')) {
+        addMetricRequest(`${sexPrefix}Height${ageBand}`, 'height');
       }
 
-      if (selectedValues.includes('Weight-for-Height') && patientData.ageYears <= 5 && weightForHeightTemplatesAvailable) {
-        addMetricRequest(`${sexPrefix}WeightForHeight0to5`, 'weightForHeight');
+      if (selectedValues.includes('Weight')) {
+        addMetricRequest(`${sexPrefix}Weight${ageBand}`, 'weight');
+      }
+
+      if (selectedValues.includes('BMI')) {
+        addMetricRequest(`${sexPrefix}Bmi${ageBand}`, 'bmi');
       }
 
       return requests;
@@ -1864,14 +1868,6 @@
 
     function buildWarnings(selectedValues, patientData) {
       const warnings = [];
-
-      if (selectedValues.includes('Weight-for-Height') && !weightForHeightTemplatesAvailable) {
-        warnings.push('Weight-for-height chart templates are not available in this deployment yet.');
-      }
-
-      if (selectedValues.includes('Weight-for-Height') && patientData.ageYears > 5) {
-        warnings.push('Weight-for-height is still available here only for ages 0 to 5 years.');
-      }
 
       if ((selectedValues.includes('Head Circumference-for-Age') || selectedValues.includes('BMI')) && patientData.ageYears > 18) {
         warnings.push('The available age-based chart templates are supported here up to 18 years.');
@@ -2001,16 +1997,20 @@
       const height = Number.parseFloat(metricInputs.height.value);
       const head = Number.parseFloat(metricInputs.head.value);
 
+      if (Number.isFinite(height) && height > 0) {
+        selected.push({ value: 'Height' });
+      }
+
+      if (Number.isFinite(weight) && weight > 0) {
+        selected.push({ value: 'Weight' });
+      }
+
       if (Number.isFinite(head) && head > 0) {
         selected.push({ value: 'Head Circumference-for-Age' });
       }
 
       if (Number.isFinite(weight) && weight > 0 && Number.isFinite(height) && height > 0) {
         selected.push({ value: 'BMI' });
-
-        if (Number.isFinite(ageYears) && ageYears <= 5 && weightForHeightTemplatesAvailable) {
-          selected.push({ value: 'Weight-for-Height' });
-        }
       }
 
       return selected;
@@ -2138,7 +2138,7 @@
     loadPatientIdFromUrl();
     cleanupExpiredLocalRecords();
 
-    generateBtn.addEventListener('click', async () => {
+      generateBtn.addEventListener('click', async () => {
       if (generateBtn.textContent.trim() === 'Continue') {
         const patientId = patientIdInput.value.trim().toUpperCase();
         const targetUrl = patientId
@@ -2158,7 +2158,7 @@
       const isValid = form.reportValidity();
 
       if (getSelectedCharts().length === 0) {
-        statusNote.textContent = 'Add OFC or both weight and height to generate charts.';
+        statusNote.textContent = 'Add height, weight, or head circumference to generate charts.';
         statusNote.classList.add('visible');
         return;
       }
