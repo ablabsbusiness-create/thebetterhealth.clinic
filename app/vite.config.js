@@ -11,7 +11,7 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: resolve(__dirname, 'dist', 'app'),
+    outDir: resolve(__dirname, 'dist'),
     emptyOutDir: true,
     rollupOptions: {
       input: {
