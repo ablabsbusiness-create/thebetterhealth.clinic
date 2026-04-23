@@ -1045,7 +1045,8 @@
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
     import { collection, getDocs, getFirestore } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
-    import * as pdfjsLib from 'https://mozilla.github.io/pdf.js/build/pdf.mjs';
+    import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
+    import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
     const searchInput = document.getElementById('search-input');
     const clearBtn = document.getElementById('clear-btn');
@@ -1062,7 +1063,7 @@
     const pdfPreviewImageCache = new Map();
     let prescriptionPreviewObserver = null;
 
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://mozilla.github.io/pdf.js/build/pdf.worker.mjs';
+    GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
@@ -1145,7 +1146,7 @@
           return;
         }
 
-        const loadingTask = pdfjsLib.getDocument({
+        const loadingTask = getDocument({
           url: pdfUrl,
           useWorkerFetch: true,
           isEvalSupported: false
