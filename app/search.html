@@ -1022,7 +1022,6 @@
     const pdfPreviewFrame = document.getElementById('pdf-preview-frame');
     const pdfPreviewLink = document.getElementById('pdf-preview-link');
     const pdfPreviewClose = document.getElementById('pdf-preview-close');
-    let prescriptionPreviewObserver = null;
 
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
@@ -1076,63 +1075,6 @@
       }
 
       return url.includes('#') ? url : `${url}#${options}`;
-    }
-
-    function hydratePrescriptionPreview(iframe) {
-      if (!(iframe instanceof HTMLIFrameElement)) {
-        return;
-      }
-
-      if (iframe.dataset.loaded === 'true') {
-        return;
-      }
-
-      const previewSrc = iframe.dataset.previewSrc || '';
-      if (!previewSrc) {
-        return;
-      }
-
-      iframe.src = previewSrc;
-      iframe.dataset.loaded = 'true';
-      iframe.removeAttribute('data-preview-src');
-    }
-
-    function hydrateVisiblePrescriptionPreviews() {
-      const previewIframes = [...resultsPanel.querySelectorAll('.prescription-preview-frame[data-preview-src]')];
-      if (!previewIframes.length) {
-        return;
-      }
-
-      if (!('IntersectionObserver' in window)) {
-        previewIframes.forEach(hydratePrescriptionPreview);
-        return;
-      }
-
-      if (!prescriptionPreviewObserver) {
-        prescriptionPreviewObserver = new IntersectionObserver((entries, observer) => {
-          entries.forEach((entry) => {
-            if (!entry.isIntersecting) {
-              return;
-            }
-
-            hydratePrescriptionPreview(entry.target);
-            observer.unobserve(entry.target);
-          });
-        }, {
-          root: null,
-          rootMargin: '240px 0px',
-          threshold: 0.01
-        });
-      }
-
-      previewIframes.forEach((iframe, index) => {
-        if (index === 0) {
-          hydratePrescriptionPreview(iframe);
-          return;
-        }
-
-        prescriptionPreviewObserver.observe(iframe);
-      });
     }
 
     function formatDateDisplay(dateValue, fallback = 'DOB not saved') {
@@ -1386,7 +1328,7 @@
                 <div class="prescription-preview-card" data-open-prescription-url="${cardUrl}">
                   <div class="prescription-date">${formatPrescriptionDate(entry)}</div>
                   ${downloadUrl
-                    ? `<iframe class="prescription-preview-frame" ${index === 0 ? `src="${previewUrl}" data-loaded="true"` : `data-preview-src="${previewUrl}" loading="lazy"`} title="Prescription Review ${index + 1}"></iframe>`
+                    ? `<iframe class="prescription-preview-frame" src="${previewUrl}" title="Prescription Review ${index + 1}"></iframe>`
                     : '<p>No prescription preview link was saved for this record.</p>'}
                 </div>
               `;
@@ -1454,8 +1396,6 @@
           </article>
         `;
       }).join('');
-
-      hydrateVisiblePrescriptionPreviews();
     }
 
     function filterPatients() {
