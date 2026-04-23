@@ -20,7 +20,13 @@ npm run dev
 
 ## Vercel deployment
 
-Deploy this project as a Vite static site on Vercel. The site is configured to be served from `/app`, so the public URL will be `https://thebetterhealth.clinic/app`.
+Deploy this project as a Vite static site on Vercel. The app now lives in the repository's `app` folder, and it is configured to be served from `/app`, so the public URL will be `https://thebetterhealth.clinic/app`.
+
+Set the Vercel Root Directory to:
+
+```bash
+app
+```
 
 Set these environment variables in the Vercel project settings before deploying:
 
