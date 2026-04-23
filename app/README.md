@@ -38,6 +38,12 @@ Set these environment variables in the Vercel project settings before deploying:
 - `VITE_FIREBASE_APP_ID`
 - `VITE_FIREBASE_MEASUREMENT_ID`
 
+You can copy them from:
+
+```bash
+app/.env.vercel.example
+```
+
 Build command:
 
 ```bash
