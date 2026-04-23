@@ -464,8 +464,8 @@
       display: block;
       width: 100%;
       aspect-ratio: 1.25 / 1;
-      object-fit: cover;
-      object-position: center top;
+      object-fit: contain;
+      object-position: center;
       filter: grayscale(1) contrast(1.05);
       background: #fff;
       border-radius: 8px;
@@ -885,10 +885,10 @@
         const image = new Image();
         image.onload = () => {
           const crop = {
-            x: Math.round(image.width * 0.065),
-            y: Math.round(image.height * 0.13),
-            width: Math.round(image.width * 0.87),
-            height: Math.round(image.height * 0.46)
+            x: Math.round(image.width * 0.015),
+            y: Math.round(image.height * 0.03),
+            width: Math.round(image.width * 0.97),
+            height: Math.round(image.height * 0.82)
           };
           const canvas = document.createElement('canvas');
           canvas.width = crop.width;
