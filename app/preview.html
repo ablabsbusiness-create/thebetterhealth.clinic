@@ -455,7 +455,7 @@
 
     .mini-chart-card strong {
       display: block;
-      margin-bottom: 3px;
+      margin-bottom: 6px;
       font-size: 13px;
       font-weight: 500;
     }
@@ -463,11 +463,12 @@
     .mini-chart-card img {
       display: block;
       width: 100%;
-      aspect-ratio: 1.15 / 1;
-      object-fit: contain;
-      object-position: center;
+      aspect-ratio: 1.25 / 1;
+      object-fit: cover;
+      object-position: center top;
       filter: grayscale(1) contrast(1.05);
       background: #fff;
+      border-radius: 8px;
     }
 
     .rx-footer {
@@ -884,10 +885,10 @@
         const image = new Image();
         image.onload = () => {
           const crop = {
-            x: Math.round(image.width * 0.06),
-            y: Math.round(image.height * 0.11),
-            width: Math.round(image.width * 0.88),
-            height: Math.round(image.height * 0.68)
+            x: Math.round(image.width * 0.065),
+            y: Math.round(image.height * 0.13),
+            width: Math.round(image.width * 0.87),
+            height: Math.round(image.height * 0.46)
           };
           const canvas = document.createElement('canvas');
           canvas.width = crop.width;
@@ -1145,14 +1146,14 @@
           dataUrl: await cropChartDataUrl(page.dataUrl)
         })));
         croppedPages.forEach((page, index) => {
-          const x = 15 + index * (chartWidth + chartGap);
-          pdf.setFont('helvetica', 'normal');
-          pdf.setFontSize(8);
-          pdf.text(chartTitle(page.label, index), x, y);
-          pdf.addImage(page.dataUrl, 'JPEG', x, y + 3, chartWidth, 31, undefined, 'FAST');
-        });
-        y += 40;
-      }
+        const x = 15 + index * (chartWidth + chartGap);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(8);
+        pdf.text(chartTitle(page.label, index), x, y);
+        pdf.addImage(croppedPages[index].dataUrl, 'JPEG', x, y + 3, chartWidth, 31, undefined, 'FAST');
+      });
+      y += 40;
+    }
 
       pdf.line(15, 250, 38, 250);
       pdf.setFont('helvetica', 'bold');
