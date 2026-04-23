@@ -1045,8 +1045,6 @@
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
     import { collection, getDocs, getFirestore } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
-    import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
-    import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
     const searchInput = document.getElementById('search-input');
     const clearBtn = document.getElementById('clear-btn');
@@ -1062,8 +1060,7 @@
     const pdfPreviewClose = document.getElementById('pdf-preview-close');
     const pdfPreviewImageCache = new Map();
     let prescriptionPreviewObserver = null;
-
-    GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+    let pdfPreviewRuntimePromise = null;
 
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
@@ -1119,6 +1116,29 @@
       return url.includes('#') ? url : `${url}#${options}`;
     }
 
+    async function ensurePdfPreviewRuntime() {
+      if (pdfPreviewRuntimePromise) {
+        return pdfPreviewRuntimePromise;
+      }
+
+      pdfPreviewRuntimePromise = (async () => {
+        try {
+          const [{ getDocument, GlobalWorkerOptions }, { default: pdfWorkerUrl }] = await Promise.all([
+            import('pdfjs-dist'),
+            import('pdfjs-dist/build/pdf.worker.min.mjs?url')
+          ]);
+
+          GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+          return { getDocument };
+        } catch (error) {
+          console.warn(`Unable to load PDF preview runtime: ${error.message}`);
+          return null;
+        }
+      })();
+
+      return pdfPreviewRuntimePromise;
+    }
+
     async function renderPrescriptionPreviewImage(imageElement) {
       if (!(imageElement instanceof HTMLImageElement)) {
         return;
@@ -1136,6 +1156,11 @@
       const placeholder = imageElement.parentElement?.querySelector('.prescription-preview-placeholder');
 
       try {
+        const pdfPreviewRuntime = await ensurePdfPreviewRuntime();
+        if (!pdfPreviewRuntime) {
+          throw new Error('PDF preview runtime unavailable');
+        }
+
         if (pdfPreviewImageCache.has(pdfUrl)) {
           imageElement.src = pdfPreviewImageCache.get(pdfUrl);
           imageElement.dataset.rendered = 'true';
@@ -1146,7 +1171,7 @@
           return;
         }
 
-        const loadingTask = getDocument({
+        const loadingTask = pdfPreviewRuntime.getDocument({
           url: pdfUrl,
           useWorkerFetch: true,
           isEvalSupported: false
