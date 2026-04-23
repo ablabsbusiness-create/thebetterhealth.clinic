@@ -376,6 +376,464 @@
       color: #9a3412;
     }
 
+    .search-shell {
+      background: rgba(255, 255, 255, 0.84);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(215, 226, 217, 0.95);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .search-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .search-head h2 {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+
+    .search-head p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .search-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 180px;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .search-row input {
+      width: 100%;
+      min-height: 56px;
+      padding: 0 18px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.94);
+      color: var(--ink);
+      font: inherit;
+      outline: none;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    }
+
+    .search-row input:focus {
+      border-color: rgba(22, 101, 52, 0.5);
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12);
+      background: #fff;
+    }
+
+    .results-list {
+      display: grid;
+      gap: 18px;
+    }
+
+    .result-card {
+      padding: 18px;
+      border-radius: 26px;
+      border: 1px solid rgba(215, 226, 217, 0.98);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 251, 247, 0.96));
+      box-shadow:
+        0 16px 38px rgba(22, 38, 29, 0.07),
+        inset 0 1px 0 rgba(255, 255, 255, 0.92);
+    }
+
+    .result-top {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+      margin-bottom: 18px;
+    }
+
+    .result-meta {
+      padding: 18px 18px 16px;
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.86);
+      min-height: 118px;
+    }
+
+    .result-meta--child {
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at top left, rgba(34, 197, 94, 0.2), transparent 32%),
+        linear-gradient(135deg, rgba(22, 101, 52, 0.12), rgba(255, 255, 255, 0.96) 58%);
+      border-color: rgba(22, 101, 52, 0.18);
+    }
+
+    .result-meta-label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .child-meta-head {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 10px;
+    }
+
+    .child-avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #166534, #22c55e);
+      color: #fff;
+      font-size: 24px;
+      font-weight: 700;
+      box-shadow: 0 14px 28px rgba(22, 101, 52, 0.2);
+      flex-shrink: 0;
+    }
+
+    .result-meta strong {
+      display: block;
+      margin-top: 8px;
+      font-size: clamp(28px, 4vw, 38px);
+      line-height: 1;
+    }
+
+    .result-meta--child strong {
+      margin-top: 0;
+      font-size: clamp(30px, 4.2vw, 42px);
+      line-height: 0.95;
+    }
+
+    .result-meta small {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .patient-id-badge {
+      display: inline-flex;
+      align-items: center;
+      margin-top: 12px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(22, 101, 52, 0.1);
+      color: var(--brand-strong);
+      border: 1px solid rgba(22, 101, 52, 0.14);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .result-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.85fr) minmax(260px, 0.9fr);
+      gap: 16px;
+    }
+
+    .info-panel,
+    .history-panel {
+      min-height: 260px;
+      border-radius: 22px;
+      overflow: hidden;
+      position: relative;
+      background:
+        linear-gradient(135deg, rgba(18, 23, 20, 0.92), rgba(41, 49, 44, 0.96)),
+        radial-gradient(circle at top left, rgba(212, 175, 55, 0.22), transparent 38%);
+      color: #fff;
+    }
+
+    .history-panel .panel-content {
+      min-height: 640px;
+      padding: 0;
+      gap: 0;
+    }
+
+    .history-panel .panel-content h3 {
+      display: none;
+    }
+
+    .info-panel::before,
+    .history-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(135deg, rgba(255,255,255,0.05) 0, rgba(255,255,255,0.05) 2px, transparent 2px, transparent 28px);
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .panel-content {
+      position: relative;
+      z-index: 1;
+      height: 100%;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 14px;
+    }
+
+    .panel-content h3 {
+      margin: 0;
+      font-size: clamp(26px, 3.2vw, 34px);
+      line-height: 1.15;
+    }
+
+    .record-table-wrap {
+      overflow-x: auto;
+      margin-top: 2px;
+    }
+
+    .record-table {
+      width: 100%;
+      min-width: 100%;
+      border-collapse: separate;
+      border-spacing: 4px;
+    }
+
+    .record-table th,
+    .record-table td {
+      padding: 8px 8px;
+      text-align: center;
+      vertical-align: middle;
+      font-size: 12px;
+      line-height: 1.4;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .record-table thead th {
+      padding-bottom: 4px;
+      color: rgba(255, 255, 255, 0.76);
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .record-table .metric-name {
+      min-width: 70px;
+      padding-left: 0;
+      text-align: left;
+      color: #fff;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .record-table .metric-unit {
+      min-width: 34px;
+      color: rgba(255, 255, 255, 0.68);
+      font-size: 10px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .record-table .metric-value {
+      min-width: 52px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      font-weight: 600;
+    }
+
+    .history-filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-top: 2px;
+    }
+
+    .history-filter-row label {
+      font-size: 13px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.84);
+    }
+
+    .history-filter-row input[type="date"] {
+      width: auto;
+      min-width: 180px;
+      min-height: 42px;
+      padding: 0 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+      font: inherit;
+    }
+
+    .filter-clear-btn {
+      width: auto;
+      min-height: 42px;
+      padding: 0 14px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: #fff;
+      box-shadow: none;
+      font-size: 13px;
+    }
+
+    .prescription-list {
+      display: flex;
+      gap: 0;
+      width: 100%;
+      flex: 1;
+      min-height: 0;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+    }
+
+    .prescription-carousel {
+      position: relative;
+      width: 100%;
+      flex: 1;
+      min-height: 0;
+      display: flex;
+    }
+
+    .carousel-arrow {
+      position: absolute;
+      top: 50%;
+      z-index: 3;
+      width: 24px;
+      height: 24px;
+      transform: translateY(-50%);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.92);
+      color: #102217;
+      font: inherit;
+      font-size: 16px;
+      font-weight: 800;
+      line-height: 1;
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(5, 18, 11, 0.18);
+    }
+
+    .carousel-arrow-left {
+      left: 6px;
+    }
+
+    .carousel-arrow-right {
+      right: 6px;
+    }
+
+    .prescription-preview-card {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 6px;
+      flex: 0 0 100%;
+      padding: 0;
+      border-radius: 0;
+      border: 0;
+      background: transparent;
+      color: #fff;
+      min-height: 100%;
+      scroll-snap-align: start;
+      cursor: pointer;
+    }
+
+    .prescription-date {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 16px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      color: #102217;
+      font-size: 15px;
+      font-weight: 800;
+      width: 100%;
+    }
+
+    .prescription-preview-frame {
+      width: 100%;
+      height: 100%;
+      min-height: 606px;
+      border: 0;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.92);
+      pointer-events: none;
+    }
+
+    .pdf-preview-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 22px;
+      background: rgba(11, 22, 16, 0.68);
+      backdrop-filter: blur(10px);
+    }
+
+    .pdf-preview-modal.is-open {
+      display: flex;
+    }
+
+    .pdf-preview-dialog {
+      width: min(100%, 980px);
+      height: min(90vh, 940px);
+      border-radius: 24px;
+      background: #fff;
+      overflow: hidden;
+      box-shadow: 0 24px 80px rgba(4, 12, 8, 0.3);
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    .pdf-preview-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 22px;
+      border-bottom: 1px solid #e5ebe6;
+      background: #f8fbf9;
+    }
+
+    .pdf-preview-body {
+      min-height: 0;
+      background: #eef3ef;
+    }
+
+    .pdf-preview-viewer {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #eef3ef;
+    }
+
+    .pdf-preview-close {
+      width: 44px;
+      min-height: 44px;
+      border-radius: 14px;
+      background: #fff;
+      border: 1px solid #dbe5dd;
+      color: var(--ink);
+      box-shadow: none;
+      flex-shrink: 0;
+    }
+
+    .pdf-preview-fallback {
+      padding: 24px;
+      color: var(--muted);
+    }
+
     .results-head {
       display: flex;
       align-items: center;
@@ -605,55 +1063,58 @@
     <section class="page-intro">
       <div>
         <div class="eyebrow">Patient Records</div>
-        <h1>Check saved chart history by patient ID.</h1>
+        <h1>Review the latest saved patients and their recent records.</h1>
         <p>
-          Enter the clinic patient ID to load chart-generation history from Firebase and review past chart activity for that child.
+          This page now mirrors Search and highlights the 10 most recent patients from the clinic database, along with their measurements and past prescriptions.
         </p>
       </div>
       <div class="page-meta">
         <strong>History View</strong>
-        <span>Search by patient ID and review saved timestamps, selected charts, and measurements.</span>
+        <span>Browse the latest 10 patient records and filter them by child name or patient ID.</span>
       </div>
     </section>
 
-    <div class="grid">
-      <section class="search-card">
-        <div class="eyebrow">Step 1</div>
-        <h2 class="card-title">Find Patient History</h2>
-        <p class="card-copy">Enter a patient ID like <span class="mono">SXA7K</span>. The page will fetch matching chart history from the clinic database.</p>
-
-        <div class="field">
-          <label for="patient-id">Patient ID <span class="required">*</span></label>
-          <input id="patient-id" type="text" placeholder="Enter patient ID" autocomplete="off">
-          <span class="field-hint">The search runs when you leave the field or click the button.</span>
+    <section class="search-shell">
+      <div class="search-head">
+        <div>
+          <h2>Latest Patients</h2>
+          <p>Showing the 10 most recent patients. Search by child name or patient ID to narrow this list.</p>
         </div>
+        <div id="results-count" class="count-chip">0 patients</div>
+      </div>
 
-        <div class="btn-row">
-          <button id="search-btn" class="btn-primary" type="button">Show History</button>
-          <button id="clear-btn" class="btn-secondary" type="button">Clear</button>
-        </div>
+      <div class="search-row">
+        <input id="search-input" type="text" placeholder="Search by child name or patient ID" autocomplete="off">
+        <button id="clear-btn" class="btn-primary" type="button">Clear Search</button>
+      </div>
 
-        <div id="status-note" class="status-note">Enter a patient ID to load history.</div>
-      </section>
+      <div id="status-note" class="status-note">Loading the latest patients...</div>
+      <div id="results-panel" class="results-list"></div>
+    </section>
+  </div>
 
-      <section class="history-card">
-        <div class="results-head">
-          <h2>History Results</h2>
-          <div id="results-count" class="count-chip">0 entries</div>
-        </div>
-        <div id="results-panel" class="placeholder">
-          No history loaded yet. Search with a patient ID to see saved records.
-        </div>
-      </section>
+  <div id="pdf-preview-modal" class="pdf-preview-modal" aria-hidden="true">
+    <div class="pdf-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="pdf-preview-title">
+      <div class="pdf-preview-head">
+        <strong id="pdf-preview-title">Prescription preview</strong>
+        <button id="pdf-preview-close" class="pdf-preview-close" type="button" aria-label="Close prescription preview">x</button>
+      </div>
+      <div class="pdf-preview-body">
+        <object id="pdf-preview-frame" class="pdf-preview-viewer" type="application/pdf" aria-label="Prescription PDF preview">
+          <div class="pdf-preview-fallback">
+            PDF preview could not load here.
+            <a id="pdf-preview-link" href="#" target="_blank" rel="noopener noreferrer">Open prescription</a>
+          </div>
+        </object>
+      </div>
     </div>
   </div>
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
-    import { collection, getDocs, getFirestore, query, where } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { collection, getDocs, getFirestore } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
 
-    const patientIdInput = document.getElementById('patient-id');
-    const searchBtn = document.getElementById('search-btn');
+    const searchInput = document.getElementById('search-input');
     const clearBtn = document.getElementById('clear-btn');
     const statusNote = document.getElementById('status-note');
     const resultsPanel = document.getElementById('results-panel');
@@ -661,6 +1122,10 @@
     const menuToggle = document.getElementById('menu-toggle');
     const primaryNav = document.getElementById('primary-nav');
     const navLinks = [...document.querySelectorAll('#primary-nav .nav-link')];
+    const pdfPreviewModal = document.getElementById('pdf-preview-modal');
+    const pdfPreviewFrame = document.getElementById('pdf-preview-frame');
+    const pdfPreviewLink = document.getElementById('pdf-preview-link');
+    const pdfPreviewClose = document.getElementById('pdf-preview-close');
 
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
@@ -675,6 +1140,9 @@
 
     const firebaseConfigured = Object.values(firebaseConfig).every(Boolean);
     const db = firebaseConfigured ? getFirestore(initializeApp(firebaseConfig)) : null;
+    let allPatients = [];
+    let allHistory = [];
+    const historyDateFilters = {};
 
     function setStatus(message, tone = '') {
       statusNote.textContent = message;
@@ -684,23 +1152,292 @@
       }
     }
 
-    function normalizeDate(entry) {
-      if (entry.createdAtDisplay) {
-        return entry.createdAtDisplay;
-      }
-
-      if (entry.createdAtIso) {
-        return new Date(entry.createdAtIso).toLocaleString('en-IN');
-      }
-
-      if (entry.createdAt?.toDate) {
-        return entry.createdAt.toDate().toLocaleString('en-IN');
-      }
-
-      return 'Date unavailable';
+    function updateCount(count) {
+      resultsCount.textContent = `${count} patient${count === 1 ? '' : 's'}`;
     }
 
-    function getSortValue(entry) {
+    function renderPlaceholder(message) {
+      resultsPanel.innerHTML = `<div class="placeholder">${message}</div>`;
+    }
+
+    function formatMissing(value, fallback = 'Not saved') {
+      return value && String(value).trim() ? value : fallback;
+    }
+
+    function escapeHtml(value = '') {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;');
+    }
+
+    function buildPdfPreviewUrl(url, options = 'toolbar=0&navpanes=0&scrollbar=0&view=FitH') {
+      if (!url) {
+        return '';
+      }
+
+      return url.includes('#') ? url : `${url}#${options}`;
+    }
+
+    function formatDateDisplay(dateValue, fallback = 'DOB not saved') {
+      if (!dateValue) {
+        return fallback;
+      }
+
+      const parsed = new Date(dateValue);
+      if (Number.isNaN(parsed.getTime())) {
+        return dateValue;
+      }
+
+      return parsed.toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
+    }
+
+    function getIsoDatePart(dateValue) {
+      if (!dateValue) {
+        return '';
+      }
+
+      const parsed = new Date(dateValue);
+      if (Number.isNaN(parsed.getTime())) {
+        return '';
+      }
+
+      const year = parsed.getFullYear();
+      const month = String(parsed.getMonth() + 1).padStart(2, '0');
+      const day = String(parsed.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function formatHistoryDateHeader(entry) {
+      if (entry.createdAtIso) {
+        const parsed = new Date(entry.createdAtIso);
+        if (!Number.isNaN(parsed.getTime())) {
+          return parsed.toLocaleDateString('en-IN', {
+            day: '2-digit',
+            month: 'short',
+            year: '2-digit'
+          });
+        }
+      }
+
+      return 'Saved';
+    }
+
+    function formatMetricCellValue(value, suffix = '') {
+      return value && String(value).trim() ? `${value}${suffix}` : '';
+    }
+
+    function getPatientDisplayName(patient) {
+      return (
+        patient.childName
+        || [patient.firstName, patient.middleName, patient.lastName].filter(Boolean).join(' ').trim()
+        || patient.patientId
+        || 'Unknown child'
+      );
+    }
+
+    function getPatientSearchText(patient) {
+      return [
+        patient.childName,
+        patient.firstName,
+        patient.middleName,
+        patient.lastName,
+        patient.patientId
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+    }
+
+    function getMeasurementEntries(patient) {
+      const entries = Array.isArray(patient.measurementHistory) ? [...patient.measurementHistory] : [];
+      if (patient.lastMeasurementRecord && entries.length === 0) {
+        entries.push(patient.lastMeasurementRecord);
+      }
+
+      return entries.sort((a, b) => {
+        const aTime = getEntryTimestamp(a);
+        const bTime = getEntryTimestamp(b);
+        return bTime - aTime;
+      });
+    }
+
+    function renderMeasurementTableHtml(patient, selectedDate = '') {
+      const entries = getMeasurementEntries(patient);
+      if (entries.length === 0) {
+        return '<p>No chart measurements have been saved for this patient yet.</p>';
+      }
+
+      const filteredEntries = (selectedDate
+        ? entries.filter((entry) => getIsoDatePart(entry.createdAtIso) === selectedDate)
+        : entries).slice(0, 6);
+
+      const rows = [
+        { label: 'Weight', unit: 'kg', getValue: (entry) => formatMetricCellValue(entry.weight) },
+        { label: 'Height', unit: 'cm', getValue: (entry) => formatMetricCellValue(entry.height) },
+        { label: 'Ofc', unit: 'cm', getValue: (entry) => formatMetricCellValue(entry.head) },
+        { label: 'SPO2', unit: '%', getValue: (entry) => formatMetricCellValue(entry.spo2) },
+        { label: 'Pulse', unit: '/min', getValue: (entry) => formatMetricCellValue(entry.pulse) },
+        { label: 'Systolic', unit: 'mmHg', getValue: (entry) => formatMetricCellValue(entry.systolic) },
+        { label: 'Diastolic', unit: 'mmHg', getValue: (entry) => formatMetricCellValue(entry.diastolic) },
+        { label: 'Temperature', unit: '°C', getValue: (entry) => formatMetricCellValue(entry.temp) }
+      ];
+
+      return `
+        <div class="history-filter-row">
+          <label for="history-date-${patient.patientId}">Change date</label>
+          <input id="history-date-${patient.patientId}" class="history-date-input" data-patient-id="${patient.patientId}" type="date" value="${selectedDate}">
+          <button class="filter-clear-btn" type="button" data-clear-history-date="${patient.patientId}">Show all</button>
+        </div>
+        <div class="record-table-wrap">
+          <table class="record-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th></th>
+                ${filteredEntries.map((entry) => `<th>${formatHistoryDateHeader(entry)}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              ${filteredEntries.length === 0 ? `
+                <tr>
+                  <td colspan="6" class="table-empty">No chart measurements were found for the selected date.</td>
+                </tr>
+              ` : rows.map((row) => `
+                <tr>
+                  <th scope="row" class="metric-name">${row.label}</th>
+                  <td class="metric-unit">${row.unit}</td>
+                  ${filteredEntries.map((entry) => `<td class="metric-value">${row.getValue(entry)}</td>`).join('')}
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function formatPrescriptionDate(entry) {
+      if (entry.createdAtIso) {
+        const parsed = new Date(entry.createdAtIso);
+        if (!Number.isNaN(parsed.getTime())) {
+          return parsed.toLocaleDateString('en-IN', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+          });
+        }
+      }
+
+      return entry.createdAtDisplay || 'Saved prescription';
+    }
+
+    function getPrescriptionEntries(patientId) {
+      return allHistory
+        .filter((entry) => entry.type === 'prescription' || entry.source === 'prescription-pdf')
+        .filter((entry) => (entry.patientId || '').toUpperCase() === String(patientId || '').toUpperCase())
+        .sort((a, b) => getEntryTimestamp(b) - getEntryTimestamp(a));
+    }
+
+    function renderPrescriptionListHtml(patientId) {
+      const entries = getPrescriptionEntries(patientId);
+
+      if (!entries.length) {
+        return '<p>No saved prescriptions found for this patient yet.</p>';
+      }
+
+      return `
+        <div class="prescription-carousel">
+          ${entries.length > 1 ? '<button class="carousel-arrow carousel-arrow-left" type="button" data-carousel-direction="-1" aria-label="Previous prescription">‹</button>' : ''}
+          <div class="prescription-list">
+            ${entries.slice(0, 5).map((entry, index) => {
+              const downloadUrl = entry.downloadURL || '';
+              const cardUrl = escapeHtml(downloadUrl);
+              const previewUrl = escapeHtml(buildPdfPreviewUrl(downloadUrl));
+
+              return `
+                <div class="prescription-preview-card" data-open-prescription-url="${cardUrl}">
+                  <div class="prescription-date">${formatPrescriptionDate(entry)}</div>
+                  ${downloadUrl
+                    ? `<iframe class="prescription-preview-frame" src="${previewUrl}" title="Prescription Review ${index + 1}"></iframe>`
+                    : '<p>No prescription preview link was saved for this record.</p>'}
+                </div>
+              `;
+            }).join('')}
+          </div>
+          ${entries.length > 1 ? '<button class="carousel-arrow carousel-arrow-right" type="button" data-carousel-direction="1" aria-label="Next prescription">›</button>' : ''}
+        </div>
+      `;
+    }
+
+    function renderPatients(patients) {
+      updateCount(patients.length);
+
+      if (patients.length === 0) {
+        renderPlaceholder('No patients matched that child name or patient ID.');
+        return;
+      }
+
+      resultsPanel.innerHTML = patients.map((patient) => {
+        const childName = getPatientDisplayName(patient);
+        const phone = formatMissing(patient.phone, 'Phone not saved');
+        const parentName = formatMissing(patient.parentName, 'Parent not saved');
+        const dob = formatDateDisplay(patient.dob);
+        const gender = formatMissing(patient.gender, 'Gender not saved');
+        const patientId = formatMissing(patient.patientId, 'ID not saved');
+        const selectedHistoryDate = historyDateFilters[patientId] || '';
+
+        return `
+          <article class="result-card">
+            <div class="result-top">
+              <div class="result-meta result-meta--child">
+                <span class="result-meta-label">Child name</span>
+                <div class="child-meta-head">
+                  <div class="child-avatar">${childName.charAt(0).toUpperCase()}</div>
+                  <div>
+                    <strong>${childName}</strong>
+                    <small>${gender} • ${dob}</small>
+                  </div>
+                </div>
+                <div class="patient-id-badge mono">${patientId}</div>
+              </div>
+              <div class="result-meta">
+                <span class="result-meta-label">Phone number</span>
+                <strong>${phone}</strong>
+                <small>${parentName}</small>
+              </div>
+            </div>
+
+            <div class="result-layout">
+              <section class="info-panel">
+                <div class="panel-content">
+                  <h3>Info regarding patient details and current clinic record.</h3>
+                  ${renderMeasurementTableHtml(patient, selectedHistoryDate)}
+                </div>
+              </section>
+
+              <section class="history-panel">
+                <div class="panel-content">
+                  <h3>Past prescription</h3>
+                  ${renderPrescriptionListHtml(patientId)}
+                </div>
+              </section>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function getEntryTimestamp(entry) {
+      if (!entry) {
+        return 0;
+      }
+
       if (entry.createdAtIso) {
         return Date.parse(entry.createdAtIso) || 0;
       }
@@ -712,173 +1449,247 @@
       return 0;
     }
 
-    function renderPlaceholder(message) {
-      resultsPanel.className = 'placeholder';
-      resultsPanel.textContent = message;
+    function getLatestPatientTimestamp(patient) {
+      const candidateTimes = [
+        getEntryTimestamp(patient),
+        getEntryTimestamp(patient.lastMeasurementRecord),
+        ...getMeasurementEntries(patient).map((entry) => getEntryTimestamp(entry)),
+        ...getPrescriptionEntries(patient.patientId).map((entry) => getEntryTimestamp(entry))
+      ];
+
+      return Math.max(0, ...candidateTimes);
     }
 
-    function renderHistory(entries) {
-      resultsCount.textContent = `${entries.length} entr${entries.length === 1 ? 'y' : 'ies'}`;
+    function filterPatients() {
+      const searchValue = searchInput.value.trim().toLowerCase();
+      const filteredPatients = searchValue
+        ? allPatients.filter((patient) => getPatientSearchText(patient).includes(searchValue))
+        : allPatients;
 
-      if (entries.length === 0) {
-        renderPlaceholder('No history was found for that patient ID yet.');
+      renderPatients(filteredPatients);
+      setStatus(searchValue ? `Showing matches for "${searchInput.value.trim()}".` : 'Showing the latest 10 patients.');
+    }
+
+    function openPrescriptionPreview(url) {
+      if (!url) {
         return;
       }
 
-      const sortedEntries = [...entries].sort((a, b) => getSortValue(b) - getSortValue(a));
-      const list = document.createElement('div');
-      list.className = 'history-list';
-
-      sortedEntries.forEach((entry) => {
-        const item = document.createElement('article');
-        item.className = 'history-item';
-
-        const itemTop = document.createElement('div');
-        itemTop.className = 'history-item-top';
-
-        const headingBox = document.createElement('div');
-        const title = document.createElement('strong');
-        title.textContent = entry.childName || 'Patient history entry';
-        const subtitle = document.createElement('span');
-        subtitle.textContent = `Patient ID: ${entry.patientId || 'Unknown'} • Parent: ${entry.parentName || 'Not saved'}`;
-        headingBox.appendChild(title);
-        headingBox.appendChild(subtitle);
-
-        const timeChip = document.createElement('div');
-        timeChip.className = 'time-chip';
-        timeChip.textContent = normalizeDate(entry);
-
-        itemTop.appendChild(headingBox);
-        itemTop.appendChild(timeChip);
-
-        const metaGrid = document.createElement('div');
-        metaGrid.className = 'meta-grid';
-
-        const metaItems = [
-          ['Gender', entry.gender || 'Not saved'],
-          ['DOB', entry.dob || 'Not saved'],
-          ['Age', entry.age || 'Not saved'],
-          ['Measurements', `Wt ${entry.weight || '-'} kg • Ht ${entry.height || '-'} cm • HC ${entry.head || '-'} cm`]
-        ];
-
-        metaItems.forEach(([label, value]) => {
-          const box = document.createElement('div');
-          box.className = 'meta-box';
-          box.innerHTML = `<span>${label}</span><strong>${value}</strong>`;
-          metaGrid.appendChild(box);
-        });
-
-        const chartLabel = document.createElement('div');
-        chartLabel.className = 'meta-box';
-        chartLabel.innerHTML = '<span>Charts</span>';
-
-        const chartPillRow = document.createElement('div');
-        chartPillRow.className = 'chart-pill-row';
-        const charts = Array.isArray(entry.charts) ? entry.charts : [];
-
-        if (charts.length === 0) {
-          const emptyPill = document.createElement('span');
-          emptyPill.className = 'chart-pill';
-          emptyPill.textContent = 'No chart names saved';
-          chartPillRow.appendChild(emptyPill);
-        } else {
-          charts.forEach((chartName) => {
-            const pill = document.createElement('span');
-            pill.className = 'chart-pill';
-            pill.textContent = chartName;
-            chartPillRow.appendChild(pill);
-          });
-        }
-
-        chartLabel.appendChild(chartPillRow);
-        item.appendChild(itemTop);
-        item.appendChild(metaGrid);
-        item.appendChild(chartLabel);
-        list.appendChild(item);
-      });
-
-      resultsPanel.className = '';
-      resultsPanel.innerHTML = '';
-      resultsPanel.appendChild(list);
+      const previewUrl = buildPdfPreviewUrl(url, 'toolbar=1&navpanes=0&scrollbar=1&view=FitH');
+      pdfPreviewFrame.data = previewUrl;
+      pdfPreviewLink.href = url;
+      pdfPreviewModal.classList.add('is-open');
+      pdfPreviewModal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      pdfPreviewClose.focus();
     }
 
-    async function loadHistory() {
-      const patientId = patientIdInput.value.trim().toUpperCase();
+    function closePrescriptionPreview() {
+      pdfPreviewModal.classList.remove('is-open');
+      pdfPreviewModal.setAttribute('aria-hidden', 'true');
+      pdfPreviewFrame.data = '';
+      pdfPreviewLink.href = '#';
+      document.body.style.overflow = '';
+    }
 
-      if (!patientId) {
-        resultsCount.textContent = '0 entries';
-        renderPlaceholder('Enter a patient ID to search the history collection.');
-        setStatus('Please enter a patient ID first.', 'warning');
-        return;
-      }
-
-      patientIdInput.value = patientId;
-
+    async function loadPatients() {
       if (!db) {
-        resultsCount.textContent = '0 entries';
-        renderPlaceholder('Firebase is not configured for this page yet.');
-        setStatus('Firebase is not configured, so history cannot be loaded.', 'warning');
+        updateCount(0);
+        renderPlaceholder('Firebase is not configured for patient history.');
+        setStatus('Firebase is not configured, so patients cannot be loaded.', 'warning');
         return;
       }
 
-      setStatus('Looking up patient history...');
+      setStatus('Loading the latest patients...');
 
       try {
-        const historyQuery = query(
-          collection(db, 'history'),
-          where('patientId', '==', patientId)
-        );
+        const snapshot = await getDocs(collection(db, 'patients'));
+        const historySnapshot = await getDocs(collection(db, 'history')).catch((error) => {
+          console.warn(`Unable to load history records: ${error.message}`);
+          return { docs: [] };
+        });
 
-        const snapshot = await getDocs(historyQuery);
-        const entries = snapshot.docs.map((docSnapshot) => ({
+        allHistory = historySnapshot.docs.map((docSnapshot) => ({
           id: docSnapshot.id,
           ...docSnapshot.data()
         }));
 
-        renderHistory(entries);
-        setStatus(entries.length > 0 ? 'History loaded successfully.' : 'No history found for that patient ID.');
+        const patientRecords = snapshot.docs.map((docSnapshot) => ({
+          id: docSnapshot.id,
+          ...docSnapshot.data()
+        }));
+        const historyByPatientId = new Map();
+
+        allHistory.forEach((entry) => {
+          const patientId = String(entry.patientId || '').trim().toUpperCase();
+          if (!patientId) {
+            return;
+          }
+
+          const entries = historyByPatientId.get(patientId) || [];
+          entries.push(entry);
+          historyByPatientId.set(patientId, entries);
+        });
+
+        historyByPatientId.forEach((entries) => {
+          entries.sort((left, right) => getEntryTimestamp(right) - getEntryTimestamp(left));
+        });
+
+        const mergedPatients = [];
+        const seenPatientIds = new Set();
+
+        patientRecords.forEach((patient) => {
+          const patientId = String(patient.patientId || '').trim().toUpperCase();
+          const historyEntries = patientId ? historyByPatientId.get(patientId) || [] : [];
+
+          mergedPatients.push({
+            ...patient,
+            measurementHistory: Array.isArray(patient.measurementHistory) ? patient.measurementHistory : historyEntries,
+            lastMeasurementRecord: patient.lastMeasurementRecord || historyEntries[0] || null
+          });
+
+          if (patientId) {
+            seenPatientIds.add(patientId);
+          }
+        });
+
+        historyByPatientId.forEach((entries, patientId) => {
+          if (seenPatientIds.has(patientId)) {
+            return;
+          }
+
+          const latest = entries[0] || {};
+          mergedPatients.push({
+            id: `history-${patientId}`,
+            patientId: latest.patientId || patientId,
+            childName: latest.childName || latest.patientName || '',
+            firstName: latest.firstName || '',
+            middleName: latest.middleName || '',
+            lastName: latest.lastName || '',
+            parentName: latest.parentName || '',
+            phone: latest.phone || '',
+            gender: latest.gender || '',
+            dob: latest.dob || '',
+            createdAtIso: latest.createdAtIso || '',
+            createdAt: latest.createdAt || null,
+            measurementHistory: entries.filter((entry) => entry.type !== 'prescription' && entry.source !== 'prescription-pdf'),
+            lastMeasurementRecord: entries.find((entry) => entry.type !== 'prescription' && entry.source !== 'prescription-pdf') || latest,
+            fromHistoryOnly: true
+          });
+        });
+
+        allPatients = mergedPatients
+          .sort((left, right) => getLatestPatientTimestamp(right) - getLatestPatientTimestamp(left))
+          .slice(0, 10);
+
+        if (allPatients.length === 0) {
+          updateCount(0);
+          renderPlaceholder('No patients have been saved yet.');
+          setStatus('No patients were found in the database.');
+          return;
+        }
+
+        filterPatients();
       } catch (error) {
-        resultsCount.textContent = '0 entries';
-        renderPlaceholder('The history could not be loaded right now.');
-        setStatus(`Unable to load history: ${error.message}`, 'warning');
+        updateCount(0);
+        renderPlaceholder('The patient list could not be loaded right now.');
+        setStatus(`Unable to load patients: ${error.message}`, 'warning');
       }
     }
 
     function clearHistorySearch() {
-      patientIdInput.value = '';
-      resultsCount.textContent = '0 entries';
-      renderPlaceholder('No history loaded yet. Search with a patient ID to see saved records.');
-      setStatus('Enter a patient ID to load history.');
+      searchInput.value = '';
+      filterPatients();
     }
 
     function closeMobileMenu() {
+      if (!menuToggle || !primaryNav) {
+        return;
+      }
+
       menuToggle.setAttribute('aria-expanded', 'false');
       primaryNav.classList.remove('is-open');
     }
 
     function toggleMobileMenu() {
+      if (!menuToggle || !primaryNav) {
+        return;
+      }
+
       const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
       menuToggle.setAttribute('aria-expanded', String(!isOpen));
       primaryNav.classList.toggle('is-open', !isOpen);
     }
 
-    searchBtn.addEventListener('click', loadHistory);
-    clearBtn.addEventListener('click', clearHistorySearch);
-    patientIdInput.addEventListener('change', loadHistory);
-    patientIdInput.addEventListener('blur', () => {
-      if (patientIdInput.value.trim()) {
-        loadHistory();
+    resultsPanel.addEventListener('input', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLInputElement) || !target.classList.contains('history-date-input')) {
+        return;
       }
-    });
-    menuToggle.addEventListener('click', toggleMobileMenu);
-    navLinks.forEach((link) => link.addEventListener('click', closeMobileMenu));
-    window.addEventListener('resize', () => {
-      if (window.innerWidth > 820) {
-        closeMobileMenu();
-      }
+
+      historyDateFilters[target.dataset.patientId] = target.value;
+      filterPatients();
     });
 
-    clearHistorySearch();
+    resultsPanel.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) {
+        return;
+      }
+
+      const patientId = target.getAttribute('data-clear-history-date');
+      if (target.matches('[data-carousel-direction]')) {
+        const carousel = target.closest('.prescription-carousel');
+        const list = carousel?.querySelector('.prescription-list');
+        const direction = Number(target.dataset.carouselDirection || 1);
+        if (list) {
+          list.scrollBy({
+            left: list.clientWidth * direction,
+            behavior: 'smooth'
+          });
+        }
+        return;
+      }
+
+      const prescriptionCard = target.closest('.prescription-preview-card');
+      const prescriptionUrl = prescriptionCard?.dataset.openPrescriptionUrl;
+      if (prescriptionUrl) {
+        openPrescriptionPreview(prescriptionUrl);
+        return;
+      }
+
+      if (!patientId) {
+        return;
+      }
+
+      delete historyDateFilters[patientId];
+      filterPatients();
+    });
+
+    searchInput.addEventListener('input', filterPatients);
+    clearBtn.addEventListener('click', clearHistorySearch);
+    pdfPreviewClose.addEventListener('click', closePrescriptionPreview);
+    pdfPreviewModal.addEventListener('click', (event) => {
+      if (event.target === pdfPreviewModal) {
+        closePrescriptionPreview();
+      }
+    });
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && pdfPreviewModal.classList.contains('is-open')) {
+        closePrescriptionPreview();
+      }
+    });
+    if (menuToggle && primaryNav) {
+      menuToggle.addEventListener('click', toggleMobileMenu);
+      navLinks.forEach((link) => link.addEventListener('click', closeMobileMenu));
+      window.addEventListener('resize', () => {
+        if (window.innerWidth > 820) {
+          closeMobileMenu();
+        }
+      });
+    }
+
+    loadPatients();
   </script>
 </body>
 </html>
