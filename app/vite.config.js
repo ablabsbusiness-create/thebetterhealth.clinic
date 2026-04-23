@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'node:path';
+import { cpSync } from 'node:fs';
 
 export default defineConfig({
   root: __dirname,
@@ -10,6 +11,16 @@ export default defineConfig({
       jspdf: resolve(__dirname, 'node_modules/jspdf/dist/jspdf.es.min.js')
     }
   },
+  plugins: [
+    {
+      name: 'copy-iap-assets',
+      closeBundle() {
+        const distAssets = resolve(__dirname, 'dist', 'assets');
+        cpSync(resolve(__dirname, 'assets', 'iap-svg'), resolve(distAssets, 'iap-svg'), { recursive: true });
+        cpSync(resolve(__dirname, 'assets', 'iap-jpg'), resolve(distAssets, 'iap-jpg'), { recursive: true });
+      }
+    }
+  ],
   build: {
     outDir: resolve(__dirname, 'dist'),
     emptyOutDir: true,

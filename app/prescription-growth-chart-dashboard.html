@@ -1436,6 +1436,7 @@
         }
       }
     };
+    const weightForHeightTemplatesAvailable = false;
     const templateImages = new Map();
     let generatedTemplates = [];
     let generatedPreviewPages = [];
@@ -1854,7 +1855,7 @@
         addMetricRequest(`${sexPrefix}Bmi${ageBand}`, 'bmi');
       }
 
-      if (selectedValues.includes('Weight-for-Height') && patientData.ageYears <= 5) {
+      if (selectedValues.includes('Weight-for-Height') && patientData.ageYears <= 5 && weightForHeightTemplatesAvailable) {
         addMetricRequest(`${sexPrefix}WeightForHeight0to5`, 'weightForHeight');
       }
 
@@ -1863,6 +1864,10 @@
 
     function buildWarnings(selectedValues, patientData) {
       const warnings = [];
+
+      if (selectedValues.includes('Weight-for-Height') && !weightForHeightTemplatesAvailable) {
+        warnings.push('Weight-for-height chart templates are not available in this deployment yet.');
+      }
 
       if (selectedValues.includes('Weight-for-Height') && patientData.ageYears > 5) {
         warnings.push('Weight-for-height is still available here only for ages 0 to 5 years.');
@@ -2003,7 +2008,7 @@
       if (Number.isFinite(weight) && weight > 0 && Number.isFinite(height) && height > 0) {
         selected.push({ value: 'BMI' });
 
-        if (Number.isFinite(ageYears) && ageYears <= 5) {
+        if (Number.isFinite(ageYears) && ageYears <= 5 && weightForHeightTemplatesAvailable) {
           selected.push({ value: 'Weight-for-Height' });
         }
       }
