@@ -112,6 +112,18 @@
       color: var(--brand-strong);
     }
 
+    .nav-enter-clinic {
+      background: linear-gradient(135deg, #166534, #22c55e);
+      color: #ffffff;
+      box-shadow: 0 10px 22px rgba(22, 101, 52, 0.22);
+      padding-inline: 18px;
+    }
+
+    .nav-enter-clinic:hover {
+      background: linear-gradient(135deg, #14532d, #16a34a);
+      color: #ffffff;
+    }
+
     .menu-toggle {
       display: none;
       align-items: center;
@@ -631,25 +643,8 @@
         </div>
       </div>
 
-      <button id="menu-toggle" class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" aria-label="Open navigation menu">
-        <span class="menu-toggle-inner" aria-hidden="true">
-          <span class="menu-toggle-bar"></span>
-          <span class="menu-toggle-bar"></span>
-          <span class="menu-toggle-bar"></span>
-        </span>
-      </button>
-
       <nav id="primary-nav" class="nav-links" aria-label="Primary">
-        <a class="nav-link" href="index.html">Entry</a>
-        <a class="nav-link" href="clinci.html">Dashboard</a>
-        <a class="nav-link" href="choose.html">Patient Choice</a>
-        <a class="nav-link" href="new-patient.html">New Patient</a>
-        <a class="nav-link" href="growth-chart-dashboard.html">Growth Chart</a>
-        <a class="nav-link" href="prescription-growth-chart-dashboard.html">Prescription Chart</a>
-        <a class="nav-link" href="prescription.html">Prescription</a>
-        <a class="nav-link active" href="preview.html">Preview</a>
-        <a class="nav-link" href="search.html">Search</a>
-        <a class="nav-link" href="history.html">History</a>
+        <a class="nav-link nav-enter-clinic" href="clinci.html">Enter Clinic</a>
       </nav>
 
       <div class="topbar-actions">
@@ -686,9 +681,7 @@
     import { doc, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     import { getDownloadURL, getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
 
-    const menuToggle = document.getElementById('menu-toggle');
     const primaryNav = document.getElementById('primary-nav');
-    const navLinks = [...document.querySelectorAll('#primary-nav .nav-link')];
     const rxSheet = document.getElementById('rx-sheet');
     const downloadPdfBtn = document.getElementById('download-pdf-btn');
     const whatsappBtn = document.getElementById('whatsapp-btn');
@@ -718,23 +711,8 @@
     }
 
     function closeMobileMenu() {
-      menuToggle.setAttribute('aria-expanded', 'false');
       primaryNav.classList.remove('is-open');
     }
-
-    function toggleMobileMenu() {
-      const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
-      menuToggle.setAttribute('aria-expanded', String(!isOpen));
-      primaryNav.classList.toggle('is-open', !isOpen);
-    }
-
-    menuToggle.addEventListener('click', toggleMobileMenu);
-    navLinks.forEach((link) => link.addEventListener('click', closeMobileMenu));
-    window.addEventListener('resize', () => {
-      if (window.innerWidth > 640) {
-        closeMobileMenu();
-      }
-    });
 
     function escapeHtml(value) {
       return String(value ?? '')
