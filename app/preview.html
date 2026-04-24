@@ -786,8 +786,30 @@
       return values?.length ? values.join(', ') : '-';
     }
 
-    function renderTextRow(label, values) {
-      return `<p class="text-row"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(listText(values))}</p>`;
+    function formatDetailedSelections(values, detailMap = {}, sectionName = '') {
+      if (!values?.length) {
+        return '-';
+      }
+
+      return values.map((value) => {
+        const detail = detailMap?.[value] || {};
+        const parts = [];
+
+        if (sectionName === 'Symptoms') {
+          if (detail.days) parts.push(`${detail.days}`);
+          if (detail.severity) parts.push(detail.severity);
+        }
+
+        if (detail.note) {
+          parts.push(detail.note);
+        }
+
+        return parts.length ? `${value} (${parts.join(', ')})` : value;
+      }).join(', ');
+    }
+
+    function renderTextRow(label, values, detailMap = {}, sectionName = '') {
+      return `<p class="text-row"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(formatDetailedSelections(values, detailMap, sectionName))}</p>`;
     }
 
     function formatDuration(value) {
@@ -810,7 +832,7 @@
     }
 
     function getMedicineRows(draft) {
-      const medicines = draft?.sections?.Medicens || [];
+      const medicines = draft?.sections?.Medication || draft?.sections?.Medicens || [];
       const details = draft?.medicineDetails || {};
       return medicines.map((medicine) => {
         const detail = details[medicine] || {};
@@ -827,7 +849,7 @@
 
     function renderMedicineTable(rows) {
       if (!rows.length) {
-        return '<p class="empty-note">No medicines selected.</p>';
+        return '<p class="empty-note">No medication selected.</p>';
       }
 
       return `
@@ -836,7 +858,7 @@
           <thead>
             <tr>
               <th style="width: 7%"></th>
-              <th>Medicine</th>
+              <th>Medication</th>
               <th>Quantity</th>
               <th>Frequency</th>
               <th>Duration</th>
@@ -888,6 +910,7 @@
       const draft = getActivePrescriptionDraft();
       const chartRecord = getActiveChartRecord();
       const sections = draft?.sections || {};
+      const sectionDetails = draft?.sectionDetails || {};
       const medicineRows = getMedicineRows(draft);
       const patientId = draft?.patientId || chartRecord?.patientId || getPatientIdFromUrl() || '-';
       const now = new Date().toISOString();
@@ -921,8 +944,8 @@
           </div>
         </section>
 
-        ${renderTextRow('Symptoms', sections.Symptoms)}
-        ${renderTextRow('Findings', sections.Finding)}
+        ${renderTextRow('Symptoms', sections.Symptoms, sectionDetails.Symptoms, 'Symptoms')}
+        ${renderTextRow('Findings', sections.Finding, sectionDetails.Finding, 'Finding')}
         ${renderTextRow('Diagnosis', sections.Diagnosis)}
 
         ${renderMedicineTable(medicineRows)}
@@ -965,13 +988,17 @@
       y += 5;
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(8.2);
-      return addTextLine(pdf, values?.length ? values.join(', ') : 'No items selected.', 14, y, { maxWidth: 182, lineHeight: 4.2 }) + 3;
+      const sectionText = Array.isArray(values)
+        ? (values.length ? values.join(', ') : 'No items selected.')
+        : (String(values || '').trim() || 'No items selected.');
+      return addTextLine(pdf, sectionText, 14, y, { maxWidth: 182, lineHeight: 4.2 }) + 3;
     }
 
     async function buildPdf() {
       const draft = getActivePrescriptionDraft();
       const chartRecord = getActiveChartRecord();
       const sections = draft?.sections || {};
+      const sectionDetails = draft?.sectionDetails || {};
       const medicineRows = getMedicineRows(draft);
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
       const patientId = draft?.patientId || chartRecord?.patientId || getPatientIdFromUrl() || '-';
@@ -1010,8 +1037,8 @@
 
       let y = 79;
       pdf.setFontSize(8.8);
-      y = addWrappedSection(pdf, 'Symptoms', sections.Symptoms, y);
-      y = addWrappedSection(pdf, 'Findings', sections.Finding, y - 2);
+      y = addWrappedSection(pdf, 'Symptoms', formatDetailedSelections(sections.Symptoms, sectionDetails.Symptoms, 'Symptoms'), y);
+      y = addWrappedSection(pdf, 'Findings', formatDetailedSelections(sections.Finding, sectionDetails.Finding, 'Finding'), y - 2);
       y = addWrappedSection(pdf, 'Diagnosis', sections.Diagnosis, y - 2);
 
       pdf.setFont('helvetica', 'bold');
@@ -1023,7 +1050,7 @@
       pdf.setDrawColor(75, 85, 99);
       pdf.rect(15, tableTop, 180, 7);
       pdf.text('', 18, tableTop + 5);
-      pdf.text('Medicines', 52, tableTop + 5);
+      pdf.text('Medication', 52, tableTop + 5);
       pdf.text('Quantity', 105, tableTop + 5);
       pdf.text('Frequency', 136, tableTop + 5);
       pdf.text('Duration', 169, tableTop + 5);
@@ -1053,7 +1080,7 @@
         });
       } else {
         pdf.rect(15, y, 180, 9);
-        pdf.text('No medicines selected.', 18, y + 6);
+        pdf.text('No medication selected.', 18, y + 6);
         y += 9;
       }
 

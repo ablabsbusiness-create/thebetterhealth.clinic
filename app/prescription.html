@@ -925,11 +925,11 @@
 
           <article class="rx-card">
             <div class="rx-card-head">
-              <h2>Medicens</h2>
+              <h2>Medication</h2>
               <p></p>
             </div>
-            <div class="search-row" data-search-section="medicens">
-              <input type="text" placeholder="Search medicens">
+            <div class="search-row" data-search-section="medication">
+              <input type="text" placeholder="Search medication">
             </div>
             <div class="selected-list" data-selected-list>
               <span class="selected-placeholder">Selected items will appear here.</span>
@@ -968,14 +968,27 @@
     <aside id="medicine-detail-panel" class="medicine-detail-panel" role="dialog" aria-modal="true" aria-labelledby="medicine-modal-title">
       <div class="medicine-modal-head">
         <div class="medicine-modal-title-wrap">
-          <h2 id="medicine-modal-title">Medicine Details</h2>
+          <h2 id="medicine-modal-title">Medication Details</h2>
           <p></p>
         </div>
-        <button id="medicine-modal-close" class="modal-close-btn" type="button" aria-label="Close medicine details">x</button>
+        <button id="medicine-modal-close" class="modal-close-btn" type="button" aria-label="Close medication details">x</button>
       </div>
       <div id="medicine-detail-content" class="medicine-detail-content medicine-empty">
-        No medicine selected yet.
+        No medication selected yet.
       </div>
+    </aside>
+  </div>
+
+  <div id="selection-detail-modal" class="medicine-modal" aria-hidden="true">
+    <aside class="medicine-detail-panel" role="dialog" aria-modal="true" aria-labelledby="selection-detail-title">
+      <div class="medicine-modal-head">
+        <div class="medicine-modal-title-wrap">
+          <h2 id="selection-detail-title">Selection Details</h2>
+          <p id="selection-detail-subtitle"></p>
+        </div>
+        <button id="selection-detail-close" class="modal-close-btn" type="button" aria-label="Close selection details">x</button>
+      </div>
+      <div id="selection-detail-content" class="medicine-detail-content"></div>
     </aside>
   </div>
 
@@ -992,11 +1005,21 @@
     const medicineModalClose = document.getElementById('medicine-modal-close');
     const medicineModalTitle = document.getElementById('medicine-modal-title');
     const medicineDetailContent = document.getElementById('medicine-detail-content');
+    const selectionDetailModal = document.getElementById('selection-detail-modal');
+    const selectionDetailClose = document.getElementById('selection-detail-close');
+    const selectionDetailTitle = document.getElementById('selection-detail-title');
+    const selectionDetailSubtitle = document.getElementById('selection-detail-subtitle');
+    const selectionDetailContent = document.getElementById('selection-detail-content');
     const continuePreviewBtn = document.getElementById('continue-preview-btn');
     const selectedMedicines = new Set();
     const medicineDetails = new Map();
+    const sectionItemDetails = {
+      Symptoms: new Map(),
+      Finding: new Map()
+    };
     const prescriptionSelections = {};
     let activeMedicine = '';
+    let activeSelectionDetail = null;
     const MEDICINE_DETAIL_STORAGE_KEY = 'prescriptionMedicineDetails';
     const PRESCRIPTION_DRAFT_STORAGE_KEY = 'prescriptionDraft';
     const MEDICINE_DETAIL_TTL_MS = 10 * 60 * 1000;
@@ -1008,7 +1031,7 @@
       Notes: ['Follow up advised', 'Review after 3 days', 'Vitals stable', 'Parent counselled', 'Medication explained'],
       Diagnosis: ['Viral fever', 'URTI', 'Gastroenteritis', 'Allergic rhinitis', 'Observation advised'],
       Investigation: ['CBC', 'CRP', 'Urine routine', 'Chest X-ray', 'Dengue test'],
-      Medicens: ['Paracetamol', 'Cetirizine', 'Ondansetron', 'Azithromycin', 'ORS'],
+      Medication: ['Paracetamol', 'Cetirizine', 'Ondansetron', 'Azithromycin', 'ORS'],
       Instruction: ['Plenty of fluids', 'Steam inhalation', 'Soft diet', 'Review if fever persists', 'Emergency visit if breathing worsens']
     };
     const firebaseEnv = import.meta.env || {};
@@ -1071,14 +1094,135 @@
       lastMedicineTrigger = null;
     }
 
+    function getSectionItemDetail(sectionName, value) {
+      if (!sectionItemDetails[sectionName]) {
+        return {};
+      }
+
+      if (!sectionItemDetails[sectionName].has(value)) {
+        sectionItemDetails[sectionName].set(value, sectionName === 'Symptoms'
+          ? { days: '', severity: '', note: '' }
+          : { note: '' });
+      }
+
+      return sectionItemDetails[sectionName].get(value);
+    }
+
+    function saveSelectionDetailsToDraft() {
+      savePrescriptionDraft();
+    }
+
+    function syncSelectionDetailsFromDom() {
+      if (!activeSelectionDetail) {
+        return;
+      }
+
+      const { sectionName, value } = activeSelectionDetail;
+      const detail = getSectionItemDetail(sectionName, value);
+      const daysInput = selectionDetailContent.querySelector('[data-field="days"]');
+      const severityInput = selectionDetailContent.querySelector('[data-field="severity"]:checked');
+      const noteInput = selectionDetailContent.querySelector('[data-field="note"]');
+
+      if (sectionName === 'Symptoms') {
+        detail.days = daysInput?.value.trim() || '';
+        detail.severity = severityInput?.value || '';
+      }
+
+      detail.note = noteInput?.value.trim() || '';
+      sectionItemDetails[sectionName].set(value, { ...detail });
+      saveSelectionDetailsToDraft();
+    }
+
+    function openSelectionDetailModal(sectionName, value, trigger = document.activeElement) {
+      activeSelectionDetail = {
+        sectionName,
+        value,
+        trigger: trigger instanceof HTMLElement ? trigger : null
+      };
+
+      const detail = getSectionItemDetail(sectionName, value);
+      selectionDetailTitle.textContent = sectionName === 'Symptoms' ? 'Symptom Details' : 'Finding Notes';
+      selectionDetailSubtitle.textContent = value;
+      selectionDetailContent.className = 'medicine-detail-content';
+      selectionDetailContent.innerHTML = sectionName === 'Symptoms'
+        ? `
+          <div class="medicine-detail-card">
+            <div class="medicine-question">
+              <div class="question-bar">
+                <span>Days</span>
+                <span>Optional</span>
+              </div>
+              <input type="text" placeholder="e.g. 3 days" data-field="days" value="${escapeHtml(detail.days || '')}">
+            </div>
+            <div class="medicine-question">
+              <div class="question-bar">
+                <span>Severity</span>
+                <span>Choose one</span>
+              </div>
+              <div class="dose-row" aria-label="${value} severity options">
+                ${['Mild', 'Moderate', 'Severe'].map((option) => `
+                  <label class="option-pill">
+                    <input type="radio" name="severity-detail" value="${option}" data-field="severity" ${checkedAttr(detail.severity === option)}>
+                    ${option}
+                  </label>
+                `).join('')}
+              </div>
+            </div>
+            <div class="note-area">
+              <div class="question-bar">
+                <span>Notes</span>
+                <span>Optional</span>
+              </div>
+              <textarea placeholder="Add note" data-field="note">${escapeHtml(detail.note || '')}</textarea>
+            </div>
+          </div>
+        `
+        : `
+          <div class="medicine-detail-card">
+            <div class="note-area">
+              <div class="question-bar">
+                <span>Notes</span>
+                <span>Optional</span>
+              </div>
+              <textarea placeholder="Add note" data-field="note">${escapeHtml(detail.note || '')}</textarea>
+            </div>
+          </div>
+        `;
+
+      selectionDetailModal.classList.add('is-open');
+      selectionDetailModal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeSelectionDetailModal() {
+      syncSelectionDetailsFromDom();
+      selectionDetailModal.classList.remove('is-open');
+      selectionDetailModal.setAttribute('aria-hidden', 'true');
+      if (activeSelectionDetail?.trigger && typeof activeSelectionDetail.trigger.focus === 'function') {
+        activeSelectionDetail.trigger.focus();
+      }
+      activeSelectionDetail = null;
+    }
+
     medicineModalClose.addEventListener('click', closeMedicineModal);
     medicineModal.addEventListener('click', (event) => {
       if (event.target === medicineModal) {
         closeMedicineModal();
       }
     });
+    selectionDetailClose.addEventListener('click', closeSelectionDetailModal);
+    selectionDetailModal.addEventListener('click', (event) => {
+      if (event.target === selectionDetailModal) {
+        closeSelectionDetailModal();
+      }
+    });
+    selectionDetailContent.addEventListener('input', syncSelectionDetailsFromDom);
+    selectionDetailContent.addEventListener('change', syncSelectionDetailsFromDom);
     window.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
+        if (selectionDetailModal.classList.contains('is-open')) {
+          closeSelectionDetailModal();
+          return;
+        }
         closeMedicineModal();
       }
     });
@@ -1243,12 +1387,23 @@
         details[medicine] = { ...detail };
       });
 
+      const sectionDetails = {};
+      Object.entries(sectionItemDetails).forEach(([sectionName, detailMap]) => {
+        if (detailMap.size) {
+          sectionDetails[sectionName] = {};
+          detailMap.forEach((detail, item) => {
+            sectionDetails[sectionName][item] = { ...detail };
+          });
+        }
+      });
+
       localStorage.setItem(PRESCRIPTION_DRAFT_STORAGE_KEY, JSON.stringify({
         draftId: getPrescriptionDraftId(patientId),
         savedAt: new Date().toISOString(),
         expiresAt: Date.now() + PRESCRIPTION_DRAFT_TTL_MS,
         patientId,
         sections,
+        sectionDetails,
         medicineDetails: details
       }));
       continuePreviewBtn.href = getPreviewTargetUrl();
@@ -1375,9 +1530,9 @@
       medicineDetailContent.innerHTML = '';
 
       if (!activeMedicine || !selectedMedicines.has(activeMedicine)) {
-        medicineModalTitle.textContent = 'Medicine Details';
+        medicineModalTitle.textContent = 'Medication Details';
         medicineDetailContent.className = 'medicine-detail-content medicine-empty';
-        medicineDetailContent.textContent = 'Select a medicine to add its dose, timing, duration, and note.';
+        medicineDetailContent.textContent = 'Select a medication to add its dose, timing, duration, and note.';
         return;
       }
 
@@ -1574,7 +1729,7 @@
         renderSelectedItems(selectedList, [...selectedValues]);
         savePrescriptionDraft();
 
-        if (sectionName === 'Medicens') {
+        if (sectionName === 'Medication') {
           if (shouldSelect) {
             selectedMedicines.add(value);
             getMedicineDetail(value);
@@ -1591,6 +1746,17 @@
           if (shouldSelect || activeMedicine) {
             openMedicineModal(trigger);
           }
+          return;
+        }
+
+        if ((sectionName === 'Symptoms' || sectionName === 'Finding') && shouldSelect) {
+          getSectionItemDetail(sectionName, value);
+          openSelectionDetailModal(sectionName, value, trigger);
+        }
+
+        if ((sectionName === 'Symptoms' || sectionName === 'Finding') && !shouldSelect && sectionItemDetails[sectionName]) {
+          sectionItemDetails[sectionName].delete(value);
+          saveSelectionDetailsToDraft();
         }
       }
 
