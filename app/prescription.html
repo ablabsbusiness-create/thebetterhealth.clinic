@@ -693,6 +693,56 @@
       box-shadow: inset 0 0 0 1px rgba(22, 101, 52, 0.22);
     }
 
+    .selection-pill-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .selection-pill-grid.days-grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .selection-pill {
+      min-height: 42px;
+      padding: 0 14px;
+      border: 1px solid #dfe6ef;
+      border-radius: 999px;
+      background: #f8fafc;
+      box-shadow: 0 4px 10px rgba(22, 38, 29, 0.04);
+      font-size: 13px;
+    }
+
+    button.selection-pill {
+      font: inherit;
+      font-weight: 600;
+      color: #334155;
+      cursor: pointer;
+    }
+
+    .selection-pill.is-active {
+      border-color: #166534;
+      background: #dcfce7;
+      color: #14532d;
+      box-shadow: inset 0 0 0 1px rgba(22, 101, 52, 0.22);
+    }
+
+    .days-custom-input {
+      width: 100%;
+      min-height: 44px;
+      padding: 12px 14px;
+      border: 1px solid #dbe5f5;
+      border-radius: 14px;
+      background: #fbfdff;
+      font: inherit;
+      outline: none;
+    }
+
+    .days-custom-input:focus {
+      border-color: rgba(22, 101, 52, 0.45);
+      box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.1);
+    }
+
     .note-area {
       display: grid;
       gap: 8px;
@@ -787,6 +837,48 @@
       .page-shell {
         width: min(100% - 20px, 100%);
         margin: 16px auto 22px;
+      }
+
+      .medicine-detail-panel {
+        width: min(100vw - 12px, 100%);
+        max-height: min(100vh - 12px, 100%);
+        border-radius: 18px;
+      }
+
+      .medicine-modal-head {
+        padding: 14px 14px 12px;
+      }
+
+      .medicine-detail-panel h2 {
+        font-size: 19px;
+      }
+
+      .medicine-detail-content {
+        padding: 0 12px 12px;
+      }
+
+      .medicine-detail-card {
+        padding: 14px;
+        border-radius: 16px;
+      }
+
+      .medicine-question {
+        gap: 10px;
+      }
+
+      .selection-pill-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .selection-pill-grid.days-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .selection-pill {
+        min-height: 44px;
+        padding: 0 12px;
+        font-size: 12px;
       }
 
       .content-panel {
@@ -1133,6 +1225,52 @@
       saveSelectionDetailsToDraft();
     }
 
+    function syncDaysQuickPickState() {
+      const daysInput = selectionDetailContent.querySelector('[data-field="days"]');
+      const quickButtons = selectionDetailContent.querySelectorAll('[data-days-option]');
+      if (!daysInput || !quickButtons.length) {
+        return;
+      }
+
+      const currentValue = daysInput.value.trim().toLowerCase();
+      quickButtons.forEach((button) => {
+        const optionValue = (button.dataset.daysOption || '').trim().toLowerCase();
+        button.classList.toggle('is-active', optionValue === currentValue);
+      });
+    }
+
+    function bindSelectionDetailInteractions() {
+      const daysInput = selectionDetailContent.querySelector('[data-field="days"]');
+      const quickButtons = selectionDetailContent.querySelectorAll('[data-days-option]');
+
+      quickButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+          if (!daysInput) {
+            return;
+          }
+
+          daysInput.value = button.dataset.daysOption || '';
+          syncDaysQuickPickState();
+          syncSelectionDetailsFromDom();
+          daysInput.focus();
+        });
+      });
+
+      if (daysInput) {
+        daysInput.addEventListener('input', () => {
+          syncDaysQuickPickState();
+          syncSelectionDetailsFromDom();
+        });
+      }
+
+      selectionDetailContent.querySelectorAll('[data-field="severity"], [data-field="note"]').forEach((element) => {
+        element.addEventListener('input', syncSelectionDetailsFromDom);
+        element.addEventListener('change', syncSelectionDetailsFromDom);
+      });
+
+      syncDaysQuickPickState();
+    }
+
     function openSelectionDetailModal(sectionName, value, trigger = document.activeElement) {
       activeSelectionDetail = {
         sectionName,
@@ -1152,16 +1290,21 @@
                 <span>Days</span>
                 <span>Optional</span>
               </div>
-              <input type="text" placeholder="e.g. 3 days" data-field="days" value="${escapeHtml(detail.days || '')}">
+              <div class="selection-pill-grid days-grid" aria-label="${value} days quick options">
+                ${['1d', '2d', '3d', '5d', '7d'].map((option) => `
+                  <button type="button" class="selection-pill" data-days-option="${option}">${option}</button>
+                `).join('')}
+              </div>
+              <input class="days-custom-input" type="text" placeholder="Custom days" data-field="days" value="${escapeHtml(detail.days || '')}">
             </div>
             <div class="medicine-question">
               <div class="question-bar">
                 <span>Severity</span>
                 <span>Choose one</span>
               </div>
-              <div class="dose-row" aria-label="${value} severity options">
+              <div class="selection-pill-grid" aria-label="${value} severity options">
                 ${['Mild', 'Moderate', 'Severe'].map((option) => `
-                  <label class="option-pill">
+                  <label class="option-pill selection-pill">
                     <input type="radio" name="severity-detail" value="${option}" data-field="severity" ${checkedAttr(detail.severity === option)}>
                     ${option}
                   </label>
@@ -1191,6 +1334,7 @@
 
       selectionDetailModal.classList.add('is-open');
       selectionDetailModal.setAttribute('aria-hidden', 'false');
+      bindSelectionDetailInteractions();
     }
 
     function closeSelectionDetailModal() {
