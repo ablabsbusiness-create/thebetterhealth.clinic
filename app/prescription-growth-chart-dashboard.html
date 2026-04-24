@@ -423,7 +423,7 @@
     }
 
     .measurement-table-wrap {
-      overflow-x: auto;
+      overflow-x: hidden;
       border: 1px solid var(--line);
       border-radius: 20px;
       background: #f9fcf8;
@@ -432,7 +432,7 @@
     .measurement-table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 720px;
+      min-width: 0;
     }
 
     .measurement-table th,
@@ -839,6 +839,44 @@
       .form-card,
       .preview-card {
         padding: 16px;
+      }
+
+      .measurement-table-wrap {
+        overflow-x: hidden;
+        border-radius: 18px;
+      }
+
+      .measurement-table,
+      .measurement-table tbody,
+      .measurement-table tr,
+      .measurement-table th,
+      .measurement-table td {
+        display: block;
+        width: 100%;
+      }
+
+      .measurement-table tr {
+        padding: 14px;
+        border-bottom: 1px solid #dbe7de;
+      }
+
+      .measurement-table tr:last-child {
+        border-bottom: none;
+      }
+
+      .measurement-table th,
+      .measurement-table td {
+        padding: 0;
+        border-bottom: none;
+      }
+
+      .measurement-table th {
+        margin-bottom: 10px;
+        background: transparent;
+      }
+
+      .measurement-table td input {
+        width: 100%;
       }
 
       .section {
