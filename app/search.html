@@ -391,6 +391,23 @@
       border-color: rgba(22, 101, 52, 0.18);
     }
 
+    .profile-trigger {
+      width: 100%;
+      padding: 0;
+      border: 0;
+      text-align: left;
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+      background: transparent;
+    }
+
+    .profile-trigger:focus-visible {
+      outline: 3px solid rgba(22, 101, 52, 0.2);
+      outline-offset: 4px;
+      border-radius: 18px;
+    }
+
     .result-meta--child::after {
       content: '';
       position: absolute;
@@ -466,6 +483,27 @@
       font-weight: 700;
     }
 
+    .profile-action-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .profile-toggle-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(22, 101, 52, 0.14);
+      color: var(--brand-strong);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
     .continue-link {
       display: inline-flex;
       align-items: center;
@@ -486,6 +524,10 @@
       display: grid;
       grid-template-columns: minmax(0, 1.85fr) minmax(260px, 0.9fr);
       gap: 16px;
+    }
+
+    .result-layout.is-hidden {
+      display: none;
     }
 
     .info-panel,
@@ -992,7 +1034,7 @@
       </div>
 
       <div class="search-row">
-        <input id="search-input" type="text" placeholder="Search by child name" autocomplete="off">
+        <input id="search-input" type="text" placeholder="Search by child name or phone number" autocomplete="off">
         <button id="clear-btn" class="btn-primary" type="button">Clear Search</button>
       </div>
 
@@ -1054,6 +1096,7 @@
     let allPatients = [];
     let allHistory = [];
     const historyDateFilters = {};
+    let selectedPatientId = '';
 
     function setStatus(message, tone = '') {
       statusNote.textContent = message;
@@ -1295,17 +1338,36 @@
       );
     }
 
+    function normalizeSearchValue(value) {
+      return String(value || '').replace(/\D+/g, '');
+    }
+
     function getPatientSearchText(patient) {
       return [
         patient.childName,
         patient.firstName,
         patient.middleName,
         patient.lastName,
-        patient.patientId
+        patient.patientId,
+        patient.phone,
+        patient.parentName
       ]
         .filter(Boolean)
         .join(' ')
         .toLowerCase();
+    }
+
+    function patientMatchesSearch(patient, rawSearchValue) {
+      const loweredSearchValue = rawSearchValue.trim().toLowerCase();
+      if (!loweredSearchValue) {
+        return true;
+      }
+
+      const normalizedSearchValue = normalizeSearchValue(rawSearchValue);
+      const normalizedPatientPhone = normalizeSearchValue(patient.phone);
+
+      return getPatientSearchText(patient).includes(loweredSearchValue)
+        || Boolean(normalizedSearchValue && normalizedPatientPhone.includes(normalizedSearchValue));
     }
 
     function sortByPatientName(left, right) {
@@ -1493,7 +1555,7 @@
       updateCount(patients.length);
 
       if (patients.length === 0) {
-        renderPlaceholder('No patients matched that child name.');
+        renderPlaceholder('No patients matched that search.');
         return;
       }
 
@@ -1505,11 +1567,12 @@
         const gender = formatMissing(patient.gender, 'Gender not saved');
         const patientId = formatMissing(patient.patientId, 'ID not saved');
         const selectedHistoryDate = historyDateFilters[patientId] || '';
+        const isExpanded = selectedPatientId === patientId;
 
         return `
-          <article class="result-card">
+          <article class="result-card" data-patient-card="${patientId}">
             <div class="result-top">
-              <div class="result-meta result-meta--child">
+              <button class="result-meta result-meta--child profile-trigger" type="button" data-open-profile="${patientId}" aria-expanded="${isExpanded ? 'true' : 'false'}">
                 <span class="result-meta-label">Child name</span>
                 <div class="child-meta-head">
                   <div class="child-avatar">${childName.charAt(0).toUpperCase()}</div>
@@ -1518,8 +1581,11 @@
                     <small>${gender} • ${dob}</small>
                   </div>
                 </div>
-                <div class="patient-id-badge mono">${patientId}</div>
-              </div>
+                <div class="profile-action-row">
+                  <div class="patient-id-badge mono">${patientId}</div>
+                  <span class="profile-toggle-pill">${isExpanded ? 'Hide profile' : 'Open profile'}</span>
+                </div>
+              </button>
               <div class="result-meta">
                 <span class="result-meta-label">Phone number</span>
                 <strong>${phone}</strong>
@@ -1528,7 +1594,7 @@
               <a class="continue-link" href="prescription-growth-chart-dashboard.html?patientId=${encodeURIComponent(patientId)}">Continue</a>
             </div>
 
-            <div class="result-layout">
+            <div class="result-layout ${isExpanded ? '' : 'is-hidden'}">
               <section class="info-panel">
                 <div class="panel-content">
                   <h3>Info regarding patient details and current clinic record.</h3>
@@ -1551,13 +1617,17 @@
     }
 
     function filterPatients() {
-      const searchValue = searchInput.value.trim().toLowerCase();
+      const searchValue = searchInput.value.trim();
       const filteredPatients = searchValue
-        ? allPatients.filter((patient) => getPatientSearchText(patient).includes(searchValue))
+        ? allPatients.filter((patient) => patientMatchesSearch(patient, searchValue))
         : allPatients;
 
+      if (selectedPatientId && !filteredPatients.some((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId)) {
+        selectedPatientId = '';
+      }
+
       renderPatients(filteredPatients);
-      setStatus(searchValue ? `Showing matches for "${searchInput.value.trim()}".` : 'Showing all patients.');
+      setStatus(searchValue ? `Showing matches for "${searchValue}".` : 'Showing all patients.');
     }
 
     function openPrescriptionPreview(url) {
@@ -1599,6 +1669,7 @@
       }
 
       const patientId = target.getAttribute('data-clear-history-date');
+      const openProfilePatientId = target.closest('[data-open-profile]')?.getAttribute('data-open-profile');
       if (target.matches('[data-carousel-direction]')) {
         const carousel = target.closest('.prescription-carousel');
         const list = carousel?.querySelector('.prescription-list');
@@ -1616,6 +1687,12 @@
       const prescriptionUrl = prescriptionCard?.dataset.openPrescriptionUrl;
       if (prescriptionUrl) {
         openPrescriptionPreview(prescriptionUrl);
+        return;
+      }
+
+      if (openProfilePatientId) {
+        selectedPatientId = selectedPatientId === openProfilePatientId ? '' : openProfilePatientId;
+        filterPatients();
         return;
       }
 
