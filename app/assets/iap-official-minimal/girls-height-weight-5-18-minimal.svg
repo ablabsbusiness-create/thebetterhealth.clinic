@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 298" role="img" aria-label="IAP Girls Height / Weight 5-18 years">
+<style>
+    .axis { stroke: #111; stroke-width: 1.8; fill: none; }
+    .tick { stroke: #666; stroke-width: 1; }
+    .label { fill: #222; font: 11px Arial, sans-serif; }
+    .ylabel { fill: #222; font: 11px Arial, sans-serif; text-anchor: end; }
+    .curve { fill: none; stroke: #8a8f96; stroke-width: 1.5; stroke-linecap: round; }
+    .median { fill: none; stroke: #222; stroke-width: 2.1; stroke-linecap: round; }
+    .percentile { fill: #444; font: 700 9px Arial, sans-serif; }
+  </style>
+<rect x="0" y="0" width="760" height="298" fill="#fff"/>
+<path class="axis" d="M81 78 V258 H361"/>
+<path class="tick" d="M81 258 V252"/>
+<text class="label" x="71" y="274">5y</text>
+<path class="tick" d="M151 258 V252"/>
+<text class="label" x="141" y="274">8y</text>
+<path class="tick" d="M221 258 V252"/>
+<text class="label" x="211" y="274">11y</text>
+<path class="tick" d="M291 258 V252"/>
+<text class="label" x="281" y="274">14y</text>
+<path class="tick" d="M361 258 V252"/>
+<text class="label" x="351" y="274">18y</text>
+<path class="tick" d="M81 78 H87"/>
+<text class="ylabel" x="75" y="82">180</text>
+<path class="tick" d="M81 138 H87"/>
+<text class="ylabel" x="75" y="142">140</text>
+<path class="tick" d="M81 198 H87"/>
+<text class="ylabel" x="75" y="202">100</text>
+<path class="tick" d="M81 258 H87"/>
+<text class="ylabel" x="75" y="262">60</text>
+<path class="curve" d="M81 236 C109 166, 169 122, 361 88"/>
+<path class="curve" d="M81 242 C109 184, 169 142, 361 106"/>
+<path class="median" d="M81 249 C109 200, 169 162, 361 122"/>
+<path class="curve" d="M81 256 C109 216, 169 180, 361 136"/>
+<text class="percentile" x="369" y="90">P97</text>
+<text class="percentile" x="369" y="108">P75</text>
+<text class="percentile" x="369" y="126">P50</text>
+<text class="percentile" x="369" y="144">P25</text>
+<path class="axis" d="M399 78 V258 H679"/>
+<path class="tick" d="M399 258 V252"/>
+<text class="label" x="389" y="274">5y</text>
+<path class="tick" d="M469 258 V252"/>
+<text class="label" x="459" y="274">8y</text>
+<path class="tick" d="M539 258 V252"/>
+<text class="label" x="529" y="274">11y</text>
+<path class="tick" d="M609 258 V252"/>
+<text class="label" x="599" y="274">14y</text>
+<path class="tick" d="M679 258 V252"/>
+<text class="label" x="669" y="274">18y</text>
+<path class="tick" d="M399 78 H405"/>
+<text class="ylabel" x="393" y="82">75</text>
+<path class="tick" d="M399 138 H405"/>
+<text class="ylabel" x="393" y="142">50</text>
+<path class="tick" d="M399 198 H405"/>
+<text class="ylabel" x="393" y="202">25</text>
+<path class="tick" d="M399 258 H405"/>
+<text class="ylabel" x="393" y="262">5</text>
+<path class="curve" d="M399 232 C433 154, 491 126, 679 94"/>
+<path class="curve" d="M399 240 C433 170, 491 144, 679 112"/>
+<path class="median" d="M399 248 C433 186, 491 160, 679 130"/>
+<path class="curve" d="M399 257 C433 200, 491 176, 679 146"/>
+<text class="percentile" x="687" y="90">P97</text>
+<text class="percentile" x="687" y="108">P75</text>
+<text class="percentile" x="687" y="126">P50</text>
+<text class="percentile" x="687" y="144">P25</text>
+</svg>

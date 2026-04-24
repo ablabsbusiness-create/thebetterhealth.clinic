@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 180" role="img" aria-label="Boy 5 to 18 bmi vs age">
-  <style>.a{stroke:#1f1f1f;stroke-width:1.8;fill:none}.t{stroke:#555;stroke-width:1}.l{fill:#333;font:11px Arial}.y{fill:#333;font:11px Arial;text-anchor:end}.c{fill:none;stroke:#9aa0a6;stroke-width:1.5;stroke-linecap:round}.m{fill:none;stroke:#6f757b;stroke-width:2;stroke-linecap:round}.p{fill:#555;font:700 10px Arial}</style>
-  <path class="a" d="M16 24 V168 H186"/><path class="t" d="M16 148 H22 M16 118 H22 M16 88 H22 M16 58 H22 M16 28 H22 M50 168 V162 M92 168 V162 M136 168 V162 M186 168 V162"/>
-  <text class="y" x="12" y="29">35</text><text class="y" x="12" y="59">25</text><text class="y" x="12" y="89">20</text><text class="y" x="12" y="119">15</text><text class="y" x="12" y="149">10</text><text class="l" x="38" y="178">8y</text><text class="l" x="80" y="178">11y</text><text class="l" x="123" y="178">15y</text><text class="l" x="176" y="178">18y</text>
-  <path class="c" d="M16 74 C44 64,74 50,108 34 C136 22,160 14,186 8"/><path class="c" d="M16 96 C44 88,74 74,108 58 C136 44,160 34,186 28"/><path class="m" d="M16 116 C44 108,74 94,108 80 C136 66,160 56,186 48"/><path class="c" d="M16 136 C44 130,74 118,108 106 C136 94,160 84,186 76"/><path class="c" d="M16 150 C44 144,74 134,108 124 C136 114,160 104,186 96"/>
-  <text class="p" x="188" y="10">P97</text><text class="p" x="188" y="28">P75</text><text class="p" x="188" y="48">P50</text><text class="p" x="188" y="76">P25</text><text class="p" x="188" y="96">P3</text>
-</svg>

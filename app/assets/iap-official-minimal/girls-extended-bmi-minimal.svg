@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 298" role="img" aria-label="IAP Girls Extended BMI Charts">
+<style>
+    .axis { stroke: #111; stroke-width: 1.8; fill: none; }
+    .tick { stroke: #666; stroke-width: 1; }
+    .label { fill: #222; font: 11px Arial, sans-serif; }
+    .ylabel { fill: #222; font: 11px Arial, sans-serif; text-anchor: end; }
+    .curve { fill: none; stroke: #8a8f96; stroke-width: 1.5; stroke-linecap: round; }
+    .median { fill: none; stroke: #222; stroke-width: 2.1; stroke-linecap: round; }
+    .percentile { fill: #444; font: 700 9px Arial, sans-serif; }
+  </style>
+<rect x="0" y="0" width="760" height="298" fill="#fff"/>
+<path class="axis" d="M80 78 V258 H680"/>
+<path class="tick" d="M80 258 V252"/>
+<text class="label" x="70" y="274">0y</text>
+<path class="tick" d="M230 258 V252"/>
+<text class="label" x="220" y="274">4y</text>
+<path class="tick" d="M380 258 V252"/>
+<text class="label" x="370" y="274">8y</text>
+<path class="tick" d="M530 258 V252"/>
+<text class="label" x="520" y="274">12y</text>
+<path class="tick" d="M680 258 V252"/>
+<text class="label" x="670" y="274">18y</text>
+<path class="tick" d="M80 78 H86"/>
+<text class="ylabel" x="74" y="82">45</text>
+<path class="tick" d="M80 138 H86"/>
+<text class="ylabel" x="74" y="142">35</text>
+<path class="tick" d="M80 198 H86"/>
+<text class="ylabel" x="74" y="202">25</text>
+<path class="tick" d="M80 258 H86"/>
+<text class="ylabel" x="74" y="262">15</text>
+<path class="curve" d="M80 140 C136 128, 206 104, 680 88"/>
+<path class="curve" d="M80 164 C136 152, 206 128, 680 112"/>
+<path class="median" d="M80 188 C136 176, 206 158, 680 136"/>
+<path class="curve" d="M80 210 C136 202, 206 184, 680 162"/>
+<text class="percentile" x="688" y="90">P99</text>
+<text class="percentile" x="688" y="108">P97</text>
+<text class="percentile" x="688" y="126">P85</text>
+<text class="percentile" x="688" y="144">P50</text>
+</svg>

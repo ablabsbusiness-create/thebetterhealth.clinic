@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 180" role="img" aria-label="Girl 5 to 18 height vs age">
-  <style>.a{stroke:#1f1f1f;stroke-width:1.8;fill:none}.t{stroke:#555;stroke-width:1}.l{fill:#333;font:11px Arial}.y{fill:#333;font:11px Arial;text-anchor:end}.c{fill:none;stroke:#9aa0a6;stroke-width:1.5;stroke-linecap:round}.m{fill:none;stroke:#6f757b;stroke-width:2;stroke-linecap:round}.p{fill:#555;font:700 10px Arial}</style>
-  <path class="a" d="M16 24 V168 H186"/><path class="t" d="M16 140 H22 M16 98 H22 M16 56 H22 M50 168 V162 M92 168 V162 M136 168 V162 M186 168 V162"/>
-  <text class="y" x="12" y="57">180</text><text class="y" x="12" y="99">140</text><text class="y" x="12" y="141">100</text><text class="l" x="38" y="178">8y</text><text class="l" x="80" y="178">11y</text><text class="l" x="123" y="178">15y</text><text class="l" x="176" y="178">18y</text>
-  <path class="c" d="M16 152 C44 128,74 100,106 74 C132 50,156 36,186 34"/><path class="c" d="M16 162 C44 140,74 114,106 90 C132 68,156 55,186 52"/><path class="m" d="M16 166 C44 150,74 126,106 104 C132 84,156 72,186 68"/><path class="c" d="M16 167 C44 160,74 138,106 118 C132 99,156 88,186 84"/>
-  <text class="p" x="188" y="35">P97</text><text class="p" x="188" y="52">P75</text><text class="p" x="188" y="68">P50</text><text class="p" x="188" y="84">P25</text>
-</svg>
