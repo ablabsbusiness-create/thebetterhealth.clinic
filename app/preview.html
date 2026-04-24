@@ -831,6 +831,25 @@
       return `${count} ${unit}${count === 1 ? '' : 's'}`;
     }
 
+    function formatCompactAge(value) {
+      const rawValue = String(value || '').trim();
+      if (!rawValue || rawValue === '-') {
+        return rawValue || '-';
+      }
+
+      const replaced = rawValue
+        .replace(/\byears?\b/gi, 'y')
+        .replace(/\bmonths?\b/gi, 'm')
+        .replace(/\bdays?\b/gi, 'd')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      return replaced
+        .replace(/\s*y\b/g, 'y')
+        .replace(/\s*m\b/g, 'm')
+        .replace(/\s*d\b/g, 'd');
+    }
+
     function getMedicineRows(draft) {
       const medicines = draft?.sections?.Medication || draft?.sections?.Medicens || [];
       const details = draft?.medicineDetails || {};
@@ -931,7 +950,7 @@
         <section class="patient-band">
           <div>
             <div><strong>Name:</strong> ${escapeHtml(chartRecord?.childName || '-')}</div>
-            <div><strong>Age/Sex:</strong> ${escapeHtml(chartRecord?.age || '-')} / ${escapeHtml(chartRecord?.gender || '-')}</div>
+            <div><strong>Age/Sex:</strong> ${escapeHtml(formatCompactAge(chartRecord?.age || '-'))} / ${escapeHtml(chartRecord?.gender || '-')}</div>
             <div><strong>Office ID:</strong> ${escapeHtml(patientId)}</div>
           </div>
           <div>
@@ -1029,7 +1048,7 @@
       pdf.text('Weight:', 165, 57);
       pdf.setFont('helvetica', 'normal');
       pdf.text(chartRecord?.childName || '-', 31, 57);
-      pdf.text(`${chartRecord?.age || '-'} / ${chartRecord?.gender || '-'}`, 35, 63);
+      pdf.text(`${formatCompactAge(chartRecord?.age || '-')} / ${chartRecord?.gender || '-'}`, 35, 63);
       pdf.text(patientId, 36, 67);
       pdf.text(formatShortDate(now), 98, 57);
       pdf.text(chartRecord?.phone || '-', 102, 63);
