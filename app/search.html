@@ -1071,12 +1071,10 @@
         <button id="pdf-preview-close" class="pdf-preview-close" type="button" aria-label="Close prescription preview">x</button>
       </div>
       <div class="pdf-preview-body">
-        <object id="pdf-preview-frame" class="pdf-preview-viewer" type="application/pdf" aria-label="Prescription PDF preview">
-          <div class="pdf-preview-fallback">
-            PDF preview could not load here.
-            <a id="pdf-preview-link" href="#" target="_blank" rel="noopener noreferrer">Open prescription</a>
-          </div>
-        </object>
+        <iframe id="pdf-preview-frame" class="pdf-preview-viewer" title="Prescription PDF preview"></iframe>
+        <div class="pdf-preview-fallback">
+          If the preview does not appear, <a id="pdf-preview-link" href="#" target="_blank" rel="noopener noreferrer">open the prescription</a>.
+        </div>
       </div>
     </div>
   </div>
@@ -1163,12 +1161,12 @@
 
       pdfPreviewRuntimePromise = (async () => {
         try {
-          const [{ getDocument, GlobalWorkerOptions }, { default: pdfWorkerUrl }] = await Promise.all([
-            import('pdfjs-dist'),
-            import('pdfjs-dist/build/pdf.worker.min.mjs?url')
+          const [{ getDocument, GlobalWorkerOptions }, pdfWorkerModule] = await Promise.all([
+            import('https://cdn.jsdelivr.net/npm/pdfjs-dist@5.6.205/+esm'),
+            import('https://cdn.jsdelivr.net/npm/pdfjs-dist@5.6.205/build/pdf.worker.min.mjs')
           ]);
 
-          GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+          GlobalWorkerOptions.workerSrc = pdfWorkerModule?.default || 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.6.205/build/pdf.worker.min.mjs';
           return { getDocument };
         } catch (error) {
           console.warn(`Unable to load PDF preview runtime: ${error.message}`);
@@ -1657,7 +1655,7 @@
       }
 
       const previewUrl = buildPdfPreviewUrl(url, 'toolbar=1&navpanes=0&scrollbar=1&view=FitH');
-      pdfPreviewFrame.data = previewUrl;
+      pdfPreviewFrame.src = previewUrl;
       pdfPreviewLink.href = url;
       pdfPreviewModal.classList.add('is-open');
       pdfPreviewModal.setAttribute('aria-hidden', 'false');
@@ -1668,7 +1666,7 @@
     function closePrescriptionPreview() {
       pdfPreviewModal.classList.remove('is-open');
       pdfPreviewModal.setAttribute('aria-hidden', 'true');
-      pdfPreviewFrame.data = '';
+      pdfPreviewFrame.src = '';
       pdfPreviewLink.href = '#';
       document.body.style.overflow = '';
     }
