@@ -688,6 +688,31 @@
       border-top: 1px solid #dbe5f5;
     }
 
+    .dose-unit-select,
+    .timing-switch-btn {
+      min-height: 26px;
+      border: 0;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.76);
+      color: #1e3a5f;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 800;
+      outline: none;
+    }
+
+    .dose-unit-select {
+      max-width: 98px;
+      padding: 0 8px;
+      cursor: pointer;
+    }
+
+    .timing-switch-btn {
+      padding: 0 10px;
+      cursor: pointer;
+      box-shadow: inset 0 0 0 1px rgba(30, 58, 95, 0.08);
+    }
+
     .dose-entry-row {
       display: grid;
       grid-template-columns: minmax(0, 1fr) 88px;
@@ -739,7 +764,7 @@
     }
 
     .dose-row {
-      grid-template-columns: repeat(8, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(36px, 1fr));
       padding: 6px 16px;
       border-bottom: 1px solid #eef2f7;
       background: #fbfdff;
@@ -755,6 +780,32 @@
 
     .timing-extra-row {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .timing-interval-row,
+    .timing-frequency-row {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .timing-meal-head-row {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .timing-meal-choice-row {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    .meal-head-cell {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 32px;
+      border-right: 1px solid #eef2f7;
+      border-bottom: 1px solid #eef2f7;
+      background: #f1f5fb;
+      color: #1e3a5f;
+      font-size: 12px;
+      font-weight: 800;
     }
 
     .duration-row {
@@ -1856,7 +1907,9 @@
           composition: '',
           dose: '',
           doseChip: '',
+          doseUnit: '',
           timings: [],
+          timingMode: 'daily',
           food: '',
           duration: '',
           note: '',
@@ -1882,7 +1935,9 @@
             composition: detail.composition || '',
             dose: detail.dose || '',
             doseChip: detail.doseChip || '',
+            doseUnit: detail.doseUnit || '',
             timings: Array.isArray(detail.timings) ? detail.timings : [],
+            timingMode: detail.timingMode || 'daily',
             food: detail.food || '',
             duration: detail.duration || '',
             note: detail.note || '',
@@ -1933,6 +1988,8 @@
 
         const doseInput = card.querySelector('[data-field="dose"]');
         const doseChip = card.querySelector('[data-field="doseChip"]:checked');
+        const doseUnit = card.querySelector('[data-field="doseUnit"]');
+        const timingMode = card.querySelector('[data-field="timingMode"]');
         const timings = [...card.querySelectorAll('[data-field="timing"]:checked')].map((input) => input.value);
         const food = card.querySelector('[data-field="food"]:checked');
         const duration = card.querySelector('[data-field="duration"]:checked');
@@ -1943,7 +2000,9 @@
           ...existingDetail,
           dose: doseInput?.value || '',
           doseChip: doseChip?.value || '',
+          doseUnit: doseUnit?.value || existingDetail.doseUnit || '',
           timings,
+          timingMode: timingMode?.value || existingDetail.timingMode || 'daily',
           food: food?.value || '',
           duration: duration?.value || '',
           note: note?.value || '',
@@ -1965,8 +2024,77 @@
       saveMedicineDetailsToStorage();
     }
 
+    const DOSE_CONFIG_BY_TYPE = {
+      Syrup: {
+        label: 'Syrup',
+        units: ['ml', 'spoon', 'tsp'],
+        defaultUnit: 'ml',
+        doses: ['1', '1.5', '2.5', '4', '5', '7.5', '10', '15']
+      },
+      Suspension: {
+        label: 'Suspension',
+        units: ['ml', 'spoon', 'tsp'],
+        defaultUnit: 'ml',
+        doses: ['1', '1.5', '2.5', '4', '5', '7.5', '10', '15']
+      },
+      Drops: {
+        label: 'Drops',
+        units: ['drops', 'ml'],
+        defaultUnit: 'drops',
+        doses: ['1', '2', '3', '4', '5', '6', '8', '10']
+      },
+      Tablet: {
+        label: 'Tablet',
+        units: ['tablet', 'tab'],
+        defaultUnit: 'tablet',
+        doses: ['1/4', '1/2', '1', '1.5', '2']
+      },
+      Capsule: {
+        label: 'Capsule',
+        units: ['capsule', 'cap'],
+        defaultUnit: 'capsule',
+        doses: ['1', '2']
+      },
+      Inhaler: {
+        label: 'Inhaler',
+        units: ['puff', 'puffs'],
+        defaultUnit: 'puff',
+        doses: ['1', '2', '3', '4']
+      },
+      Nebulization: {
+        label: 'Nebulization',
+        units: ['respule', 'ml'],
+        defaultUnit: 'respule',
+        doses: ['1/2', '1', '2', '2.5', '5']
+      },
+      Injection: {
+        label: 'Injection',
+        units: ['ml', 'ampoule'],
+        defaultUnit: 'ml',
+        doses: ['0.5', '1', '2', '5']
+      },
+      'Cream/Ointment': {
+        label: 'Cream/Ointment',
+        units: ['application', 'thin layer'],
+        defaultUnit: 'application',
+        doses: ['Small', 'Pea size', 'Thin layer', 'Once']
+      },
+      Other: {
+        label: 'Dose',
+        units: ['dose', 'ml', 'tablet'],
+        defaultUnit: 'dose',
+        doses: ['1', '1.5', '2', '2.5', '5']
+      }
+    };
+
+    const TIMING_MODE_ORDER = ['daily', 'interval', 'meal'];
+
     function checkedAttr(condition) {
       return condition ? 'checked' : '';
+    }
+
+    function selectedAttr(condition) {
+      return condition ? 'selected' : '';
     }
 
     function escapeHtml(value) {
@@ -1976,6 +2104,214 @@
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+    }
+
+    function normalizeMedicineType(type = '') {
+      const value = String(type).trim().toLowerCase();
+
+      if (!value) {
+        return '';
+      }
+
+      if (value.includes('syrup') || value === 'syr') return 'Syrup';
+      if (value.includes('suspension')) return 'Suspension';
+      if (value.includes('drop') || value === 'dro') return 'Drops';
+      if (value.includes('tablet') || value === 'tab') return 'Tablet';
+      if (value.includes('capsule') || value === 'cap') return 'Capsule';
+      if (value.includes('inhaler')) return 'Inhaler';
+      if (value.includes('nebul')) return 'Nebulization';
+      if (value.includes('injection') || value === 'inj') return 'Injection';
+      if (value.includes('cream') || value.includes('ointment')) return 'Cream/Ointment';
+
+      return DOSE_CONFIG_BY_TYPE[type] ? type : 'Other';
+    }
+
+    function getMedicineType(detail, medicine) {
+      const explicitType = normalizeMedicineType(detail.type);
+
+      if (explicitType) {
+        return explicitType;
+      }
+
+      const medicineName = String(medicine || '').toLowerCase();
+
+      if (/\b(syr|syrup)\b/.test(medicineName)) return 'Syrup';
+      if (/\bsuspension\b/.test(medicineName)) return 'Suspension';
+      if (/\b(dro|drop|drops)\b/.test(medicineName)) return 'Drops';
+      if (/\b(tab|tablet)\b/.test(medicineName)) return 'Tablet';
+      if (/\b(cap|capsule)\b/.test(medicineName)) return 'Capsule';
+      if (/\binhaler\b/.test(medicineName)) return 'Inhaler';
+      if (/\bnebul/.test(medicineName)) return 'Nebulization';
+      if (/\b(inj|injection)\b/.test(medicineName)) return 'Injection';
+      if (/\b(cream|ointment)\b/.test(medicineName)) return 'Cream/Ointment';
+
+      return 'Syrup';
+    }
+
+    function getDoseConfig(medicineType) {
+      return DOSE_CONFIG_BY_TYPE[medicineType] || DOSE_CONFIG_BY_TYPE.Other;
+    }
+
+    function getTimingMode(detail) {
+      return TIMING_MODE_ORDER.includes(detail.timingMode) ? detail.timingMode : 'daily';
+    }
+
+    function getNextTimingMode(mode) {
+      const index = TIMING_MODE_ORDER.indexOf(mode);
+      return TIMING_MODE_ORDER[(index + 1) % TIMING_MODE_ORDER.length] || 'daily';
+    }
+
+    function formatDoseWithUnit(value, unit) {
+      const cleanValue = String(value || '').trim();
+      const cleanUnit = String(unit || '').trim();
+
+      if (!cleanValue) {
+        return '';
+      }
+
+      return cleanUnit ? `${cleanValue} ${cleanUnit}` : cleanValue;
+    }
+
+    function renderDoseQuestion(medicine, medicineSlug, detail, doseConfig) {
+      const selectedUnit = detail.doseUnit || doseConfig.defaultUnit;
+
+      return `
+        <div class="medicine-question">
+          <div class="question-bar">
+            <span>${escapeHtml(doseConfig.label)}</span>
+            <select class="dose-unit-select" data-field="doseUnit" aria-label="${escapeHtml(medicine)} dose unit">
+              ${doseConfig.units.map((unit) => `
+                <option value="${escapeHtml(unit)}" ${selectedAttr(selectedUnit === unit)}>${escapeHtml(unit)}</option>
+              `).join('')}
+            </select>
+          </div>
+          <div class="dose-row" aria-label="${escapeHtml(medicine)} dose options">
+            ${doseConfig.doses.map((value) => `
+              <label class="option-pill">
+                <input type="radio" name="dose-chip-${medicineSlug}" value="${escapeHtml(value)}" data-field="doseChip" ${checkedAttr(detail.doseChip === value)}>
+                ${escapeHtml(value)}
+              </label>
+            `).join('')}
+          </div>
+          <div class="dose-entry-row">
+            <span>Dose</span>
+            <input id="dose-${medicineSlug}" type="text" placeholder="Dose" data-field="dose" value="${escapeHtml(detail.dose)}">
+          </div>
+        </div>
+      `;
+    }
+
+    function renderDailyTimingOptions(medicine, medicineSlug, detail) {
+      return `
+        <div class="timing-row timing-main-row" aria-label="${escapeHtml(medicine)} timing options">
+          ${['M', 'A', 'E', 'N'].map((value) => `
+            <label class="option-pill">
+              <input type="checkbox" name="timing-${medicineSlug}" value="${value}" data-field="timing" ${checkedAttr(detail.timings.includes(value))}>
+              ${value}
+            </label>
+          `).join('')}
+        </div>
+        <div class="timing-row timing-food-row" aria-label="${escapeHtml(medicine)} food timing options">
+          ${['Before Food', 'With Food', 'After Food'].map((value) => `
+            <label class="option-pill">
+              <input type="radio" name="food-${medicineSlug}" value="${value}" data-field="food" ${checkedAttr(detail.food === value)}>
+              ${value}
+            </label>
+          `).join('')}
+        </div>
+        <div class="timing-row timing-extra-row" aria-label="${escapeHtml(medicine)} extra timing options">
+          ${['Empty Stomach', 'Bedtime'].map((value) => `
+            <label class="option-pill">
+              <input type="radio" name="food-${medicineSlug}" value="${value}" data-field="food" ${checkedAttr(detail.food === value)}>
+              ${value}
+            </label>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function renderIntervalTimingOptions(medicine, medicineSlug, detail) {
+      return `
+        <div class="timing-row timing-interval-row" aria-label="${escapeHtml(medicine)} interval timing options">
+          ${['4h', '6h', '8h', '12h', '48h'].map((value) => `
+            <label class="option-pill">
+              <input type="checkbox" name="timing-${medicineSlug}" value="${value}" data-field="timing" ${checkedAttr(detail.timings.includes(value))}>
+              ${value}
+            </label>
+          `).join('')}
+        </div>
+        <div class="timing-row timing-frequency-row" aria-label="${escapeHtml(medicine)} frequency timing options">
+          ${['Once', 'Twice', 'Thrice', 'Times', 'a day'].map((value) => `
+            <label class="option-pill">
+              <input type="checkbox" name="timing-${medicineSlug}" value="${value}" data-field="timing" ${checkedAttr(detail.timings.includes(value))}>
+              ${value}
+            </label>
+          `).join('')}
+        </div>
+        <div class="timing-row timing-food-row" aria-label="${escapeHtml(medicine)} food timing options">
+          ${['Before Food', 'After Food', 'With Food'].map((value) => `
+            <label class="option-pill">
+              <input type="radio" name="food-${medicineSlug}" value="${value}" data-field="food" ${checkedAttr(detail.food === value)}>
+              ${value}
+            </label>
+          `).join('')}
+        </div>
+        <div class="timing-row timing-extra-row" aria-label="${escapeHtml(medicine)} extra timing options">
+          ${['Empty Stomach', 'Bedtime'].map((value) => `
+            <label class="option-pill">
+              <input type="radio" name="food-${medicineSlug}" value="${value}" data-field="food" ${checkedAttr(detail.food === value)}>
+              ${value}
+            </label>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function renderMealTimingOptions(medicine, medicineSlug, detail) {
+      const mealOptions = [
+        ['Breakfast Before', 'Before'],
+        ['Breakfast After', 'After'],
+        ['Lunch Before', 'Before'],
+        ['Lunch After', 'After'],
+        ['Dinner Before', 'Before'],
+        ['Dinner After', 'After']
+      ];
+
+      return `
+        <div class="timing-row timing-meal-head-row" aria-label="${escapeHtml(medicine)} meal timing groups">
+          ${['Breakfast', 'Lunch', 'Dinner'].map((value) => `
+            <span class="meal-head-cell">${escapeHtml(value)}</span>
+          `).join('')}
+        </div>
+        <div class="timing-row timing-meal-choice-row" aria-label="${escapeHtml(medicine)} meal timing options">
+          ${mealOptions.map(([value, label]) => `
+            <label class="option-pill">
+              <input type="checkbox" name="timing-${medicineSlug}" value="${escapeHtml(value)}" data-field="timing" ${checkedAttr(detail.timings.includes(value))}>
+              ${escapeHtml(label)}
+            </label>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function renderTimingQuestion(medicine, medicineSlug, detail) {
+      const timingMode = getTimingMode(detail);
+      const timingMarkup = timingMode === 'interval'
+        ? renderIntervalTimingOptions(medicine, medicineSlug, detail)
+        : timingMode === 'meal'
+          ? renderMealTimingOptions(medicine, medicineSlug, detail)
+          : renderDailyTimingOptions(medicine, medicineSlug, detail);
+
+      return `
+        <div class="medicine-question">
+          <input type="hidden" data-field="timingMode" value="${escapeHtml(timingMode)}">
+          <div class="question-bar">
+            <span>Timing</span>
+            <button class="timing-switch-btn" type="button" data-action="switch-timing">Switch</button>
+          </div>
+          ${timingMarkup}
+        </div>
+      `;
     }
 
     function renderMedicineDetails() {
@@ -1995,6 +2331,11 @@
       [activeMedicine].forEach((medicine) => {
         const medicineSlug = slugify(medicine);
         const detail = getMedicineDetail(medicine);
+        detail.timings = Array.isArray(detail.timings) ? detail.timings : [];
+        detail.timingMode = getTimingMode(detail);
+        const medicineType = getMedicineType(detail, medicine);
+        const doseConfig = getDoseConfig(medicineType);
+        detail.doseUnit = detail.doseUnit || doseConfig.defaultUnit;
         const card = document.createElement('div');
         card.className = 'medicine-detail-card';
         card.dataset.medicine = medicine;
@@ -2006,55 +2347,9 @@
             </div>
           ` : ''}
           <div class="medicine-table-body">
-          <div class="medicine-question">
-            <div class="question-bar">
-              <span>Syrup</span>
-              <span>ml</span>
-            </div>
-            <div class="dose-row" aria-label="${medicine} dose options">
-              ${['1', '1.5', '2.5', '4', '5', '7.5', '10', '15'].map((value) => `
-                <label class="option-pill">
-                  <input type="radio" name="dose-chip-${medicineSlug}" value="${value}" data-field="doseChip" ${checkedAttr(detail.doseChip === value)}>
-                  ${value}
-                </label>
-              `).join('')}
-            </div>
-            <div class="dose-entry-row">
-              <span>Dose</span>
-              <input id="dose-${medicineSlug}" type="text" placeholder="Dose" data-field="dose" value="${escapeHtml(detail.dose)}">
-            </div>
-          </div>
+          ${renderDoseQuestion(medicine, medicineSlug, detail, doseConfig)}
 
-          <div class="medicine-question">
-            <div class="question-bar">
-              <span>Timing</span>
-              <span>Switch</span>
-            </div>
-            <div class="timing-row timing-main-row" aria-label="${medicine} timing options">
-              ${['M', 'A', 'E', 'N'].map((value) => `
-                <label class="option-pill">
-                  <input type="checkbox" name="timing-${medicineSlug}" value="${value}" data-field="timing" ${checkedAttr(detail.timings.includes(value))}>
-                  ${value}
-                </label>
-              `).join('')}
-            </div>
-            <div class="timing-row timing-food-row" aria-label="${medicine} food timing options">
-              ${['Before Food', 'With Food', 'After Food'].map((value) => `
-                <label class="option-pill">
-                  <input type="radio" name="food-${medicineSlug}" value="${value}" data-field="food" ${checkedAttr(detail.food === value)}>
-                  ${value}
-                </label>
-              `).join('')}
-            </div>
-            <div class="timing-row timing-extra-row" aria-label="${medicine} extra timing options">
-              ${['Empty Stomach', 'Bedtime'].map((value) => `
-                <label class="option-pill">
-                  <input type="radio" name="food-${medicineSlug}" value="${value}" data-field="food" ${checkedAttr(detail.food === value)}>
-                  ${value}
-                </label>
-              `).join('')}
-            </div>
-          </div>
+          ${renderTimingQuestion(medicine, medicineSlug, detail)}
 
           <div class="medicine-question">
             <div class="question-bar">
@@ -2101,16 +2396,53 @@
       });
     }
 
+    function updateDoseInputFromChip(card) {
+      const doseInput = card.querySelector('[data-field="dose"]');
+      const doseChip = card.querySelector('[data-field="doseChip"]:checked');
+      const doseUnit = card.querySelector('[data-field="doseUnit"]');
+
+      if (doseInput && doseChip) {
+        doseInput.value = formatDoseWithUnit(doseChip.value, doseUnit?.value || '');
+      }
+    }
+
     medicineDetailContent.addEventListener('input', syncMedicineDetailsFromDom);
+    medicineDetailContent.addEventListener('click', (event) => {
+      const switchButton = event.target.closest('[data-action="switch-timing"]');
+
+      if (!switchButton) {
+        return;
+      }
+
+      const card = switchButton.closest('.medicine-detail-card');
+      const medicine = card?.dataset.medicine || '';
+
+      if (!card || !medicine) {
+        return;
+      }
+
+      const timingModeInput = card.querySelector('[data-field="timingMode"]');
+      const currentMode = timingModeInput?.value || getMedicineDetail(medicine).timingMode || 'daily';
+      const nextMode = getNextTimingMode(currentMode);
+
+      if (timingModeInput) {
+        timingModeInput.value = nextMode;
+      }
+
+      card.querySelectorAll('[data-field="timing"], [data-field="food"]').forEach((input) => {
+        input.checked = false;
+      });
+
+      syncMedicineDetailsFromDom();
+      renderMedicineDetails();
+    });
+
     medicineDetailContent.addEventListener('change', (event) => {
       const input = event.target;
       const card = input.closest('.medicine-detail-card');
 
-      if (input.matches('[data-field="doseChip"]') && card) {
-        const doseInput = card.querySelector('[data-field="dose"]');
-        if (doseInput) {
-          doseInput.value = input.value;
-        }
+      if ((input.matches('[data-field="doseChip"]') || input.matches('[data-field="doseUnit"]')) && card) {
+        updateDoseInputFromChip(card);
       }
 
       syncMedicineDetailsFromDom();

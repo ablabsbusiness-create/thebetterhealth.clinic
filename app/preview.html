@@ -448,14 +448,16 @@
 
     .mini-chart-grid {
       display: grid;
-      grid-template-columns: repeat(4, max-content);
-      gap: 4px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 6px;
       margin-top: 12px;
       align-items: start;
-      justify-content: start;
+      width: 100%;
+      page-break-inside: avoid;
     }
 
     .mini-chart-card {
+      min-width: 0;
       text-align: center;
     }
 
@@ -469,7 +471,7 @@
 
     .mini-chart-card img {
       display: block;
-      width: min(100%, 128px);
+      width: min(100%, 112px);
       aspect-ratio: 1.38 / 1;
       margin: 0 auto;
       object-fit: contain;
@@ -1352,8 +1354,8 @@
       const chartPages = (chartRecord?.chartPages || []).slice(0, 4);
       if (chartPages.length) {
         y += 3;
-        const chartWidth = 29;
-        const chartGap = 9;
+        const chartWidth = 27;
+        const chartGap = 6;
         chartPages.forEach((page, index) => {
           const x = 15 + index * (chartWidth + chartGap);
           pdf.setFont('helvetica', 'normal');
