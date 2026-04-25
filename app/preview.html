@@ -449,8 +449,8 @@
     .mini-chart-grid {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 6px;
-      margin-top: 6px;
+      gap: 10px;
+      margin-top: 12px;
       align-items: start;
     }
 
@@ -460,16 +460,16 @@
 
     .mini-chart-card strong {
       display: block;
-      margin-bottom: 3px;
-      font-size: 11px;
+      margin-bottom: 6px;
+      font-size: 12px;
       font-weight: 700;
       color: #27352c;
     }
 
     .mini-chart-card img {
       display: block;
-      width: min(100%, 118px);
-      aspect-ratio: 1.48 / 1;
+      width: min(100%, 128px);
+      aspect-ratio: 1.38 / 1;
       margin: 0 auto;
       object-fit: contain;
       object-position: center;
@@ -1128,17 +1128,17 @@
 
       const chartPages = (chartRecord?.chartPages || []).slice(0, 4);
       if (chartPages.length) {
-        y += 1.5;
-        const chartWidth = 28;
-        const chartGap = 8;
+        y += 3;
+        const chartWidth = 29;
+        const chartGap = 9;
         chartPages.forEach((page, index) => {
           const x = 15 + index * (chartWidth + chartGap);
           pdf.setFont('helvetica', 'normal');
-          pdf.setFontSize(6.8);
+          pdf.setFontSize(7.2);
           pdf.text(chartTitle(page.label, index), x, y);
-          pdf.addImage(page.dataUrl, 'PNG', x, y + 2.5, chartWidth, 18.8, undefined, 'FAST');
+          pdf.addImage(page.dataUrl, 'JPEG', x, y + 3, chartWidth, 21, undefined, 'FAST');
         });
-        y += 24;
+        y += 30;
       }
 
       pdf.line(15, 250, 38, 250);
