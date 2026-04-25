@@ -24,13 +24,13 @@
 <path class="tick" d="M45 22 H51"/>
 <text class="ylabel" x="39" y="26">57</text>
 <path class="tick" d="M45 57 H51"/>
-<text class="ylabel" x="39" y="61">55</text>
+<text class="ylabel" x="39" y="61">54</text>
 <path class="tick" d="M45 92 H51"/>
-<text class="ylabel" x="39" y="96">53</text>
+<text class="ylabel" x="39" y="96">51</text>
 <path class="tick" d="M45 127 H51"/>
-<text class="ylabel" x="39" y="131">51</text>
+<text class="ylabel" x="39" y="131">48</text>
 <path class="tick" d="M45 162 H51"/>
-<text class="ylabel" x="39" y="166">49</text>
+<text class="ylabel" x="39" y="166">45</text>
 <g clip-path="url(#clip-boys-head-5-18-minimal-svg-0)">
 <path class="curve" d="M45 118 C77 100, 135 86, 215 44"/>
 <path class="curve" d="M45 128 C77 112, 135 100, 215 56"/>

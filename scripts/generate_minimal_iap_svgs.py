@@ -131,15 +131,10 @@ CHARTS = [
 
 
 Y_AXIS = {
-    "height": ["180", "140", "100", "60"],
-    "weight": ["75", "50", "25", "5"],
-    "head": ["57", "53", "49", "45"],
-    "head_teen": ["57", "55", "53", "51", "49"],
     "bmi": ["35", "25", "20", "15", "10"],
     "bmi_small": ["22", "18", "14", "10"],
     "extended_bmi": ["45", "35", "25", "15"],
     "waist": ["95", "80", "65", "50"],
-    "weight_for_height": ["28", "20", "12", "4"],
 }
 
 X_AXIS = {
@@ -226,13 +221,38 @@ def draw_axes(x: int, y: int, width: int, height: int, panel: dict) -> str:
         parts.append(f'<path class="tick" d="M{tick_x} {y + height} V{y + height - 6}"/>')
         parts.append(f'<text class="label" x="{tick_x}" y="{y + height + 16}">{label}</text>')
 
-    y_labels = Y_AXIS[panel["kind"]]
+    y_labels = get_y_labels(panel)
     for index, label in enumerate(y_labels):
         tick_y = y + round((height / max(1, len(y_labels) - 1)) * index)
         parts.append(f'<path class="tick" d="M{x} {tick_y} H{x + 6}"/>')
         parts.append(f'<text class="ylabel" x="{x - 6}" y="{tick_y + 4}">{label}</text>')
 
     return "\n".join(parts)
+
+
+def get_y_labels(panel: dict) -> list[str]:
+    kind = panel["kind"]
+    age_mode = panel["age_mode"]
+    sex = panel.get("sex", "")
+
+    if kind == "height" and age_mode == "months":
+        return ["130", "110", "90", "70", "45"]
+    if kind == "height" and sex == "Boys":
+        return ["185", "160", "135", "110", "85"]
+    if kind == "height":
+        return ["180", "155", "130", "105", "80"]
+    if kind == "weight" and age_mode == "months":
+        return ["25", "20", "15", "10", "5", "0"]
+    if kind == "weight":
+        return ["75", "50", "25", "5"]
+    if kind == "head":
+        return ["55", "50", "45", "40", "35"]
+    if kind == "head_teen":
+        return ["57", "54", "51", "48", "45"]
+    if kind == "weight_for_height":
+        return ["28", "21", "14", "7", "0"]
+
+    return Y_AXIS[kind]
 
 
 def draw_percentiles(kind: str, x: int, y: int, width: int, height: int) -> str:

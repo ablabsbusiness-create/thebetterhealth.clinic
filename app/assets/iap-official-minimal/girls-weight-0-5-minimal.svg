@@ -24,13 +24,17 @@
 <path class="tick" d="M215 162 V156"/>
 <text class="label" x="215" y="178">60m</text>
 <path class="tick" d="M45 22 H51"/>
-<text class="ylabel" x="39" y="26">75</text>
-<path class="tick" d="M45 69 H51"/>
-<text class="ylabel" x="39" y="73">50</text>
-<path class="tick" d="M45 115 H51"/>
-<text class="ylabel" x="39" y="119">25</text>
+<text class="ylabel" x="39" y="26">25</text>
+<path class="tick" d="M45 50 H51"/>
+<text class="ylabel" x="39" y="54">20</text>
+<path class="tick" d="M45 78 H51"/>
+<text class="ylabel" x="39" y="82">15</text>
+<path class="tick" d="M45 106 H51"/>
+<text class="ylabel" x="39" y="110">10</text>
+<path class="tick" d="M45 134 H51"/>
+<text class="ylabel" x="39" y="138">5</text>
 <path class="tick" d="M45 162 H51"/>
-<text class="ylabel" x="39" y="166">5</text>
+<text class="ylabel" x="39" y="166">0</text>
 <g clip-path="url(#clip-girls-weight-0-5-minimal-svg-0)">
 <path class="curve" d="M45 136 C79 58, 137 30, 215 38"/>
 <path class="curve" d="M45 144 C79 74, 137 48, 215 56"/>
