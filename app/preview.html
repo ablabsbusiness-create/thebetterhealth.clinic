@@ -429,6 +429,16 @@
       text-transform: uppercase;
     }
 
+    .medicine-table .medicine-composition {
+      display: block;
+      margin-top: 3px;
+      font-size: 9.5px;
+      font-style: normal;
+      font-weight: 600;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
     .instructions-block {
       margin-top: 10px;
       font-size: 13px;
@@ -471,12 +481,12 @@
 
     .mini-chart-card img {
       display: block;
-      width: min(100%, 112px);
+      width: min(100%, 128px);
       aspect-ratio: 1.38 / 1;
       margin: 0 auto;
       object-fit: contain;
       object-position: center;
-      filter: grayscale(1) contrast(1.03);
+      image-rendering: auto;
       background: transparent;
     }
 
@@ -707,8 +717,9 @@
     let prescriptionSavePromise = null;
     let savedPrescriptionRecord = null;
     let preparedChartRecord = null;
-    const CHART_ASSET_VERSION = '2026-04-25-age-years-axis';
-    const CHART_RENDER_MAX_WIDTH = 760;
+    const CHART_ASSET_VERSION = '2026-04-25-age-years-axis-hires';
+    const CHART_RENDER_MAX_WIDTH = 1200;
+    const CHART_RENDER_SCALE = 4;
     const CHART_POINT_RADIUS = 3.5;
     const chartTemplateAxis = {
       xStart: 0.1731,
@@ -896,11 +907,13 @@
 
     async function renderFreshChartPage(request, patientData) {
       const image = await loadChartImage(request.path);
-      const renderScale = Math.min(1, CHART_RENDER_MAX_WIDTH / image.naturalWidth);
+      const sourceWidth = image.naturalWidth || 260;
+      const sourceHeight = image.naturalHeight || 188;
+      const renderScale = Math.max(1, Math.min(CHART_RENDER_SCALE, CHART_RENDER_MAX_WIDTH / sourceWidth));
       const canvas = document.createElement('canvas');
       const context = canvas.getContext('2d');
-      canvas.width = Math.round(image.naturalWidth * renderScale);
-      canvas.height = Math.round(image.naturalHeight * renderScale);
+      canvas.width = Math.round(sourceWidth * renderScale);
+      canvas.height = Math.round(sourceHeight * renderScale);
       context.imageSmoothingEnabled = true;
       context.imageSmoothingQuality = 'high';
       context.fillStyle = '#ffffff';
@@ -915,10 +928,10 @@
       const y = (chartTemplateAxis.yStart - (chartTemplateAxis.yStart - chartTemplateAxis.yEnd) * yRatio) * canvas.height;
 
       context.beginPath();
-      context.arc(x, y, CHART_POINT_RADIUS, 0, Math.PI * 2);
+      context.arc(x, y, CHART_POINT_RADIUS * renderScale, 0, Math.PI * 2);
       context.fillStyle = '#111111';
       context.fill();
-      context.lineWidth = 1.5;
+      context.lineWidth = 1.5 * renderScale;
       context.strokeStyle = '#ffffff';
       context.stroke();
 
@@ -927,7 +940,7 @@
         dataUrl: canvas.toDataURL('image/png'),
         width: canvas.width,
         height: canvas.height,
-        chartFormatVersion: 'preview-rebuilt-2026-04'
+        chartFormatVersion: 'preview-rebuilt-2026-04-hires'
       };
     }
 
@@ -951,7 +964,7 @@
         return {
           ...record,
           chartPages,
-          chartFormatVersion: 'preview-rebuilt-2026-04'
+          chartFormatVersion: 'preview-rebuilt-2026-04-hires'
         };
       } catch (error) {
         console.warn(`Unable to rebuild chart previews: ${error.message}`);
@@ -1086,8 +1099,12 @@
       const details = draft?.medicineDetails || {};
       return medicines.map((medicine) => {
         const detail = details[medicine] || {};
+        const medicineName = detail.name || detail.displayName || medicine;
         return {
           medicine,
+          medicineName,
+          medicineType: detail.type || '',
+          composition: detail.composition || '',
           dose: detail.dose || detail.doseChip || '',
           timing: Array.isArray(detail.timings) ? detail.timings.join(', ') : '',
           food: detail.food || '',
@@ -1119,8 +1136,10 @@
               <tr>
                 <td><strong>${index + 1}</strong></td>
                 <td class="medicine-name">
-                  ${escapeHtml(row.medicine)}
-                  <span class="medicine-sub">${escapeHtml(row.note || row.food || '')}</span>
+                  ${escapeHtml(row.medicineName || row.medicine)}
+                  ${row.composition ? `<span class="medicine-composition">Composition: ${escapeHtml(row.composition)}</span>` : ''}
+                  ${row.medicineType ? `<span class="medicine-composition">Type: ${escapeHtml(row.medicineType)}</span>` : ''}
+                  ${row.note || row.food ? `<span class="medicine-sub">${escapeHtml(row.note || row.food)}</span>` : ''}
                 </td>
                 <td><strong>${escapeHtml(row.dose || '-')}</strong></td>
                 <td><strong>${escapeHtml(row.timing || '-')}</strong></td>
@@ -1309,21 +1328,28 @@
       pdf.setFontSize(8);
       if (medicineRows.length) {
         medicineRows.forEach((row, index) => {
-          const rowHeight = 12;
+          const rowHeight = 16;
           pdf.rect(15, y, 180, rowHeight);
           pdf.line(26, y, 26, y + rowHeight);
           pdf.line(94, y, 94, y + rowHeight);
           pdf.line(125, y, 125, y + rowHeight);
           pdf.line(158, y, 158, y + rowHeight);
           pdf.setFont('helvetica', 'bold');
-          pdf.text(String(index + 1), 19, y + 7);
-          pdf.text(row.medicine || '-', 28, y + 5);
-          pdf.text(row.dose || '-', 108, y + 7);
-          pdf.text(row.timing || '-', 138, y + 7);
-          pdf.text(row.duration || '-', 170, y + 7);
+          pdf.text(String(index + 1), 19, y + 8.5);
+          pdf.text(pdf.splitTextToSize(row.medicineName || row.medicine || '-', 62).slice(0, 2), 28, y + 5);
+          pdf.text(row.dose || '-', 108, y + 8.5);
+          pdf.text(pdf.splitTextToSize(row.timing || '-', 28).slice(0, 2), 128, y + 6);
+          pdf.text(row.duration || '-', 170, y + 8.5);
           pdf.setFont('helvetica', 'italic');
           pdf.setFontSize(6.5);
-          pdf.text((row.note || row.food || '').slice(0, 34), 28, y + 10);
+          const medicineMeta = [
+            row.composition ? `Composition: ${row.composition}` : '',
+            row.medicineType ? `Type: ${row.medicineType}` : '',
+            row.note || row.food || ''
+          ].filter(Boolean).join(' | ');
+          if (medicineMeta) {
+            pdf.text(pdf.splitTextToSize(medicineMeta, 62).slice(0, 2), 28, y + 11);
+          }
           pdf.setFont('helvetica', 'normal');
           pdf.setFontSize(8);
           y += rowHeight;
@@ -1354,16 +1380,16 @@
       const chartPages = (chartRecord?.chartPages || []).slice(0, 4);
       if (chartPages.length) {
         y += 3;
-        const chartWidth = 27;
-        const chartGap = 6;
+        const chartWidth = 33;
+        const chartGap = 4;
         chartPages.forEach((page, index) => {
           const x = 15 + index * (chartWidth + chartGap);
           pdf.setFont('helvetica', 'normal');
           pdf.setFontSize(7.2);
           pdf.text(chartTitle(page.label, index), x, y);
-          pdf.addImage(page.dataUrl, 'PNG', x, y + 3, chartWidth, 21, undefined, 'FAST');
+          pdf.addImage(page.dataUrl, 'PNG', x, y + 3, chartWidth, 24, undefined, 'NONE');
         });
-        y += 30;
+        y += 33;
       }
 
       pdf.line(15, 250, 38, 250);

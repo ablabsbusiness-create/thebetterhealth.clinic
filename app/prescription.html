@@ -689,7 +689,7 @@
     }
 
     .dose-unit-select,
-    .timing-switch-btn {
+    .timing-mode-select {
       min-height: 26px;
       border: 0;
       border-radius: 999px;
@@ -707,7 +707,8 @@
       cursor: pointer;
     }
 
-    .timing-switch-btn {
+    .timing-mode-select {
+      max-width: 150px;
       padding: 0 10px;
       cursor: pointer;
       box-shadow: inset 0 0 0 1px rgba(30, 58, 95, 0.08);
@@ -1320,7 +1321,7 @@
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { getFirestore, doc, getDoc, setDoc, arrayUnion, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
 
     const menuToggle = document.getElementById('menu-toggle');
     const primaryNav = document.getElementById('primary-nav');
@@ -1346,6 +1347,7 @@
     const continuePreviewBtn = document.getElementById('continue-preview-btn');
     const selectedMedicines = new Set();
     const medicineDetails = new Map();
+    const medicineCatalog = new Map();
     const sectionItemDetails = {
       Symptoms: new Map(),
       Finding: new Map()
@@ -1356,6 +1358,7 @@
     let lastAddMedicineTrigger = null;
     let pendingAddMedicineResolve = null;
     const MEDICINE_DETAIL_STORAGE_KEY = 'prescriptionMedicineDetails';
+    const CUSTOM_TEMPLATE_STORAGE_KEY = 'prescriptionCustomTemplates';
     const PRESCRIPTION_DRAFT_STORAGE_KEY = 'prescriptionDraft';
     const MEDICINE_DETAIL_TTL_MS = 10 * 60 * 1000;
     const CHART_RECORD_STORAGE_KEY = 'growthChartRecentRecords';
@@ -1490,6 +1493,103 @@
       }
 
       return `${type} ${name}`;
+    }
+
+    function mergeUniqueItems(...lists) {
+      const seen = new Set();
+      const merged = [];
+
+      lists.flat().forEach((item) => {
+        const value = String(item || '').trim();
+        const key = value.toLowerCase();
+
+        if (!value || seen.has(key)) {
+          return;
+        }
+
+        seen.add(key);
+        merged.push(value);
+      });
+
+      return merged.sort((left, right) => left.localeCompare(right));
+    }
+
+    function loadCustomTemplates() {
+      const saved = readLocalJson(CUSTOM_TEMPLATE_STORAGE_KEY, {});
+      return saved && typeof saved === 'object' ? saved : {};
+    }
+
+    function saveCustomTemplates(payload) {
+      localStorage.setItem(CUSTOM_TEMPLATE_STORAGE_KEY, JSON.stringify(payload));
+    }
+
+    function rememberMedicineCatalogEntry(medicine, meta = {}) {
+      const displayName = meta.displayName || medicine;
+      const name = meta.name || displayName;
+
+      if (!displayName) {
+        return;
+      }
+
+      medicineCatalog.set(displayName, {
+        name,
+        displayName,
+        type: meta.type || '',
+        composition: meta.composition || '',
+        updatedAtIso: meta.updatedAtIso || new Date().toISOString()
+      });
+    }
+
+    function rememberMedicineCatalogEntries(catalog = {}) {
+      Object.entries(catalog || {}).forEach(([medicine, meta]) => {
+        rememberMedicineCatalogEntry(medicine, {
+          ...(meta || {}),
+          displayName: meta?.displayName || medicine
+        });
+      });
+    }
+
+    function getMedicineMeta(medicine) {
+      return medicineCatalog.get(medicine) || null;
+    }
+
+    function hydrateMedicineMeta(medicine) {
+      const meta = getMedicineMeta(medicine);
+
+      if (meta) {
+        saveMedicineMeta(medicine, meta);
+      }
+    }
+
+    function mergeWithSavedTemplates(templates) {
+      const saved = loadCustomTemplates();
+      rememberMedicineCatalogEntries(saved.medicineCatalog || {});
+
+      const merged = {};
+      Object.entries(templates).forEach(([sectionName, items]) => {
+        merged[sectionName] = mergeUniqueItems(items, saved[sectionName] || []);
+      });
+
+      return merged;
+    }
+
+    function rememberCustomTemplateItem(sectionName, value, medicineMeta = null) {
+      const saved = loadCustomTemplates();
+      saved[sectionName] = mergeUniqueItems(saved[sectionName] || [], [value]);
+
+      if (sectionName === 'Medication' && medicineMeta) {
+        saved.medicineCatalog = saved.medicineCatalog || {};
+        saved.medicineCatalog[value] = {
+          name: medicineMeta.name || value,
+          displayName: value,
+          type: medicineMeta.type || '',
+          composition: medicineMeta.composition || '',
+          updatedAtIso: new Date().toISOString()
+        };
+        rememberMedicineCatalogEntry(value, saved.medicineCatalog[value]);
+      }
+
+      saveCustomTemplates(saved);
     }
 
     function getSectionItemDetail(sectionName, value) {
@@ -1755,20 +1855,12 @@
       wrap.innerHTML = '';
 
       if (!items.length) {
-        if (addableQuery) {
-          const addButton = document.createElement('button');
-          addButton.className = 'add-option-btn';
-          addButton.type = 'button';
-          addButton.dataset.addValue = addableQuery;
-          addButton.textContent = `Add "${addableQuery}"`;
-          wrap.appendChild(addButton);
-        } else {
+        if (!addableQuery) {
           const emptyState = document.createElement('span');
           emptyState.className = 'bubble-empty';
           emptyState.textContent = 'No matching items found.';
           wrap.appendChild(emptyState);
         }
-        return;
       }
 
       items.forEach((item) => {
@@ -1778,6 +1870,15 @@
         button.textContent = item;
         wrap.appendChild(button);
       });
+
+      if (addableQuery) {
+        const addButton = document.createElement('button');
+        addButton.className = 'add-option-btn';
+        addButton.type = 'button';
+        addButton.dataset.addValue = addableQuery;
+        addButton.textContent = `Add "${addableQuery}"`;
+        wrap.appendChild(addButton);
+      }
     }
 
     function formatDateTime(value) {
@@ -1903,6 +2004,8 @@
     function getMedicineDetail(medicine) {
       if (!medicineDetails.has(medicine)) {
         medicineDetails.set(medicine, {
+          name: '',
+          displayName: medicine,
           type: '',
           composition: '',
           dose: '',
@@ -1931,6 +2034,8 @@
           }
 
           medicineDetails.set(medicine, {
+            name: detail.name || '',
+            displayName: detail.displayName || medicine,
             type: detail.type || '',
             composition: detail.composition || '',
             dose: detail.dose || '',
@@ -2015,8 +2120,14 @@
 
     function saveMedicineMeta(medicine, meta = {}) {
       const detail = getMedicineDetail(medicine);
+      rememberMedicineCatalogEntry(medicine, {
+        ...meta,
+        displayName: meta.displayName || medicine
+      });
       medicineDetails.set(medicine, {
         ...detail,
+        name: meta.name || detail.name || '',
+        displayName: meta.displayName || detail.displayName || medicine,
         type: meta.type || detail.type || '',
         composition: meta.composition || detail.composition || '',
         savedAt: Date.now()
@@ -2154,11 +2265,6 @@
 
     function getTimingMode(detail) {
       return TIMING_MODE_ORDER.includes(detail.timingMode) ? detail.timingMode : 'daily';
-    }
-
-    function getNextTimingMode(mode) {
-      const index = TIMING_MODE_ORDER.indexOf(mode);
-      return TIMING_MODE_ORDER[(index + 1) % TIMING_MODE_ORDER.length] || 'daily';
     }
 
     function formatDoseWithUnit(value, unit) {
@@ -2304,10 +2410,13 @@
 
       return `
         <div class="medicine-question">
-          <input type="hidden" data-field="timingMode" value="${escapeHtml(timingMode)}">
           <div class="question-bar">
             <span>Timing</span>
-            <button class="timing-switch-btn" type="button" data-action="switch-timing">Switch</button>
+            <select class="timing-mode-select" data-field="timingMode" aria-label="${escapeHtml(medicine)} timing mode">
+              <option value="daily" ${selectedAttr(timingMode === 'daily')}>M A E N</option>
+              <option value="interval" ${selectedAttr(timingMode === 'interval')}>Hourly / Daily</option>
+              <option value="meal" ${selectedAttr(timingMode === 'meal')}>Meals</option>
+            </select>
           </div>
           ${timingMarkup}
         </div>
@@ -2339,11 +2448,13 @@
         const card = document.createElement('div');
         card.className = 'medicine-detail-card';
         card.dataset.medicine = medicine;
+        const medicineName = detail.name || detail.displayName || medicine;
         card.innerHTML = `
-          ${detail.type || detail.composition ? `
+          ${medicineName || detail.type || detail.composition ? `
             <div class="medicine-meta-strip">
-              ${detail.type ? `<span>${escapeHtml(detail.type)}</span>` : ''}
-              ${detail.composition ? `<span>${escapeHtml(detail.composition)}</span>` : ''}
+              ${medicineName ? `<span>Name: ${escapeHtml(medicineName)}</span>` : ''}
+              ${detail.composition ? `<span>Composition: ${escapeHtml(detail.composition)}</span>` : ''}
+              ${detail.type ? `<span>Type: ${escapeHtml(detail.type)}</span>` : ''}
             </div>
           ` : ''}
           <div class="medicine-table-body">
@@ -2407,42 +2518,21 @@
     }
 
     medicineDetailContent.addEventListener('input', syncMedicineDetailsFromDom);
-    medicineDetailContent.addEventListener('click', (event) => {
-      const switchButton = event.target.closest('[data-action="switch-timing"]');
-
-      if (!switchButton) {
-        return;
-      }
-
-      const card = switchButton.closest('.medicine-detail-card');
-      const medicine = card?.dataset.medicine || '';
-
-      if (!card || !medicine) {
-        return;
-      }
-
-      const timingModeInput = card.querySelector('[data-field="timingMode"]');
-      const currentMode = timingModeInput?.value || getMedicineDetail(medicine).timingMode || 'daily';
-      const nextMode = getNextTimingMode(currentMode);
-
-      if (timingModeInput) {
-        timingModeInput.value = nextMode;
-      }
-
-      card.querySelectorAll('[data-field="timing"], [data-field="food"]').forEach((input) => {
-        input.checked = false;
-      });
-
-      syncMedicineDetailsFromDom();
-      renderMedicineDetails();
-    });
-
     medicineDetailContent.addEventListener('change', (event) => {
       const input = event.target;
       const card = input.closest('.medicine-detail-card');
 
       if ((input.matches('[data-field="doseChip"]') || input.matches('[data-field="doseUnit"]')) && card) {
         updateDoseInputFromChip(card);
+      }
+
+      if (input.matches('[data-field="timingMode"]') && card) {
+        card.querySelectorAll('[data-field="timing"], [data-field="food"]').forEach((field) => {
+          field.checked = false;
+        });
+        syncMedicineDetailsFromDom();
+        renderMedicineDetails();
+        return;
       }
 
       syncMedicineDetailsFromDom();
@@ -2472,6 +2562,9 @@
 
           const data = snapshot.data();
           const savedItems = Array.isArray(data.items) && data.items.length ? data.items : items;
+          if (sectionName === 'Medication') {
+            rememberMedicineCatalogEntries(data.medicineCatalog || {});
+          }
           return [sectionName, savedItems];
         })
       );
@@ -2481,7 +2574,7 @@
     }
 
     const sectionMap = new Map(rxCards.map((card) => [card.querySelector('h2').textContent.trim(), card]));
-    const boundSections = new Set();
+    const sectionBindings = new Map();
 
     function bindCardSelection(card, initialItems) {
       const selectedList = card.querySelector('[data-selected-list]');
@@ -2489,19 +2582,28 @@
       const searchInput = card.querySelector('.search-row input');
       const sectionName = card.querySelector('h2').textContent.trim();
 
-      if (boundSections.has(sectionName)) {
+      if (sectionBindings.has(sectionName)) {
+        sectionBindings.get(sectionName).updateItems(initialItems);
         return;
       }
-
-      boundSections.add(sectionName);
 
       const sectionRef = db ? doc(db, 'prescription', sectionName) : null;
       const selectedValues = new Set();
       prescriptionSelections[sectionName] = selectedValues;
-      const allItems = [...initialItems];
+      let allItems = mergeUniqueItems(initialItems);
 
       function getBubbleButtons() {
         return [...card.querySelectorAll('.bubble-btn')];
+      }
+
+      function updateItems(items) {
+        allItems = mergeUniqueItems(allItems, items);
+        applySearchFilter();
+
+        if (sectionName === 'Medication' && activeMedicine && selectedValues.has(activeMedicine)) {
+          hydrateMedicineMeta(activeMedicine);
+          renderMedicineDetails();
+        }
       }
 
       function toggleValue(value, shouldSelect, trigger = document.activeElement) {
@@ -2523,6 +2625,7 @@
         if (sectionName === 'Medication') {
           if (shouldSelect) {
             selectedMedicines.add(value);
+            hydrateMedicineMeta(value);
             getMedicineDetail(value);
             activeMedicine = value;
           } else {
@@ -2587,16 +2690,19 @@
         if (!exists) {
           allItems.push(normalizedValue);
           allItems.sort((left, right) => left.localeCompare(right));
+        }
 
-          if (sectionRef) {
-            try {
-              await updateDoc(sectionRef, {
-                items: arrayUnion(normalizedValue),
-                updatedAt: serverTimestamp()
-              });
-            } catch (error) {
-              console.error(`Unable to add prescription item: ${error.message}`);
-            }
+        rememberCustomTemplateItem(sectionName, normalizedValue, medicineMeta);
+
+        if (sectionRef) {
+          try {
+            await setDoc(sectionRef, {
+              name: sectionName,
+              items: arrayUnion(normalizedValue),
+              updatedAt: serverTimestamp()
+            }, { merge: true });
+          } catch (error) {
+            console.error(`Unable to add prescription item: ${error.message}`);
           }
         }
 
@@ -2636,7 +2742,7 @@
         const exactExists = query
           ? allItems.some((item) => item.toLowerCase() === query)
           : true;
-        const addableQuery = query && !filteredItems.length && !exactExists
+        const addableQuery = query && !exactExists
           ? toTitleCase(searchInput.value)
           : '';
 
@@ -2667,13 +2773,15 @@
       });
 
       applySearchFilter();
+      sectionBindings.set(sectionName, { updateItems });
     }
 
     async function initPrescriptionData() {
       loadMedicineDetailsFromStorage();
       cleanupExpiredMedicineDetails();
 
-      Object.entries(prescriptionTemplates).forEach(([sectionName, items]) => {
+      const localTemplates = mergeWithSavedTemplates(prescriptionTemplates);
+      Object.entries(localTemplates).forEach(([sectionName, items]) => {
         const card = sectionMap.get(sectionName);
 
         if (card) {
@@ -2682,7 +2790,7 @@
       });
 
       try {
-        const prescriptionData = await ensurePrescriptionCollection();
+        const prescriptionData = mergeWithSavedTemplates(await ensurePrescriptionCollection());
 
         Object.entries(prescriptionData).forEach(([sectionName, items]) => {
           const card = sectionMap.get(sectionName);
@@ -2698,7 +2806,7 @@
         statusChip.classList.add('is-warning');
         console.error(`Prescription collection sync failed: ${error.message}`);
 
-        Object.entries(prescriptionTemplates).forEach(([sectionName, items]) => {
+        Object.entries(localTemplates).forEach(([sectionName, items]) => {
           const card = sectionMap.get(sectionName);
 
           if (!card) {
