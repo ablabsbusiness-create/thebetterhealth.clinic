@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 298" role="img" aria-label="IAP Girls Height 5-18 years">
+<style>
+    .axis { stroke: #111; stroke-width: 1.8; fill: none; }
+    .tick { stroke: #666; stroke-width: 1; }
+    .label { fill: #222; font: 11px Arial, sans-serif; }
+    .ylabel { fill: #222; font: 11px Arial, sans-serif; text-anchor: end; }
+    .curve { fill: none; stroke: #8a8f96; stroke-width: 1.5; stroke-linecap: round; }
+    .median { fill: none; stroke: #222; stroke-width: 2.1; stroke-linecap: round; }
+    .percentile { fill: #444; font: 700 9px Arial, sans-serif; }
+  </style>
+<rect x="0" y="0" width="760" height="298" fill="#fff"/>
+<path class="axis" d="M80 78 V258 H680"/>
+<path class="tick" d="M80 258 V252"/>
+<text class="label" x="70" y="274">5y</text>
+<path class="tick" d="M230 258 V252"/>
+<text class="label" x="220" y="274">8y</text>
+<path class="tick" d="M380 258 V252"/>
+<text class="label" x="370" y="274">11y</text>
+<path class="tick" d="M530 258 V252"/>
+<text class="label" x="520" y="274">14y</text>
+<path class="tick" d="M680 258 V252"/>
+<text class="label" x="670" y="274">18y</text>
+<path class="tick" d="M80 78 H86"/>
+<text class="ylabel" x="74" y="82">180</text>
+<path class="tick" d="M80 138 H86"/>
+<text class="ylabel" x="74" y="142">140</text>
+<path class="tick" d="M80 198 H86"/>
+<text class="ylabel" x="74" y="202">100</text>
+<path class="tick" d="M80 258 H86"/>
+<text class="ylabel" x="74" y="262">60</text>
+<path class="curve" d="M80 236 C108 166, 168 122, 680 88"/>
+<path class="curve" d="M80 242 C108 184, 168 142, 680 106"/>
+<path class="median" d="M80 249 C108 200, 168 162, 680 122"/>
+<path class="curve" d="M80 256 C108 216, 168 180, 680 136"/>
+<text class="percentile" x="688" y="90">P97</text>
+<text class="percentile" x="688" y="108">P75</text>
+<text class="percentile" x="688" y="126">P50</text>
+<text class="percentile" x="688" y="144">P25</text>
+</svg>

@@ -18,26 +18,19 @@ STYLE = """
 
 CHARTS = [
     {
-        "filename": "boys-bmi-5-18-minimal.svg",
-        "title": "IAP Boys BMI Chart 5-18 years",
-        "panels": [{"kind": "bmi", "age_mode": "years", "sex": "Boys"}],
+        "filename": "boys-height-0-5-minimal.svg",
+        "title": "WHO Boys Height 0-5 years",
+        "panels": [{"kind": "height", "age_mode": "months", "sex": "Boys"}],
     },
     {
-        "filename": "boys-height-weight-5-18-minimal.svg",
-        "title": "IAP Boys Height / Weight 5-18 years",
-        "panels": [
-            {"kind": "height", "age_mode": "years", "sex": "Boys"},
-            {"kind": "weight", "age_mode": "years", "sex": "Boys"},
-        ],
+        "filename": "boys-weight-0-5-minimal.svg",
+        "title": "WHO Boys Weight 0-5 years",
+        "panels": [{"kind": "weight", "age_mode": "months", "sex": "Boys"}],
     },
     {
-        "filename": "boys-height-weight-head-0-5-minimal.svg",
-        "title": "WHO Boys Height / Weight / Head 0-5 years",
-        "panels": [
-            {"kind": "height", "age_mode": "months", "sex": "Boys"},
-            {"kind": "weight", "age_mode": "months", "sex": "Boys"},
-            {"kind": "head", "age_mode": "months", "sex": "Boys"},
-        ],
+        "filename": "boys-head-0-5-minimal.svg",
+        "title": "WHO Boys Head Circumference 0-5 years",
+        "panels": [{"kind": "head", "age_mode": "months", "sex": "Boys"}],
     },
     {
         "filename": "boys-weight-for-height-0-5-minimal.svg",
@@ -45,12 +38,14 @@ CHARTS = [
         "panels": [{"kind": "weight_for_height", "age_mode": "height", "sex": "Boys"}],
     },
     {
-        "filename": "boys-combined-height-weight-0-18-minimal.svg",
-        "title": "Boys 0-18 Combined Height / Weight",
-        "panels": [
-            {"kind": "height", "age_mode": "years_long", "sex": "Boys"},
-            {"kind": "weight", "age_mode": "years_long", "sex": "Boys"},
-        ],
+        "filename": "boys-height-5-18-minimal.svg",
+        "title": "IAP Boys Height 5-18 years",
+        "panels": [{"kind": "height", "age_mode": "years", "sex": "Boys"}],
+    },
+    {
+        "filename": "boys-weight-5-18-minimal.svg",
+        "title": "IAP Boys Weight 5-18 years",
+        "panels": [{"kind": "weight", "age_mode": "years", "sex": "Boys"}],
     },
     {
         "filename": "boys-waist-circumference-minimal.svg",
@@ -63,26 +58,19 @@ CHARTS = [
         "panels": [{"kind": "extended_bmi", "age_mode": "years_long", "sex": "Boys"}],
     },
     {
-        "filename": "girls-bmi-5-18-minimal.svg",
-        "title": "IAP Girls BMI Chart 5-18 years",
-        "panels": [{"kind": "bmi", "age_mode": "years", "sex": "Girls"}],
+        "filename": "girls-height-0-5-minimal.svg",
+        "title": "WHO Girls Height 0-5 years",
+        "panels": [{"kind": "height", "age_mode": "months", "sex": "Girls"}],
     },
     {
-        "filename": "girls-height-weight-5-18-minimal.svg",
-        "title": "IAP Girls Height / Weight 5-18 years",
-        "panels": [
-            {"kind": "height", "age_mode": "years", "sex": "Girls"},
-            {"kind": "weight", "age_mode": "years", "sex": "Girls"},
-        ],
+        "filename": "girls-weight-0-5-minimal.svg",
+        "title": "WHO Girls Weight 0-5 years",
+        "panels": [{"kind": "weight", "age_mode": "months", "sex": "Girls"}],
     },
     {
-        "filename": "girls-height-weight-head-0-5-minimal.svg",
-        "title": "WHO Girls Height / Weight / Head 0-5 years",
-        "panels": [
-            {"kind": "height", "age_mode": "months", "sex": "Girls"},
-            {"kind": "weight", "age_mode": "months", "sex": "Girls"},
-            {"kind": "head", "age_mode": "months", "sex": "Girls"},
-        ],
+        "filename": "girls-head-0-5-minimal.svg",
+        "title": "WHO Girls Head Circumference 0-5 years",
+        "panels": [{"kind": "head", "age_mode": "months", "sex": "Girls"}],
     },
     {
         "filename": "girls-weight-for-height-0-5-minimal.svg",
@@ -90,12 +78,14 @@ CHARTS = [
         "panels": [{"kind": "weight_for_height", "age_mode": "height", "sex": "Girls"}],
     },
     {
-        "filename": "girls-combined-height-weight-0-18-minimal.svg",
-        "title": "Girls 0-18 Combined Height / Weight",
-        "panels": [
-            {"kind": "height", "age_mode": "years_long", "sex": "Girls"},
-            {"kind": "weight", "age_mode": "years_long", "sex": "Girls"},
-        ],
+        "filename": "girls-height-5-18-minimal.svg",
+        "title": "IAP Girls Height 5-18 years",
+        "panels": [{"kind": "height", "age_mode": "years", "sex": "Girls"}],
+    },
+    {
+        "filename": "girls-weight-5-18-minimal.svg",
+        "title": "IAP Girls Weight 5-18 years",
+        "panels": [{"kind": "weight", "age_mode": "years", "sex": "Girls"}],
     },
     {
         "filename": "girls-waist-circumference-minimal.svg",
@@ -106,6 +96,16 @@ CHARTS = [
         "filename": "girls-extended-bmi-minimal.svg",
         "title": "IAP Girls Extended BMI Charts",
         "panels": [{"kind": "extended_bmi", "age_mode": "years_long", "sex": "Girls"}],
+    },
+    {
+        "filename": "boys-bmi-5-18-minimal.svg",
+        "title": "IAP Boys BMI Chart 5-18 years",
+        "panels": [{"kind": "bmi", "age_mode": "years", "sex": "Boys"}],
+    },
+    {
+        "filename": "girls-bmi-5-18-minimal.svg",
+        "title": "IAP Girls BMI Chart 5-18 years",
+        "panels": [{"kind": "bmi", "age_mode": "years", "sex": "Girls"}],
     },
 ]
 
