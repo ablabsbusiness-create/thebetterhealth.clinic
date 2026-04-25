@@ -33,6 +33,11 @@ CHARTS = [
         "panels": [{"kind": "head", "age_mode": "months", "sex": "Boys"}],
     },
     {
+        "filename": "boys-bmi-0-5-minimal.svg",
+        "title": "WHO Boys BMI 0-5 years",
+        "panels": [{"kind": "bmi_small", "age_mode": "months", "sex": "Boys"}],
+    },
+    {
         "filename": "boys-weight-for-height-0-5-minimal.svg",
         "title": "WHO Boys Weight-for-Height 0-5 years",
         "panels": [{"kind": "weight_for_height", "age_mode": "height", "sex": "Boys"}],
@@ -46,6 +51,11 @@ CHARTS = [
         "filename": "boys-weight-5-18-minimal.svg",
         "title": "IAP Boys Weight 5-18 years",
         "panels": [{"kind": "weight", "age_mode": "years", "sex": "Boys"}],
+    },
+    {
+        "filename": "boys-head-5-18-minimal.svg",
+        "title": "IAP Boys OFC 5-18 years",
+        "panels": [{"kind": "head_teen", "age_mode": "years", "sex": "Boys"}],
     },
     {
         "filename": "boys-waist-circumference-minimal.svg",
@@ -73,6 +83,11 @@ CHARTS = [
         "panels": [{"kind": "head", "age_mode": "months", "sex": "Girls"}],
     },
     {
+        "filename": "girls-bmi-0-5-minimal.svg",
+        "title": "WHO Girls BMI 0-5 years",
+        "panels": [{"kind": "bmi_small", "age_mode": "months", "sex": "Girls"}],
+    },
+    {
         "filename": "girls-weight-for-height-0-5-minimal.svg",
         "title": "WHO Girls Weight-for-Height 0-5 years",
         "panels": [{"kind": "weight_for_height", "age_mode": "height", "sex": "Girls"}],
@@ -86,6 +101,11 @@ CHARTS = [
         "filename": "girls-weight-5-18-minimal.svg",
         "title": "IAP Girls Weight 5-18 years",
         "panels": [{"kind": "weight", "age_mode": "years", "sex": "Girls"}],
+    },
+    {
+        "filename": "girls-head-5-18-minimal.svg",
+        "title": "IAP Girls OFC 5-18 years",
+        "panels": [{"kind": "head_teen", "age_mode": "years", "sex": "Girls"}],
     },
     {
         "filename": "girls-waist-circumference-minimal.svg",
@@ -114,7 +134,9 @@ Y_AXIS = {
     "height": ["180", "140", "100", "60"],
     "weight": ["75", "50", "25", "5"],
     "head": ["57", "53", "49", "45"],
+    "head_teen": ["57", "55", "53", "51", "49"],
     "bmi": ["35", "25", "20", "15", "10"],
+    "bmi_small": ["22", "18", "14", "10"],
     "extended_bmi": ["45", "35", "25", "15"],
     "waist": ["95", "80", "65", "50"],
     "weight_for_height": ["28", "20", "12", "4"],
@@ -159,6 +181,14 @@ def build_curves(kind: str, x: int, y: int, width: int, height: int) -> list[str
             f'<path class="median" d="M{x} {bottom-20} C{x+32} {bottom-42}, {x+90} {bottom-54}, {right} {y+50}"/>',
             f'<path class="curve" d="M{x} {bottom-12} C{x+32} {bottom-34}, {x+90} {bottom-44}, {right} {y+63}"/>',
         ]
+    if kind == "head_teen":
+        return [
+            f'<path class="curve" d="M{x} {bottom-44} C{x+32} {bottom-62}, {x+90} {bottom-76}, {right} {y+22}"/>',
+            f'<path class="curve" d="M{x} {bottom-34} C{x+32} {bottom-50}, {x+90} {bottom-62}, {right} {y+34}"/>',
+            f'<path class="median" d="M{x} {bottom-24} C{x+32} {bottom-40}, {x+90} {bottom-50}, {right} {y+46}"/>',
+            f'<path class="curve" d="M{x} {bottom-14} C{x+32} {bottom-30}, {x+90} {bottom-40}, {right} {y+58}"/>',
+            f'<path class="curve" d="M{x} {bottom-6} C{x+32} {bottom-22}, {x+90} {bottom-31}, {right} {y+70}"/>',
+        ]
     if kind == "weight_for_height":
         return [
             f'<path class="curve" d="M{x} {bottom-28} C{x+48} {bottom-122}, {x+132} {bottom-128}, {right} {y+22}"/>',
@@ -166,13 +196,13 @@ def build_curves(kind: str, x: int, y: int, width: int, height: int) -> list[str
             f'<path class="median" d="M{x} {bottom-9} C{x+48} {bottom-86}, {x+132} {bottom-90}, {right} {y+56}"/>',
             f'<path class="curve" d="M{x} {bottom-1} C{x+48} {bottom-68}, {x+132} {bottom-72}, {right} {y+72}"/>',
         ]
-    if kind in {"bmi", "extended_bmi"}:
+    if kind in {"bmi", "extended_bmi", "bmi_small"}:
         return [
             f'<path class="curve" d="M{x} {y+62} C{x+56} {y+50}, {x+126} {y+26}, {right} {y+10}"/>',
             f'<path class="curve" d="M{x} {y+86} C{x+56} {y+74}, {x+126} {y+50}, {right} {y+34}"/>',
             f'<path class="median" d="M{x} {y+110} C{x+56} {y+98}, {x+126} {y+80}, {right} {y+58}"/>',
             f'<path class="curve" d="M{x} {y+132} C{x+56} {y+124}, {x+126} {y+106}, {right} {y+84}"/>',
-            f'<path class="curve" d="M{x} {y+148} C{x+56} {y+142}, {x+126} {y+128}, {right} {y+106}"/>' if kind == "bmi" else "",
+            f'<path class="curve" d="M{x} {y+148} C{x+56} {y+142}, {x+126} {y+128}, {right} {y+106}"/>' if kind in {"bmi", "bmi_small"} else "",
         ]
     if kind == "waist":
         return [

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 188" role="img" aria-label="IAP Girls OFC 5-18 years">
+<style>
+    .axis { stroke: #111; stroke-width: 1.8; fill: none; }
+    .tick { stroke: #666; stroke-width: 1; }
+    .label { fill: #222; font: 11px Arial, sans-serif; }
+    .ylabel { fill: #222; font: 11px Arial, sans-serif; text-anchor: end; }
+    .curve { fill: none; stroke: #8a8f96; stroke-width: 1.5; stroke-linecap: round; }
+    .median { fill: none; stroke: #222; stroke-width: 2.1; stroke-linecap: round; }
+    .percentile { fill: #444; font: 700 9px Arial, sans-serif; }
+  </style>
+<rect x="0" y="0" width="260" height="188" fill="#fff"/>
+<path class="axis" d="M45 22 V162 H215"/>
+<path class="tick" d="M45 162 V156"/>
+<text class="label" x="35" y="178">5y</text>
+<path class="tick" d="M87 162 V156"/>
+<text class="label" x="77" y="178">8y</text>
+<path class="tick" d="M130 162 V156"/>
+<text class="label" x="120" y="178">11y</text>
+<path class="tick" d="M173 162 V156"/>
+<text class="label" x="163" y="178">14y</text>
+<path class="tick" d="M215 162 V156"/>
+<text class="label" x="205" y="178">18y</text>
+<path class="tick" d="M45 22 H51"/>
+<text class="ylabel" x="39" y="26">57</text>
+<path class="tick" d="M45 57 H51"/>
+<text class="ylabel" x="39" y="61">55</text>
+<path class="tick" d="M45 92 H51"/>
+<text class="ylabel" x="39" y="96">53</text>
+<path class="tick" d="M45 127 H51"/>
+<text class="ylabel" x="39" y="131">51</text>
+<path class="tick" d="M45 162 H51"/>
+<text class="ylabel" x="39" y="166">49</text>
+<path class="curve" d="M45 118 C77 100, 135 86, 215 44"/>
+<path class="curve" d="M45 128 C77 112, 135 100, 215 56"/>
+<path class="median" d="M45 138 C77 122, 135 112, 215 68"/>
+<path class="curve" d="M45 148 C77 132, 135 122, 215 80"/>
+<path class="curve" d="M45 156 C77 140, 135 131, 215 92"/>
+<text class="percentile" x="223" y="34">P97</text>
+<text class="percentile" x="223" y="52">P75</text>
+<text class="percentile" x="223" y="70">P50</text>
+<text class="percentile" x="223" y="88">P25</text>
+</svg>
