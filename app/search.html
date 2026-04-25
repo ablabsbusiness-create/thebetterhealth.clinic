@@ -923,46 +923,20 @@
     .pdf-preview-body {
       min-height: 0;
       display: grid;
-      place-items: center;
-      gap: 16px;
-      padding: 20px;
-      overflow: auto;
+      grid-template-rows: minmax(0, 1fr) auto;
+      gap: 14px;
+      padding: 16px;
       background: linear-gradient(180deg, #f8fbf9, #eef4f0);
     }
 
     .pdf-preview-viewer {
-      width: min(100%, 760px);
-      min-height: 320px;
-      display: grid;
-      place-items: center;
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      border: 0;
       border-radius: 18px;
-      border: 1px solid rgba(22, 38, 29, 0.08);
       background: #fff;
       box-shadow: 0 18px 40px rgba(22, 38, 29, 0.08);
-      overflow: hidden;
-    }
-
-    .pdf-preview-image {
-      width: 100%;
-      height: auto;
-      display: none;
-      object-fit: contain;
-      background: #fff;
-    }
-
-    .pdf-preview-image.is-ready {
-      display: block;
-    }
-
-    .pdf-preview-placeholder {
-      padding: 28px;
-      color: var(--muted);
-      text-align: center;
-      line-height: 1.6;
-    }
-
-    .pdf-preview-placeholder.is-error {
-      color: #8a3b12;
     }
 
     .pdf-preview-fallback {
@@ -1144,10 +1118,7 @@
         <button id="pdf-preview-close" class="pdf-preview-close" type="button" aria-label="Close prescription preview">x</button>
       </div>
       <div class="pdf-preview-body">
-        <div class="pdf-preview-viewer" aria-live="polite">
-          <div id="pdf-preview-placeholder" class="pdf-preview-placeholder">Loading preview...</div>
-          <img id="pdf-preview-frame" class="pdf-preview-image" alt="Prescription preview image">
-        </div>
+        <iframe id="pdf-preview-frame" class="pdf-preview-viewer" title="Prescription PDF preview"></iframe>
         <div class="pdf-preview-fallback">
           If the preview does not appear, <a id="pdf-preview-link" href="#" target="_blank" rel="noopener noreferrer">open the prescription</a>.
         </div>
@@ -1169,7 +1140,6 @@
     const navLinks = [...document.querySelectorAll('#primary-nav .nav-link')];
     const pdfPreviewModal = document.getElementById('pdf-preview-modal');
     const pdfPreviewFrame = document.getElementById('pdf-preview-frame');
-    const pdfPreviewPlaceholder = document.getElementById('pdf-preview-placeholder');
     const pdfPreviewLink = document.getElementById('pdf-preview-link');
     const pdfPreviewClose = document.getElementById('pdf-preview-close');
     let prescriptionPreviewObserver = null;
@@ -1667,42 +1637,14 @@
       pdfPreviewModal.classList.add('is-open');
       pdfPreviewModal.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
-      pdfPreviewFrame.classList.remove('is-ready');
-      pdfPreviewFrame.removeAttribute('src');
-      pdfPreviewPlaceholder.hidden = false;
-      pdfPreviewPlaceholder.classList.remove('is-error');
-      pdfPreviewPlaceholder.textContent = 'Loading preview...';
+      pdfPreviewFrame.src = url ? (url.includes('#') ? url : `${url}#toolbar=1&navpanes=0&scrollbar=1&view=FitH`) : '';
       pdfPreviewClose.focus();
-
-      if (previewImageUrl) {
-        pdfPreviewFrame.onload = () => {
-          pdfPreviewPlaceholder.hidden = true;
-        };
-        pdfPreviewFrame.onerror = () => {
-          pdfPreviewFrame.classList.remove('is-ready');
-          pdfPreviewFrame.removeAttribute('src');
-          pdfPreviewPlaceholder.hidden = false;
-          pdfPreviewPlaceholder.classList.add('is-error');
-          pdfPreviewPlaceholder.textContent = 'Preview could not be loaded here. Use the link below to open the prescription.';
-        };
-        pdfPreviewFrame.src = previewImageUrl;
-        pdfPreviewFrame.classList.add('is-ready');
-        return;
-      }
-
-      pdfPreviewPlaceholder.hidden = false;
-      pdfPreviewPlaceholder.classList.add('is-error');
-      pdfPreviewPlaceholder.textContent = 'Preview is not available for this record yet. Use the link below to open the prescription.';
     }
 
     function closePrescriptionPreview() {
       pdfPreviewModal.classList.remove('is-open');
       pdfPreviewModal.setAttribute('aria-hidden', 'true');
-      pdfPreviewFrame.classList.remove('is-ready');
-      pdfPreviewFrame.removeAttribute('src');
-      pdfPreviewPlaceholder.hidden = false;
-      pdfPreviewPlaceholder.classList.remove('is-error');
-      pdfPreviewPlaceholder.textContent = 'Loading preview...';
+      pdfPreviewFrame.src = '';
       pdfPreviewLink.href = '#';
       document.body.style.overflow = '';
     }
@@ -1740,14 +1682,8 @@
 
       const prescriptionCard = target.closest('.prescription-preview-card');
       const prescriptionUrl = prescriptionCard?.dataset.openPrescriptionUrl;
-      const previewImageUrl = prescriptionCard?.dataset.previewImageUrl || '';
-      if (previewImageUrl) {
-        openPrescriptionPreview(prescriptionUrl, previewImageUrl);
-        return;
-      }
-
       if (prescriptionUrl && prescriptionCard) {
-        window.open(prescriptionUrl, '_blank', 'noopener,noreferrer');
+        openPrescriptionPreview(prescriptionUrl);
         return;
       }
 
