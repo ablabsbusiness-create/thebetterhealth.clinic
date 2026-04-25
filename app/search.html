@@ -824,33 +824,18 @@
       background: linear-gradient(180deg, #fff8f2, #fff0e6);
     }
 
-    .prescription-preview-fallback-card {
-      min-height: 220px;
-      display: grid;
-      align-content: center;
-      justify-items: center;
-      gap: 12px;
-      padding: 24px 20px;
-      border-radius: 22px;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,0.95), rgba(244, 248, 245, 0.96));
-      text-align: center;
-      color: #415146;
+    .prescription-preview-embed {
+      width: 100%;
+      height: 606px;
+      border: 0;
+      background: #fff;
     }
 
-    .prescription-preview-fallback-card strong {
-      color: #102217;
-      font-size: 15px;
-    }
-
-    .prescription-preview-fallback-card p {
-      margin: 0;
-      font-size: 13px;
-      line-height: 1.6;
-      max-width: 28ch;
-    }
-
-    .prescription-preview-fallback-link {
+    .prescription-preview-open-chip {
+      position: absolute;
+      right: 14px;
+      bottom: 14px;
+      z-index: 2;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -1506,6 +1491,14 @@
         .sort((a, b) => new Date(b.createdAtIso || 0) - new Date(a.createdAtIso || 0));
     }
 
+    function buildEmbeddedPrescriptionUrl(url) {
+      if (!url) {
+        return '';
+      }
+
+      return url.includes('#') ? url : `${url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`;
+    }
+
     function renderPrescriptionListHtml(patientId) {
       const entries = getPrescriptionEntries(patientId);
 
@@ -1522,6 +1515,7 @@
               const previewImageUrl = entry.previewImageURL || '';
               const cardUrl = escapeHtml(downloadUrl);
               const cardPreviewUrl = escapeHtml(previewImageUrl);
+              const embeddedUrl = escapeHtml(buildEmbeddedPrescriptionUrl(downloadUrl));
 
               return `
                 <div class="prescription-preview-card" data-open-prescription-url="${cardUrl}" data-preview-image-url="${cardPreviewUrl}">
@@ -1534,10 +1528,13 @@
                       </div>
                     `
                     : `
-                      <div class="prescription-preview-fallback-card">
-                        <strong>Preview not available</strong>
-                        <p>This older prescription does not have a saved preview image yet.</p>
-                        ${downloadUrl ? `<a class="prescription-preview-fallback-link" href="${cardUrl}" target="_blank" rel="noopener noreferrer">Open prescription</a>` : ''}
+                      <div class="prescription-preview-surface">
+                        ${downloadUrl
+                          ? `
+                            <iframe class="prescription-preview-embed" src="${embeddedUrl}" title="Prescription preview ${index + 1}"></iframe>
+                            <a class="prescription-preview-open-chip" href="${cardUrl}" target="_blank" rel="noopener noreferrer">Open prescription</a>
+                          `
+                          : '<div class="prescription-preview-placeholder is-error">Prescription PDF could not be loaded for this record.</div>'}
                       </div>
                     `}
                 </div>
