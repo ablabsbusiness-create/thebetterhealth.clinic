@@ -333,61 +333,99 @@
 
     .history-list {
       display: grid;
-      align-content: start;
       gap: 10px;
-      max-height: 340px;
-      overflow-y: auto;
-      padding-right: 4px;
     }
 
-    .history-entry {
-      display: grid;
-      gap: 9px;
-      padding: 12px;
+    .history-table-wrap {
+      max-width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
       border: 1px solid var(--line);
       border-radius: 16px;
-      background: linear-gradient(180deg, #ffffff, #f8fbf9);
+      background: #ffffff;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
     }
 
-    .history-entry-date {
-      color: var(--brand-strong);
+    .history-table {
+      width: 100%;
+      min-width: 840px;
+      border-collapse: collapse;
       font-size: 12px;
-      font-weight: 800;
     }
 
-    .history-entry-head {
-      display: flex;
-      align-items: start;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
-    .history-entry-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 7px;
-    }
-
-    .history-entry-metric {
-      padding: 8px;
-      border-radius: 12px;
-      background: #f4f8f5;
-      border: 1px solid #e2ece4;
-    }
-
-    .history-entry-metric span {
-      display: block;
-      color: var(--muted);
-      font-size: 10px;
+    .history-table thead th {
+      padding: 12px 10px;
+      background: #eff7f1;
+      border-bottom: 1px solid var(--line);
+      color: var(--brand-strong);
+      font-size: 11px;
       font-weight: 800;
       letter-spacing: 0.04em;
       text-transform: uppercase;
+      text-align: left;
+      white-space: nowrap;
     }
 
-    .history-entry-metric strong {
-      display: block;
-      margin-top: 3px;
-      font-size: 13px;
+    .history-table tbody td {
+      padding: 11px 10px;
+      border-bottom: 1px solid #e2ece4;
+      color: var(--ink);
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    .history-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .history-table tbody tr.is-active {
+      background: rgba(220, 252, 231, 0.55);
+    }
+
+    .history-date-cell {
+      color: var(--brand-strong);
+      font-weight: 800;
+    }
+
+    .history-cell-empty {
+      color: #8b9a90;
+    }
+
+    .history-pagination {
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-left: auto;
+    }
+
+    .history-page-btn {
+      width: auto;
+      min-width: 34px;
+      min-height: 34px;
+      padding: 0 12px;
+      border-radius: 999px;
+      background: #f1f8f3;
+      border: 1px solid #d8e7db;
+      color: var(--brand-strong);
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1;
+      box-shadow: none;
+    }
+
+    .history-page-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .history-page-label {
+      min-width: 52px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
     }
 
     .history-empty {
@@ -410,12 +448,6 @@
       color: var(--brand-strong);
       font-size: 12px;
       font-weight: 700;
-    }
-
-    .history-entry.is-active {
-      border-color: rgba(22, 101, 52, 0.28);
-      box-shadow: inset 0 0 0 1px rgba(22, 101, 52, 0.14);
-      background: linear-gradient(180deg, rgba(237, 252, 241, 0.96), rgba(248, 252, 248, 0.98));
     }
 
     .form-card,
@@ -989,6 +1021,21 @@
         min-height: 42px;
       }
 
+      .history-panel-head {
+        align-items: stretch;
+        flex-wrap: wrap;
+      }
+
+      .history-pagination {
+        width: 100%;
+        justify-content: space-between;
+        margin-left: 0;
+      }
+
+      .history-page-label {
+        flex: 1;
+      }
+
       .form-card,
       .preview-card {
         padding: 16px;
@@ -1191,6 +1238,11 @@
                   <h3>Past entries</h3>
                   <p id="history-drawer-summary">Last saved growth records will appear here.</p>
                 </div>
+                <div class="history-pagination" aria-label="Past entry pages">
+                  <button id="history-prev" class="history-page-btn" type="button" aria-label="Show newer past entries">&lsaquo;</button>
+                  <span id="history-page-label" class="history-page-label">0 / 0</span>
+                  <button id="history-next" class="history-page-btn" type="button" aria-label="Show older past entries">&rsaquo;</button>
+                </div>
               </div>
               <div id="history-list" class="history-list">
                 <div class="history-empty">Select a patient to see past growth entries.</div>
@@ -1382,6 +1434,9 @@
     const historyPanel = document.getElementById('history-panel');
     const historyList = document.getElementById('history-list');
     const historyDrawerSummary = document.getElementById('history-drawer-summary');
+    const historyPrev = document.getElementById('history-prev');
+    const historyNext = document.getElementById('history-next');
+    const historyPageLabel = document.getElementById('history-page-label');
     const menuToggle = document.getElementById('menu-toggle');
     const primaryNav = document.getElementById('primary-nav');
     const navLinks = [...document.querySelectorAll('#primary-nav .nav-link')];
@@ -1399,8 +1454,10 @@
     const firebaseApp = firebaseConfigured ? initializeApp(firebaseConfig) : null;
     const db = firebaseApp ? getFirestore(firebaseApp) : null;
     const storage = firebaseApp ? getStorage(firebaseApp) : null;
+    const HISTORY_PAGE_SIZE = 6;
     let patientGrowthHistory = [];
     let activeHistoryEditKey = '';
+    let historyPageIndex = 0;
     const CHART_ASSET_VERSION = '2026-04-25-age-years-axis';
 
     function versionedChartAssetPath(path) {
@@ -1743,63 +1800,99 @@
       return cleanValue ? `${cleanValue}${unit ? ` ${unit}` : ''}` : '';
     }
 
-    function getHistoryMetrics(entry = {}) {
+    function getHistoryMetricCells(entry = {}) {
       const bpValue = entry.systolic || entry.diastolic
         ? `${entry.systolic || '-'}/${entry.diastolic || '-'} mmHg`
         : '';
 
-      return [
-        ['Weight', formatMetricValue(entry.weight, 'kg')],
-        ['Height', formatMetricValue(entry.height, 'cm')],
-        ['OFC', formatMetricValue(entry.head, 'cm')],
-        ['SpO2', formatMetricValue(entry.spo2, '%')],
-        ['Pulse', formatMetricValue(entry.pulse, 'bpm')],
-        ['BP', bpValue],
-        ['Temp', formatMetricValue(entry.temp, 'C')]
-      ].filter(([, value]) => value);
+      return {
+        weight: formatMetricValue(entry.weight, 'kg'),
+        height: formatMetricValue(entry.height, 'cm'),
+        head: formatMetricValue(entry.head, 'cm'),
+        spo2: formatMetricValue(entry.spo2, '%'),
+        pulse: formatMetricValue(entry.pulse, 'bpm'),
+        bp: bpValue,
+        temp: formatMetricValue(entry.temp, 'C')
+      };
+    }
+
+    function formatHistoryCell(value) {
+      return value ? escapeHtml(value) : '<span class="history-cell-empty">-</span>';
     }
 
     function renderHistoryDrawer() {
-      const recentEntries = patientGrowthHistory.slice(0, 6);
       const patientId = patientIdInput.value.trim().toUpperCase();
+      const totalEntries = patientGrowthHistory.length;
+      const totalPages = totalEntries ? Math.ceil(totalEntries / HISTORY_PAGE_SIZE) : 0;
+
+      historyPageIndex = totalPages ? Math.min(Math.max(historyPageIndex, 0), totalPages - 1) : 0;
+
+      const startIndex = historyPageIndex * HISTORY_PAGE_SIZE;
+      const recentEntries = patientGrowthHistory.slice(startIndex, startIndex + HISTORY_PAGE_SIZE);
+      const firstVisibleEntry = recentEntries.length ? startIndex + 1 : 0;
+      const lastVisibleEntry = recentEntries.length ? startIndex + recentEntries.length : 0;
 
       historyDrawerSummary.textContent = patientId
-        ? `${recentEntries.length} of ${patientGrowthHistory.length} saved entr${patientGrowthHistory.length === 1 ? 'y' : 'ies'} for ${patientId}.`
+        ? recentEntries.length
+          ? `Showing ${firstVisibleEntry}-${lastVisibleEntry} of ${patientGrowthHistory.length} saved entr${patientGrowthHistory.length === 1 ? 'y' : 'ies'} for ${patientId}.`
+          : `No saved entries found for ${patientId} yet.`
         : 'Select a patient to see past growth entries.';
+      historyPageLabel.textContent = `${totalPages ? historyPageIndex + 1 : 0} / ${totalPages}`;
+      historyPrev.disabled = historyPageIndex <= 0;
+      historyNext.disabled = historyPageIndex >= totalPages - 1 || totalPages === 0;
 
       if (!recentEntries.length) {
         historyList.innerHTML = '<div class="history-empty">No past entries found yet. Generate a chart once to save the first record.</div>';
         return;
       }
 
-      historyList.innerHTML = recentEntries.map((entry) => {
-        const metrics = getHistoryMetrics(entry);
+      historyList.innerHTML = `
+        <div class="history-table-wrap">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Weight</th>
+                <th scope="col">Height</th>
+                <th scope="col">OFC</th>
+                <th scope="col">SpO2</th>
+                <th scope="col">Pulse</th>
+                <th scope="col">BP</th>
+                <th scope="col">Temp</th>
+                <th scope="col">Edit</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${recentEntries.map((entry) => {
+        const metrics = getHistoryMetricCells(entry);
         const entryKey = getHistoryEntryKey(entry);
 
         return `
-          <article class="history-entry ${activeHistoryEditKey === entryKey ? 'is-active' : ''}">
-            <div class="history-entry-head">
-              <div class="history-entry-date">${escapeHtml(formatHistoryEntryDate(entry))}</div>
-              <button class="history-edit-btn" type="button" data-history-entry="${escapeHtml(entryKey)}">Edit</button>
-            </div>
-            ${metrics.length
-              ? `<div class="history-entry-grid">
-                  ${metrics.map(([label, value]) => `
-                    <div class="history-entry-metric">
-                      <span>${escapeHtml(label)}</span>
-                      <strong>${escapeHtml(value)}</strong>
-                    </div>
-                  `).join('')}
-                </div>`
-              : '<div class="history-empty">No vitals were saved in this entry.</div>'}
-          </article>
+                <tr class="${activeHistoryEditKey === entryKey ? 'is-active' : ''}">
+                  <td class="history-date-cell">${escapeHtml(formatHistoryEntryDate(entry))}</td>
+                  <td>${formatHistoryCell(metrics.weight)}</td>
+                  <td>${formatHistoryCell(metrics.height)}</td>
+                  <td>${formatHistoryCell(metrics.head)}</td>
+                  <td>${formatHistoryCell(metrics.spo2)}</td>
+                  <td>${formatHistoryCell(metrics.pulse)}</td>
+                  <td>${formatHistoryCell(metrics.bp)}</td>
+                  <td>${formatHistoryCell(metrics.temp)}</td>
+                  <td>
+                    <button class="history-edit-btn" type="button" data-history-entry="${escapeHtml(entryKey)}">Edit</button>
+                  </td>
+                </tr>
         `;
-      }).join('');
+      }).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
     }
 
     function setPatientGrowthHistory(entries = []) {
       patientGrowthHistory = normalizeGrowthHistory(entries);
       activeHistoryEditKey = '';
+      historyPageIndex = 0;
       renderHistoryDrawer();
     }
 
@@ -2393,6 +2486,24 @@
     }
 
     historyToggle.addEventListener('click', () => toggleHistoryPanel());
+    historyPrev.addEventListener('click', () => {
+      if (historyPageIndex <= 0) {
+        return;
+      }
+
+      historyPageIndex -= 1;
+      renderHistoryDrawer();
+    });
+    historyNext.addEventListener('click', () => {
+      const totalPages = patientGrowthHistory.length ? Math.ceil(patientGrowthHistory.length / HISTORY_PAGE_SIZE) : 0;
+
+      if (!totalPages || historyPageIndex >= totalPages - 1) {
+        return;
+      }
+
+      historyPageIndex += 1;
+      renderHistoryDrawer();
+    });
     historyList.addEventListener('click', (event) => {
       const button = event.target.closest('[data-history-entry]');
 
