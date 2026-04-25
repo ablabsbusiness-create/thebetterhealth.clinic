@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 298" role="img" aria-label="IAP Boys BMI Chart 5-18 years">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 188" role="img" aria-label="IAP Boys BMI Chart 5-18 years">
 <style>
     .axis { stroke: #111; stroke-width: 1.8; fill: none; }
     .tick { stroke: #666; stroke-width: 1; }
@@ -8,36 +8,36 @@
     .median { fill: none; stroke: #222; stroke-width: 2.1; stroke-linecap: round; }
     .percentile { fill: #444; font: 700 9px Arial, sans-serif; }
   </style>
-<rect x="0" y="0" width="760" height="298" fill="#fff"/>
-<path class="axis" d="M80 78 V258 H680"/>
-<path class="tick" d="M80 258 V252"/>
-<text class="label" x="70" y="274">5y</text>
-<path class="tick" d="M230 258 V252"/>
-<text class="label" x="220" y="274">8y</text>
-<path class="tick" d="M380 258 V252"/>
-<text class="label" x="370" y="274">11y</text>
-<path class="tick" d="M530 258 V252"/>
-<text class="label" x="520" y="274">14y</text>
-<path class="tick" d="M680 258 V252"/>
-<text class="label" x="670" y="274">18y</text>
-<path class="tick" d="M80 78 H86"/>
-<text class="ylabel" x="74" y="82">35</text>
-<path class="tick" d="M80 123 H86"/>
-<text class="ylabel" x="74" y="127">25</text>
-<path class="tick" d="M80 168 H86"/>
-<text class="ylabel" x="74" y="172">20</text>
-<path class="tick" d="M80 213 H86"/>
-<text class="ylabel" x="74" y="217">15</text>
-<path class="tick" d="M80 258 H86"/>
-<text class="ylabel" x="74" y="262">10</text>
-<path class="curve" d="M80 140 C136 128, 206 104, 680 88"/>
-<path class="curve" d="M80 164 C136 152, 206 128, 680 112"/>
-<path class="median" d="M80 188 C136 176, 206 158, 680 136"/>
-<path class="curve" d="M80 210 C136 202, 206 184, 680 162"/>
-<path class="curve" d="M80 226 C136 220, 206 206, 680 184"/>
-<text class="percentile" x="688" y="90">P97</text>
-<text class="percentile" x="688" y="108">P75</text>
-<text class="percentile" x="688" y="126">P50</text>
-<text class="percentile" x="688" y="144">P25</text>
-<text class="percentile" x="688" y="162">P3</text>
+<rect x="0" y="0" width="260" height="188" fill="#fff"/>
+<path class="axis" d="M45 22 V162 H215"/>
+<path class="tick" d="M45 162 V156"/>
+<text class="label" x="35" y="178">5y</text>
+<path class="tick" d="M87 162 V156"/>
+<text class="label" x="77" y="178">8y</text>
+<path class="tick" d="M130 162 V156"/>
+<text class="label" x="120" y="178">11y</text>
+<path class="tick" d="M173 162 V156"/>
+<text class="label" x="163" y="178">14y</text>
+<path class="tick" d="M215 162 V156"/>
+<text class="label" x="205" y="178">18y</text>
+<path class="tick" d="M45 22 H51"/>
+<text class="ylabel" x="39" y="26">35</text>
+<path class="tick" d="M45 57 H51"/>
+<text class="ylabel" x="39" y="61">25</text>
+<path class="tick" d="M45 92 H51"/>
+<text class="ylabel" x="39" y="96">20</text>
+<path class="tick" d="M45 127 H51"/>
+<text class="ylabel" x="39" y="131">15</text>
+<path class="tick" d="M45 162 H51"/>
+<text class="ylabel" x="39" y="166">10</text>
+<path class="curve" d="M45 84 C101 72, 171 48, 215 32"/>
+<path class="curve" d="M45 108 C101 96, 171 72, 215 56"/>
+<path class="median" d="M45 132 C101 120, 171 102, 215 80"/>
+<path class="curve" d="M45 154 C101 146, 171 128, 215 106"/>
+<path class="curve" d="M45 170 C101 164, 171 150, 215 128"/>
+<text class="percentile" x="223" y="34">P97</text>
+<text class="percentile" x="223" y="52">P75</text>
+<text class="percentile" x="223" y="70">P50</text>
+<text class="percentile" x="223" y="88">P25</text>
+<text class="percentile" x="223" y="106">P3</text>
 </svg>

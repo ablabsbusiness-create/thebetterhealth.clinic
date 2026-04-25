@@ -213,19 +213,12 @@ def draw_percentiles(kind: str, x: int, y: int, width: int) -> str:
 
 
 def render_chart(chart: dict) -> str:
-    width = 760
-    panel_gap = 38
-    panel_width = 220
-    panel_height = 180
-    margin_x = 54
-    header_y = 28
-    panel_y = 78
-    total_height = panel_y + panel_height + 40
-
-    if len(chart["panels"]) == 2:
-        panel_width = 280
-    elif len(chart["panels"]) == 1:
-        panel_width = 600
+    width = 260
+    panel_gap = 20
+    panel_width = 170
+    panel_height = 140
+    panel_y = 22
+    total_height = panel_y + panel_height + 26
 
     svg_parts = [
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {total_height}" role="img" aria-label="{chart["title"]}">',
