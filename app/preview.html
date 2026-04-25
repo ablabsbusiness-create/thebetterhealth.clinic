@@ -705,6 +705,7 @@
     let prescriptionSavePromise = null;
     let savedPrescriptionRecord = null;
     let preparedChartRecord = null;
+    const CHART_ASSET_VERSION = '2026-04-25-latest';
     const CHART_RENDER_MAX_WIDTH = 760;
     const CHART_POINT_RADIUS = 3.5;
     const chartTemplateAxis = {
@@ -874,12 +875,16 @@
         .filter((request) => request.path);
     }
 
+    function versionedChartAssetPath(path) {
+      return `${path}${path.includes('?') ? '&' : '?'}v=${CHART_ASSET_VERSION}`;
+    }
+
     function loadChartImage(path) {
       return new Promise((resolve, reject) => {
         const image = new Image();
         image.addEventListener('load', () => resolve(image), { once: true });
         image.addEventListener('error', () => reject(new Error(`Unable to load ${path}`)), { once: true });
-        image.src = encodeURI(path);
+        image.src = encodeURI(versionedChartAssetPath(path));
       });
     }
 

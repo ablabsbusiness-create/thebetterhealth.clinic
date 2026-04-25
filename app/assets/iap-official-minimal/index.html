@@ -140,33 +140,33 @@
   </main>
 
   <script>
+    const CHART_ASSET_VERSION = '2026-04-25-latest';
     const charts = [
       ['boys-height-0-5-minimal.svg', 'Boys Height 0-5'],
       ['boys-weight-0-5-minimal.svg', 'Boys Weight 0-5'],
       ['boys-head-0-5-minimal.svg', 'Boys Head 0-5'],
       ['boys-bmi-0-5-minimal.svg', 'Boys BMI 0-5'],
-      ['boys-weight-for-height-0-5-minimal.svg', 'Boys Weight-for-Height 0-5'],
       ['boys-height-5-18-minimal.svg', 'Boys Height 5-18'],
       ['boys-weight-5-18-minimal.svg', 'Boys Weight 5-18'],
       ['boys-head-5-18-minimal.svg', 'Boys Head 5-18'],
       ['boys-bmi-5-18-minimal.svg', 'Boys BMI 5-18'],
-      ['boys-waist-circumference-minimal.svg', 'Boys Waist Circumference'],
-      ['boys-extended-bmi-minimal.svg', 'Boys Extended BMI'],
       ['girls-height-0-5-minimal.svg', 'Girls Height 0-5'],
       ['girls-weight-0-5-minimal.svg', 'Girls Weight 0-5'],
       ['girls-head-0-5-minimal.svg', 'Girls Head 0-5'],
       ['girls-bmi-0-5-minimal.svg', 'Girls BMI 0-5'],
-      ['girls-weight-for-height-0-5-minimal.svg', 'Girls Weight-for-Height 0-5'],
       ['girls-height-5-18-minimal.svg', 'Girls Height 5-18'],
       ['girls-weight-5-18-minimal.svg', 'Girls Weight 5-18'],
       ['girls-head-5-18-minimal.svg', 'Girls Head 5-18'],
-      ['girls-bmi-5-18-minimal.svg', 'Girls BMI 5-18'],
-      ['girls-waist-circumference-minimal.svg', 'Girls Waist Circumference'],
-      ['girls-extended-bmi-minimal.svg', 'Girls Extended BMI']
+      ['girls-bmi-5-18-minimal.svg', 'Girls BMI 5-18']
     ];
+
+    function chartAssetUrl(file) {
+      return `${file}?v=${CHART_ASSET_VERSION}`;
+    }
 
     const grid = document.getElementById('chart-grid');
     charts.forEach(([file, title]) => {
+      const url = chartAssetUrl(file);
       const card = document.createElement('article');
       card.className = 'card';
       card.innerHTML = `
@@ -174,8 +174,8 @@
           <h2>${title}</h2>
           <p>${file}</p>
         </div>
-        <iframe class="frame" src="${file}" title="${title} preview"></iframe>
-        <a class="open-link" href="${file}" target="_blank" rel="noopener noreferrer">Open Full Chart</a>
+        <iframe class="frame" src="${url}" title="${title} preview"></iframe>
+        <a class="open-link" href="${url}" target="_blank" rel="noopener noreferrer">Open Full Chart</a>
       `;
       grid.appendChild(card);
     });

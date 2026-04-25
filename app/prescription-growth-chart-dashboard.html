@@ -1227,6 +1227,12 @@
     const firebaseApp = firebaseConfigured ? initializeApp(firebaseConfig) : null;
     const db = firebaseApp ? getFirestore(firebaseApp) : null;
     const storage = firebaseApp ? getStorage(firebaseApp) : null;
+    const CHART_ASSET_VERSION = '2026-04-25-latest';
+
+    function versionedChartAssetPath(path) {
+      return `${path}${path.includes('?') ? '&' : '?'}v=${CHART_ASSET_VERSION}`;
+    }
+
     const templateLibrary = {
       girlsHeight0to5: {
         label: 'Girls Height vs Age 0-5y',
@@ -1435,35 +1441,8 @@
             y: { source: 'bmi', min: 10, max: 35, start: 0.8617, end: 0.117 }
           }
         }
-      },
-      girlsWeightForHeight0to5: {
-        label: 'Girls Weight-for-Height 0-5y',
-                path: 'assets/iap-official-minimal/girls-weight-for-height-0-5-minimal.svg',
-        regions: {
-          weightForHeight: {
-            label: 'Weight-for-Height',
-            shortLabel: 'W/H',
-            color: '#ea580c',
-            x: { source: 'height', min: 45, max: 110, start: 0.1731, end: 0.8269 },
-            y: { source: 'weight', min: 0, max: 28, start: 0.8617, end: 0.117 }
-          }
-        }
-      },
-      boysWeightForHeight0to5: {
-        label: 'Boys Weight-for-Height 0-5y',
-                path: 'assets/iap-official-minimal/boys-weight-for-height-0-5-minimal.svg',
-        regions: {
-          weightForHeight: {
-            label: 'Weight-for-Height',
-            shortLabel: 'W/H',
-            color: '#ea580c',
-            x: { source: 'height', min: 45, max: 110, start: 0.1731, end: 0.8269 },
-            y: { source: 'weight', min: 0, max: 28, start: 0.8617, end: 0.117 }
-          }
-        }
       }
     };
-    const weightForHeightTemplatesAvailable = false;
     const templateImages = new Map();
     let generatedTemplates = [];
     let generatedPreviewPages = [];
@@ -1994,7 +1973,7 @@
           resolve(image);
         });
         image.addEventListener('error', () => reject(new Error(`Unable to load ${templateLibrary[templateKey].label}.`)));
-        image.src = encodeURI(templateLibrary[templateKey].path);
+        image.src = encodeURI(versionedChartAssetPath(templateLibrary[templateKey].path));
       });
     }
 
