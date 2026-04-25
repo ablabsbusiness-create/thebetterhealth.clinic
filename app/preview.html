@@ -704,6 +704,33 @@
     const statusChip = document.querySelector('.status-chip');
     let prescriptionSavePromise = null;
     let savedPrescriptionRecord = null;
+    let preparedChartRecord = null;
+    const CHART_RENDER_MAX_WIDTH = 760;
+    const CHART_POINT_RADIUS = 3.5;
+    const chartTemplateAxis = {
+      xStart: 0.1731,
+      xEnd: 0.8269,
+      yStart: 0.8617,
+      yEnd: 0.117
+    };
+    const chartTemplatePaths = {
+      girlsHeight0to5: 'assets/iap-official-minimal/girls-height-0-5-minimal.svg',
+      boysHeight0to5: 'assets/iap-official-minimal/boys-height-0-5-minimal.svg',
+      girlsWeight0to5: 'assets/iap-official-minimal/girls-weight-0-5-minimal.svg',
+      boysWeight0to5: 'assets/iap-official-minimal/boys-weight-0-5-minimal.svg',
+      girlsHead0to5: 'assets/iap-official-minimal/girls-head-0-5-minimal.svg',
+      boysHead0to5: 'assets/iap-official-minimal/boys-head-0-5-minimal.svg',
+      girlsBmi0to5: 'assets/iap-official-minimal/girls-bmi-0-5-minimal.svg',
+      boysBmi0to5: 'assets/iap-official-minimal/boys-bmi-0-5-minimal.svg',
+      girlsHeight5to18: 'assets/iap-official-minimal/girls-height-5-18-minimal.svg',
+      boysHeight5to18: 'assets/iap-official-minimal/boys-height-5-18-minimal.svg',
+      girlsWeight5to18: 'assets/iap-official-minimal/girls-weight-5-18-minimal.svg',
+      boysWeight5to18: 'assets/iap-official-minimal/boys-weight-5-18-minimal.svg',
+      girlsHead5to18: 'assets/iap-official-minimal/girls-head-5-18-minimal.svg',
+      boysHead5to18: 'assets/iap-official-minimal/boys-head-5-18-minimal.svg',
+      girlsBmi5to18: 'assets/iap-official-minimal/girls-bmi-5-18-minimal.svg',
+      boysBmi5to18: 'assets/iap-official-minimal/boys-bmi-5-18-minimal.svg'
+    };
 
     function setPreviewStatus(message) {
       statusChip.innerHTML = `<span class="status-dot"></span>${escapeHtml(message)}`;
@@ -759,6 +786,196 @@
       }
 
       return records[0] || null;
+    }
+
+    function getCurrentChartRecord() {
+      return preparedChartRecord || getActiveChartRecord();
+    }
+
+    function parseMetricValue(value) {
+      const parsed = Number.parseFloat(value);
+      return Number.isFinite(parsed) ? parsed : NaN;
+    }
+
+    function calculateAgeYears(dobValue) {
+      if (!dobValue) {
+        return NaN;
+      }
+
+      const dob = new Date(dobValue);
+      const today = new Date();
+      if (Number.isNaN(dob.getTime()) || dob > today) {
+        return NaN;
+      }
+
+      return (today - dob) / (365.25 * 24 * 60 * 60 * 1000);
+    }
+
+    function getChartPatientData(record) {
+      const ageYears = calculateAgeYears(record?.dob || '');
+      const height = parseMetricValue(record?.height);
+      const weight = parseMetricValue(record?.weight);
+
+      return {
+        ageYears,
+        ageMonths: Number.isFinite(ageYears) ? ageYears * 12 : NaN,
+        height,
+        weight,
+        head: parseMetricValue(record?.head),
+        bmi: Number.isFinite(weight) && Number.isFinite(height) && height > 0 ? weight / ((height / 100) ** 2) : NaN
+      };
+    }
+
+    function getChartYRange(metricKey, sexPrefix, ageBand) {
+      if (metricKey === 'height' && ageBand === '0to5') return { min: 45, max: 130 };
+      if (metricKey === 'height') return sexPrefix === 'boys' ? { min: 85, max: 185 } : { min: 80, max: 180 };
+      if (metricKey === 'weight' && ageBand === '0to5') return { min: 0, max: 25 };
+      if (metricKey === 'weight') return { min: 5, max: 75 };
+      if (metricKey === 'head' && ageBand === '0to5') return { min: 35, max: 55 };
+      if (metricKey === 'head') return { min: 45, max: 57 };
+      if (metricKey === 'bmi' && ageBand === '0to5') return { min: 10, max: 22 };
+      return { min: 10, max: 35 };
+    }
+
+    function buildFreshChartRequests(record) {
+      const patientData = getChartPatientData(record);
+      const sexPrefix = record?.gender === 'Male' ? 'boys' : 'girls';
+      const ageBand = patientData.ageYears < 5 ? '0to5' : patientData.ageYears <= 18 ? '5to18' : '';
+
+      if (!ageBand || !Number.isFinite(patientData.ageYears)) {
+        return [];
+      }
+
+      const selected = Array.isArray(record?.charts) ? record.charts : [];
+      const hasSelected = (name) => selected.includes(name) || selected.length === 0;
+      const metricConfigs = [
+        { selectedName: 'Height', metricKey: 'height', label: 'Height vs Age', value: patientData.height },
+        { selectedName: 'Weight', metricKey: 'weight', label: 'Weight vs Age', value: patientData.weight },
+        { selectedName: 'Head Circumference-for-Age', metricKey: 'head', label: 'OFC vs Age', value: patientData.head },
+        { selectedName: 'BMI', metricKey: 'bmi', label: 'BMI vs Age', value: patientData.bmi }
+      ];
+
+      return metricConfigs
+        .filter((config) => hasSelected(config.selectedName) && Number.isFinite(config.value))
+        .map((config) => {
+          const templateKey = `${sexPrefix}${config.metricKey.charAt(0).toUpperCase()}${config.metricKey.slice(1)}${ageBand}`;
+          const yRange = getChartYRange(config.metricKey, sexPrefix, ageBand);
+          return {
+            ...config,
+            path: chartTemplatePaths[templateKey],
+            x: {
+              source: ageBand === '0to5' ? 'ageMonths' : 'ageYears',
+              min: ageBand === '0to5' ? 0 : 5,
+              max: ageBand === '0to5' ? 60 : 18
+            },
+            y: yRange
+          };
+        })
+        .filter((request) => request.path);
+    }
+
+    function loadChartImage(path) {
+      return new Promise((resolve, reject) => {
+        const image = new Image();
+        image.addEventListener('load', () => resolve(image), { once: true });
+        image.addEventListener('error', () => reject(new Error(`Unable to load ${path}`)), { once: true });
+        image.src = encodeURI(path);
+      });
+    }
+
+    function clampRatio(value) {
+      return Math.min(1, Math.max(0, value));
+    }
+
+    async function renderFreshChartPage(request, patientData) {
+      const image = await loadChartImage(request.path);
+      const renderScale = Math.min(1, CHART_RENDER_MAX_WIDTH / image.naturalWidth);
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      canvas.width = Math.round(image.naturalWidth * renderScale);
+      canvas.height = Math.round(image.naturalHeight * renderScale);
+      context.imageSmoothingEnabled = true;
+      context.imageSmoothingQuality = 'high';
+      context.fillStyle = '#ffffff';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+      const xValue = patientData[request.x.source];
+      const yValue = patientData[request.metricKey];
+      const xRatio = clampRatio((xValue - request.x.min) / (request.x.max - request.x.min));
+      const yRatio = clampRatio((yValue - request.y.min) / (request.y.max - request.y.min));
+      const x = (chartTemplateAxis.xStart + (chartTemplateAxis.xEnd - chartTemplateAxis.xStart) * xRatio) * canvas.width;
+      const y = (chartTemplateAxis.yStart - (chartTemplateAxis.yStart - chartTemplateAxis.yEnd) * yRatio) * canvas.height;
+
+      context.beginPath();
+      context.arc(x, y, CHART_POINT_RADIUS, 0, Math.PI * 2);
+      context.fillStyle = '#111111';
+      context.fill();
+      context.lineWidth = 1.5;
+      context.strokeStyle = '#ffffff';
+      context.stroke();
+
+      return {
+        label: request.label,
+        dataUrl: canvas.toDataURL('image/png'),
+        width: canvas.width,
+        height: canvas.height,
+        chartFormatVersion: 'preview-rebuilt-2026-04'
+      };
+    }
+
+    async function rebuildChartPages(record) {
+      if (!record) {
+        return null;
+      }
+
+      const patientData = getChartPatientData(record);
+      const requests = buildFreshChartRequests(record);
+      if (!requests.length) {
+        return record;
+      }
+
+      try {
+        const chartPages = [];
+        for (const request of requests.slice(0, 4)) {
+          chartPages.push(await renderFreshChartPage(request, patientData));
+        }
+
+        return {
+          ...record,
+          chartPages,
+          chartFormatVersion: 'preview-rebuilt-2026-04'
+        };
+      } catch (error) {
+        console.warn(`Unable to rebuild chart previews: ${error.message}`);
+        return record;
+      }
+    }
+
+    function persistPreparedChartRecord(record) {
+      if (!record) {
+        return;
+      }
+
+      const activeRecords = readJson(CHART_RECORD_STORAGE_KEY, []);
+      const recordPatientId = (record.patientId || '').toUpperCase();
+      let didReplace = false;
+      const updatedRecords = activeRecords.map((item) => {
+        const samePatient = (item.patientId || '').toUpperCase() === recordPatientId;
+        const sameSource = item.source === record.source;
+        if (samePatient && sameSource) {
+          didReplace = true;
+          return { ...item, ...record };
+        }
+
+        return item;
+      });
+
+      if (!didReplace) {
+        updatedRecords.push(record);
+      }
+
+      localStorage.setItem(CHART_RECORD_STORAGE_KEY, JSON.stringify(updatedRecords));
     }
 
     function formatDate(value) {
@@ -934,7 +1151,7 @@
 
     function buildPreviewHtml() {
       const draft = getActivePrescriptionDraft();
-      const chartRecord = getActiveChartRecord();
+      const chartRecord = getCurrentChartRecord();
       const sections = draft?.sections || {};
       const sectionDetails = draft?.sectionDetails || {};
       const medicineRows = getMedicineRows(draft);
@@ -1022,7 +1239,7 @@
 
     async function buildPdf() {
       const draft = getActivePrescriptionDraft();
-      const chartRecord = getActiveChartRecord();
+      const chartRecord = getCurrentChartRecord();
       const sections = draft?.sections || {};
       const sectionDetails = draft?.sectionDetails || {};
       const medicineRows = getMedicineRows(draft);
@@ -1137,7 +1354,7 @@
           pdf.setFont('helvetica', 'normal');
           pdf.setFontSize(7.2);
           pdf.text(chartTitle(page.label, index), x, y);
-          pdf.addImage(page.dataUrl, 'JPEG', x, y + 3, chartWidth, 21, undefined, 'FAST');
+          pdf.addImage(page.dataUrl, 'PNG', x, y + 3, chartWidth, 21, undefined, 'FAST');
         });
         y += 30;
       }
@@ -1352,7 +1569,7 @@
 
       try {
         const savedRecord = await ensurePrescriptionSaved();
-        const chartRecord = getActiveChartRecord();
+        const chartRecord = getCurrentChartRecord();
         const shortLink = buildShortPrescriptionLink(savedRecord.saveId) || savedRecord.downloadURL;
         const message = [
           `Hello ${chartRecord?.childName || 'Patient'},`,
@@ -1375,10 +1592,24 @@
       }
     });
 
+    async function initializePreview() {
+      setPreviewStatus('Preparing preview...');
+      const activeRecord = getActiveChartRecord();
+      preparedChartRecord = await rebuildChartPages(activeRecord);
+      persistPreparedChartRecord(preparedChartRecord);
+      buildPreviewHtml();
+      ensurePrescriptionSaved().catch((error) => {
+        console.warn(`Prescription auto-save failed: ${error.message}`);
+      });
+    }
+
     printBtn.addEventListener('click', () => window.print());
-    buildPreviewHtml();
-    ensurePrescriptionSaved().catch((error) => {
-      console.warn(`Prescription auto-save failed: ${error.message}`);
+    initializePreview().catch((error) => {
+      console.warn(`Unable to initialize prescription preview: ${error.message}`);
+      buildPreviewHtml();
+      ensurePrescriptionSaved().catch((saveError) => {
+        console.warn(`Prescription auto-save failed: ${saveError.message}`);
+      });
     });
   </script>
 </body>

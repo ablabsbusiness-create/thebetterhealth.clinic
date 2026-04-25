@@ -1572,6 +1572,14 @@
         });
       };
 
+      if (selectedValues.includes('Height')) {
+        addMetricRequest(`${sexPrefix}Height${ageBand}`, 'height');
+      }
+
+      if (selectedValues.includes('Weight')) {
+        addMetricRequest(`${sexPrefix}Weight${ageBand}`, 'weight');
+      }
+
       if (selectedValues.includes('Head Circumference-for-Age')) {
         addMetricRequest(`${sexPrefix}Head${ageBand}`, 'head');
       }
@@ -1580,19 +1588,11 @@
         addMetricRequest(`${sexPrefix}Bmi${ageBand}`, 'bmi');
       }
 
-      if (selectedValues.includes('Weight-for-Height') && patientData.ageYears <= 5) {
-        addMetricRequest(`${sexPrefix}WeightForHeight0to5`, 'weightForHeight');
-      }
-
       return requests;
     }
 
     function buildWarnings(selectedValues, patientData) {
       const warnings = [];
-
-      if (selectedValues.includes('Weight-for-Height') && patientData.ageYears > 5) {
-        warnings.push('Weight-for-height is still available here only for ages 0 to 5 years.');
-      }
 
       if ((selectedValues.includes('Head Circumference-for-Age') || selectedValues.includes('BMI')) && patientData.ageYears > 18) {
         warnings.push('The available age-based chart templates are supported here up to 18 years.');
@@ -1708,10 +1708,17 @@
 
     function getSelectedCharts() {
       const selected = [];
-      const ageYears = getAgeInYears(dobInput.value);
       const weight = Number.parseFloat(metricInputs.weight.value);
       const height = Number.parseFloat(metricInputs.height.value);
       const head = Number.parseFloat(metricInputs.head.value);
+
+      if (Number.isFinite(height) && height > 0) {
+        selected.push({ value: 'Height' });
+      }
+
+      if (Number.isFinite(weight) && weight > 0) {
+        selected.push({ value: 'Weight' });
+      }
 
       if (Number.isFinite(head) && head > 0) {
         selected.push({ value: 'Head Circumference-for-Age' });
@@ -1719,10 +1726,6 @@
 
       if (Number.isFinite(weight) && weight > 0 && Number.isFinite(height) && height > 0) {
         selected.push({ value: 'BMI' });
-
-        if (Number.isFinite(ageYears) && ageYears <= 5) {
-          selected.push({ value: 'Weight-for-Height' });
-        }
       }
 
       return selected;
@@ -1830,7 +1833,7 @@
       const isValid = form.reportValidity();
 
       if (getSelectedCharts().length === 0) {
-        statusNote.textContent = 'Add OFC or both weight and height to generate charts.';
+        statusNote.textContent = 'Add height, weight, or OFC to generate charts.';
         statusNote.classList.add('visible');
         return;
       }

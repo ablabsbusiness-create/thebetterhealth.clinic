@@ -1877,16 +1877,16 @@
         });
       };
 
-      if (selectedValues.includes('Head Circumference-for-Age')) {
-        addMetricRequest(`${sexPrefix}Head${ageBand}`, 'head');
-      }
-
       if (selectedValues.includes('Height')) {
         addMetricRequest(`${sexPrefix}Height${ageBand}`, 'height');
       }
 
       if (selectedValues.includes('Weight')) {
         addMetricRequest(`${sexPrefix}Weight${ageBand}`, 'weight');
+      }
+
+      if (selectedValues.includes('Head Circumference-for-Age')) {
+        addMetricRequest(`${sexPrefix}Head${ageBand}`, 'head');
       }
 
       if (selectedValues.includes('BMI')) {
