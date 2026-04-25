@@ -668,6 +668,7 @@
   </div>
 
   <script type="module">
+    import html2canvas from 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/+esm';
     import { jsPDF } from 'https://cdn.jsdelivr.net/npm/jspdf@3.0.3/+esm';
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
     import { doc, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
@@ -1166,6 +1167,26 @@
       };
     }
 
+    async function buildPrescriptionPreviewBlob() {
+      const canvas = await html2canvas(rxSheet, {
+        backgroundColor: '#ffffff',
+        scale: Math.min(window.devicePixelRatio || 1, 2),
+        useCORS: true,
+        logging: false
+      });
+
+      return await new Promise((resolve, reject) => {
+        canvas.toBlob((blob) => {
+          if (blob) {
+            resolve(blob);
+            return;
+          }
+
+          reject(new Error('Unable to create preview image.'));
+        }, 'image/jpeg', 0.92);
+      });
+    }
+
     async function savePrescriptionPdfToFirebase(pdfBlob, fileName, details, saveId) {
       if (!db || !storage) {
         return { ok: false, reason: 'Firebase Storage is not configured.' };
@@ -1174,11 +1195,18 @@
       const patientId = details.patientId || 'UNKNOWN';
       const storagePath = `prescriptions/${patientId}/${fileName}`;
       const storageRef = ref(storage, storagePath);
+      const previewFileName = fileName.replace(/\.pdf$/i, '.jpg');
+      const previewStoragePath = `prescriptions/${patientId}/previews/${previewFileName}`;
+      const previewStorageRef = ref(storage, previewStoragePath);
 
       await uploadBytes(storageRef, pdfBlob, {
         contentType: 'application/pdf'
       });
+      await uploadBytes(previewStorageRef, details.previewBlob, {
+        contentType: 'image/jpeg'
+      });
       const downloadURL = await getDownloadURL(storageRef);
+      const previewImageURL = await getDownloadURL(previewStorageRef);
 
       await setDoc(doc(db, 'history', saveId), {
         prescriptionSaveId: saveId,
@@ -1200,6 +1228,8 @@
         temp: details.temp || '',
         fileName,
         storagePath,
+        previewImagePath: previewStoragePath,
+        previewImageURL,
         downloadURL,
         source: 'prescription-pdf',
         type: 'prescription',
@@ -1208,7 +1238,7 @@
         createdAtDisplay: new Date().toLocaleString('en-IN')
       }, { merge: true });
 
-      return { ok: true, downloadURL, storagePath };
+      return { ok: true, downloadURL, storagePath, previewImageURL, previewImagePath: previewStoragePath };
     }
 
     async function ensurePrescriptionSaved() {
@@ -1227,11 +1257,13 @@
         const saveId = details.draftId || `rx-${patientId || 'UNKNOWN'}-${new Date().toISOString().slice(0, 10)}`;
         const fileName = `${saveId}.pdf`;
         const pdfBlob = pdf.output('blob');
+        const previewBlob = await buildPrescriptionPreviewBlob();
         const saveResult = await savePrescriptionPdfToFirebase(pdfBlob, fileName, {
           ...details,
           patientId,
           childName,
-          phone
+          phone,
+          previewBlob
         }, saveId);
 
         if (!saveResult.ok) {

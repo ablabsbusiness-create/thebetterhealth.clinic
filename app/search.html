@@ -1131,9 +1131,7 @@
     const pdfPreviewPlaceholder = document.getElementById('pdf-preview-placeholder');
     const pdfPreviewLink = document.getElementById('pdf-preview-link');
     const pdfPreviewClose = document.getElementById('pdf-preview-close');
-    const pdfPreviewImageCache = new Map();
     let prescriptionPreviewObserver = null;
-    let pdfPreviewRuntimePromise = null;
 
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
@@ -1182,81 +1180,7 @@
         .replaceAll('>', '&gt;');
     }
 
-    function buildPdfPreviewUrl(url, options = 'toolbar=0&navpanes=0&scrollbar=0&view=FitH') {
-      if (!url) {
-        return '';
-      }
-
-      return url.includes('#') ? url : `${url}#${options}`;
-    }
-
-    async function ensurePdfPreviewRuntime() {
-      if (pdfPreviewRuntimePromise) {
-        return pdfPreviewRuntimePromise;
-      }
-
-      pdfPreviewRuntimePromise = (async () => {
-        try {
-          const [{ getDocument, GlobalWorkerOptions }, pdfWorkerModule] = await Promise.all([
-            import('https://cdn.jsdelivr.net/npm/pdfjs-dist@5.6.205/+esm'),
-            import('https://cdn.jsdelivr.net/npm/pdfjs-dist@5.6.205/build/pdf.worker.min.mjs')
-          ]);
-
-          GlobalWorkerOptions.workerSrc = pdfWorkerModule?.default || 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.6.205/build/pdf.worker.min.mjs';
-          return { getDocument };
-        } catch (error) {
-          console.warn(`Unable to load PDF preview runtime: ${error.message}`);
-          return null;
-        }
-      })();
-
-      return pdfPreviewRuntimePromise;
-    }
-
-    async function buildPrescriptionPreviewImage(pdfUrl) {
-      try {
-        const pdfPreviewRuntime = await ensurePdfPreviewRuntime();
-        if (!pdfPreviewRuntime) {
-          throw new Error('PDF preview runtime unavailable');
-        }
-
-        if (pdfPreviewImageCache.has(pdfUrl)) {
-          return pdfPreviewImageCache.get(pdfUrl);
-        }
-
-        const loadingTask = pdfPreviewRuntime.getDocument({
-          url: pdfUrl,
-          useWorkerFetch: true,
-          isEvalSupported: false
-        });
-        const pdfDocument = await loadingTask.promise;
-        const page = await pdfDocument.getPage(1);
-        const baseViewport = page.getViewport({ scale: 1 });
-        const targetWidth = 900;
-        const scale = targetWidth / Math.max(baseViewport.width, 1);
-        const viewport = page.getViewport({ scale });
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d', { alpha: false });
-
-        canvas.width = Math.ceil(viewport.width);
-        canvas.height = Math.ceil(viewport.height);
-
-        await page.render({
-          canvasContext: context,
-          viewport
-        }).promise;
-
-        const previewDataUrl = canvas.toDataURL('image/jpeg', 0.92);
-        pdfPreviewImageCache.set(pdfUrl, previewDataUrl);
-        page.cleanup();
-        await pdfDocument.destroy();
-        return previewDataUrl;
-      } catch (error) {
-        throw error;
-      }
-    }
-
-    async function renderPrescriptionPreviewImage(imageElement) {
+    function renderPrescriptionPreviewImage(imageElement) {
       if (!(imageElement instanceof HTMLImageElement)) {
         return;
       }
@@ -1265,33 +1189,31 @@
         return;
       }
 
-      const pdfUrl = imageElement.dataset.pdfUrl || '';
-      if (!pdfUrl) {
+      const previewImageUrl = imageElement.dataset.previewImageUrl || '';
+      if (!previewImageUrl) {
         return;
       }
 
       const placeholder = imageElement.parentElement?.querySelector('.prescription-preview-placeholder');
-
-      try {
-        const previewDataUrl = await buildPrescriptionPreviewImage(pdfUrl);
-        imageElement.src = previewDataUrl;
+      imageElement.onload = () => {
         imageElement.dataset.rendered = 'true';
         imageElement.classList.add('is-ready');
         if (placeholder) {
           placeholder.hidden = true;
         }
-      } catch (error) {
-        console.warn(`Unable to render prescription preview image: ${error.message}`);
+      };
+      imageElement.onerror = () => {
         if (placeholder) {
           placeholder.hidden = false;
           placeholder.classList.add('is-error');
-          placeholder.textContent = 'Preview image could not be created. Tap to open the prescription.';
+          placeholder.textContent = 'Preview image could not be loaded. Tap to open the prescription.';
         }
-      }
+      };
+      imageElement.src = previewImageUrl;
     }
 
     function attachPrescriptionPreviewRendering() {
-      const previewImages = [...resultsPanel.querySelectorAll('.prescription-preview-frame[data-pdf-url]')];
+      const previewImages = [...resultsPanel.querySelectorAll('.prescription-preview-frame[data-preview-image-url]')];
       if (!previewImages.length) {
         return;
       }
@@ -1586,19 +1508,21 @@
           <div class="prescription-list">
             ${entries.slice(0, 5).map((entry, index) => {
               const downloadUrl = entry.downloadURL || '';
+              const previewImageUrl = entry.previewImageURL || '';
               const cardUrl = escapeHtml(downloadUrl);
+              const cardPreviewUrl = escapeHtml(previewImageUrl);
 
               return `
-                <div class="prescription-preview-card" data-open-prescription-url="${cardUrl}">
+                <div class="prescription-preview-card" data-open-prescription-url="${cardUrl}" data-preview-image-url="${cardPreviewUrl}">
                   <div class="prescription-date">${formatPrescriptionDate(entry)}</div>
-                  ${downloadUrl
+                  ${previewImageUrl
                     ? `
                       <div class="prescription-preview-surface">
                         <div class="prescription-preview-placeholder">Preparing preview...</div>
-                        <img class="prescription-preview-frame" data-pdf-url="${cardUrl}" alt="Prescription preview ${index + 1}">
+                        <img class="prescription-preview-frame" data-preview-image-url="${cardPreviewUrl}" alt="Prescription preview ${index + 1}">
                       </div>
                     `
-                    : '<p>No prescription preview link was saved for this record.</p>'}
+                    : '<p>No prescription preview image is available for this record yet.</p>'}
                 </div>
               `;
             }).join('')}
@@ -1687,8 +1611,8 @@
       setStatus(searchValue ? `Showing matches for "${searchValue}".` : 'Showing all patients.');
     }
 
-    async function openPrescriptionPreview(url) {
-      if (!url) {
+    function openPrescriptionPreview(url, previewImageUrl = '') {
+      if (!url && !previewImageUrl) {
         return;
       }
 
@@ -1703,17 +1627,25 @@
       pdfPreviewPlaceholder.textContent = 'Loading preview...';
       pdfPreviewClose.focus();
 
-      try {
-        const previewDataUrl = await buildPrescriptionPreviewImage(url);
-        pdfPreviewFrame.src = previewDataUrl;
+      if (previewImageUrl) {
+        pdfPreviewFrame.onload = () => {
+          pdfPreviewPlaceholder.hidden = true;
+        };
+        pdfPreviewFrame.onerror = () => {
+          pdfPreviewFrame.classList.remove('is-ready');
+          pdfPreviewFrame.removeAttribute('src');
+          pdfPreviewPlaceholder.hidden = false;
+          pdfPreviewPlaceholder.classList.add('is-error');
+          pdfPreviewPlaceholder.textContent = 'Preview could not be loaded here. Use the link below to open the prescription.';
+        };
+        pdfPreviewFrame.src = previewImageUrl;
         pdfPreviewFrame.classList.add('is-ready');
-        pdfPreviewPlaceholder.hidden = true;
-      } catch (error) {
-        console.warn(`Unable to open prescription preview: ${error.message}`);
-        pdfPreviewPlaceholder.hidden = false;
-        pdfPreviewPlaceholder.classList.add('is-error');
-        pdfPreviewPlaceholder.textContent = 'Preview could not be loaded here. Use the link below to open the prescription.';
+        return;
       }
+
+      pdfPreviewPlaceholder.hidden = false;
+      pdfPreviewPlaceholder.classList.add('is-error');
+      pdfPreviewPlaceholder.textContent = 'Preview is not available for this record yet. Use the link below to open the prescription.';
     }
 
     function closePrescriptionPreview() {
@@ -1761,8 +1693,9 @@
 
       const prescriptionCard = target.closest('.prescription-preview-card');
       const prescriptionUrl = prescriptionCard?.dataset.openPrescriptionUrl;
-      if (prescriptionUrl) {
-        openPrescriptionPreview(prescriptionUrl);
+      const previewImageUrl = prescriptionCard?.dataset.previewImageUrl || '';
+      if (prescriptionUrl || previewImageUrl) {
+        openPrescriptionPreview(prescriptionUrl, previewImageUrl);
         return;
       }
 
