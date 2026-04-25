@@ -2,26 +2,27 @@
 <style>
     .axis { stroke: #111; stroke-width: 1.8; fill: none; }
     .tick { stroke: #666; stroke-width: 1; }
-    .label { fill: #222; font: 11px Arial, sans-serif; }
-    .ylabel { fill: #222; font: 11px Arial, sans-serif; text-anchor: end; }
+    .label { fill: #222; font: 9.5px Arial, sans-serif; text-anchor: middle; }
+    .ylabel { fill: #222; font: 9.5px Arial, sans-serif; text-anchor: end; }
     .curve { fill: none; stroke: #8a8f96; stroke-width: 1.5; stroke-linecap: round; }
     .median { fill: none; stroke: #222; stroke-width: 2.1; stroke-linecap: round; }
-    .percentile { fill: #444; font: 700 9px Arial, sans-serif; }
+    .percentile { fill: #444; font: 700 8px Arial, sans-serif; }
   </style>
 <rect x="0" y="0" width="260" height="188" fill="#fff"/>
+<defs><clipPath id="clip-girls-bmi-0-5-minimal-svg-0"><rect x="45" y="22" width="170" height="140"/></clipPath></defs>
 <path class="axis" d="M45 22 V162 H215"/>
 <path class="tick" d="M45 162 V156"/>
-<text class="label" x="35" y="178">0m</text>
+<text class="label" x="45" y="178">0m</text>
 <path class="tick" d="M79 162 V156"/>
-<text class="label" x="69" y="178">12m</text>
+<text class="label" x="79" y="178">12m</text>
 <path class="tick" d="M113 162 V156"/>
-<text class="label" x="103" y="178">24m</text>
+<text class="label" x="113" y="178">24m</text>
 <path class="tick" d="M147 162 V156"/>
-<text class="label" x="137" y="178">36m</text>
+<text class="label" x="147" y="178">36m</text>
 <path class="tick" d="M181 162 V156"/>
-<text class="label" x="171" y="178">48m</text>
+<text class="label" x="181" y="178">48m</text>
 <path class="tick" d="M215 162 V156"/>
-<text class="label" x="205" y="178">60m</text>
+<text class="label" x="215" y="178">60m</text>
 <path class="tick" d="M45 22 H51"/>
 <text class="ylabel" x="39" y="26">22</text>
 <path class="tick" d="M45 69 H51"/>
@@ -30,13 +31,16 @@
 <text class="ylabel" x="39" y="119">14</text>
 <path class="tick" d="M45 162 H51"/>
 <text class="ylabel" x="39" y="166">10</text>
+<g clip-path="url(#clip-girls-bmi-0-5-minimal-svg-0)">
 <path class="curve" d="M45 84 C101 72, 171 48, 215 32"/>
 <path class="curve" d="M45 108 C101 96, 171 72, 215 56"/>
 <path class="median" d="M45 132 C101 120, 171 102, 215 80"/>
 <path class="curve" d="M45 154 C101 146, 171 128, 215 106"/>
 <path class="curve" d="M45 170 C101 164, 171 150, 215 128"/>
-<text class="percentile" x="223" y="34">P97</text>
-<text class="percentile" x="223" y="52">P75</text>
-<text class="percentile" x="223" y="70">P50</text>
-<text class="percentile" x="223" y="88">P25</text>
+</g>
+<text class="percentile" x="223" y="36">P97</text>
+<text class="percentile" x="223" y="54">P75</text>
+<text class="percentile" x="223" y="72">P50</text>
+<text class="percentile" x="223" y="90">P25</text>
+<text class="percentile" x="223" y="108">P3</text>
 </svg>

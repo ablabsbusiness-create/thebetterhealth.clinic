@@ -7,11 +7,11 @@ STYLE = """
   <style>
     .axis { stroke: #111; stroke-width: 1.8; fill: none; }
     .tick { stroke: #666; stroke-width: 1; }
-    .label { fill: #222; font: 11px Arial, sans-serif; }
-    .ylabel { fill: #222; font: 11px Arial, sans-serif; text-anchor: end; }
+    .label { fill: #222; font: 9.5px Arial, sans-serif; text-anchor: middle; }
+    .ylabel { fill: #222; font: 9.5px Arial, sans-serif; text-anchor: end; }
     .curve { fill: none; stroke: #8a8f96; stroke-width: 1.5; stroke-linecap: round; }
     .median { fill: none; stroke: #222; stroke-width: 2.1; stroke-linecap: round; }
-    .percentile { fill: #444; font: 700 9px Arial, sans-serif; }
+    .percentile { fill: #444; font: 700 8px Arial, sans-serif; }
   </style>
 """.strip()
 
@@ -152,6 +152,8 @@ X_AXIS = {
 PERCENTILES = {
     "default": ["P97", "P75", "P50", "P25"],
     "bmi": ["P97", "P75", "P50", "P25", "P3"],
+    "bmi_small": ["P97", "P75", "P50", "P25", "P3"],
+    "head_teen": ["P97", "P75", "P50", "P25", "P3"],
     "extended_bmi": ["P99", "P97", "P85", "P50"],
     "waist": ["P95", "P75", "P50", "P10"],
 }
@@ -222,7 +224,7 @@ def draw_axes(x: int, y: int, width: int, height: int, panel: dict) -> str:
     for index, label in enumerate(x_labels):
         tick_x = x + round((width / max(1, len(x_labels) - 1)) * index)
         parts.append(f'<path class="tick" d="M{tick_x} {y + height} V{y + height - 6}"/>')
-        parts.append(f'<text class="label" x="{tick_x - 10}" y="{y + height + 16}">{label}</text>')
+        parts.append(f'<text class="label" x="{tick_x}" y="{y + height + 16}">{label}</text>')
 
     y_labels = Y_AXIS[panel["kind"]]
     for index, label in enumerate(y_labels):
@@ -233,11 +235,12 @@ def draw_axes(x: int, y: int, width: int, height: int, panel: dict) -> str:
     return "\n".join(parts)
 
 
-def draw_percentiles(kind: str, x: int, y: int, width: int) -> str:
+def draw_percentiles(kind: str, x: int, y: int, width: int, height: int) -> str:
     labels = PERCENTILES.get(kind, PERCENTILES["default"])
-    top = y + 12
+    top = y + 14
+    step = max(14, min(18, (height - 24) // max(1, len(labels) - 1)))
     return "\n".join(
-        f'<text class="percentile" x="{x + width + 8}" y="{top + index * 18}">{label}</text>'
+        f'<text class="percentile" x="{x + width + 8}" y="{top + index * step}">{label}</text>'
         for index, label in enumerate(labels)
     )
 
@@ -262,9 +265,15 @@ def render_chart(chart: dict) -> str:
 
     for index, panel in enumerate(chart["panels"]):
         x = start_x + index * (panel_width + panel_gap)
+        clip_id = f'clip-{chart["filename"].replace(".", "-")}-{index}'
+        svg_parts.append(f'<defs><clipPath id="{clip_id}"><rect x="{x}" y="{panel_y}" width="{panel_width}" height="{panel_height}"/></clipPath></defs>')
         svg_parts.append(draw_axes(x, panel_y, panel_width, panel_height, panel))
-        svg_parts.extend(part for part in build_curves(panel["kind"], x, panel_y, panel_width, panel_height) if part)
-        svg_parts.append(draw_percentiles(panel["kind"], x, panel_y, panel_width))
+        curve_parts = [part for part in build_curves(panel["kind"], x, panel_y, panel_width, panel_height) if part]
+        if curve_parts:
+            svg_parts.append(f'<g clip-path="url(#{clip_id})">')
+            svg_parts.extend(curve_parts)
+            svg_parts.append('</g>')
+        svg_parts.append(draw_percentiles(panel["kind"], x, panel_y, panel_width, panel_height))
 
     svg_parts.append("</svg>")
     return "\n".join(svg_parts)
