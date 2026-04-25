@@ -824,6 +824,47 @@
       background: linear-gradient(180deg, #fff8f2, #fff0e6);
     }
 
+    .prescription-preview-fallback-card {
+      min-height: 220px;
+      display: grid;
+      align-content: center;
+      justify-items: center;
+      gap: 12px;
+      padding: 24px 20px;
+      border-radius: 22px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.95), rgba(244, 248, 245, 0.96));
+      text-align: center;
+      color: #415146;
+    }
+
+    .prescription-preview-fallback-card strong {
+      color: #102217;
+      font-size: 15px;
+    }
+
+    .prescription-preview-fallback-card p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.6;
+      max-width: 28ch;
+    }
+
+    .prescription-preview-fallback-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 0 14px;
+      border-radius: 999px;
+      background: #102217;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 800;
+      text-decoration: none;
+      box-shadow: 0 10px 22px rgba(5, 18, 11, 0.16);
+    }
+
     .pdf-preview-modal {
       position: fixed;
       inset: 0;
@@ -1522,7 +1563,13 @@
                         <img class="prescription-preview-frame" data-preview-image-url="${cardPreviewUrl}" alt="Prescription preview ${index + 1}">
                       </div>
                     `
-                    : '<p>No prescription preview image is available for this record yet.</p>'}
+                    : `
+                      <div class="prescription-preview-fallback-card">
+                        <strong>Preview not available</strong>
+                        <p>This older prescription does not have a saved preview image yet.</p>
+                        ${downloadUrl ? `<a class="prescription-preview-fallback-link" href="${cardUrl}" target="_blank" rel="noopener noreferrer">Open prescription</a>` : ''}
+                      </div>
+                    `}
                 </div>
               `;
             }).join('')}
@@ -1694,8 +1741,13 @@
       const prescriptionCard = target.closest('.prescription-preview-card');
       const prescriptionUrl = prescriptionCard?.dataset.openPrescriptionUrl;
       const previewImageUrl = prescriptionCard?.dataset.previewImageUrl || '';
-      if (prescriptionUrl || previewImageUrl) {
+      if (previewImageUrl) {
         openPrescriptionPreview(prescriptionUrl, previewImageUrl);
+        return;
+      }
+
+      if (prescriptionUrl && prescriptionCard) {
+        window.open(prescriptionUrl, '_blank', 'noopener,noreferrer');
         return;
       }
 
