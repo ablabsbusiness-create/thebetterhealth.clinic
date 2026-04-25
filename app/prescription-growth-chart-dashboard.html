@@ -279,6 +279,148 @@
       align-items: start;
     }
 
+    .history-toggle-btn {
+      position: fixed;
+      left: 0;
+      top: 50%;
+      z-index: 55;
+      width: auto;
+      min-width: 42px;
+      padding: 12px 9px;
+      border-radius: 0 16px 16px 0;
+      background: linear-gradient(135deg, #166534, #22c55e);
+      color: #fff;
+      box-shadow: 0 16px 36px rgba(22, 101, 52, 0.24);
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      transform: translateY(-50%);
+    }
+
+    .history-toggle-btn span[aria-hidden="true"] {
+      display: block;
+      writing-mode: horizontal-tb;
+      font-size: 18px;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .history-drawer {
+      position: fixed;
+      left: 14px;
+      top: 92px;
+      bottom: 22px;
+      z-index: 50;
+      width: min(340px, calc(100vw - 28px));
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 14px;
+      padding: 18px;
+      border: 1px solid rgba(215, 226, 217, 0.96);
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 28px 70px rgba(10, 24, 17, 0.22);
+      transform: translateX(calc(-100% - 24px));
+      transition: transform 0.22s ease;
+      overflow: hidden;
+    }
+
+    .history-drawer.is-open {
+      transform: translateX(0);
+    }
+
+    .history-drawer-head {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .history-drawer-head h2 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .history-drawer-head p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .history-close-btn {
+      width: 34px;
+      min-width: 34px;
+      min-height: 34px;
+      padding: 0;
+      border-radius: 12px;
+      background: #f1f8f3;
+      color: var(--brand-strong);
+    }
+
+    .history-list {
+      display: grid;
+      align-content: start;
+      gap: 10px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .history-entry {
+      display: grid;
+      gap: 9px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #ffffff, #f8fbf9);
+    }
+
+    .history-entry-date {
+      color: var(--brand-strong);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .history-entry-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .history-entry-metric {
+      padding: 8px;
+      border-radius: 12px;
+      background: #f4f8f5;
+      border: 1px solid #e2ece4;
+    }
+
+    .history-entry-metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .history-entry-metric strong {
+      display: block;
+      margin-top: 3px;
+      font-size: 13px;
+    }
+
+    .history-empty {
+      padding: 14px;
+      border: 1px dashed var(--line);
+      border-radius: 16px;
+      color: var(--muted);
+      background: #f8fbf9;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
     .form-card,
     .preview-card {
       padding: 24px;
@@ -645,6 +787,18 @@
       transform: translateY(-1px);
     }
 
+    .history-toggle-btn {
+      width: auto;
+    }
+
+    .history-toggle-btn:hover {
+      transform: translateY(-50%);
+    }
+
+    .history-close-btn {
+      width: 34px;
+    }
+
     .btn-primary {
       background: linear-gradient(135deg, #166534, #15803d);
       color: #fff;
@@ -759,6 +913,11 @@
         grid-template-columns: 1fr;
       }
 
+      .history-drawer {
+        top: 72px;
+        bottom: 14px;
+      }
+
       .preview-card {
         position: static;
       }
@@ -834,6 +993,24 @@
       .page-shell {
         width: min(100% - 20px, 100%);
         margin: 16px auto 22px;
+      }
+
+      .history-toggle-btn {
+        top: auto;
+        bottom: 92px;
+        padding: 10px 8px;
+        transform: none;
+      }
+
+      .history-toggle-btn:hover {
+        transform: none;
+      }
+
+      .history-drawer {
+        left: 10px;
+        top: 76px;
+        bottom: 12px;
+        width: min(330px, calc(100vw - 20px));
       }
 
       .form-card,
@@ -1006,6 +1183,24 @@
   </header>
 
   <div class="page-shell">
+    <button id="history-toggle" class="history-toggle-btn" type="button" aria-controls="history-drawer" aria-expanded="false">
+      <span aria-hidden="true">&rsaquo;</span>
+      Past
+    </button>
+
+    <aside id="history-drawer" class="history-drawer" aria-label="Past growth entries">
+      <div class="history-drawer-head">
+        <div>
+          <h2>Past entries</h2>
+          <p id="history-drawer-summary">Last saved growth records will appear here.</p>
+        </div>
+        <button id="history-close" class="history-close-btn" type="button" aria-label="Close past entries">x</button>
+      </div>
+      <div id="history-list" class="history-list">
+        <div class="history-empty">Select a patient to see past growth entries.</div>
+      </div>
+    </aside>
+
     <section class="page-intro">
       <div>
         <div class="eyebrow">Pediatric Growth Records</div>
@@ -1210,6 +1405,11 @@
     const genderInput = document.getElementById('gender-value');
     const dobInput = document.getElementById('dob');
     const ageInput = document.getElementById('age');
+    const historyToggle = document.getElementById('history-toggle');
+    const historyDrawer = document.getElementById('history-drawer');
+    const historyClose = document.getElementById('history-close');
+    const historyList = document.getElementById('history-list');
+    const historyDrawerSummary = document.getElementById('history-drawer-summary');
     const menuToggle = document.getElementById('menu-toggle');
     const primaryNav = document.getElementById('primary-nav');
     const navLinks = [...document.querySelectorAll('#primary-nav .nav-link')];
@@ -1227,6 +1427,7 @@
     const firebaseApp = firebaseConfigured ? initializeApp(firebaseConfig) : null;
     const db = firebaseApp ? getFirestore(firebaseApp) : null;
     const storage = firebaseApp ? getStorage(firebaseApp) : null;
+    let patientGrowthHistory = [];
     const CHART_ASSET_VERSION = '2026-04-25-age-years-axis';
 
     function versionedChartAssetPath(path) {
@@ -1525,6 +1726,107 @@
       }
     }
 
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function getHistoryTimestamp(entry = {}) {
+      const rawDate = entry.measuredAt || entry.createdAtIso || entry.savedAt || entry.createdAtDisplay || '';
+      const timestamp = Date.parse(rawDate);
+      return Number.isFinite(timestamp) ? timestamp : 0;
+    }
+
+    function formatHistoryEntryDate(entry = {}) {
+      const timestamp = getHistoryTimestamp(entry);
+
+      if (!timestamp) {
+        return entry.createdAtDisplay || 'Saved entry';
+      }
+
+      return new Date(timestamp).toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      });
+    }
+
+    function normalizeGrowthHistory(entries = []) {
+      return (Array.isArray(entries) ? entries : [])
+        .filter((entry) => entry && typeof entry === 'object')
+        .sort((left, right) => getHistoryTimestamp(right) - getHistoryTimestamp(left));
+    }
+
+    function formatMetricValue(value, unit = '') {
+      const cleanValue = String(value ?? '').trim();
+      return cleanValue ? `${cleanValue}${unit ? ` ${unit}` : ''}` : '';
+    }
+
+    function getHistoryMetrics(entry = {}) {
+      const bpValue = entry.systolic || entry.diastolic
+        ? `${entry.systolic || '-'}/${entry.diastolic || '-'} mmHg`
+        : '';
+
+      return [
+        ['Weight', formatMetricValue(entry.weight, 'kg')],
+        ['Height', formatMetricValue(entry.height, 'cm')],
+        ['OFC', formatMetricValue(entry.head, 'cm')],
+        ['SpO2', formatMetricValue(entry.spo2, '%')],
+        ['Pulse', formatMetricValue(entry.pulse, 'bpm')],
+        ['BP', bpValue],
+        ['Temp', formatMetricValue(entry.temp, 'C')]
+      ].filter(([, value]) => value);
+    }
+
+    function renderHistoryDrawer() {
+      const recentEntries = patientGrowthHistory.slice(0, 6);
+      const patientId = patientIdInput.value.trim().toUpperCase();
+
+      historyDrawerSummary.textContent = patientId
+        ? `${recentEntries.length} of ${patientGrowthHistory.length} saved entr${patientGrowthHistory.length === 1 ? 'y' : 'ies'} for ${patientId}.`
+        : 'Select a patient to see past growth entries.';
+
+      if (!recentEntries.length) {
+        historyList.innerHTML = '<div class="history-empty">No past entries found yet. Generate a chart once to save the first record.</div>';
+        return;
+      }
+
+      historyList.innerHTML = recentEntries.map((entry) => {
+        const metrics = getHistoryMetrics(entry);
+
+        return `
+          <article class="history-entry">
+            <div class="history-entry-date">${escapeHtml(formatHistoryEntryDate(entry))}</div>
+            ${metrics.length
+              ? `<div class="history-entry-grid">
+                  ${metrics.map(([label, value]) => `
+                    <div class="history-entry-metric">
+                      <span>${escapeHtml(label)}</span>
+                      <strong>${escapeHtml(value)}</strong>
+                    </div>
+                  `).join('')}
+                </div>`
+              : '<div class="history-empty">No vitals were saved in this entry.</div>'}
+          </article>
+        `;
+      }).join('');
+    }
+
+    function setPatientGrowthHistory(entries = []) {
+      patientGrowthHistory = normalizeGrowthHistory(entries);
+      renderHistoryDrawer();
+    }
+
+    function toggleHistoryDrawer(forceOpen = null) {
+      const shouldOpen = forceOpen === null ? !historyDrawer.classList.contains('is-open') : forceOpen;
+      historyDrawer.classList.toggle('is-open', shouldOpen);
+      historyToggle.setAttribute('aria-expanded', String(shouldOpen));
+    }
+
     function applyPatientRecord(patientRecord) {
       childNameInput.value = patientRecord.childName || '';
       parentNameInput.value = patientRecord.parentName || '';
@@ -1533,6 +1835,7 @@
       genderInput.value = patientRecord.gender || '';
       updateAge();
       updatePageMeta(patientRecord);
+      setPatientGrowthHistory(patientRecord.measurementHistory || (patientRecord.lastMeasurementRecord ? [patientRecord.lastMeasurementRecord] : []));
     }
 
     async function fetchPatientRecord(patientId) {
@@ -1569,6 +1872,7 @@
         updateAge();
         setPatientHint('');
         updatePageMeta();
+        setPatientGrowthHistory([]);
         return;
       }
 
@@ -1587,6 +1891,7 @@
           updateAge();
           setPatientHint('No patient record was found for that ID.');
           updatePageMeta();
+          setPatientGrowthHistory([]);
           return;
         }
 
@@ -1595,6 +1900,7 @@
       } catch (error) {
         setPatientHint(`Unable to load patient details: ${error.message}`);
         updatePageMeta();
+        setPatientGrowthHistory([]);
       }
     }
 
@@ -1725,6 +2031,7 @@
         updatedAt: serverTimestamp()
       }, { merge: true });
 
+      setPatientGrowthHistory([measurementEntry, ...patientGrowthHistory]);
       return { ok: true };
     }
 
@@ -2086,6 +2393,9 @@
       });
     }
 
+    historyToggle.addEventListener('click', () => toggleHistoryDrawer());
+    historyClose.addEventListener('click', () => toggleHistoryDrawer(false));
+
     downloadBtn.addEventListener('click', async () => {
       if (generatedPreviewPages.length === 0) {
         statusNote.textContent = 'Generate the available charts before downloading the PDF.';
@@ -2154,6 +2464,7 @@
     drawBaseTemplate(null);
     renderPreviewGallery();
     updatePageMeta();
+    renderHistoryDrawer();
     loadPatientIdFromUrl();
     cleanupExpiredLocalRecords();
 
