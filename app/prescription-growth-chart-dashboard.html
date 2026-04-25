@@ -1640,6 +1640,7 @@
       const patientId = patientIdInput.value.trim().toUpperCase();
       const nextRecord = {
         source: 'prescription-growth-chart',
+        chartFormatVersion: 'compact-2026-04',
         savedAt: new Date().toISOString(),
         keepUntilPrescription: true,
         patientId,
