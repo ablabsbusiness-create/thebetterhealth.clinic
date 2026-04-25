@@ -12,17 +12,17 @@
 <defs><clipPath id="clip-girls-bmi-0-5-minimal-svg-0"><rect x="45" y="22" width="170" height="140"/></clipPath></defs>
 <path class="axis" d="M45 22 V162 H215"/>
 <path class="tick" d="M45 162 V156"/>
-<text class="label" x="45" y="178">0m</text>
+<text class="label" x="45" y="178">0y</text>
 <path class="tick" d="M79 162 V156"/>
-<text class="label" x="79" y="178">12m</text>
+<text class="label" x="79" y="178">1y</text>
 <path class="tick" d="M113 162 V156"/>
-<text class="label" x="113" y="178">24m</text>
+<text class="label" x="113" y="178">2y</text>
 <path class="tick" d="M147 162 V156"/>
-<text class="label" x="147" y="178">36m</text>
+<text class="label" x="147" y="178">3y</text>
 <path class="tick" d="M181 162 V156"/>
-<text class="label" x="181" y="178">48m</text>
+<text class="label" x="181" y="178">4y</text>
 <path class="tick" d="M215 162 V156"/>
-<text class="label" x="215" y="178">60m</text>
+<text class="label" x="215" y="178">5y</text>
 <path class="tick" d="M45 22 H51"/>
 <text class="ylabel" x="39" y="26">22</text>
 <path class="tick" d="M45 69 H51"/>

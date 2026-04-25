@@ -1096,7 +1096,7 @@
     const firebaseConfigured = Object.values(firebaseConfig).every(Boolean);
     const firebaseApp = firebaseConfigured ? initializeApp(firebaseConfig) : null;
     const db = firebaseApp ? getFirestore(firebaseApp) : null;
-    const CHART_ASSET_VERSION = '2026-04-25-latest';
+    const CHART_ASSET_VERSION = '2026-04-25-age-years-axis';
 
     function versionedChartAssetPath(path) {
       return `${path}${path.includes('?') ? '&' : '?'}v=${CHART_ASSET_VERSION}`;
