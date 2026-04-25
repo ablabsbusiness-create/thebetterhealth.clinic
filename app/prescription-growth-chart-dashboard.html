@@ -279,6 +279,145 @@
       align-items: start;
     }
 
+    .section-head-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .history-toggle-btn {
+      width: auto;
+      min-height: 40px;
+      padding: 0 14px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #166534, #22c55e);
+      color: #fff;
+      box-shadow: 0 12px 24px rgba(22, 101, 52, 0.18);
+    }
+
+    .history-inline-panel {
+      display: none;
+      gap: 14px;
+      margin-bottom: 16px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(250, 253, 250, 0.98), rgba(243, 249, 244, 0.96));
+    }
+
+    .history-inline-panel.is-open {
+      display: grid;
+    }
+
+    .history-panel-head {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .history-panel-head h3 {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.2;
+    }
+
+    .history-panel-head p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .history-list {
+      display: grid;
+      align-content: start;
+      gap: 10px;
+      max-height: 340px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .history-entry {
+      display: grid;
+      gap: 9px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #ffffff, #f8fbf9);
+    }
+
+    .history-entry-date {
+      color: var(--brand-strong);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .history-entry-head {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .history-entry-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .history-entry-metric {
+      padding: 8px;
+      border-radius: 12px;
+      background: #f4f8f5;
+      border: 1px solid #e2ece4;
+    }
+
+    .history-entry-metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .history-entry-metric strong {
+      display: block;
+      margin-top: 3px;
+      font-size: 13px;
+    }
+
+    .history-empty {
+      padding: 14px;
+      border: 1px dashed var(--line);
+      border-radius: 16px;
+      color: var(--muted);
+      background: #f8fbf9;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .history-edit-btn {
+      width: auto;
+      min-height: 32px;
+      padding: 0 12px;
+      border-radius: 999px;
+      background: #f1f8f3;
+      border: 1px solid #d8e7db;
+      color: var(--brand-strong);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .history-entry.is-active {
+      border-color: rgba(22, 101, 52, 0.28);
+      box-shadow: inset 0 0 0 1px rgba(22, 101, 52, 0.14);
+      background: linear-gradient(180deg, rgba(237, 252, 241, 0.96), rgba(248, 252, 248, 0.98));
+    }
+
     .form-card,
     .preview-card {
       padding: 24px;
@@ -645,6 +784,11 @@
       transform: translateY(-1px);
     }
 
+    .history-toggle-btn,
+    .history-edit-btn {
+      width: auto;
+    }
+
     .btn-primary {
       background: linear-gradient(135deg, #166534, #15803d);
       color: #fff;
@@ -834,6 +978,15 @@
       .page-shell {
         width: min(100% - 20px, 100%);
         margin: 16px auto 22px;
+      }
+
+      .section-head-actions {
+        width: 100%;
+      }
+
+      .history-toggle-btn {
+        width: 100%;
+        min-height: 42px;
       }
 
       .form-card,
@@ -1027,6 +1180,21 @@
                 <div class="section-kicker">Step 1</div>
                 <h2 class="section-title">Vitals</h2>
               </div>
+              <div class="section-head-actions">
+                <button id="history-toggle" class="history-toggle-btn" type="button" aria-controls="history-panel" aria-expanded="false">Past entries</button>
+              </div>
+            </div>
+
+            <div id="history-panel" class="history-inline-panel" aria-label="Past growth entries">
+              <div class="history-panel-head">
+                <div>
+                  <h3>Past entries</h3>
+                  <p id="history-drawer-summary">Last saved growth records will appear here.</p>
+                </div>
+              </div>
+              <div id="history-list" class="history-list">
+                <div class="history-empty">Select a patient to see past growth entries.</div>
+              </div>
             </div>
 
             <div class="fields">
@@ -1210,6 +1378,10 @@
     const genderInput = document.getElementById('gender-value');
     const dobInput = document.getElementById('dob');
     const ageInput = document.getElementById('age');
+    const historyToggle = document.getElementById('history-toggle');
+    const historyPanel = document.getElementById('history-panel');
+    const historyList = document.getElementById('history-list');
+    const historyDrawerSummary = document.getElementById('history-drawer-summary');
     const menuToggle = document.getElementById('menu-toggle');
     const primaryNav = document.getElementById('primary-nav');
     const navLinks = [...document.querySelectorAll('#primary-nav .nav-link')];
@@ -1227,6 +1399,8 @@
     const firebaseApp = firebaseConfigured ? initializeApp(firebaseConfig) : null;
     const db = firebaseApp ? getFirestore(firebaseApp) : null;
     const storage = firebaseApp ? getStorage(firebaseApp) : null;
+    let patientGrowthHistory = [];
+    let activeHistoryEditKey = '';
     const CHART_ASSET_VERSION = '2026-04-25-age-years-axis';
 
     function versionedChartAssetPath(path) {
@@ -1525,6 +1699,133 @@
       }
     }
 
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function getHistoryTimestamp(entry = {}) {
+      const rawDate = entry.measuredAt || entry.createdAtIso || entry.savedAt || entry.createdAtDisplay || '';
+      const timestamp = Date.parse(rawDate);
+      return Number.isFinite(timestamp) ? timestamp : 0;
+    }
+
+    function getHistoryEntryKey(entry = {}) {
+      return `${entry.createdAtIso || entry.savedAt || entry.createdAtDisplay || ''}-${entry.weight || ''}-${entry.height || ''}-${entry.head || ''}`;
+    }
+
+    function formatHistoryEntryDate(entry = {}) {
+      const timestamp = getHistoryTimestamp(entry);
+
+      if (!timestamp) {
+        return entry.createdAtDisplay || 'Saved entry';
+      }
+
+      return new Date(timestamp).toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      });
+    }
+
+    function normalizeGrowthHistory(entries = []) {
+      return (Array.isArray(entries) ? entries : [])
+        .filter((entry) => entry && typeof entry === 'object')
+        .sort((left, right) => getHistoryTimestamp(right) - getHistoryTimestamp(left));
+    }
+
+    function formatMetricValue(value, unit = '') {
+      const cleanValue = String(value ?? '').trim();
+      return cleanValue ? `${cleanValue}${unit ? ` ${unit}` : ''}` : '';
+    }
+
+    function getHistoryMetrics(entry = {}) {
+      const bpValue = entry.systolic || entry.diastolic
+        ? `${entry.systolic || '-'}/${entry.diastolic || '-'} mmHg`
+        : '';
+
+      return [
+        ['Weight', formatMetricValue(entry.weight, 'kg')],
+        ['Height', formatMetricValue(entry.height, 'cm')],
+        ['OFC', formatMetricValue(entry.head, 'cm')],
+        ['SpO2', formatMetricValue(entry.spo2, '%')],
+        ['Pulse', formatMetricValue(entry.pulse, 'bpm')],
+        ['BP', bpValue],
+        ['Temp', formatMetricValue(entry.temp, 'C')]
+      ].filter(([, value]) => value);
+    }
+
+    function renderHistoryDrawer() {
+      const recentEntries = patientGrowthHistory.slice(0, 6);
+      const patientId = patientIdInput.value.trim().toUpperCase();
+
+      historyDrawerSummary.textContent = patientId
+        ? `${recentEntries.length} of ${patientGrowthHistory.length} saved entr${patientGrowthHistory.length === 1 ? 'y' : 'ies'} for ${patientId}.`
+        : 'Select a patient to see past growth entries.';
+
+      if (!recentEntries.length) {
+        historyList.innerHTML = '<div class="history-empty">No past entries found yet. Generate a chart once to save the first record.</div>';
+        return;
+      }
+
+      historyList.innerHTML = recentEntries.map((entry) => {
+        const metrics = getHistoryMetrics(entry);
+        const entryKey = getHistoryEntryKey(entry);
+
+        return `
+          <article class="history-entry ${activeHistoryEditKey === entryKey ? 'is-active' : ''}">
+            <div class="history-entry-head">
+              <div class="history-entry-date">${escapeHtml(formatHistoryEntryDate(entry))}</div>
+              <button class="history-edit-btn" type="button" data-history-entry="${escapeHtml(entryKey)}">Edit</button>
+            </div>
+            ${metrics.length
+              ? `<div class="history-entry-grid">
+                  ${metrics.map(([label, value]) => `
+                    <div class="history-entry-metric">
+                      <span>${escapeHtml(label)}</span>
+                      <strong>${escapeHtml(value)}</strong>
+                    </div>
+                  `).join('')}
+                </div>`
+              : '<div class="history-empty">No vitals were saved in this entry.</div>'}
+          </article>
+        `;
+      }).join('');
+    }
+
+    function setPatientGrowthHistory(entries = []) {
+      patientGrowthHistory = normalizeGrowthHistory(entries);
+      activeHistoryEditKey = '';
+      renderHistoryDrawer();
+    }
+
+    function toggleHistoryPanel(forceOpen = null) {
+      const shouldOpen = forceOpen === null ? !historyPanel.classList.contains('is-open') : forceOpen;
+      historyPanel.classList.toggle('is-open', shouldOpen);
+      historyToggle.setAttribute('aria-expanded', String(shouldOpen));
+    }
+
+    function loadHistoryEntryIntoForm(entry) {
+      metricInputs.weight.value = entry.weight || '';
+      metricInputs.height.value = entry.height || '';
+      metricInputs.head.value = entry.head || '';
+      metricInputs.spo2.value = entry.spo2 || '';
+      metricInputs.pulse.value = entry.pulse || '';
+      metricInputs.systolic.value = entry.systolic || '';
+      metricInputs.diastolic.value = entry.diastolic || '';
+      metricInputs.temp.value = entry.temp || '';
+      activeHistoryEditKey = getHistoryEntryKey(entry);
+      updatePreview();
+      renderHistoryDrawer();
+      statusNote.textContent = `Loaded ${formatHistoryEntryDate(entry)} into the vitals card. You can edit the values now.`;
+      statusNote.classList.add('visible');
+      metricInputs.weight.focus();
+    }
+
     function applyPatientRecord(patientRecord) {
       childNameInput.value = patientRecord.childName || '';
       parentNameInput.value = patientRecord.parentName || '';
@@ -1533,6 +1834,7 @@
       genderInput.value = patientRecord.gender || '';
       updateAge();
       updatePageMeta(patientRecord);
+      setPatientGrowthHistory(patientRecord.measurementHistory || (patientRecord.lastMeasurementRecord ? [patientRecord.lastMeasurementRecord] : []));
     }
 
     async function fetchPatientRecord(patientId) {
@@ -1569,6 +1871,7 @@
         updateAge();
         setPatientHint('');
         updatePageMeta();
+        setPatientGrowthHistory([]);
         return;
       }
 
@@ -1587,6 +1890,7 @@
           updateAge();
           setPatientHint('No patient record was found for that ID.');
           updatePageMeta();
+          setPatientGrowthHistory([]);
           return;
         }
 
@@ -1595,6 +1899,7 @@
       } catch (error) {
         setPatientHint(`Unable to load patient details: ${error.message}`);
         updatePageMeta();
+        setPatientGrowthHistory([]);
       }
     }
 
@@ -1725,6 +2030,7 @@
         updatedAt: serverTimestamp()
       }, { merge: true });
 
+      setPatientGrowthHistory([measurementEntry, ...patientGrowthHistory]);
       return { ok: true };
     }
 
@@ -2086,6 +2392,24 @@
       });
     }
 
+    historyToggle.addEventListener('click', () => toggleHistoryPanel());
+    historyList.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-history-entry]');
+
+      if (!button) {
+        return;
+      }
+
+      const targetEntry = patientGrowthHistory.find((entry) => getHistoryEntryKey(entry) === button.dataset.historyEntry);
+
+      if (!targetEntry) {
+        return;
+      }
+
+      loadHistoryEntryIntoForm(targetEntry);
+      toggleHistoryPanel(false);
+    });
+
     downloadBtn.addEventListener('click', async () => {
       if (generatedPreviewPages.length === 0) {
         statusNote.textContent = 'Generate the available charts before downloading the PDF.';
@@ -2154,6 +2478,7 @@
     drawBaseTemplate(null);
     renderPreviewGallery();
     updatePageMeta();
+    renderHistoryDrawer();
     loadPatientIdFromUrl();
     cleanupExpiredLocalRecords();
 
