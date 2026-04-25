@@ -1144,8 +1144,7 @@
                 <td><strong>${index + 1}</strong></td>
                 <td class="medicine-name">
                   ${escapeHtml(row.medicineName || row.medicine)}
-                  ${row.composition ? `<span class="medicine-composition">Composition: ${escapeHtml(row.composition)}</span>` : ''}
-                  ${row.medicineType ? `<span class="medicine-composition">Type: ${escapeHtml(row.medicineType)}</span>` : ''}
+                  ${row.composition ? `<span class="medicine-composition">(${escapeHtml(row.composition)})</span>` : ''}
                   ${row.note || row.food ? `<span class="medicine-sub">${escapeHtml(row.note || row.food)}</span>` : ''}
                 </td>
                 <td><strong>${escapeHtml(row.dose || '-')}</strong></td>
@@ -1350,8 +1349,7 @@
           pdf.setFont('helvetica', 'italic');
           pdf.setFontSize(6.5);
           const medicineMeta = [
-            row.composition ? `Composition: ${row.composition}` : '',
-            row.medicineType ? `Type: ${row.medicineType}` : '',
+            row.composition ? `(${row.composition})` : '',
             row.note || row.food || ''
           ].filter(Boolean).join(' | ');
           if (medicineMeta) {
