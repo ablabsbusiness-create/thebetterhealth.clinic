@@ -1344,35 +1344,6 @@
             <p></p>
           </div>
 
-          <div class="question-space-card">
-            <div class="question-space-head">
-              <div class="eyebrow">Side panel</div>
-              <h3>Questions & past entries</h3>
-              <p>Anything that opens like a popup will show here beside the vitals card.</p>
-            </div>
-
-            <div id="history-panel" class="history-inline-panel" aria-label="Past growth entries">
-              <div class="history-panel-head">
-                <div>
-                  <h3>Past entries</h3>
-                  <p id="history-drawer-summary">Last saved growth records will appear here.</p>
-                </div>
-                <div class="history-pagination" aria-label="Past entry pages">
-                  <button id="history-prev" class="history-page-btn" type="button" aria-label="Show newer past entries">&lsaquo;</button>
-                  <span id="history-page-label" class="history-page-label">0 / 0</span>
-                  <button id="history-next" class="history-page-btn" type="button" aria-label="Show older past entries">&rsaquo;</button>
-                </div>
-              </div>
-              <div id="history-list" class="history-list">
-                <div class="history-empty">Select a patient to see past growth entries.</div>
-              </div>
-            </div>
-
-            <div id="status-note" class="status-note">
-              Chart actions are ready once patient details and measurements are complete.
-            </div>
-          </div>
-
           <div id="chart-preview-status" class="template-status">
             Add the available measurements, then click Generate Chart to prepare the matching IAP templates for PDF download.
           </div>
@@ -1391,6 +1362,9 @@
             <div class="btn-row">
               <button id="generate-btn" class="btn-primary" type="button">Generate Chart</button>
               <button id="download-btn" class="btn-secondary" type="button" hidden>Download PDF</button>
+            </div>
+            <div id="status-note" class="status-note">
+              Chart actions are ready once patient details and measurements are complete.
             </div>
           </div>
 
@@ -1829,6 +1803,10 @@
     }
 
     function renderHistoryDrawer() {
+      if (!historyList || !historyDrawerSummary || !historyPrev || !historyNext || !historyPageLabel) {
+        return;
+      }
+
       const patientId = patientIdInput.value.trim().toUpperCase();
       const totalEntries = patientGrowthHistory.length;
       const totalPages = totalEntries ? Math.ceil(totalEntries / HISTORY_PAGE_SIZE) : 0;
@@ -2487,39 +2465,45 @@
       });
     }
 
-    historyPrev.addEventListener('click', () => {
-      if (historyPageIndex <= 0) {
-        return;
-      }
+    if (historyPrev) {
+      historyPrev.addEventListener('click', () => {
+        if (historyPageIndex <= 0) {
+          return;
+        }
 
-      historyPageIndex -= 1;
-      renderHistoryDrawer();
-    });
-    historyNext.addEventListener('click', () => {
-      const totalPages = patientGrowthHistory.length ? Math.ceil(patientGrowthHistory.length / HISTORY_PAGE_SIZE) : 0;
+        historyPageIndex -= 1;
+        renderHistoryDrawer();
+      });
+    }
+    if (historyNext) {
+      historyNext.addEventListener('click', () => {
+        const totalPages = patientGrowthHistory.length ? Math.ceil(patientGrowthHistory.length / HISTORY_PAGE_SIZE) : 0;
 
-      if (!totalPages || historyPageIndex >= totalPages - 1) {
-        return;
-      }
+        if (!totalPages || historyPageIndex >= totalPages - 1) {
+          return;
+        }
 
-      historyPageIndex += 1;
-      renderHistoryDrawer();
-    });
-    historyList.addEventListener('click', (event) => {
-      const button = event.target.closest('[data-history-entry]');
+        historyPageIndex += 1;
+        renderHistoryDrawer();
+      });
+    }
+    if (historyList) {
+      historyList.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-history-entry]');
 
-      if (!button) {
-        return;
-      }
+        if (!button) {
+          return;
+        }
 
-      const targetEntry = patientGrowthHistory.find((entry) => getHistoryEntryKey(entry) === button.dataset.historyEntry);
+        const targetEntry = patientGrowthHistory.find((entry) => getHistoryEntryKey(entry) === button.dataset.historyEntry);
 
-      if (!targetEntry) {
-        return;
-      }
+        if (!targetEntry) {
+          return;
+        }
 
-      loadHistoryEntryIntoForm(targetEntry);
-    });
+        loadHistoryEntryIntoForm(targetEntry);
+      });
+    }
 
     downloadBtn.addEventListener('click', async () => {
       if (generatedPreviewPages.length === 0) {
