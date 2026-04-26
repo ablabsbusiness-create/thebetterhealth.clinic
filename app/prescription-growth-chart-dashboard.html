@@ -460,6 +460,67 @@
       margin-bottom: 18px;
     }
 
+    .section-head-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .metric-master-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 32px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid #dce9de;
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--brand-strong);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      box-shadow: 0 4px 10px rgba(22, 38, 29, 0.04);
+    }
+
+    .metric-master-toggle input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .metric-toggle-ui {
+      position: relative;
+      width: 30px;
+      height: 16px;
+      border-radius: 999px;
+      background: #d6e4d9;
+      transition: background 0.18s ease;
+      flex-shrink: 0;
+    }
+
+    .metric-toggle-ui::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 2px 6px rgba(22, 38, 29, 0.18);
+      transition: transform 0.18s ease;
+    }
+
+    .metric-master-toggle input:checked + .metric-toggle-ui {
+      background: linear-gradient(135deg, #166534, #22c55e);
+    }
+
+    .metric-master-toggle input:checked + .metric-toggle-ui::after {
+      transform: translateX(14px);
+    }
+
     .section-kicker {
       font-size: 12px;
       font-weight: 700;
@@ -606,7 +667,7 @@
     }
 
     .measurement-table th {
-      width: 28%;
+      width: 31%;
       background: #f1f8f3;
     }
 
@@ -631,12 +692,144 @@
       color: var(--ink);
     }
 
+    .measurement-head-stack {
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+
     .measurement-hint {
       display: block;
       margin-top: 8px;
       font-size: 12px;
       color: var(--muted);
       line-height: 1.45;
+    }
+
+    .metric-history-control {
+      display: grid;
+      gap: 6px;
+      width: min(100%, 118px);
+      margin-top: 0;
+      padding: 6px;
+      border-radius: 9px;
+      border: 1px solid #e2ece4;
+      background: rgba(255, 255, 255, 0.82);
+    }
+
+    .metric-history-control-head {
+      display: grid;
+      gap: 6px;
+    }
+
+    .metric-history-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--ink);
+      font-size: 8px;
+      font-weight: 700;
+    }
+
+    .metric-history-toggle input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .metric-history-toggle .metric-toggle-ui {
+      width: 20px;
+      height: 12px;
+    }
+
+    .metric-history-toggle .metric-toggle-ui::after {
+      top: 1px;
+      left: 1px;
+      width: 10px;
+      height: 10px;
+    }
+
+    .metric-history-toggle input:checked + .metric-toggle-ui::after {
+      transform: translateX(8px);
+    }
+
+    .metric-date-count {
+      display: grid;
+      gap: 3px;
+    }
+
+    .metric-date-count-label {
+      color: var(--muted);
+      font-size: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .metric-date-input {
+      min-height: 22px;
+      width: 100%;
+      padding: 0 7px;
+      border-radius: 999px;
+      border: 1px solid #d9e6dd;
+      background: #fff;
+      color: #244131;
+      font: inherit;
+      font-size: 10px;
+      font-weight: 700;
+      text-align: center;
+      outline: none;
+      transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .metric-date-input:focus {
+      border-color: rgba(22, 101, 52, 0.28);
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+    }
+
+    .metric-history-list {
+      display: none;
+      gap: 5px;
+    }
+
+    .metric-history-list.is-visible {
+      display: grid;
+    }
+
+    .metric-history-empty {
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.4;
+    }
+
+    .metric-history-chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .metric-history-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      min-height: 22px;
+      padding: 0 7px;
+      border-radius: 999px;
+      background: #ffffff;
+      border: 1px solid #d8e7db;
+      color: var(--ink);
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .metric-history-chip span {
+      color: var(--muted);
+      font-size: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
 
     .preview-card {
@@ -1230,6 +1423,13 @@
                 <div class="section-kicker">Step 1</div>
                 <h2 class="section-title">Vitals</h2>
               </div>
+              <div class="section-head-actions">
+                <label class="metric-master-toggle" for="toggle-all-past-history">
+                  <input id="toggle-all-past-history" type="checkbox">
+                  <span class="metric-toggle-ui" aria-hidden="true"></span>
+                  Past growth
+                </label>
+              </div>
             </div>
 
             <div class="fields">
@@ -1246,80 +1446,224 @@
                 <div class="measurement-table-wrap">
                   <table class="measurement-table">
                     <tbody>
-                      <tr>
+                      <tr data-metric-history-row="weight">
                         <th scope="row">
-                          <span class="measurement-type">Growth</span>
-                          <span class="measurement-label">Weight (kg)</span>
+                          <div class="measurement-head-stack">
+                            <div>
+                              <span class="measurement-type">Growth</span>
+                              <span class="measurement-label">Weight (kg)</span>
+                            </div>
+                            <div class="metric-history-control">
+                              <div class="metric-history-control-head">
+                                <label class="metric-history-toggle" for="metric-history-weight">
+                                  <input id="metric-history-weight" type="checkbox" data-metric-toggle="weight">
+                                  <span class="metric-toggle-ui" aria-hidden="true"></span>
+                                  Past growth
+                                </label>
+                                <label class="metric-date-count" data-metric-count-group="weight">
+                                  <span class="metric-date-count-label">Dates</span>
+                                  <input class="metric-date-input" type="number" min="1" max="30" step="1" value="11" data-metric-count-input="weight" aria-label="Past growth dates to show for weight">
+                                </label>
+                              </div>
+                              <div class="metric-history-list" data-metric-history-list="weight"></div>
+                            </div>
+                          </div>
                         </th>
                         <td>
                           <input id="weight" name="weight" type="number" min="0" step="0.1" placeholder="e.g. 12.4">
                           <span class="measurement-hint">Enter the most recent measured weight in kilograms.</span>
                         </td>
                       </tr>
-                      <tr>
+                      <tr data-metric-history-row="height">
                         <th scope="row">
-                          <span class="measurement-type">Growth</span>
-                          <span class="measurement-label">Height (cm)</span>
+                          <div class="measurement-head-stack">
+                            <div>
+                              <span class="measurement-type">Growth</span>
+                              <span class="measurement-label">Height (cm)</span>
+                            </div>
+                            <div class="metric-history-control">
+                              <div class="metric-history-control-head">
+                                <label class="metric-history-toggle" for="metric-history-height">
+                                  <input id="metric-history-height" type="checkbox" data-metric-toggle="height">
+                                  <span class="metric-toggle-ui" aria-hidden="true"></span>
+                                  Past growth
+                                </label>
+                                <label class="metric-date-count" data-metric-count-group="height">
+                                  <span class="metric-date-count-label">Dates</span>
+                                  <input class="metric-date-input" type="number" min="1" max="30" step="1" value="11" data-metric-count-input="height" aria-label="Past growth dates to show for height">
+                                </label>
+                              </div>
+                              <div class="metric-history-list" data-metric-history-list="height"></div>
+                            </div>
+                          </div>
                         </th>
                         <td>
                           <input id="height" name="height" type="number" min="0" step="0.1" placeholder="e.g. 88.0">
                           <span class="measurement-hint">Enter height or length in centimeters.</span>
                         </td>
                       </tr>
-                      <tr>
+                      <tr data-metric-history-row="head">
                         <th scope="row">
-                          <span class="measurement-type">Growth</span>
-                          <span class="measurement-label">OFC (cm)</span>
+                          <div class="measurement-head-stack">
+                            <div>
+                              <span class="measurement-type">Growth</span>
+                              <span class="measurement-label">OFC (cm)</span>
+                            </div>
+                            <div class="metric-history-control">
+                              <div class="metric-history-control-head">
+                                <label class="metric-history-toggle" for="metric-history-head">
+                                  <input id="metric-history-head" type="checkbox" data-metric-toggle="head">
+                                  <span class="metric-toggle-ui" aria-hidden="true"></span>
+                                  Past growth
+                                </label>
+                                <label class="metric-date-count" data-metric-count-group="head">
+                                  <span class="metric-date-count-label">Dates</span>
+                                  <input class="metric-date-input" type="number" min="1" max="30" step="1" value="11" data-metric-count-input="head" aria-label="Past growth dates to show for OFC">
+                                </label>
+                              </div>
+                              <div class="metric-history-list" data-metric-history-list="head"></div>
+                            </div>
+                          </div>
                         </th>
                         <td>
                           <input id="head" name="head" type="number" min="0" step="0.1" placeholder="e.g. 48.5">
                           <span class="measurement-hint">Occipito-frontal circumference in centimeters.</span>
                         </td>
                       </tr>
-                      <tr>
+                      <tr data-metric-history-row="spo2">
                         <th scope="row">
-                          <span class="measurement-type">Vitals</span>
-                          <span class="measurement-label">SpO2 (%)</span>
+                          <div class="measurement-head-stack">
+                            <div>
+                              <span class="measurement-type">Vitals</span>
+                              <span class="measurement-label">SpO2 (%)</span>
+                            </div>
+                            <div class="metric-history-control">
+                              <div class="metric-history-control-head">
+                                <label class="metric-history-toggle" for="metric-history-spo2">
+                                  <input id="metric-history-spo2" type="checkbox" data-metric-toggle="spo2">
+                                  <span class="metric-toggle-ui" aria-hidden="true"></span>
+                                  Past growth
+                                </label>
+                                <label class="metric-date-count" data-metric-count-group="spo2">
+                                  <span class="metric-date-count-label">Dates</span>
+                                  <input class="metric-date-input" type="number" min="1" max="30" step="1" value="11" data-metric-count-input="spo2" aria-label="Past growth dates to show for SpO2">
+                                </label>
+                              </div>
+                              <div class="metric-history-list" data-metric-history-list="spo2"></div>
+                            </div>
+                          </div>
                         </th>
                         <td>
                           <input id="spo2" name="spo2" type="number" min="0" step="1" placeholder="e.g. 98">
                           <span class="measurement-hint">Peripheral oxygen saturation percentage.</span>
                         </td>
                       </tr>
-                      <tr>
+                      <tr data-metric-history-row="pulse">
                         <th scope="row">
-                          <span class="measurement-type">Vitals</span>
-                          <span class="measurement-label">Pulse (bpm)</span>
+                          <div class="measurement-head-stack">
+                            <div>
+                              <span class="measurement-type">Vitals</span>
+                              <span class="measurement-label">Pulse (bpm)</span>
+                            </div>
+                            <div class="metric-history-control">
+                              <div class="metric-history-control-head">
+                                <label class="metric-history-toggle" for="metric-history-pulse">
+                                  <input id="metric-history-pulse" type="checkbox" data-metric-toggle="pulse">
+                                  <span class="metric-toggle-ui" aria-hidden="true"></span>
+                                  Past growth
+                                </label>
+                                <label class="metric-date-count" data-metric-count-group="pulse">
+                                  <span class="metric-date-count-label">Dates</span>
+                                  <input class="metric-date-input" type="number" min="1" max="30" step="1" value="11" data-metric-count-input="pulse" aria-label="Past growth dates to show for pulse">
+                                </label>
+                              </div>
+                              <div class="metric-history-list" data-metric-history-list="pulse"></div>
+                            </div>
+                          </div>
                         </th>
                         <td>
                           <input id="pulse" name="pulse" type="number" min="0" step="1" placeholder="e.g. 96">
                           <span class="measurement-hint">Heart rate in beats per minute.</span>
                         </td>
                       </tr>
-                      <tr>
+                      <tr data-metric-history-row="systolic">
                         <th scope="row">
-                          <span class="measurement-type">Vitals</span>
-                          <span class="measurement-label">Systolic (mmHg)</span>
+                          <div class="measurement-head-stack">
+                            <div>
+                              <span class="measurement-type">Vitals</span>
+                              <span class="measurement-label">Systolic (mmHg)</span>
+                            </div>
+                            <div class="metric-history-control">
+                              <div class="metric-history-control-head">
+                                <label class="metric-history-toggle" for="metric-history-systolic">
+                                  <input id="metric-history-systolic" type="checkbox" data-metric-toggle="systolic">
+                                  <span class="metric-toggle-ui" aria-hidden="true"></span>
+                                  Past growth
+                                </label>
+                                <label class="metric-date-count" data-metric-count-group="systolic">
+                                  <span class="metric-date-count-label">Dates</span>
+                                  <input class="metric-date-input" type="number" min="1" max="30" step="1" value="11" data-metric-count-input="systolic" aria-label="Past growth dates to show for systolic pressure">
+                                </label>
+                              </div>
+                              <div class="metric-history-list" data-metric-history-list="systolic"></div>
+                            </div>
+                          </div>
                         </th>
                         <td>
                           <input id="systolic" name="systolic" type="number" min="0" step="1" placeholder="e.g. 100">
                           <span class="measurement-hint">Upper blood pressure reading.</span>
                         </td>
                       </tr>
-                      <tr>
+                      <tr data-metric-history-row="diastolic">
                         <th scope="row">
-                          <span class="measurement-type">Vitals</span>
-                          <span class="measurement-label">Diastolic (mmHg)</span>
+                          <div class="measurement-head-stack">
+                            <div>
+                              <span class="measurement-type">Vitals</span>
+                              <span class="measurement-label">Diastolic (mmHg)</span>
+                            </div>
+                            <div class="metric-history-control">
+                              <div class="metric-history-control-head">
+                                <label class="metric-history-toggle" for="metric-history-diastolic">
+                                  <input id="metric-history-diastolic" type="checkbox" data-metric-toggle="diastolic">
+                                  <span class="metric-toggle-ui" aria-hidden="true"></span>
+                                  Past growth
+                                </label>
+                                <label class="metric-date-count" data-metric-count-group="diastolic">
+                                  <span class="metric-date-count-label">Dates</span>
+                                  <input class="metric-date-input" type="number" min="1" max="30" step="1" value="11" data-metric-count-input="diastolic" aria-label="Past growth dates to show for diastolic pressure">
+                                </label>
+                              </div>
+                              <div class="metric-history-list" data-metric-history-list="diastolic"></div>
+                            </div>
+                          </div>
                         </th>
                         <td>
                           <input id="diastolic" name="diastolic" type="number" min="0" step="1" placeholder="e.g. 64">
                           <span class="measurement-hint">Lower blood pressure reading.</span>
                         </td>
                       </tr>
-                      <tr>
+                      <tr data-metric-history-row="temp">
                         <th scope="row">
-                          <span class="measurement-type">Vitals</span>
-                          <span class="measurement-label">Temp (C)</span>
+                          <div class="measurement-head-stack">
+                            <div>
+                              <span class="measurement-type">Vitals</span>
+                              <span class="measurement-label">Temp (C)</span>
+                            </div>
+                            <div class="metric-history-control">
+                              <div class="metric-history-control-head">
+                                <label class="metric-history-toggle" for="metric-history-temp">
+                                  <input id="metric-history-temp" type="checkbox" data-metric-toggle="temp">
+                                  <span class="metric-toggle-ui" aria-hidden="true"></span>
+                                  Past growth
+                                </label>
+                                <label class="metric-date-count" data-metric-count-group="temp">
+                                  <span class="metric-date-count-label">Dates</span>
+                                  <input class="metric-date-input" type="number" min="1" max="30" step="1" value="11" data-metric-count-input="temp" aria-label="Past growth dates to show for temperature">
+                                </label>
+                              </div>
+                              <div class="metric-history-list" data-metric-history-list="temp"></div>
+                            </div>
+                          </div>
                         </th>
                         <td>
                           <input id="temp" name="temp" type="number" min="0" step="0.1" placeholder="e.g. 37.1">
@@ -1391,6 +1735,9 @@
       diastolic: document.getElementById('diastolic'),
       temp: document.getElementById('temp')
     };
+    const metricHistoryMasterToggle = document.getElementById('toggle-all-past-history');
+    const metricHistoryToggles = [...document.querySelectorAll('[data-metric-toggle]')];
+    const metricHistoryCountInputs = [...document.querySelectorAll('[data-metric-count-input]')];
     const selectedCount = document.getElementById('selected-count');
     const selectedList = document.getElementById('selected-list');
     const previewGallery = document.getElementById('preview-gallery');
@@ -1437,6 +1784,7 @@
     const db = firebaseApp ? getFirestore(firebaseApp) : null;
     const storage = firebaseApp ? getStorage(firebaseApp) : null;
     const HISTORY_PAGE_SIZE = 6;
+    const metricHistoryCountState = Object.fromEntries(Object.keys(metricInputs).map((key) => [key, 11]));
     let patientGrowthHistory = [];
     let activeHistoryEditKey = '';
     let historyPageIndex = 0;
@@ -1695,17 +2043,26 @@
       ageInput.value = calculateAgeLabel(dobInput.value);
     }
 
-    function getAgeInYears(dobValue) {
+    function getAgeInYearsAtDate(dobValue, referenceDate = new Date()) {
       if (!dobValue) return NaN;
 
       const dob = new Date(dobValue);
-      const today = new Date();
+      const targetDate = referenceDate instanceof Date ? referenceDate : new Date(referenceDate);
 
-      if (Number.isNaN(dob.getTime()) || dob > today) {
+      if (Number.isNaN(dob.getTime()) || Number.isNaN(targetDate.getTime()) || dob > targetDate) {
         return NaN;
       }
 
-      return (today - dob) / (365.25 * 24 * 60 * 60 * 1000);
+      return (targetDate - dob) / (365.25 * 24 * 60 * 60 * 1000);
+    }
+
+    function getAgeInYears(dobValue) {
+      return getAgeInYearsAtDate(dobValue, new Date());
+    }
+
+    function getAgeInMonthsAtDate(dobValue, referenceDate = new Date()) {
+      const ageYears = getAgeInYearsAtDate(dobValue, referenceDate);
+      return Number.isFinite(ageYears) ? ageYears * 12 : NaN;
     }
 
     function getAgeInMonths(dobValue) {
@@ -1780,6 +2137,63 @@
     function formatMetricValue(value, unit = '') {
       const cleanValue = String(value ?? '').trim();
       return cleanValue ? `${cleanValue}${unit ? ` ${unit}` : ''}` : '';
+    }
+
+    function getMetricUnit(metricKey) {
+      return {
+        weight: 'kg',
+        height: 'cm',
+        head: 'cm',
+        spo2: '%',
+        pulse: 'bpm',
+        systolic: 'mmHg',
+        diastolic: 'mmHg',
+        temp: 'C'
+      }[metricKey] || '';
+    }
+
+    function renderMetricHistoryPanels() {
+      Object.keys(metricInputs).forEach((metricKey) => {
+        const historyList = document.querySelector(`[data-metric-history-list="${metricKey}"]`);
+        const toggle = document.querySelector(`[data-metric-toggle="${metricKey}"]`);
+
+        if (!historyList || !toggle) {
+          return;
+        }
+
+        const isEnabled = toggle.checked;
+        historyList.classList.toggle('is-visible', isEnabled);
+
+        if (!isEnabled) {
+          historyList.innerHTML = '';
+          return;
+        }
+
+        const limit = getMetricHistoryLimit(metricKey);
+        const entries = patientGrowthHistory
+          .filter((entry) => String(entry?.[metricKey] ?? '').trim())
+          .slice(0, limit);
+
+        if (!entries.length) {
+          historyList.innerHTML = '<div class="metric-history-empty">No saved past values yet.</div>';
+          return;
+        }
+
+        historyList.innerHTML = `
+          <div class="metric-history-chip-row">
+            ${entries.map((entry) => `
+              <button type="button" class="metric-history-chip" data-metric-history-pick="${metricKey}" data-history-entry="${escapeHtml(getHistoryEntryKey(entry))}">
+                <span>${escapeHtml(formatHistoryEntryDate(entry))}</span>
+                ${escapeHtml(formatMetricValue(entry[metricKey], getMetricUnit(metricKey)))}
+              </button>
+            `).join('')}
+          </div>
+        `;
+      });
+
+      if (metricHistoryMasterToggle) {
+        metricHistoryMasterToggle.checked = metricHistoryToggles.length > 0 && metricHistoryToggles.every((toggle) => toggle.checked);
+      }
     }
 
     function getHistoryMetricCells(entry = {}) {
@@ -1880,6 +2294,7 @@
       activeHistoryEditKey = '';
       historyPageIndex = 0;
       renderHistoryDrawer();
+      renderMetricHistoryPanels();
     }
 
     function loadHistoryEntryIntoForm(entry) {
@@ -1894,6 +2309,7 @@
       activeHistoryEditKey = getHistoryEntryKey(entry);
       updatePreview();
       renderHistoryDrawer();
+      renderMetricHistoryPanels();
       statusNote.textContent = `Loaded ${formatHistoryEntryDate(entry)} into the vitals card. You can edit the values now.`;
       statusNote.classList.add('visible');
       metricInputs.weight.focus();
@@ -2190,19 +2606,150 @@
       return true;
     }
 
-    function getPatientData() {
-      const ageYears = getAgeInYears(dobInput.value);
-      const height = Number.parseFloat(metricInputs.height.value);
-      const weight = Number.parseFloat(metricInputs.weight.value);
+    function buildPatientDataFromValues(values = {}, measuredAt = new Date()) {
+      const height = Number.parseFloat(values.height);
+      const weight = Number.parseFloat(values.weight);
 
       return {
-        ageYears,
-        ageMonths: getAgeInMonths(dobInput.value),
+        ageYears: getAgeInYearsAtDate(dobInput.value, measuredAt),
+        ageMonths: getAgeInMonthsAtDate(dobInput.value, measuredAt),
         weight,
         height,
-        head: Number.parseFloat(metricInputs.head.value),
+        head: Number.parseFloat(values.head),
         bmi: Number.isFinite(weight) && Number.isFinite(height) && height > 0 ? weight / ((height / 100) ** 2) : NaN
       };
+    }
+
+    function getPatientData() {
+      return buildPatientDataFromValues({
+        weight: metricInputs.weight.value,
+        height: metricInputs.height.value,
+        head: metricInputs.head.value
+      }, new Date());
+    }
+
+    function getCurrentMeasurementEntry() {
+      return {
+        createdAtIso: new Date().toISOString(),
+        weight: metricInputs.weight.value || '',
+        height: metricInputs.height.value || '',
+        head: metricInputs.head.value || '',
+        spo2: metricInputs.spo2.value || '',
+        pulse: metricInputs.pulse.value || '',
+        systolic: metricInputs.systolic.value || '',
+        diastolic: metricInputs.diastolic.value || '',
+        temp: metricInputs.temp.value || ''
+      };
+    }
+
+    function getMetricHistoryLimit(metricKey) {
+      return Math.max(1, Math.min(30, Number(metricHistoryCountState[metricKey] || 11) || 11));
+    }
+
+    function isMetricHistoryEnabled(metricKey) {
+      const toggle = document.querySelector(`[data-metric-toggle="${metricKey}"]`);
+      return Boolean(toggle?.checked);
+    }
+
+    function getMetricPlotHistory(metricKey, options = {}) {
+      const { includeCurrent = true } = options;
+      const currentEntry = includeCurrent ? getCurrentMeasurementEntry() : null;
+      const combinedEntries = [];
+
+      if (currentEntry) {
+        combinedEntries.push(currentEntry);
+      }
+
+      patientGrowthHistory.forEach((entry) => {
+        combinedEntries.push(entry);
+      });
+
+      const dedupedByDay = new Map();
+      combinedEntries.forEach((entry) => {
+        const timestamp = getHistoryTimestamp(entry) || Date.now();
+        const dayKey = new Date(timestamp).toISOString().slice(0, 10);
+        if (!dedupedByDay.has(dayKey)) {
+          dedupedByDay.set(dayKey, entry);
+        }
+      });
+
+      const entries = [...dedupedByDay.values()]
+        .filter((entry) => String(entry?.[metricKey] ?? '').trim())
+        .sort((left, right) => getHistoryTimestamp(right) - getHistoryTimestamp(left));
+
+      if (!isMetricHistoryEnabled(metricKey)) {
+        return entries.slice(0, 1).reverse();
+      }
+
+      return entries.slice(0, getMetricHistoryLimit(metricKey)).reverse();
+    }
+
+    function getChartPlotEntries(metricKey) {
+      if (metricKey === 'bmi') {
+        const weightEntries = getMetricPlotHistory('weight');
+        const heightEntries = getMetricPlotHistory('height');
+        const combinedByDay = new Map();
+
+        [...weightEntries, ...heightEntries].forEach((entry) => {
+          const timestamp = getHistoryTimestamp(entry) || Date.now();
+          const dayKey = new Date(timestamp).toISOString().slice(0, 10);
+          const existing = combinedByDay.get(dayKey) || {};
+          combinedByDay.set(dayKey, { ...existing, ...entry });
+        });
+
+        return [...combinedByDay.values()]
+          .filter((entry) => String(entry?.weight ?? '').trim() && String(entry?.height ?? '').trim())
+          .sort((left, right) => getHistoryTimestamp(left) - getHistoryTimestamp(right));
+      }
+
+      return getMetricPlotHistory(metricKey);
+    }
+
+    function drawMetricHistory(region, metricKey) {
+      const historyEntries = getChartPlotEntries(metricKey)
+        .map((entry) => {
+          const timestamp = getHistoryTimestamp(entry);
+          const measuredAt = timestamp ? new Date(timestamp) : new Date();
+          return buildPatientDataFromValues(entry, measuredAt);
+        })
+        .filter((entry) => Number.isFinite(entry[metricKey === 'bmi' ? 'bmi' : metricKey]));
+
+      if (!historyEntries.length) {
+        return false;
+      }
+
+      const mappedPoints = historyEntries
+        .map((entry) => mapPoint(region, entry))
+        .filter(Boolean);
+
+      if (!mappedPoints.length) {
+        return false;
+      }
+
+      if (mappedPoints.length > 1) {
+        chartContext.beginPath();
+        chartContext.moveTo(mappedPoints[0].x, mappedPoints[0].y);
+        mappedPoints.slice(1).forEach((point) => {
+          chartContext.lineTo(point.x, point.y);
+        });
+        chartContext.lineWidth = 2.2;
+        chartContext.strokeStyle = '#111111';
+        chartContext.lineJoin = 'round';
+        chartContext.lineCap = 'round';
+        chartContext.stroke();
+      }
+
+      mappedPoints.forEach((point) => {
+        chartContext.beginPath();
+        chartContext.arc(point.x, point.y, CHART_POINT_RADIUS, 0, Math.PI * 2);
+        chartContext.fillStyle = '#111111';
+        chartContext.fill();
+        chartContext.lineWidth = 1.5;
+        chartContext.strokeStyle = '#ffffff';
+        chartContext.stroke();
+      });
+
+      return true;
     }
 
     function buildTemplateRequests() {
@@ -2264,7 +2811,7 @@
       return warnings;
     }
 
-    async function drawTemplateRequest(templateRequest, patientData) {
+    async function drawTemplateRequest(templateRequest) {
       const image = await loadTemplateImage(templateRequest.key);
       const renderScale = Math.min(1, CHART_RENDER_MAX_WIDTH / image.naturalWidth);
       chartCanvas.width = Math.round(image.naturalWidth * renderScale);
@@ -2277,7 +2824,7 @@
       templateRequest.metrics.forEach((metricKey) => {
         const region = template.regions[metricKey];
         if (region) {
-          drawMarker(region, patientData);
+          drawMetricHistory(region, metricKey);
         }
       });
 
@@ -2289,12 +2836,11 @@
     }
 
     async function renderAllGeneratedPreviews() {
-      const patientData = getPatientData();
       const previews = [];
 
       for (const templateRequest of generatedTemplates) {
         try {
-          const rendered = await drawTemplateRequest(templateRequest, patientData);
+          const rendered = await drawTemplateRequest(templateRequest);
           previews.push({
             label: templateRequest.label,
             dataUrl: rendered.dataUrl,
@@ -2338,6 +2884,18 @@
         frame.append(title, image);
         previewGallery.appendChild(frame);
       });
+    }
+
+    async function refreshGeneratedChartsIfPresent() {
+      if (!generatedTemplates.length && !generatedPreviewPages.length) {
+        return;
+      }
+
+      try {
+        await renderGeneratedChart();
+      } catch (error) {
+        setChartPreviewMessage(`Unable to refresh chart previews: ${error.message}`, 'warning');
+      }
     }
 
     function loadTemplateImage(templateKey) {
@@ -2453,6 +3011,48 @@
       input.addEventListener('input', updatePreview);
       input.addEventListener('change', updatePreview);
     });
+    if (metricHistoryMasterToggle) {
+      metricHistoryMasterToggle.addEventListener('change', () => {
+        metricHistoryToggles.forEach((toggle) => {
+          toggle.checked = metricHistoryMasterToggle.checked;
+        });
+        renderMetricHistoryPanels();
+        refreshGeneratedChartsIfPresent();
+      });
+    }
+    metricHistoryToggles.forEach((toggle) => {
+      toggle.addEventListener('change', () => {
+        renderMetricHistoryPanels();
+        refreshGeneratedChartsIfPresent();
+      });
+    });
+    metricHistoryCountInputs.forEach((input) => {
+      const metricKey = input.dataset.metricCountInput || '';
+      if (metricKey) {
+        input.value = String(metricHistoryCountState[metricKey] || 11);
+      }
+
+      const syncMetricCount = () => {
+        const nextCount = Math.max(1, Math.min(30, Number(input.value || '11') || 11));
+        input.value = String(nextCount);
+        if (!metricKey) {
+          return;
+        }
+
+        metricHistoryCountState[metricKey] = nextCount;
+        renderMetricHistoryPanels();
+        refreshGeneratedChartsIfPresent();
+      };
+
+      input.addEventListener('change', syncMetricCount);
+      input.addEventListener('blur', syncMetricCount);
+      input.addEventListener('input', () => {
+        if (!String(input.value).trim()) {
+          return;
+        }
+        syncMetricCount();
+      });
+    });
     dobInput.addEventListener('change', updatePreview);
     dobInput.addEventListener('input', updatePreview);
     if (menuToggle && primaryNav) {
@@ -2504,6 +3104,26 @@
         loadHistoryEntryIntoForm(targetEntry);
       });
     }
+    document.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-metric-history-pick]');
+
+        if (!button) {
+          return;
+        }
+
+      const metricKey = button.dataset.metricHistoryPick || '';
+      const targetEntry = patientGrowthHistory.find((entry) => getHistoryEntryKey(entry) === button.dataset.historyEntry);
+
+      if (!metricKey || !targetEntry || !metricInputs[metricKey]) {
+        return;
+      }
+
+      metricInputs[metricKey].value = targetEntry[metricKey] || '';
+      updatePreview();
+      statusNote.textContent = `Loaded ${formatMetricValue(targetEntry[metricKey], getMetricUnit(metricKey))} from ${formatHistoryEntryDate(targetEntry)}.`;
+      statusNote.classList.add('visible');
+      metricInputs[metricKey].focus();
+    });
 
     downloadBtn.addEventListener('click', async () => {
       if (generatedPreviewPages.length === 0) {
@@ -2574,6 +3194,7 @@
     renderPreviewGallery();
     updatePageMeta();
     renderHistoryDrawer();
+    renderMetricHistoryPanels();
     loadPatientIdFromUrl();
     cleanupExpiredLocalRecords();
 
