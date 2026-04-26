@@ -249,11 +249,6 @@
       min-width: 0;
     }
 
-    .metric-date-count,
-    .metric-history-list {
-      display: none;
-    }
-
     .form-card,
     .preview-card {
       background: rgba(255, 255, 255, 0.84);
@@ -759,7 +754,7 @@
     }
 
     .metric-date-count {
-      display: grid;
+      display: none !important;
       gap: 3px;
     }
 
@@ -799,7 +794,7 @@
     }
 
     .metric-history-list.is-visible {
-      display: grid;
+      display: none !important;
     }
 
     .metric-history-empty {
@@ -2210,32 +2205,7 @@
 
         const isEnabled = toggle.checked;
         historyList.classList.toggle('is-visible', isEnabled);
-
-        if (!isEnabled) {
-          historyList.innerHTML = '';
-          return;
-        }
-
-        const limit = getMetricHistoryLimit(metricKey);
-        const entries = patientGrowthHistory
-          .filter((entry) => String(entry?.[metricKey] ?? '').trim())
-          .slice(0, limit);
-
-        if (!entries.length) {
-          historyList.innerHTML = '<div class="metric-history-empty">No saved past values yet.</div>';
-          return;
-        }
-
-        historyList.innerHTML = `
-          <div class="metric-history-chip-row">
-            ${entries.map((entry) => `
-              <button type="button" class="metric-history-chip" data-metric-history-pick="${metricKey}" data-history-entry="${escapeHtml(getHistoryEntryKey(entry))}">
-                <span>${escapeHtml(formatHistoryEntryDate(entry))}</span>
-                ${escapeHtml(formatMetricValue(entry[metricKey], getMetricUnit(metricKey)))}
-              </button>
-            `).join('')}
-          </div>
-        `;
+        historyList.innerHTML = '';
       });
 
       if (metricHistoryMasterToggle) {
