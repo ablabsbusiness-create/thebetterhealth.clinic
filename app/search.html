@@ -1146,6 +1146,59 @@
     let allHistory = [];
     const historyDateFilters = {};
     let selectedPatientId = '';
+    const TEST_PAST_CHARTS_PATIENT_ID = 'TESTPAST001';
+
+    function buildDemoMeasurementEntry(daysAgo, values) {
+      const measuredAt = new Date();
+      measuredAt.setHours(10, 15, 0, 0);
+      measuredAt.setDate(measuredAt.getDate() - daysAgo);
+
+      return {
+        createdAtIso: measuredAt.toISOString(),
+        createdAtDisplay: measuredAt.toLocaleString('en-IN'),
+        charts: ['Weight', 'Height', 'Head Circumference-for-Age'],
+        age: '',
+        source: 'demo-test-patient',
+        ...values
+      };
+    }
+
+    function createTestPastChartsPatient() {
+      const measurementHistory = [
+        buildDemoMeasurementEntry(84, { weight: '11.2', height: '84.1', head: '47.2', spo2: '99', pulse: '108', systolic: '88', diastolic: '54', temp: '36.8' }),
+        buildDemoMeasurementEntry(68, { weight: '11.4', height: '84.9', head: '47.3', spo2: '99', pulse: '104', systolic: '90', diastolic: '56', temp: '36.7' }),
+        buildDemoMeasurementEntry(52, { weight: '11.7', height: '85.7', head: '47.5', spo2: '98', pulse: '102', systolic: '90', diastolic: '58', temp: '36.9' }),
+        buildDemoMeasurementEntry(36, { weight: '12.0', height: '86.4', head: '47.6', spo2: '99', pulse: '100', systolic: '92', diastolic: '58', temp: '36.8' }),
+        buildDemoMeasurementEntry(19, { weight: '12.3', height: '87.2', head: '47.8', spo2: '98', pulse: '98', systolic: '92', diastolic: '60', temp: '36.9' }),
+        buildDemoMeasurementEntry(5, { weight: '12.6', height: '88.0', head: '48.0', spo2: '99', pulse: '96', systolic: '94', diastolic: '60', temp: '36.7' })
+      ].sort((left, right) => new Date(right.createdAtIso) - new Date(left.createdAtIso));
+
+      return {
+        id: `demo-${TEST_PAST_CHARTS_PATIENT_ID}`,
+        patientId: TEST_PAST_CHARTS_PATIENT_ID,
+        firstName: 'Test',
+        middleName: 'Past',
+        lastName: 'Charts',
+        childName: 'Test Past Charts',
+        parentName: 'Meera Sharma',
+        gender: 'Male',
+        dob: '2023-08-14',
+        phone: '9876543210',
+        measurementHistory,
+        lastMeasurementRecord: measurementHistory[0]
+      };
+    }
+
+    function withTestPastChartsPatient(patients) {
+      const nextPatients = Array.isArray(patients) ? [...patients] : [];
+      const hasDemoPatient = nextPatients.some((patient) => String(patient?.patientId || '').trim().toUpperCase() === TEST_PAST_CHARTS_PATIENT_ID);
+
+      if (!hasDemoPatient) {
+        nextPatients.push(createTestPastChartsPatient());
+      }
+
+      return nextPatients;
+    }
 
     function setStatus(message, tone = '') {
       statusNote.textContent = message;
@@ -1700,9 +1753,9 @@
 
     async function loadPatients() {
       if (!db) {
-        updateCount(0);
-        renderPlaceholder('Firebase is not configured for patient search.');
-        setStatus('Firebase is not configured, so patients cannot be loaded.', 'warning');
+        allPatients = withTestPastChartsPatient([]).sort(sortByPatientName);
+        filterPatients();
+        setStatus('Firebase is not configured. Showing the built-in test patient for chart testing.', 'warning');
         return;
       }
 
@@ -1785,7 +1838,7 @@
           });
         });
 
-        allPatients = mergedPatients.sort(sortByPatientName);
+        allPatients = withTestPastChartsPatient(mergedPatients).sort(sortByPatientName);
 
         if (allPatients.length === 0) {
           updateCount(0);
@@ -1796,9 +1849,9 @@
 
         filterPatients();
       } catch (error) {
-        updateCount(0);
-        renderPlaceholder('The patient list could not be loaded right now.');
-        setStatus(`Unable to load patients: ${error.message}`, 'warning');
+        allPatients = withTestPastChartsPatient([]).sort(sortByPatientName);
+        filterPatients();
+        setStatus(`Unable to load Firebase patients: ${error.message}. Showing the built-in test patient instead.`, 'warning');
       }
     }
 
