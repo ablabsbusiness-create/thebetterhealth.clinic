@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'node:path';
-import { cpSync } from 'node:fs';
+import { cpSync, existsSync } from 'node:fs';
 
 export default defineConfig({
   root: __dirname,
@@ -16,8 +16,11 @@ export default defineConfig({
       name: 'copy-iap-assets',
       closeBundle() {
         const distAssets = resolve(__dirname, 'dist', 'assets');
-        cpSync(resolve(__dirname, 'assets', 'iap-svg'), resolve(distAssets, 'iap-svg'), { recursive: true });
-        cpSync(resolve(__dirname, 'assets', 'iap-jpg'), resolve(distAssets, 'iap-jpg'), { recursive: true });
+        const generatedChartAssets = resolve(__dirname, 'assets', 'iap-official-png');
+
+        if (existsSync(generatedChartAssets)) {
+          cpSync(generatedChartAssets, resolve(distAssets, 'iap-official-png'), { recursive: true });
+        }
       }
     }
   ],
