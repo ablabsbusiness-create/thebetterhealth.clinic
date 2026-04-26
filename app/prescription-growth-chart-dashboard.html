@@ -285,28 +285,14 @@
       gap: 10px;
     }
 
-    .history-toggle-btn {
-      width: auto;
-      min-height: 40px;
-      padding: 0 14px;
-      border-radius: 999px;
-      background: linear-gradient(135deg, #166534, #22c55e);
-      color: #fff;
-      box-shadow: 0 12px 24px rgba(22, 101, 52, 0.18);
-    }
-
     .history-inline-panel {
-      display: none;
+      display: grid;
       gap: 14px;
       margin: 0;
       padding: 14px;
       border: 1px solid var(--line);
       border-radius: 18px;
       background: linear-gradient(180deg, rgba(250, 253, 250, 0.98), rgba(243, 249, 244, 0.96));
-    }
-
-    .history-inline-panel.is-open {
-      display: grid;
     }
 
     .history-panel-head {
@@ -839,7 +825,6 @@
       transform: translateY(-1px);
     }
 
-    .history-toggle-btn,
     .history-edit-btn {
       width: auto;
     }
@@ -1037,11 +1022,6 @@
 
       .section-head-actions {
         width: 100%;
-      }
-
-      .history-toggle-btn {
-        width: 100%;
-        min-height: 42px;
       }
 
       .history-panel-head {
@@ -1249,9 +1229,6 @@
               <div>
                 <div class="section-kicker">Step 1</div>
                 <h2 class="section-title">Vitals</h2>
-              </div>
-              <div class="section-head-actions">
-                <button id="history-toggle" class="history-toggle-btn" type="button" aria-controls="history-panel" aria-expanded="false">Past entries</button>
               </div>
             </div>
 
@@ -1462,7 +1439,6 @@
     const genderInput = document.getElementById('gender-value');
     const dobInput = document.getElementById('dob');
     const ageInput = document.getElementById('age');
-    const historyToggle = document.getElementById('history-toggle');
     const historyPanel = document.getElementById('history-panel');
     const historyList = document.getElementById('history-list');
     const historyDrawerSummary = document.getElementById('history-drawer-summary');
@@ -1926,12 +1902,6 @@
       activeHistoryEditKey = '';
       historyPageIndex = 0;
       renderHistoryDrawer();
-    }
-
-    function toggleHistoryPanel(forceOpen = null) {
-      const shouldOpen = forceOpen === null ? !historyPanel.classList.contains('is-open') : forceOpen;
-      historyPanel.classList.toggle('is-open', shouldOpen);
-      historyToggle.setAttribute('aria-expanded', String(shouldOpen));
     }
 
     function loadHistoryEntryIntoForm(entry) {
@@ -2517,7 +2487,6 @@
       });
     }
 
-    historyToggle.addEventListener('click', () => toggleHistoryPanel());
     historyPrev.addEventListener('click', () => {
       if (historyPageIndex <= 0) {
         return;
@@ -2550,7 +2519,6 @@
       }
 
       loadHistoryEntryIntoForm(targetEntry);
-      toggleHistoryPanel(false);
     });
 
     downloadBtn.addEventListener('click', async () => {
