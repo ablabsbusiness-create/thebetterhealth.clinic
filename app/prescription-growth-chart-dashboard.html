@@ -249,8 +249,8 @@
       min-width: 0;
     }
 
-    .section-head-actions,
-    .metric-history-control {
+    .metric-date-count,
+    .metric-history-list {
       display: none;
     }
 
@@ -2158,10 +2158,6 @@
     }
 
     function renderMetricHistoryPanels() {
-      if (metricHistoryMasterToggle) {
-        metricHistoryMasterToggle.checked = false;
-      }
-
       Object.keys(metricInputs).forEach((metricKey) => {
         const historyList = document.querySelector(`[data-metric-history-list="${metricKey}"]`);
         const toggle = document.querySelector(`[data-metric-toggle="${metricKey}"]`);
@@ -2170,10 +2166,39 @@
           return;
         }
 
-        toggle.checked = false;
-        historyList.classList.remove('is-visible');
-        historyList.innerHTML = '';
+        const isEnabled = toggle.checked;
+        historyList.classList.toggle('is-visible', isEnabled);
+
+        if (!isEnabled) {
+          historyList.innerHTML = '';
+          return;
+        }
+
+        const limit = getMetricHistoryLimit(metricKey);
+        const entries = patientGrowthHistory
+          .filter((entry) => String(entry?.[metricKey] ?? '').trim())
+          .slice(0, limit);
+
+        if (!entries.length) {
+          historyList.innerHTML = '<div class="metric-history-empty">No saved past values yet.</div>';
+          return;
+        }
+
+        historyList.innerHTML = `
+          <div class="metric-history-chip-row">
+            ${entries.map((entry) => `
+              <button type="button" class="metric-history-chip" data-metric-history-pick="${metricKey}" data-history-entry="${escapeHtml(getHistoryEntryKey(entry))}">
+                <span>${escapeHtml(formatHistoryEntryDate(entry))}</span>
+                ${escapeHtml(formatMetricValue(entry[metricKey], getMetricUnit(metricKey)))}
+              </button>
+            `).join('')}
+          </div>
+        `;
       });
+
+      if (metricHistoryMasterToggle) {
+        metricHistoryMasterToggle.checked = metricHistoryToggles.length > 0 && metricHistoryToggles.every((toggle) => toggle.checked);
+      }
     }
 
     function getHistoryMetricCells(entry = {}) {
@@ -2627,7 +2652,8 @@
     }
 
     function isMetricHistoryEnabled(metricKey) {
-      return false;
+      const toggle = document.querySelector(`[data-metric-toggle="${metricKey}"]`);
+      return Boolean(toggle?.checked);
     }
 
     function getMetricPlotHistory(metricKey, options = {}) {
