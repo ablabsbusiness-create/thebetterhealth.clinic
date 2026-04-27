@@ -1058,6 +1058,7 @@
   <canvas id="chart-canvas" class="template-canvas" width="1725" height="2367"></canvas>
 
   <script type="module">
+    import { jsPDF } from 'https://cdn.jsdelivr.net/npm/jspdf@3.0.3/+esm';
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
     import { addDoc, collection, getFirestore, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
 
@@ -1504,7 +1505,9 @@
 
       const result = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(result.error || 'Chart generation failed.');
+        const error = new Error(result.error || 'Chart generation failed.');
+        error.status = response.status;
+        throw error;
       }
 
       return result;
@@ -1517,6 +1520,37 @@
         byteNumbers[index] = byteCharacters.charCodeAt(index);
       }
       return new Blob([new Uint8Array(byteNumbers)], { type: mimeType });
+    }
+
+    function buildPdfBlobFromPreviewPages() {
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      generatedPreviewPages.forEach((preview, index) => {
+        if (index > 0) {
+          pdf.addPage('a4', 'portrait');
+        }
+
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const margin = 10;
+        const usableWidth = pageWidth - margin * 2;
+        const usableHeight = pageHeight - 24;
+        const imageWidth = preview.width || chartCanvas.width || 1725;
+        const imageHeight = preview.height || chartCanvas.height || 2367;
+        const scale = Math.min(usableWidth / imageWidth, usableHeight / imageHeight);
+        const renderWidth = imageWidth * scale;
+        const renderHeight = imageHeight * scale;
+
+        pdf.setFontSize(13);
+        pdf.text(preview.label, margin, 10);
+        pdf.addImage(preview.dataUrl, 'PNG', margin, 14, renderWidth, renderHeight, undefined, 'FAST');
+      });
+
+      return pdf.output('blob');
     }
 
     function getPatientData() {
@@ -1761,10 +1795,24 @@
         return;
       }
 
-      const generatedResult = await requestPythonGeneratedCharts(buildChartGenerationPayload());
-      generatedPreviewPages = Array.isArray(generatedResult.pages) ? generatedResult.pages.filter((preview) => preview?.dataUrl) : [];
-      generatedPdfBase64 = typeof generatedResult.pdfBase64 === 'string' ? generatedResult.pdfBase64 : '';
-      await renderCanvasFromGeneratedPreview(generatedPreviewPages[0] || null);
+      try {
+        const generatedResult = await requestPythonGeneratedCharts(buildChartGenerationPayload());
+        generatedPreviewPages = Array.isArray(generatedResult.pages) ? generatedResult.pages.filter((preview) => preview?.dataUrl) : [];
+        generatedPdfBase64 = typeof generatedResult.pdfBase64 === 'string' ? generatedResult.pdfBase64 : '';
+        await renderCanvasFromGeneratedPreview(generatedPreviewPages[0] || null);
+      } catch (error) {
+        await renderAllGeneratedPreviews();
+        generatedPdfBase64 = '';
+        await renderCanvasFromGeneratedPreview(generatedPreviewPages[0] || null);
+
+        const warnings = buildWarnings(selectedValues, patientData);
+        const fallbackNote = 'Python chart service is unavailable, so the chart was generated in browser mode.';
+        setChartPreviewMessage(
+          `Generated ${generatedPreviewPages.length} chart${generatedPreviewPages.length === 1 ? '' : 's'} for download. ${fallbackNote}${warnings.length ? ` ${warnings.join(' ')}` : ''}`,
+          'warning'
+        );
+        return;
+      }
 
       const warnings = buildWarnings(selectedValues, patientData);
       if (warnings.length > 0) {
@@ -1853,13 +1901,15 @@
     });
 
     downloadBtn.addEventListener('click', () => {
-      if (generatedPreviewPages.length === 0 || !generatedPdfBase64) {
+      if (generatedPreviewPages.length === 0) {
         statusNote.textContent = 'Generate the available charts before downloading the PDF.';
         statusNote.classList.add('visible');
         return;
       }
 
-      const pdfBlob = decodeBase64ToBlob(generatedPdfBase64, 'application/pdf');
+      const pdfBlob = generatedPdfBase64
+        ? decodeBase64ToBlob(generatedPdfBase64, 'application/pdf')
+        : buildPdfBlobFromPreviewPages();
       const downloadUrl = URL.createObjectURL(pdfBlob);
       const downloadLink = document.createElement('a');
       downloadLink.href = downloadUrl;
