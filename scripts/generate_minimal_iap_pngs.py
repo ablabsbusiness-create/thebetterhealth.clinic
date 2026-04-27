@@ -33,8 +33,13 @@ def sx(value: int | float) -> int:
     return round(value * SCALE)
 
 
-def load_font(size: int) -> ImageFont.ImageFont:
-    for font_name in ("arial.ttf", "Arial.ttf", "DejaVuSans.ttf"):
+def load_font(size: int, *, bold: bool = False) -> ImageFont.ImageFont:
+    font_names = (
+        ("arialbd.ttf", "Arial Bold.ttf", "DejaVuSans-Bold.ttf")
+        if bold
+        else ("arial.ttf", "Arial.ttf", "DejaVuSans.ttf")
+    )
+    for font_name in font_names:
         try:
             return ImageFont.truetype(font_name, sx(size))
         except OSError:
@@ -42,8 +47,8 @@ def load_font(size: int) -> ImageFont.ImageFont:
     return ImageFont.load_default()
 
 
-LABEL_FONT = load_font(9)
-PERCENTILE_FONT = load_font(8)
+LABEL_FONT = load_font(9, bold=True)
+PERCENTILE_FONT = load_font(8, bold=True)
 
 
 def cubic_points(p0, p1, p2, p3, steps: int = 48):
@@ -121,14 +126,20 @@ def text_center(draw: ImageDraw.ImageDraw, xy, text: str, font, fill):
     bbox = draw.textbbox((0, 0), text, font=font)
     width = bbox[2] - bbox[0]
     height = bbox[3] - bbox[1]
-    draw.text((xy[0] - width / 2, xy[1] - height / 2), text, font=font, fill=fill)
+    text_x = xy[0] - width / 2
+    text_y = xy[1] - height / 2
+    draw.text((text_x, text_y), text, font=font, fill=fill)
+    draw.text((text_x + sx(0.22), text_y), text, font=font, fill=fill)
 
 
 def text_right(draw: ImageDraw.ImageDraw, xy, text: str, font, fill):
     bbox = draw.textbbox((0, 0), text, font=font)
     width = bbox[2] - bbox[0]
     height = bbox[3] - bbox[1]
-    draw.text((xy[0] - width, xy[1] - height / 2), text, font=font, fill=fill)
+    text_x = xy[0] - width
+    text_y = xy[1] - height / 2
+    draw.text((text_x, text_y), text, font=font, fill=fill)
+    draw.text((text_x + sx(0.22), text_y), text, font=font, fill=fill)
 
 
 def draw_axes(draw: ImageDraw.ImageDraw, x: int, y: int, width: int, height: int, panel: dict):
@@ -154,7 +165,10 @@ def draw_percentiles(draw: ImageDraw.ImageDraw, kind: str, x: int, y: int, width
     top = y + 14
     step = max(14, min(18, (height - 24) // max(1, len(labels) - 1)))
     for index, label in enumerate(labels):
-        draw.text((sx(x + width + 8), sx(top + index * step - 4)), label, font=PERCENTILE_FONT, fill=PERCENTILE)
+        text_x = sx(x + width + 8)
+        text_y = sx(top + index * step - 4)
+        draw.text((text_x, text_y), label, font=PERCENTILE_FONT, fill=PERCENTILE)
+        draw.text((text_x + sx(0.22), text_y), label, font=PERCENTILE_FONT, fill=PERCENTILE)
 
 
 def render_chart(chart: dict) -> Image.Image:

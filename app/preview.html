@@ -725,7 +725,7 @@
     const CHART_ASSET_VERSION = '2026-04-25-age-years-axis-hires';
     const CHART_RENDER_MAX_WIDTH = 1600;
     const CHART_RENDER_SCALE = 6;
-    const CHART_POINT_RADIUS = 14.4;
+    const CHART_POINT_RADIUS = 144;
     const chartTemplateAxis = {
       xStart: 0.1731,
       xEnd: 0.8269,
@@ -951,7 +951,7 @@
       context.arc(x, y, CHART_POINT_RADIUS * renderScale, 0, Math.PI * 2);
       context.fillStyle = '#b91c1c';
       context.fill();
-      context.lineWidth = 3.2 * renderScale;
+      context.lineWidth = 11 * renderScale;
       context.strokeStyle = '#ffffff';
       context.stroke();
 
