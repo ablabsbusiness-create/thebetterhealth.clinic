@@ -250,8 +250,8 @@ def sort_entries(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def draw_marker(draw: ImageDraw.ImageDraw, point: tuple[float, float], image_width: int) -> None:
-    radius = max(6, round(image_width * 0.0054))
-    outline_width = max(1, round(radius * 0.35))
+    radius = max(9, round(image_width * 0.008))
+    outline_width = max(2, round(radius * 0.4))
     x, y = point
     draw.ellipse(
         (x - radius, y - radius, x + radius, y + radius),
@@ -273,7 +273,7 @@ def render_template_page(template_request: dict[str, Any], plot_series: dict[str
 
     image = Image.open(image_path).convert("RGB")
     draw = ImageDraw.Draw(image)
-    line_width = max(5, round(image.width * 0.003))
+    line_width = max(6, round(image.width * 0.0034))
 
     for metric_key in template_request.get("metrics", []):
         region = template["regions"].get(metric_key)
