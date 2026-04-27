@@ -2052,6 +2052,7 @@
     let generatedPdfBase64 = '';
     const CHART_RENDER_MAX_WIDTH = 760;
     const CHART_POINT_RADIUS = 4.5;
+    const CAN_USE_PYTHON_CHART_SERVICE = ['localhost', '127.0.0.1'].includes(window.location.hostname);
     const LOCAL_RECORD_KEY = 'growthChartRecentRecords';
 
     function calculateAgeLabel(dobValue) {
@@ -3060,6 +3061,10 @@
       }
 
       try {
+        if (!CAN_USE_PYTHON_CHART_SERVICE) {
+          throw new Error('Python chart service is not enabled for this deployment.');
+        }
+
         const generatedResult = await requestPythonGeneratedCharts(buildChartGenerationPayload());
         generatedPreviewPages = Array.isArray(generatedResult.pages) ? generatedResult.pages.filter((preview) => preview?.dataUrl) : [];
         generatedPdfBase64 = typeof generatedResult.pdfBase64 === 'string' ? generatedResult.pdfBase64 : '';
@@ -3071,7 +3076,9 @@
         await renderCanvasFromGeneratedPreview(generatedPreviewPages[0] || null);
 
         const warnings = buildWarnings(selectedValues, patientData);
-        const fallbackNote = 'Python chart service is unavailable, so the chart was generated in browser mode.';
+        const fallbackNote = CAN_USE_PYTHON_CHART_SERVICE
+          ? 'Python chart service is unavailable, so the chart was generated in browser mode.'
+          : 'This deployment is using browser chart rendering.';
         setChartPreviewMessage(
           `Generated ${generatedPreviewPages.length} chart${generatedPreviewPages.length === 1 ? '' : 's'} for download. ${fallbackNote}${warnings.length ? ` ${warnings.join(' ')}` : ''}`,
           'warning'
