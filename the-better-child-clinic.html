@@ -8,7 +8,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet" />
-
   <script>
     tailwind.config = {
       theme: {
@@ -1079,7 +1078,7 @@
             Appointment requests from this page can be saved into your Google Sheet after you add your Google Apps Script web app URL below.
           </div>
 
-          <form id="booking-form" class="space-y-4 px-4 pb-2 md:px-5">
+          <form id="booking-form" class="space-y-4 px-4 pb-2 md:px-5" method="POST">
             <!-- Parent Name -->
             <div>
               <label for="parent-name" class="block text-sm font-semibold text-brand-dark mb-1.5">Parent's Name</label>
@@ -1113,6 +1112,9 @@
               <label for="visit-note" class="block text-sm font-semibold text-brand-dark mb-1.5">Reason for Visit</label>
               <textarea id="visit-note" name="visit_note" rows="4" placeholder="Fever, cough, vaccination, follow-up, or any notes for the doctor" class="w-full px-4 py-3 rounded-2xl border border-gray-200 text-sm font-medium text-brand-dark placeholder-gray-400 resize-none"></textarea>
             </div>
+
+            <input type="hidden" name="submitted_from" value="The Better Kids Clinic website" />
+            <input type="hidden" id="submitted-at" name="submitted_at" value="" />
 
             <!-- Submit -->
             <button id="booking-submit" type="submit" class="w-full bg-brand-orange hover:bg-brand-orange-dark text-white font-bold py-3.5 rounded-full shadow-orange transition-colors mt-2">
@@ -1265,6 +1267,10 @@
       mobileMenu.classList.remove('open');
     }
 
+    if (!document.getElementById('booking-submit-frame')) {
+      document.body.insertAdjacentHTML('beforeend', '<iframe name="booking-submit-frame" id="booking-submit-frame" class="hidden" tabindex="-1" aria-hidden="true"></iframe>');
+    }
+
     if (!document.getElementById('scroll-booking-mascot')) {
       document.body.insertAdjacentHTML('beforeend', `
         <a href="#contact" id="scroll-booking-mascot" class="scroll-booking-mascot" aria-label="Book appointment">
@@ -1378,9 +1384,26 @@
     const bookingForm = document.getElementById('booking-form');
     const bookingSubmit = document.getElementById('booking-submit');
     const bookingStatus = document.getElementById('booking-status');
+    const bookingSubmitFrame = document.getElementById('booking-submit-frame');
+    const submittedAtField = document.getElementById('submitted-at');
 
-    if (bookingForm && bookingSubmit && bookingStatus) {
-      bookingForm.addEventListener('submit', async (event) => {
+    if (bookingForm && bookingSubmit && bookingStatus && bookingSubmitFrame && submittedAtField) {
+      let bookingSubmissionActive = false;
+
+      bookingForm.action = GOOGLE_SHEET_WEB_APP_URL;
+      bookingForm.target = 'booking-submit-frame';
+
+      bookingSubmitFrame.addEventListener('load', () => {
+        if (!bookingSubmissionActive) return;
+        bookingSubmissionActive = false;
+        bookingForm.reset();
+        bookingStatus.textContent = 'Appointment request sent successfully.';
+        bookingStatus.className = 'text-sm text-center text-brand-green min-h-[1.25rem]';
+        bookingSubmit.disabled = false;
+        bookingSubmit.classList.remove('opacity-70', 'cursor-not-allowed');
+      });
+
+      bookingForm.addEventListener('submit', (event) => {
         event.preventDefault();
 
         if (GOOGLE_SHEET_WEB_APP_URL === 'PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
@@ -1393,28 +1416,9 @@
         bookingSubmit.classList.add('opacity-70', 'cursor-not-allowed');
         bookingStatus.textContent = 'Sending appointment request...';
         bookingStatus.className = 'text-sm text-center text-gray-500 min-h-[1.25rem]';
-
-        try {
-          const formData = new FormData(bookingForm);
-          formData.append('submitted_from', 'The Better Kids Clinic website');
-          formData.append('submitted_at', new Date().toISOString());
-
-          await fetch(GOOGLE_SHEET_WEB_APP_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: new URLSearchParams(formData)
-          });
-
-          bookingForm.reset();
-          bookingStatus.textContent = 'Appointment request sent successfully.';
-          bookingStatus.className = 'text-sm text-center text-brand-green min-h-[1.25rem]';
-        } catch (error) {
-          bookingStatus.textContent = 'Could not send right now. Please try again.';
-          bookingStatus.className = 'text-sm text-center text-red-500 min-h-[1.25rem]';
-        } finally {
-          bookingSubmit.disabled = false;
-          bookingSubmit.classList.remove('opacity-70', 'cursor-not-allowed');
-        }
+        submittedAtField.value = new Date().toISOString();
+        bookingSubmissionActive = true;
+        bookingForm.submit();
       });
     }
 
