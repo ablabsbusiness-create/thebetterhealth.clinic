@@ -242,50 +242,92 @@
 
     .content-layout {
       display: grid;
-      grid-template-columns: minmax(0, 720px) minmax(120px, 1fr);
-      gap: 28px;
+      grid-template-columns: 1fr;
+      gap: 20px;
       align-items: start;
-    }
-
-    .side-panel-stack {
-      position: sticky;
-      top: 22px;
-      display: grid;
-      gap: 18px;
-      align-self: start;
-    }
-
-    .side-placeholder-card {
-      display: grid;
-      gap: 10px;
-      padding: 18px;
-      border-radius: 20px;
-      border: 1px solid var(--line);
-      background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(244, 250, 245, 0.96));
-      box-shadow: 0 16px 30px rgba(22, 38, 29, 0.05);
-    }
-
-    .side-placeholder-card[hidden] {
-      display: none;
-    }
-
-    .side-placeholder-card h2 {
-      margin: 0;
-      font-size: 22px;
-    }
-
-    .side-placeholder-card p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.6;
     }
 
     .card-grid {
       display: grid;
       grid-template-columns: 1fr;
       gap: 18px;
+    }
+
+    .section-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .section-row.has-detail-slot {
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+      position: relative;
+      align-items: stretch;
+    }
+
+    .section-detail-slot {
+      display: none;
+      gap: 12px;
+      align-self: stretch;
+      position: relative;
+      padding-left: 18px;
+    }
+
+    .section-detail-slot.is-ready {
+      display: grid;
+    }
+
+    .section-detail-slot::before {
+      content: '';
+      position: absolute;
+      top: 8px;
+      bottom: 8px;
+      left: 0;
+      width: 1px;
+      background: linear-gradient(180deg, rgba(22, 101, 52, 0.08), rgba(22, 101, 52, 0.24), rgba(22, 101, 52, 0.08));
+      border-radius: 999px;
+    }
+
+    .section-detail-slot::after {
+      content: '';
+      position: absolute;
+      top: calc(50% - 8px);
+      left: -5px;
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: #dcfce7;
+      border: 1px solid rgba(22, 101, 52, 0.18);
+      box-shadow: 0 0 0 6px rgba(220, 252, 231, 0.65);
+    }
+
+    .section-side-placeholder {
+      display: grid;
+      gap: 10px;
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(244, 250, 245, 0.96));
+      box-shadow: 0 12px 24px rgba(22, 38, 29, 0.05);
+    }
+
+    .section-side-placeholder[hidden] {
+      display: none;
+    }
+
+    .section-side-placeholder h3 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .section-side-placeholder p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
     }
 
     .page-action-row {
@@ -318,6 +360,7 @@
 
     .rx-card {
       display: grid;
+      align-content: start;
       gap: 16px;
       padding: 18px;
       border-radius: 20px;
@@ -468,8 +511,10 @@
 
     .medicine-detail-panel {
       width: 100%;
+      height: 100%;
       max-height: none;
       display: grid;
+      align-content: start;
       gap: 0;
       padding: 0;
       border-radius: 22px;
@@ -666,17 +711,19 @@
       display: grid;
       width: 100%;
       min-width: 0;
-      gap: 0;
-      padding: 0;
+      gap: 12px;
+      padding: 14px;
       border-radius: 18px;
       border: 1px solid rgba(215, 226, 217, 0.95);
-      background: #fff;
+      background: linear-gradient(180deg, #ffffff, #f8fbf9);
       scroll-snap-align: start;
-      overflow: hidden;
+      overflow: visible;
       box-shadow: 0 16px 32px rgba(22, 38, 29, 0.06);
     }
 
     .medicine-table-body {
+      display: grid;
+      gap: 12px;
       max-height: calc(98vh - 270px);
       overflow-y: auto;
       scrollbar-width: thin;
@@ -686,9 +733,10 @@
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      padding: 10px 14px;
-      border-bottom: 1px solid #eef2f7;
-      background: #fbfdff;
+      padding: 12px 14px;
+      border: 1px solid #dbe7de;
+      border-radius: 16px;
+      background: linear-gradient(180deg, #fbfdff, #f3f8ff);
       color: #475569;
       font-size: 12px;
       font-weight: 700;
@@ -703,19 +751,23 @@
     .medicine-question {
       display: grid;
       gap: 0;
+      border: 1px solid #dbe5f5;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #ffffff;
+      box-shadow: 0 8px 18px rgba(22, 38, 29, 0.04);
     }
 
     .question-bar {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      min-height: 34px;
-      padding: 0 14px;
+      min-height: 40px;
+      padding: 8px 14px;
       background: #e7eefb;
       color: #1e3a5f;
       font-size: 13px;
       font-weight: 700;
-      border-top: 1px solid #dbe5f5;
     }
 
     .dose-unit-select,
@@ -948,11 +1000,12 @@
     .note-area {
       display: grid;
       gap: 8px;
-      position: sticky;
-      bottom: 0;
-      z-index: 2;
-      border-top: 1px solid #dbe5f5;
+      position: static;
+      border: 1px solid #dbe5f5;
+      border-radius: 16px;
+      overflow: hidden;
       background: #fff;
+      box-shadow: 0 8px 18px rgba(22, 38, 29, 0.04);
     }
 
     .note-area textarea {
@@ -1111,13 +1164,17 @@
         padding: 16px;
       }
 
-      .content-layout {
+      .section-row.has-detail-slot {
         grid-template-columns: 1fr;
       }
 
-      .side-panel-stack {
-        position: static;
-        top: auto;
+      .section-detail-slot {
+        padding-left: 0;
+      }
+
+      .section-detail-slot::before,
+      .section-detail-slot::after {
+        display: none;
       }
 
       .status-chip {
@@ -1283,86 +1340,81 @@
           </article>
 
         </div>
-        <aside class="side-panel-stack">
-          <div id="side-placeholder-card" class="side-placeholder-card">
-            <div class="eyebrow">Side panel</div>
-            <h2>Questions & details</h2>
-            <p>Select a symptom, finding, or medicine and its questions will open here beside the cards.</p>
-          </div>
-
-          <div id="medicine-modal" class="medicine-modal" aria-hidden="true">
-            <aside id="medicine-detail-panel" class="medicine-detail-panel" role="dialog" aria-modal="false" aria-labelledby="medicine-modal-title">
-              <div class="medicine-modal-head">
-                <div class="medicine-modal-title-wrap">
-                  <h2 id="medicine-modal-title">Medication Details</h2>
-                  <p></p>
-                </div>
-                <button id="medicine-modal-close" class="modal-close-btn" type="button" aria-label="Close medication details">x</button>
-              </div>
-              <div id="medicine-detail-content" class="medicine-detail-content medicine-empty">
-                No medication selected yet.
-              </div>
-            </aside>
-          </div>
-
-          <div id="selection-detail-modal" class="medicine-modal" aria-hidden="true">
-            <aside class="medicine-detail-panel" role="dialog" aria-modal="false" aria-labelledby="selection-detail-title">
-              <div class="medicine-modal-head">
-                <div class="medicine-modal-title-wrap">
-                  <h2 id="selection-detail-title">Selection Details</h2>
-                  <p id="selection-detail-subtitle"></p>
-                </div>
-                <button id="selection-detail-close" class="modal-close-btn" type="button" aria-label="Close selection details">x</button>
-              </div>
-              <div id="selection-detail-content" class="medicine-detail-content"></div>
-            </aside>
-          </div>
-
-          <div id="add-medicine-modal" class="medicine-modal" aria-hidden="true">
-            <aside class="add-medicine-panel" role="dialog" aria-modal="false" aria-labelledby="add-medicine-title">
-              <form id="add-medicine-form" class="add-medicine-form">
-                <div class="add-medicine-head">
-                  <button id="add-medicine-back" class="modal-close-btn add-medicine-back" type="button" aria-label="Back to medication search">&larr;</button>
-                  <h2 id="add-medicine-title">Add New Medicine</h2>
-                  <button class="add-medicine-save" type="submit">Save</button>
-                </div>
-                <div class="add-medicine-body">
-                  <label class="add-medicine-field" for="add-medicine-name">
-                    <span>Medicine Name</span>
-                    <input id="add-medicine-name" name="name" type="text" autocomplete="off" placeholder="Enter medicine name">
-                  </label>
-                  <label class="add-medicine-field" for="add-medicine-type">
-                    <span>Medicine Type</span>
-                    <select id="add-medicine-type" name="type">
-                      <option value="">Select type</option>
-                      <option value="Syrup">Syrup</option>
-                      <option value="Drops">Drops</option>
-                      <option value="Tablet">Tablet</option>
-                      <option value="Capsule">Capsule</option>
-                      <option value="Suspension">Suspension</option>
-                      <option value="Inhaler">Inhaler</option>
-                      <option value="Nebulization">Nebulization</option>
-                      <option value="Injection">Injection</option>
-                      <option value="Cream/Ointment">Cream/Ointment</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </label>
-                  <label class="add-medicine-field is-full" for="add-medicine-composition">
-                    <span>Medicine Composition</span>
-                    <input id="add-medicine-composition" name="composition" type="text" autocomplete="off" placeholder="Enter composition">
-                  </label>
-                </div>
-                <p id="add-medicine-error" class="add-medicine-error" role="alert">Medicine name is required.</p>
-              </form>
-            </aside>
-          </div>
-        </aside>
       </div>
 
       <div class="page-action-row">
         <a id="continue-preview-btn" class="btn-primary" href="preview.html">Continue</a>
       </div>
     </section>
+  </div>
+
+  <div id="detail-panel-templates" hidden>
+    <div id="medicine-modal" class="medicine-modal" aria-hidden="true">
+      <aside id="medicine-detail-panel" class="medicine-detail-panel" role="dialog" aria-modal="false" aria-labelledby="medicine-modal-title">
+        <div class="medicine-modal-head">
+          <div class="medicine-modal-title-wrap">
+            <h2 id="medicine-modal-title">Medication Details</h2>
+            <p></p>
+          </div>
+          <button id="medicine-modal-close" class="modal-close-btn" type="button" aria-label="Close medication details">x</button>
+        </div>
+        <div id="medicine-detail-content" class="medicine-detail-content medicine-empty">
+          No medication selected yet.
+        </div>
+      </aside>
+    </div>
+
+    <div id="selection-detail-modal" class="medicine-modal" aria-hidden="true">
+      <aside class="medicine-detail-panel" role="dialog" aria-modal="false" aria-labelledby="selection-detail-title">
+        <div class="medicine-modal-head">
+          <div class="medicine-modal-title-wrap">
+            <h2 id="selection-detail-title">Selection Details</h2>
+            <p id="selection-detail-subtitle"></p>
+          </div>
+          <button id="selection-detail-close" class="modal-close-btn" type="button" aria-label="Close selection details">x</button>
+        </div>
+        <div id="selection-detail-content" class="medicine-detail-content"></div>
+      </aside>
+    </div>
+
+    <div id="add-medicine-modal" class="medicine-modal" aria-hidden="true">
+      <aside class="add-medicine-panel" role="dialog" aria-modal="false" aria-labelledby="add-medicine-title">
+        <form id="add-medicine-form" class="add-medicine-form">
+          <div class="add-medicine-head">
+            <button id="add-medicine-back" class="modal-close-btn add-medicine-back" type="button" aria-label="Back to medication search">&larr;</button>
+            <h2 id="add-medicine-title">Add New Medicine</h2>
+            <button class="add-medicine-save" type="submit">Save</button>
+          </div>
+          <div class="add-medicine-body">
+            <label class="add-medicine-field" for="add-medicine-name">
+              <span>Medicine Name</span>
+              <input id="add-medicine-name" name="name" type="text" autocomplete="off" placeholder="Enter medicine name">
+            </label>
+            <label class="add-medicine-field" for="add-medicine-type">
+              <span>Medicine Type</span>
+              <select id="add-medicine-type" name="type">
+                <option value="">Select type</option>
+                <option value="Syrup">Syrup</option>
+                <option value="Drops">Drops</option>
+                <option value="Tablet">Tablet</option>
+                <option value="Capsule">Capsule</option>
+                <option value="Suspension">Suspension</option>
+                <option value="Inhaler">Inhaler</option>
+                <option value="Nebulization">Nebulization</option>
+                <option value="Injection">Injection</option>
+                <option value="Cream/Ointment">Cream/Ointment</option>
+                <option value="Other">Other</option>
+              </select>
+            </label>
+            <label class="add-medicine-field is-full" for="add-medicine-composition">
+              <span>Medicine Composition</span>
+              <input id="add-medicine-composition" name="composition" type="text" autocomplete="off" placeholder="Enter composition">
+            </label>
+          </div>
+          <p id="add-medicine-error" class="add-medicine-error" role="alert">Medicine name is required.</p>
+        </form>
+      </aside>
+    </div>
   </div>
 
   <script type="module">
@@ -1374,7 +1426,7 @@
     const navLinks = [...document.querySelectorAll('#primary-nav .nav-link')];
     const rxCards = [...document.querySelectorAll('.rx-card')];
     const statusChip = document.querySelector('.status-chip');
-    const sidePlaceholderCard = document.getElementById('side-placeholder-card');
+    const cardGrid = document.querySelector('.card-grid');
     const medicineModal = document.getElementById('medicine-modal');
     const medicineModalClose = document.getElementById('medicine-modal-close');
     const medicineModalTitle = document.getElementById('medicine-modal-title');
@@ -1404,6 +1456,8 @@
     let activeSelectionDetail = null;
     let lastAddMedicineTrigger = null;
     let pendingAddMedicineResolve = null;
+    const sectionDetailSlots = new Map();
+    const DETAIL_SECTIONS = new Set(['Symptoms', 'Finding', 'Medication']);
     const MEDICINE_DETAIL_STORAGE_KEY = 'prescriptionMedicineDetails';
     const CUSTOM_TEMPLATE_STORAGE_KEY = 'prescriptionCustomTemplates';
     const PRESCRIPTION_DRAFT_STORAGE_KEY = 'prescriptionDraft';
@@ -1463,23 +1517,90 @@
 
     let lastMedicineTrigger = null;
 
-    function showSidePanel(activePanel = null) {
-      [medicineModal, selectionDetailModal, addMedicineModal].forEach((panel) => {
-        const isActive = panel === activePanel;
-        panel.classList.toggle('is-open', isActive);
-        panel.setAttribute('aria-hidden', String(!isActive));
+    function getSectionPlaceholderCopy(sectionName) {
+      if (sectionName === 'Medication') {
+        return 'Select a medicine to set dose, timing, duration, and notes here.';
+      }
+
+      if (sectionName === 'Symptoms') {
+        return 'Select a symptom and its days, severity, and notes will appear here.';
+      }
+
+      if (sectionName === 'Finding') {
+        return 'Select a finding and its note box will appear here.';
+      }
+
+      return 'Extra details for this section will appear here.';
+    }
+
+    function createSectionDetailSlot(sectionName) {
+      const slot = document.createElement('aside');
+      slot.className = 'section-detail-slot';
+      slot.dataset.sectionSlot = sectionName;
+      slot.innerHTML = `
+        <div class="section-side-placeholder">
+          <div class="eyebrow">${escapeHtml(sectionName)}</div>
+          <h3>${escapeHtml(sectionName)} details</h3>
+          <p>${escapeHtml(getSectionPlaceholderCopy(sectionName))}</p>
+        </div>
+      `;
+      return slot;
+    }
+
+    function setupSectionRows() {
+      rxCards.forEach((card) => {
+        const sectionName = card.querySelector('h2')?.textContent.trim() || '';
+        const row = document.createElement('div');
+        row.className = 'section-row';
+        row.dataset.section = sectionName;
+        card.parentNode.insertBefore(row, card);
+        row.appendChild(card);
+
+        if (DETAIL_SECTIONS.has(sectionName)) {
+          row.classList.add('has-detail-slot');
+          const slot = createSectionDetailSlot(sectionName);
+          slot.classList.add('is-ready');
+          sectionDetailSlots.set(sectionName, slot);
+          row.appendChild(slot);
+        }
       });
-      sidePlaceholderCard.hidden = Boolean(activePanel);
+    }
+
+    function showSectionPanel(sectionName, activePanel = null) {
+      [medicineModal, selectionDetailModal, addMedicineModal].forEach((panel) => {
+        panel.classList.remove('is-open');
+        panel.setAttribute('aria-hidden', 'true');
+      });
+
+      sectionDetailSlots.forEach((slot, name) => {
+        const placeholder = slot.querySelector('.section-side-placeholder');
+        const isTarget = name === sectionName;
+        slot.classList.toggle('is-ready', DETAIL_SECTIONS.has(name));
+
+        if (placeholder) {
+          placeholder.hidden = isTarget && Boolean(activePanel);
+        }
+
+        if (!isTarget) {
+          return;
+        }
+
+        if (activePanel) {
+          slot.appendChild(activePanel);
+          activePanel.classList.add('is-open');
+          activePanel.setAttribute('aria-hidden', 'false');
+        }
+      });
     }
 
     function openMedicineModal(trigger = document.activeElement) {
       lastMedicineTrigger = trigger instanceof HTMLElement ? trigger : null;
-      showSidePanel(medicineModal);
+      showSectionPanel('Medication', medicineModal);
     }
 
     function closeMedicineModal() {
       syncMedicineDetailsFromDom();
-      showSidePanel(null);
+      showSectionPanel('Medication', null);
       if (lastMedicineTrigger && typeof lastMedicineTrigger.focus === 'function') {
         lastMedicineTrigger.focus();
       }
@@ -1497,7 +1618,7 @@
     }
 
     function closeAddMedicineModal(result = null) {
-      showSidePanel(null);
+      showSectionPanel('Medication', null);
       clearAddMedicineError();
 
       if (pendingAddMedicineResolve) {
@@ -1522,7 +1643,7 @@
       addMedicineName.value = toTitleCase(initialName || '');
       clearAddMedicineError();
       lastAddMedicineTrigger = trigger instanceof HTMLElement ? trigger : null;
-      showSidePanel(addMedicineModal);
+      showSectionPanel('Medication', addMedicineModal);
       window.setTimeout(() => addMedicineName.focus(), 0);
 
       return new Promise((resolve) => {
@@ -1790,13 +1911,13 @@
           </div>
         `;
 
-      showSidePanel(selectionDetailModal);
+      showSectionPanel(sectionName, selectionDetailModal);
       bindSelectionDetailInteractions();
     }
 
     function closeSelectionDetailModal() {
       syncSelectionDetailsFromDom();
-      showSidePanel(null);
+      showSectionPanel(activeSelectionDetail?.sectionName || 'Symptoms', null);
       if (activeSelectionDetail?.trigger && typeof activeSelectionDetail.trigger.focus === 'function') {
         activeSelectionDetail.trigger.focus();
       }
@@ -2607,6 +2728,8 @@
       statusChip.textContent = 'Prescription collection synced';
       return Object.fromEntries(entries);
     }
+
+    setupSectionRows();
 
     const sectionMap = new Map(rxCards.map((card) => [card.querySelector('h2').textContent.trim(), card]));
     const sectionBindings = new Map();

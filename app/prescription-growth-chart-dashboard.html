@@ -1720,7 +1720,6 @@
   <canvas id="chart-canvas" class="template-canvas" width="1725" height="2367"></canvas>
 
   <script type="module">
-    import { jsPDF } from 'https://cdn.jsdelivr.net/npm/jspdf@3.0.3/+esm';
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
     import { addDoc, arrayUnion, collection, doc, getDoc, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     import { getDownloadURL, getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
@@ -2049,6 +2048,7 @@
     const templateImages = new Map();
     let generatedTemplates = [];
     let generatedPreviewPages = [];
+    let generatedPdfBase64 = '';
     const CHART_RENDER_MAX_WIDTH = 760;
     const CHART_POINT_RADIUS = 3.5;
     const LOCAL_RECORD_KEY = 'growthChartRecentRecords';
@@ -2773,6 +2773,82 @@
       return true;
     }
 
+    function normalizePlotSeriesEntry(entry = {}) {
+      return {
+        measuredAt: entry.measuredAt || entry.createdAtIso || entry.savedAt || entry.createdAtDisplay || new Date().toISOString(),
+        weight: entry.weight || '',
+        height: entry.height || '',
+        head: entry.head || ''
+      };
+    }
+
+    function buildChartGenerationPayload() {
+      return {
+        dob: dobInput.value,
+        templateRequests: generatedTemplates.map((template) => ({
+          key: template.key,
+          label: template.label,
+          metrics: [...template.metrics]
+        })),
+        plotSeries: {
+          weight: getChartPlotEntries('weight').map((entry) => normalizePlotSeriesEntry(entry)),
+          height: getChartPlotEntries('height').map((entry) => normalizePlotSeriesEntry(entry)),
+          head: getChartPlotEntries('head').map((entry) => normalizePlotSeriesEntry(entry)),
+          bmi: getChartPlotEntries('bmi').map((entry) => normalizePlotSeriesEntry(entry))
+        }
+      };
+    }
+
+    function loadPreviewImage(dataUrl) {
+      return new Promise((resolve, reject) => {
+        const image = new Image();
+        image.addEventListener('load', () => resolve(image));
+        image.addEventListener('error', () => reject(new Error('Unable to load the generated chart preview.')));
+        image.src = dataUrl;
+      });
+    }
+
+    async function renderCanvasFromGeneratedPreview(preview) {
+      if (!preview?.dataUrl) {
+        drawBaseTemplate(null);
+        return;
+      }
+
+      const image = await loadPreviewImage(preview.dataUrl);
+      const renderScale = Math.min(1, CHART_RENDER_MAX_WIDTH / image.naturalWidth);
+      chartCanvas.width = Math.round(image.naturalWidth * renderScale);
+      chartCanvas.height = Math.round(image.naturalHeight * renderScale);
+      chartContext.imageSmoothingEnabled = true;
+      chartContext.imageSmoothingQuality = 'high';
+      drawBaseTemplate(image);
+    }
+
+    async function requestPythonGeneratedCharts(payload) {
+      const response = await fetch('/api/growth_charts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(result.error || 'Chart generation failed.');
+      }
+
+      return result;
+    }
+
+    function decodeBase64ToBlob(base64Value, mimeType) {
+      const byteCharacters = atob(base64Value);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let index = 0; index < byteCharacters.length; index += 1) {
+        byteNumbers[index] = byteCharacters.charCodeAt(index);
+      }
+      return new Blob([new Uint8Array(byteNumbers)], { type: mimeType });
+    }
+
     function buildTemplateRequests() {
       const selectedValues = getSelectedCharts().map((option) => option.value);
       const patientData = getPatientData();
@@ -2939,15 +3015,21 @@
       const selectedValues = getSelectedCharts().map((option) => option.value);
       const patientData = getPatientData();
       generatedTemplates = buildTemplateRequests();
+      generatedPdfBase64 = '';
 
       if (generatedTemplates.length === 0) {
         setChartPreviewMessage('No matching IAP template could be selected for the entered age, gender, and chart combination.', 'warning');
         generatedPreviewPages = [];
         renderPreviewGallery();
+        drawBaseTemplate(null);
         return;
       }
 
-      await renderAllGeneratedPreviews();
+      const generatedResult = await requestPythonGeneratedCharts(buildChartGenerationPayload());
+      generatedPreviewPages = Array.isArray(generatedResult.pages) ? generatedResult.pages.filter((preview) => preview?.dataUrl) : [];
+      generatedPdfBase64 = typeof generatedResult.pdfBase64 === 'string' ? generatedResult.pdfBase64 : '';
+      renderPreviewGallery();
+      await renderCanvasFromGeneratedPreview(generatedPreviewPages[0] || null);
 
       const warnings = buildWarnings(selectedValues, patientData);
       if (warnings.length > 0) {
@@ -3147,43 +3229,16 @@
     });
 
     downloadBtn.addEventListener('click', async () => {
-      if (generatedPreviewPages.length === 0) {
+      if (generatedPreviewPages.length === 0 || !generatedPdfBase64) {
         statusNote.textContent = 'Generate the available charts before downloading the PDF.';
         statusNote.classList.add('visible');
         return;
       }
 
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
-
-      generatedPreviewPages.forEach((preview, index) => {
-        if (index > 0) {
-          pdf.addPage('a4', 'portrait');
-        }
-
-        const pageWidth = pdf.internal.pageSize.getWidth();
-        const pageHeight = pdf.internal.pageSize.getHeight();
-        const margin = 10;
-        const usableWidth = pageWidth - margin * 2;
-        const usableHeight = pageHeight - 24;
-        const imageWidth = preview.width || chartCanvas.width || 1725;
-        const imageHeight = preview.height || chartCanvas.height || 2367;
-        const scale = Math.min(usableWidth / imageWidth, usableHeight / imageHeight);
-        const renderWidth = imageWidth * scale;
-        const renderHeight = imageHeight * scale;
-
-        pdf.setFontSize(13);
-        pdf.text(preview.label, margin, 10);
-        pdf.addImage(preview.dataUrl, 'PNG', margin, 14, renderWidth, renderHeight, undefined, 'FAST');
-      });
-
       const patientId = patientIdInput.value.trim().toUpperCase() || 'UNKNOWN';
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const fileName = `${patientId}-growth-charts-${timestamp}.pdf`;
-      const pdfBlob = pdf.output('blob');
+      const pdfBlob = decodeBase64ToBlob(generatedPdfBase64, 'application/pdf');
       const downloadUrl = URL.createObjectURL(pdfBlob);
       const downloadLink = document.createElement('a');
       downloadLink.href = downloadUrl;
