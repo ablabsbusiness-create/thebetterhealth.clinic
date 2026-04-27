@@ -112,8 +112,7 @@ export default defineConfig({
         prescription: resolve(__dirname, 'prescription.html'),
         preview: resolve(__dirname, 'preview.html'),
         prescriptionGrowthChart: resolve(__dirname, 'prescription-growth-chart-dashboard.html'),
-        search: resolve(__dirname, 'search.html'),
-        history: resolve(__dirname, 'history.html')
+        search: resolve(__dirname, 'search.html')
       }
     }
   }

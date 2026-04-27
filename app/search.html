@@ -1128,6 +1128,7 @@
     const pdfPreviewLink = document.getElementById('pdf-preview-link');
     const pdfPreviewClose = document.getElementById('pdf-preview-close');
     let prescriptionPreviewObserver = null;
+    const LOCAL_PRESCRIPTION_HISTORY_KEY = 'savedPrescriptionHistory';
 
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
@@ -1227,6 +1228,24 @@
         .replaceAll("'", '&#39;')
         .replaceAll('<', '&lt;')
         .replaceAll('>', '&gt;');
+    }
+
+    function readLocalJson(key, fallback) {
+      try {
+        return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback));
+      } catch (error) {
+        return fallback;
+      }
+    }
+
+    function getLocalPrescriptionEntries() {
+      return readLocalJson(LOCAL_PRESCRIPTION_HISTORY_KEY, [])
+        .filter((entry) => entry && typeof entry === 'object')
+        .map((entry, index) => ({
+          id: entry.prescriptionSaveId || entry.id || `local-prescription-${index}`,
+          ...entry,
+          patientId: String(entry.patientId || '').trim().toUpperCase()
+        }));
     }
 
     function renderPrescriptionPreviewImage(imageElement) {
@@ -1767,10 +1786,17 @@
           console.warn(`Unable to load history records: ${error.message}`);
           return { docs: [] };
         });
-        allHistory = historySnapshot.docs.map((docSnapshot) => ({
+        const remoteHistory = historySnapshot.docs.map((docSnapshot) => ({
           id: docSnapshot.id,
           ...docSnapshot.data()
         }));
+        const localHistory = getLocalPrescriptionEntries();
+        const mergedHistoryById = new Map();
+        [...remoteHistory, ...localHistory].forEach((entry, index) => {
+          const key = entry.prescriptionSaveId || entry.id || `history-${index}`;
+          mergedHistoryById.set(key, entry);
+        });
+        allHistory = [...mergedHistoryById.values()];
 
         const patientRecords = snapshot.docs.map((docSnapshot) => ({
           id: docSnapshot.id,
@@ -1806,8 +1832,8 @@
 
           mergedPatients.push({
             ...patient,
-            measurementHistory: Array.isArray(patient.measurementHistory) ? patient.measurementHistory : historyEntries,
-            lastMeasurementRecord: patient.lastMeasurementRecord || historyEntries[0] || null
+            measurementHistory: Array.isArray(patient.measurementHistory) ? patient.measurementHistory : historyEntries.filter((entry) => entry.type !== 'prescription' && entry.source !== 'prescription-pdf'),
+            lastMeasurementRecord: patient.lastMeasurementRecord || historyEntries.find((entry) => entry.type !== 'prescription' && entry.source !== 'prescription-pdf') || null
           });
 
           if (patientId) {
@@ -1832,8 +1858,8 @@
             phone: latest.phone || '',
             gender: latest.gender || '',
             dob: latest.dob || '',
-            measurementHistory: entries,
-            lastMeasurementRecord: latest,
+            measurementHistory: entries.filter((entry) => entry.type !== 'prescription' && entry.source !== 'prescription-pdf'),
+            lastMeasurementRecord: entries.find((entry) => entry.type !== 'prescription' && entry.source !== 'prescription-pdf') || latest,
             fromHistoryOnly: true
           });
         });

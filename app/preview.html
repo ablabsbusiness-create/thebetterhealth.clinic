@@ -702,6 +702,7 @@
     const printBtn = document.getElementById('print-btn');
     const PRESCRIPTION_DRAFT_STORAGE_KEY = 'prescriptionDraft';
     const CHART_RECORD_STORAGE_KEY = 'growthChartRecentRecords';
+    const LOCAL_PRESCRIPTION_HISTORY_KEY = 'savedPrescriptionHistory';
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
       apiKey: firebaseEnv.VITE_FIREBASE_API_KEY || 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
@@ -776,6 +777,17 @@
       } catch (error) {
         return fallback;
       }
+    }
+
+    function persistLocalPrescriptionRecord(record) {
+      const existingRecords = readJson(LOCAL_PRESCRIPTION_HISTORY_KEY, []);
+      const filteredRecords = existingRecords.filter((entry) => entry?.prescriptionSaveId !== record?.prescriptionSaveId);
+      filteredRecords.push({
+        ...record,
+        patientId: String(record?.patientId || '').trim().toUpperCase(),
+        savedAt: record?.savedAt || new Date().toISOString()
+      });
+      localStorage.setItem(LOCAL_PRESCRIPTION_HISTORY_KEY, JSON.stringify(filteredRecords));
     }
 
     function getPatientIdFromUrl() {
@@ -1453,37 +1465,48 @@
     }
 
     async function savePrescriptionPdfToFirebase(pdfBlob, fileName, details, saveId) {
-      if (!db || !storage) {
-        return { ok: false, reason: 'Firebase Storage is not configured.' };
+      if (!db) {
+        return { ok: false, reason: 'Firestore is not configured.' };
       }
 
       const patientId = details.patientId || 'UNKNOWN';
       const storagePath = `prescriptions/${patientId}/${fileName}`;
-      const storageRef = ref(storage, storagePath);
       const previewFileName = fileName.replace(/\.pdf$/i, '.jpg');
       const previewStoragePath = `prescriptions/${patientId}/previews/${previewFileName}`;
-      const previewStorageRef = ref(storage, previewStoragePath);
+      let persistedStoragePath = '';
       let previewImageURL = '';
       let previewImagePath = '';
+      let downloadURL = '';
+      let warning = '';
 
-      await uploadBytes(storageRef, pdfBlob, {
-        contentType: 'application/pdf'
-      });
-      const downloadURL = await getDownloadURL(storageRef);
-
-      if (details.previewBlob) {
+      if (storage) {
         try {
-          await uploadBytes(previewStorageRef, details.previewBlob, {
-            contentType: 'image/jpeg'
+          const storageRef = ref(storage, storagePath);
+          await uploadBytes(storageRef, pdfBlob, {
+            contentType: 'application/pdf'
           });
-          previewImageURL = await getDownloadURL(previewStorageRef);
-          previewImagePath = previewStoragePath;
+          downloadURL = await getDownloadURL(storageRef);
+          persistedStoragePath = storagePath;
+
+          if (details.previewBlob) {
+            const previewStorageRef = ref(storage, previewStoragePath);
+            try {
+              await uploadBytes(previewStorageRef, details.previewBlob, {
+                contentType: 'image/jpeg'
+              });
+              previewImageURL = await getDownloadURL(previewStorageRef);
+              previewImagePath = previewStoragePath;
+            } catch (error) {
+              console.warn(`Prescription preview image upload skipped: ${error.message}`);
+            }
+          }
         } catch (error) {
-          console.warn(`Prescription preview image upload skipped: ${error.message}`);
+          warning = error.message;
+          console.warn(`Prescription PDF upload skipped: ${error.message}`);
         }
       }
 
-      await setDoc(doc(db, 'history', saveId), {
+      const historyRecord = {
         prescriptionSaveId: saveId,
         patientId,
         childName: details.childName || '',
@@ -1502,7 +1525,7 @@
         diastolic: details.diastolic || '',
         temp: details.temp || '',
         fileName,
-        storagePath,
+        storagePath: persistedStoragePath,
         previewImagePath,
         previewImageURL,
         downloadURL,
@@ -1511,9 +1534,12 @@
         createdAt: serverTimestamp(),
         createdAtIso: new Date().toISOString(),
         createdAtDisplay: new Date().toLocaleString('en-IN')
-      }, { merge: true });
+      };
 
-      return { ok: true, downloadURL, storagePath, previewImageURL, previewImagePath };
+      await setDoc(doc(db, 'history', saveId), historyRecord, { merge: true });
+      persistLocalPrescriptionRecord(historyRecord);
+
+      return { ok: true, downloadURL, storagePath: persistedStoragePath, previewImageURL, previewImagePath, warning };
     }
 
     async function ensurePrescriptionSaved() {
@@ -1555,7 +1581,7 @@
           pdfBlob,
           ...saveResult
         };
-        setPreviewStatus('Prescription saved');
+        setPreviewStatus(saveResult.warning ? `Prescription saved. ${saveResult.warning}` : 'Prescription saved');
         return savedPrescriptionRecord;
       })().catch((error) => {
         prescriptionSavePromise = null;
