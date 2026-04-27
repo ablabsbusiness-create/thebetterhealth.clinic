@@ -2051,7 +2051,7 @@
     let generatedPreviewPages = [];
     let generatedPdfBase64 = '';
     const CHART_RENDER_MAX_WIDTH = 760;
-    const CHART_POINT_RADIUS = 3.5;
+    const CHART_POINT_RADIUS = 4.5;
     const LOCAL_RECORD_KEY = 'growthChartRecentRecords';
 
     function calculateAgeLabel(dobValue) {
@@ -2754,7 +2754,7 @@
         mappedPoints.slice(1).forEach((point) => {
           chartContext.lineTo(point.x, point.y);
         });
-        chartContext.lineWidth = 2.2;
+        chartContext.lineWidth = 2.8;
         chartContext.strokeStyle = '#111111';
         chartContext.lineJoin = 'round';
         chartContext.lineCap = 'round';

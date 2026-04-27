@@ -550,8 +550,23 @@
     }
 
     .medicine-modal-title-wrap {
-      display: block;
+      display: grid;
+      gap: 4px;
       flex: 1;
+    }
+
+    .medicine-modal-title-wrap h2 {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.15;
+    }
+
+    .medicine-modal-title-wrap p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.2;
     }
 
     .modal-close-btn {
@@ -1430,6 +1445,7 @@
     const medicineModal = document.getElementById('medicine-modal');
     const medicineModalClose = document.getElementById('medicine-modal-close');
     const medicineModalTitle = document.getElementById('medicine-modal-title');
+    const medicineModalSubtitle = medicineModalTitle?.parentElement?.querySelector('p');
     const medicineDetailContent = document.getElementById('medicine-detail-content');
     const selectionDetailModal = document.getElementById('selection-detail-modal');
     const selectionDetailClose = document.getElementById('selection-detail-close');
@@ -2585,12 +2601,21 @@
 
       if (!activeMedicine || !selectedMedicines.has(activeMedicine)) {
         medicineModalTitle.textContent = 'Medication Details';
+        if (medicineModalSubtitle) {
+          medicineModalSubtitle.textContent = '';
+        }
         medicineDetailContent.className = 'medicine-detail-content medicine-empty';
         medicineDetailContent.textContent = 'Select a medication to add its dose, timing, duration, and note.';
         return;
       }
 
-      medicineModalTitle.textContent = activeMedicine;
+      const detail = getMedicineDetail(activeMedicine);
+      const titleName = detail.name || detail.displayName || activeMedicine;
+      const subtitleText = detail.composition || detail.type || '';
+      medicineModalTitle.textContent = titleName;
+      if (medicineModalSubtitle) {
+        medicineModalSubtitle.textContent = subtitleText;
+      }
       medicineDetailContent.className = 'medicine-detail-content';
 
       [activeMedicine].forEach((medicine) => {
