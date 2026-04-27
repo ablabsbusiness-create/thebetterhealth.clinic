@@ -250,8 +250,8 @@ def sort_entries(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def draw_marker(draw: ImageDraw.ImageDraw, point: tuple[float, float], image_width: int) -> None:
-    radius = max(9, round(image_width * 0.008))
-    outline_width = max(2, round(radius * 0.4))
+    radius = max(18, round(image_width * 0.016))
+    outline_width = max(3, round(radius * 0.42))
     x, y = point
     draw.ellipse(
         (x - radius, y - radius, x + radius, y + radius),
