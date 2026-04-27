@@ -956,6 +956,10 @@
         return null;
       }
 
+      if (Array.isArray(record.chartPages) && record.chartPages.some((page) => page?.dataUrl)) {
+        return record;
+      }
+
       const patientData = getChartPatientData(record);
       const requests = buildFreshChartRequests(record);
       if (!requests.length) {
@@ -1459,15 +1463,25 @@
       const previewFileName = fileName.replace(/\.pdf$/i, '.jpg');
       const previewStoragePath = `prescriptions/${patientId}/previews/${previewFileName}`;
       const previewStorageRef = ref(storage, previewStoragePath);
+      let previewImageURL = '';
+      let previewImagePath = '';
 
       await uploadBytes(storageRef, pdfBlob, {
         contentType: 'application/pdf'
       });
-      await uploadBytes(previewStorageRef, details.previewBlob, {
-        contentType: 'image/jpeg'
-      });
       const downloadURL = await getDownloadURL(storageRef);
-      const previewImageURL = await getDownloadURL(previewStorageRef);
+
+      if (details.previewBlob) {
+        try {
+          await uploadBytes(previewStorageRef, details.previewBlob, {
+            contentType: 'image/jpeg'
+          });
+          previewImageURL = await getDownloadURL(previewStorageRef);
+          previewImagePath = previewStoragePath;
+        } catch (error) {
+          console.warn(`Prescription preview image upload skipped: ${error.message}`);
+        }
+      }
 
       await setDoc(doc(db, 'history', saveId), {
         prescriptionSaveId: saveId,
@@ -1489,7 +1503,7 @@
         temp: details.temp || '',
         fileName,
         storagePath,
-        previewImagePath: previewStoragePath,
+        previewImagePath,
         previewImageURL,
         downloadURL,
         source: 'prescription-pdf',
@@ -1499,7 +1513,7 @@
         createdAtDisplay: new Date().toLocaleString('en-IN')
       }, { merge: true });
 
-      return { ok: true, downloadURL, storagePath, previewImageURL, previewImagePath: previewStoragePath };
+      return { ok: true, downloadURL, storagePath, previewImageURL, previewImagePath };
     }
 
     async function ensurePrescriptionSaved() {
