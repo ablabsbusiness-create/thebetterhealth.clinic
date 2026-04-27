@@ -492,8 +492,8 @@
     }
 
     /* Smooth input focus */
-    input, select { outline: none; transition: border-color 0.2s; }
-    input:focus, select:focus { border-color: #2E7D6B !important; box-shadow: 0 0 0 3px rgba(46,125,107,0.12); }
+    input, select, textarea { outline: none; transition: border-color 0.2s; }
+    input:focus, select:focus, textarea:focus { border-color: #2E7D6B !important; box-shadow: 0 0 0 3px rgba(46,125,107,0.12); }
 
     /* Mobile menu */
     #mobile-menu { display: none; }
@@ -1056,7 +1056,7 @@
           <span class="text-sm font-bold text-brand-green tracking-wide">Book Appointment</span>
         </div>
         <h2 class="text-3xl md:text-4xl font-bold text-brand-dark mb-3">Schedule Your Child's Visit</h2>
-        <p class="text-gray-500 max-w-md mx-auto">Choose a convenient time directly from our live appointment calendar.</p>
+        <p class="text-gray-500 max-w-md mx-auto">Share your details and we will save the request directly to our appointment sheet.</p>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
@@ -1073,35 +1073,27 @@
         <div class="fade-in bg-white rounded-5xl p-4 md:p-5 shadow-card overflow-hidden">
           <div class="px-4 pt-4 pb-3 md:px-5">
             <h3 class="text-xl font-bold text-brand-dark">Book an Appointment</h3>
-            <p class="mt-2 text-sm text-gray-500">View live availability and schedule your visit instantly.</p>
+            <p class="mt-2 text-sm text-gray-500">This form can send each request straight into your Google Sheet.</p>
           </div>
-          <!-- Google Calendar Appointment Scheduling begin -->
-          <iframe
-            src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ0GcwKismJrIn6achwop4QOLBDaRnRL1OLHl_4be5-ZihZ_cbNdePeGbVvz9O8rxyBh8AnILFiu?gv=true"
-            style="border: 0"
-            width="100%"
-            height="600"
-            frameborder="0"
-            class="rounded-4xl bg-white"
-            title="Google Calendar Appointment Scheduling"
-          ></iframe>
-          <!-- end Google Calendar Appointment Scheduling -->
+          <div class="mx-4 md:mx-5 mb-6 rounded-3xl bg-brand-cream border border-brand-cream-dark px-4 py-3 text-sm text-gray-600">
+            Appointment requests from this page can be saved into your Google Sheet after you add your Google Apps Script web app URL below.
+          </div>
 
-          <div class="hidden space-y-4">
+          <form id="booking-form" class="space-y-4 px-4 pb-2 md:px-5">
             <!-- Parent Name -->
             <div>
               <label for="parent-name" class="block text-sm font-semibold text-brand-dark mb-1.5">Parent's Name</label>
-              <input type="text" id="parent-name" name="parent_name" placeholder="e.g., Sunita Sharma" class="w-full px-4 py-3 rounded-2xl border border-gray-200 text-sm font-medium text-brand-dark placeholder-gray-400" />
+              <input type="text" id="parent-name" name="parent_name" required placeholder="e.g., Sunita Sharma" class="w-full px-4 py-3 rounded-2xl border border-gray-200 text-sm font-medium text-brand-dark placeholder-gray-400" />
             </div>
             <!-- Phone -->
             <div>
               <label for="phone" class="block text-sm font-semibold text-brand-dark mb-1.5">Phone Number</label>
-              <input type="tel" id="phone" name="phone" placeholder="e.g., 98765 43210" class="w-full px-4 py-3 rounded-2xl border border-gray-200 text-sm font-medium text-brand-dark placeholder-gray-400" />
+              <input type="tel" id="phone" name="phone" required placeholder="e.g., 98765 43210" class="w-full px-4 py-3 rounded-2xl border border-gray-200 text-sm font-medium text-brand-dark placeholder-gray-400" />
             </div>
             <!-- Child Age -->
             <div>
               <label for="child-age" class="block text-sm font-semibold text-brand-dark mb-1.5">Child's Age</label>
-              <select id="child-age" name="child_age" class="w-full px-4 py-3 rounded-2xl border border-gray-200 text-sm font-medium text-brand-dark bg-white">
+              <select id="child-age" name="child_age" required class="w-full px-4 py-3 rounded-2xl border border-gray-200 text-sm font-medium text-brand-dark bg-white">
                 <option value="">Select age group</option>
                 <option>Newborn (0–3 months)</option>
                 <option>Infant (3–12 months)</option>
@@ -1114,24 +1106,30 @@
             <!-- Date -->
             <div>
               <label for="appt-date" class="block text-sm font-semibold text-brand-dark mb-1.5">Preferred Date</label>
-              <input type="date" id="appt-date" name="appt_date" class="w-full px-4 py-3 rounded-2xl border border-gray-200 text-sm font-medium text-brand-dark" />
+              <input type="date" id="appt-date" name="appt_date" required class="w-full px-4 py-3 rounded-2xl border border-gray-200 text-sm font-medium text-brand-dark" />
+            </div>
+
+            <div>
+              <label for="visit-note" class="block text-sm font-semibold text-brand-dark mb-1.5">Reason for Visit</label>
+              <textarea id="visit-note" name="visit_note" rows="4" placeholder="Fever, cough, vaccination, follow-up, or any notes for the doctor" class="w-full px-4 py-3 rounded-2xl border border-gray-200 text-sm font-medium text-brand-dark placeholder-gray-400 resize-none"></textarea>
             </div>
 
             <!-- Submit -->
-            <button type="button" class="w-full bg-brand-orange hover:bg-brand-orange-dark text-white font-bold py-3.5 rounded-full shadow-orange transition-colors mt-2">
-              Book Appointment
+            <button id="booking-submit" type="submit" class="w-full bg-brand-orange hover:bg-brand-orange-dark text-white font-bold py-3.5 rounded-full shadow-orange transition-colors mt-2">
+              Send Appointment Request
             </button>
-          </div>
+            <p id="booking-status" class="text-sm text-center text-gray-500 min-h-[1.25rem]"></p>
+          </form>
 
           <!-- WhatsApp -->
-          <div class="hidden mt-6 pt-6 border-t border-gray-100 flex items-center gap-3">
+          <div class="mt-6 px-4 md:px-5 pt-6 border-t border-gray-100 flex items-center gap-3">
             <a href="https://wa.me/919513988840?text=Hi%2C%20I%20would%20like%20to%20book%20an%20appointment%20at%20The%20Best%20Child%20Clinic." target="_blank" rel="noopener noreferrer"
                class="flex-1 flex items-center justify-center gap-2.5 bg-[#25D366] hover:bg-[#1ebe5d] text-white font-bold py-3 rounded-full transition-colors">
               <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
               Chat on WhatsApp
             </a>
           </div>
-          <p class="hidden text-xs text-gray-400 text-center mt-2">Need help? Chat with us on WhatsApp — we respond within minutes.</p>
+          <p class="text-xs text-gray-400 text-center mt-2">Need help? Chat with us on WhatsApp — we respond within minutes.</p>
         </div>
       </div>
     </div>
@@ -1300,6 +1298,7 @@
     const heroSection = document.getElementById('home');
     const scrollBookingMascot = document.getElementById('scroll-booking-mascot');
     let scrollMascotTimer = null;
+    let scrollMascotHideTimer = null;
     let scrollMascotShown = false;
     window.addEventListener('scroll', () => {
       const heroBottom = heroSection ? heroSection.offsetTop + heroSection.offsetHeight : 260;
@@ -1318,12 +1317,24 @@
               scrollBookingMascot.classList.add('is-visible');
               scrollMascotShown = true;
               scrollMascotTimer = null;
+              if (scrollMascotHideTimer) {
+                window.clearTimeout(scrollMascotHideTimer);
+              }
+              scrollMascotHideTimer = window.setTimeout(() => {
+                scrollBookingMascot.classList.remove('is-visible');
+                scrollMascotShown = false;
+                scrollMascotHideTimer = null;
+              }, 2500);
             }, 6000);
           }
         } else {
           if (scrollMascotTimer) {
             window.clearTimeout(scrollMascotTimer);
             scrollMascotTimer = null;
+          }
+          if (scrollMascotHideTimer) {
+            window.clearTimeout(scrollMascotHideTimer);
+            scrollMascotHideTimer = null;
           }
           scrollBookingMascot.classList.remove('is-visible');
           scrollMascotShown = false;
@@ -1339,6 +1350,14 @@
         scrollBookingMascot.classList.add('is-visible');
         scrollMascotShown = true;
         scrollMascotTimer = null;
+        if (scrollMascotHideTimer) {
+          window.clearTimeout(scrollMascotHideTimer);
+        }
+        scrollMascotHideTimer = window.setTimeout(() => {
+          scrollBookingMascot.classList.remove('is-visible');
+          scrollMascotShown = false;
+          scrollMascotHideTimer = null;
+        }, 2500);
       }, 6000);
       }
     }
@@ -1354,6 +1373,50 @@
     }, { threshold: 0.12 });
 
     document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+    const GOOGLE_SHEET_WEB_APP_URL = 'PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE';
+    const bookingForm = document.getElementById('booking-form');
+    const bookingSubmit = document.getElementById('booking-submit');
+    const bookingStatus = document.getElementById('booking-status');
+
+    if (bookingForm && bookingSubmit && bookingStatus) {
+      bookingForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        if (GOOGLE_SHEET_WEB_APP_URL === 'PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
+          bookingStatus.textContent = 'Add your Google Apps Script web app URL to enable sheet saving.';
+          bookingStatus.className = 'text-sm text-center text-red-500 min-h-[1.25rem]';
+          return;
+        }
+
+        bookingSubmit.disabled = true;
+        bookingSubmit.classList.add('opacity-70', 'cursor-not-allowed');
+        bookingStatus.textContent = 'Sending appointment request...';
+        bookingStatus.className = 'text-sm text-center text-gray-500 min-h-[1.25rem]';
+
+        try {
+          const formData = new FormData(bookingForm);
+          formData.append('submitted_from', 'The Better Kids Clinic website');
+          formData.append('submitted_at', new Date().toISOString());
+
+          await fetch(GOOGLE_SHEET_WEB_APP_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: new URLSearchParams(formData)
+          });
+
+          bookingForm.reset();
+          bookingStatus.textContent = 'Appointment request sent successfully.';
+          bookingStatus.className = 'text-sm text-center text-brand-green min-h-[1.25rem]';
+        } catch (error) {
+          bookingStatus.textContent = 'Could not send right now. Please try again.';
+          bookingStatus.className = 'text-sm text-center text-red-500 min-h-[1.25rem]';
+        } finally {
+          bookingSubmit.disabled = false;
+          bookingSubmit.classList.remove('opacity-70', 'cursor-not-allowed');
+        }
+      });
+    }
 
     const heroName = document.getElementById('hero-name');
     const heroNames = ['Baby', 'Kuttu', 'Babu', 'Chinnu', 'Appu', 'Kanna', 'Minnu', 'Pappu', 'Bittu', 'Kutty'];
