@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Little Smiles Pediatric Clinic – Expert Child Care</title>
+  <title>The Better Kids Clinic – Expert Child Care</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -97,40 +97,297 @@
       background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.55) 100%);
       pointer-events: none;
     }
-    .name-chip {
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      padding: 0.5rem 0 0.25rem;
+    }
+    .hero-content::before {
+      content: '';
+      position: absolute;
+      inset: -1.5rem -1rem -1rem;
+      background: radial-gradient(circle at top, rgba(255,255,255,0.4), rgba(255,255,255,0));
+      pointer-events: none;
+      z-index: -1;
+    }
+    .hero-kid-badge {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      background: white;
-      border: 1px solid rgba(46,125,107,0.14);
+      gap: 0.55rem;
+      padding: 0.7rem 1rem;
       border-radius: 999px;
-      padding: 8px 16px;
-      box-shadow: 0 6px 20px rgba(46,125,107,0.08);
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(46,125,107,0.14);
+      box-shadow: 0 10px 28px rgba(46,125,107,0.08);
+      color: #2E7D6B;
+      font-size: 0.9rem;
+      font-weight: 800;
+    }
+    .hero-kid-badge .dot {
+      width: 0.65rem;
+      height: 0.65rem;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #FF8A4C, #ffb07a);
+      box-shadow: 0 0 0 6px rgba(255,138,76,0.12);
+      flex-shrink: 0;
+    }
+    .hero-tagline {
+      display: inline-block;
+      max-width: 34rem;
+      padding: 0.9rem 1.1rem;
+      border-radius: 1.4rem;
+      background: rgba(255,255,255,0.52);
+      border: 1px solid rgba(46,125,107,0.10);
+      box-shadow: 0 12px 30px rgba(46,125,107,0.06);
+    }
+    .hero-cta-wrap {
+      position: relative;
+      display: inline-flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+    }
+    .hero-cta-wrap > a {
+      position: relative;
+      z-index: 2;
+    }
+    .hero-popup-mascot {
+      position: absolute;
+      left: 50%;
+      top: -4.7rem;
+      width: 9.6rem;
+      transform: translateX(-92%) translateY(10px) rotate(-8deg) scale(0.84);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 1;
+      animation: mascotPopIn 0.75s ease-out 2s forwards;
+      filter: drop-shadow(0 12px 22px rgba(46,125,107,0.10));
+    }
+    .hero-popup-mascot::before {
+      content: '';
+      position: absolute;
+      left: 2.2rem;
+      top: -0.95rem;
+      width: 2px;
+      height: 1.25rem;
+      background: linear-gradient(180deg, rgba(46,125,107,0.06), rgba(46,125,107,0.35));
+      border-radius: 999px;
+    }
+    .hero-popup-mascot-clip {
+      width: 5.4rem;
+      height: 3.05rem;
+      overflow: hidden;
+    }
+    .hero-popup-bubble {
+      position: absolute;
+      top: 0.15rem;
+      left: 3.15rem;
+      padding: 0.45rem 0.75rem;
+      border-radius: 1rem;
+      background: #fff;
+      border: 1px solid rgba(46,125,107,0.14);
+      box-shadow: 0 10px 24px rgba(46,125,107,0.10);
+      color: #2E7D6B;
+      font-size: 0.76rem;
+      font-weight: 800;
+      line-height: 1.15;
+      white-space: nowrap;
+    }
+    .hero-popup-bubble::after {
+      content: '';
+      position: absolute;
+      left: 0.85rem;
+      bottom: -0.28rem;
+      width: 0.58rem;
+      height: 0.58rem;
+      background: #fff;
+      border-right: 1px solid rgba(46,125,107,0.14);
+      border-bottom: 1px solid rgba(46,125,107,0.14);
+      transform: rotate(45deg);
+    }
+    .hero-popup-mascot svg {
+      display: block;
+      width: 5.4rem;
+      height: auto;
+      overflow: visible;
+      animation: mascotBob 3.2s ease-in-out 2.8s infinite;
+    }
+    .hero-popup-mascot .wave-arm {
+      transform-origin: 68px 76px;
+      animation: mascotWave 2.2s ease-in-out 2.7s infinite;
+    }
+    @keyframes mascotPopIn {
+      to {
+        opacity: 1;
+        transform: translateX(-92%) translateY(0) rotate(-4deg) scale(1);
+      }
+    }
+    @keyframes mascotBob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+    @keyframes mascotWave {
+      0%, 100% { transform: rotate(0deg); }
+      30% { transform: rotate(-6deg); }
+      65% { transform: rotate(5deg); }
+    }
+    .scroll-booking-mascot {
+      position: fixed;
+      left: 0;
+      top: 50%;
+      width: 11.5rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.55rem;
+      transform: translate(-115%, -50%);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 45;
+      text-decoration: none;
+      transition: transform 0.8s ease, opacity 0.8s ease;
+      filter: drop-shadow(0 14px 26px rgba(46,125,107,0.12));
+    }
+    .scroll-booking-mascot.is-visible {
+      transform: translate(1.75rem, -50%);
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .scroll-booking-bubble {
+      margin-top: 0.35rem;
+      padding: 0.6rem 0.82rem;
+      border-radius: 1rem;
+      background: #fff;
+      border: 1px solid rgba(46,125,107,0.14);
+      box-shadow: 0 10px 24px rgba(46,125,107,0.10);
+      color: #2E7D6B;
+      font-size: 0.78rem;
+      font-weight: 800;
+      line-height: 1.2;
+      max-width: 7rem;
+    }
+    .scroll-booking-bubble span {
+      display: inline-block;
+      margin-top: 0.12rem;
+      color: #FF8A4C;
+    }
+    .scroll-booking-clip {
+      width: 4.9rem;
+      height: 3.35rem;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .scroll-booking-mascot svg {
+      display: block;
+      width: 4.9rem;
+      height: auto;
+      animation: mascotBob 3.2s ease-in-out 0.2s infinite;
+    }
+    .scroll-booking-mascot .wave-arm {
+      transform-origin: 68px 76px;
+      animation: mascotWave 2.2s ease-in-out 0.2s infinite;
+    }
+    .name-slot {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: min(92vw, 16rem);
+      min-height: 2.4rem;
+      overflow: visible;
+      padding: 0.1rem 0.5rem;
+      isolation: isolate;
     }
     .name-stage {
-      min-width: 8ch;
-      color: #2E7D6B;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      min-width: 6ch;
       display: inline-block;
-      position: relative;
-      padding-right: 0.12em;
-      font-size: 1.25em;
+      text-align: center;
+      font-size: 1.45rem;
       font-weight: 800;
       line-height: 1.1;
+      color: #2E7D6B;
       text-shadow: 0 8px 24px rgba(46,125,107,0.18);
+      opacity: 1;
+      transform: translate(-50%, -50%);
+      z-index: 1;
+      pointer-events: none;
     }
     .name-stage::after {
       content: '';
       position: absolute;
-      right: -0.08em;
+      right: -0.12em;
       top: 0.08em;
       width: 2px;
-      height: 0.9em;
+      height: 0.95em;
       background: currentColor;
       animation: blinkCaret 0.85s step-end infinite;
     }
     @keyframes blinkCaret {
       0%, 48% { opacity: 1; }
       50%, 100% { opacity: 0; }
+    }
+    @media (max-width: 767px) {
+      .hero-content h1 {
+        font-size: 3.35rem;
+        line-height: 0.95;
+        margin-bottom: 0.85rem;
+      }
+      .name-slot {
+        width: min(88vw, 12rem);
+        min-height: 2rem;
+      }
+      .name-stage {
+        font-size: 1.3rem;
+      }
+      .hero-kid-badge {
+        font-size: 0.82rem;
+        padding: 0.62rem 0.9rem;
+      }
+      .hero-tagline {
+        padding: 0.8rem 0.9rem;
+        border-radius: 1.2rem;
+      }
+      .hero-popup-mascot {
+        top: -4rem;
+        width: 8.4rem;
+        transform: translateX(-83%) translateY(10px) rotate(-8deg) scale(0.84);
+      }
+      .hero-popup-mascot-clip {
+        width: 4.8rem;
+        height: 2.7rem;
+      }
+      .hero-popup-bubble {
+        left: 2.75rem;
+        font-size: 0.7rem;
+        padding: 0.4rem 0.65rem;
+      }
+      .hero-popup-mascot svg {
+        width: 4.8rem;
+      }
+      .scroll-booking-mascot {
+        top: 54%;
+        width: 9.8rem;
+      }
+      .scroll-booking-bubble {
+        font-size: 0.7rem;
+        max-width: 5.8rem;
+        padding: 0.5rem 0.65rem;
+      }
+      .scroll-booking-clip {
+        width: 4.2rem;
+        height: 2.95rem;
+      }
+      .scroll-booking-mascot svg {
+        width: 4.2rem;
+      }
+      @keyframes mascotPopIn {
+        to {
+          opacity: 1;
+          transform: translateX(-83%) translateY(0) rotate(-4deg) scale(1);
+        }
+      }
     }
     .hero-cloud {
       position: absolute;
@@ -295,8 +552,8 @@
           </svg>
         </div>
         <div>
-          <div class="font-heading font-bold text-lg leading-tight text-brand-dark">The Best Child Clinic</div>
-          <div class="text-xs text-brand-green font-semibold tracking-wide">Dr Gunda Srinivas</div>
+          <div class="font-heading font-bold text-lg leading-tight text-brand-dark">The Better Kids Clinic</div>
+          <div class="text-xs text-brand-green font-semibold tracking-wide">Dr. Gunda Srinivas's</div>
         </div>
       </a>
 
@@ -343,41 +600,69 @@
     <div class="hero-cloud two"></div>
 
     <div class="max-w-6xl mx-auto px-4 grid lg:grid-cols-[1.05fr_0.95fr] gap-10 items-center">
-      <div class="text-center lg:text-left fade-in">
-        <div class="name-chip mb-6 mx-auto lg:mx-0">
-          <span class="w-2.5 h-2.5 rounded-full bg-brand-orange inline-block"></span>
-          <span class="text-sm font-bold text-brand-green tracking-wide">For your little one</span>
+      <div class="hero-content fade-in max-w-2xl mx-auto text-center">
+        <div class="flex justify-center mb-4">
+          <div class="hero-kid-badge">
+            <span class="dot"></span>
+            Gentle child specialist care
+          </div>
         </div>
-
-        <h1 class="text-5xl md:text-6xl xl:text-7xl font-bold leading-tight text-brand-dark mb-4">
-          Best Clinic
+        <h1 class="text-5xl md:text-6xl xl:text-7xl font-bold leading-tight text-brand-dark mb-3">
+          The Better Clinic
         </h1>
 
         <p class="text-xl md:text-2xl text-gray-600 leading-relaxed">
-          For your child
-          <br />
-          <span id="hero-name" class="name-stage font-heading text-brand-green">Kutty</span>
+          for your child
         </p>
 
-        <p class="mt-6 text-base md:text-lg text-gray-500 leading-relaxed max-w-xl mx-auto lg:mx-0">
-          The Best Child Clinic is inspired by the trusted care families shared for Dr. Chaitanya Sravanthi in South Bangalore, known for clear explanations, compassionate treatment, and reassuring guidance.
+        <div class="mt-2 mb-3 flex items-center justify-center">
+          <div class="name-slot">
+            <span id="hero-name" class="name-stage font-heading text-brand-green">Baby</span>
+          </div>
+        </div>
+
+        <p class="hidden md:block text-base md:text-lg text-gray-500 leading-relaxed max-w-xl mx-auto">
+          Dr. Gunda Srinivas brings compassionate pediatric care, clear guidance, and reassuring support for every family at The Better Kids Clinic.
         </p>
 
-        <p class="mt-4 text-lg md:text-xl font-bold text-brand-green max-w-xl mx-auto lg:mx-0">
-          Best clinic for every small name and every big worry.
+        <p class="hero-tagline mt-3 text-lg md:text-xl font-bold text-brand-green max-w-xl mx-auto">
+          Dr. Gunda care for every small name and every big worry.
         </p>
 
-        <div class="mt-8 flex flex-wrap gap-4 justify-center lg:justify-start">
+        <div class="mt-6 hero-cta-wrap">
           <a href="#contact" class="bg-brand-orange hover:bg-brand-orange-dark text-white font-bold px-7 py-3.5 rounded-full shadow-orange transition-colors text-base">
             Book Appointment
           </a>
+      <div class="hero-popup-mascot" aria-hidden="true">
+            <div class="hero-popup-bubble">Hi! Book Appointment</div>
+            <div class="hero-popup-mascot-clip">
+            <svg viewBox="0 0 120 126" fill="none">
+              <circle cx="36" cy="28" r="15" fill="#B8A6F3"/>
+              <circle cx="78" cy="28" r="15" fill="#B8A6F3"/>
+              <ellipse cx="58" cy="56" rx="31" ry="29" fill="#8ED3C7"/>
+              <ellipse cx="58" cy="63" rx="20" ry="16" fill="#FFF8F0"/>
+              <circle cx="48" cy="53" r="3.1" fill="#FFF8F0"/>
+              <circle cx="69" cy="53" r="3.1" fill="#FFF8F0"/>
+              <circle cx="48" cy="54" r="1.5" fill="#25413B"/>
+              <circle cx="69" cy="54" r="1.5" fill="#25413B"/>
+              <ellipse cx="58" cy="62.5" rx="3.7" ry="2.7" fill="#FF8A4C"/>
+              <path d="M53 69c1.7 1.9 3.3 2.6 5 2.6 1.7 0 3.3-.7 5-2.6" stroke="#25413B" stroke-width="2" stroke-linecap="round"/>
+              <path d="M41 84c4.8-4.2 10.8-6.2 17-6.2 6.2 0 12.2 2 17 6.2v18H41V84z" fill="#FFF8F0" stroke="#25413B" stroke-width="2.1" stroke-linejoin="round"/>
+              <path d="M58 77.8v24" stroke="#25413B" stroke-width="2"/>
+              <path class="wave-arm" d="M41 88c-8-2.2-13.5-8-16-15" stroke="#25413B" stroke-width="4.4" stroke-linecap="round"/>
+              <path d="M75 88c8.5 2 16-1 24-7" stroke="#25413B" stroke-width="4.4" stroke-linecap="round"/>
+              <path d="M47 102l-4.3 11" stroke="#25413B" stroke-width="4" stroke-linecap="round"/>
+              <path d="M68 102l4.7 11" stroke="#25413B" stroke-width="4" stroke-linecap="round"/>
+            </svg>
+            </div>
+          </div>
           <a href="#services" class="border-2 border-brand-green text-brand-green hover:bg-brand-green hover:text-white font-bold px-7 py-3.5 rounded-full transition-colors text-base">
             Explore Services
           </a>
         </div>
 
-        <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div class="hero-stat rounded-3xl p-4 text-center lg:text-left">
+        <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 justify-center">
+          <div class="hero-stat rounded-3xl p-4 text-center sm:col-start-1 sm:col-end-3 max-w-md mx-auto w-full">
             <div class="text-sm font-bold text-brand-green uppercase tracking-wide">4.8 Rating</div>
             <div class="mt-2 text-sm text-gray-600">118 reviews and a reputation for clear explanations and caring support.</div>
           </div>
@@ -402,7 +687,7 @@
               </div>
 
               <div class="mt-4">
-                <h2 class="text-2xl md:text-3xl font-bold text-brand-dark">The Best Child Clinic</h2>
+                <h2 class="text-2xl md:text-3xl font-bold text-brand-dark">Dr. Gunda Srinivas's The Better Kids Clinic</h2>
                 <p class="mt-2 text-sm md:text-base text-gray-600 leading-relaxed">
                   118, 5th Cross, Bannerghatta Rd, Omkar Nagar, Arekere, Bengaluru, Karnataka 560076
                 </p>
@@ -602,7 +887,7 @@
         <!-- Doctor image -->
         <div class="relative flex-shrink-0">
           <div class="w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden border-4 border-white/30 shadow-lg">
-            <img src="https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=400&auto=format&fit=crop&q=80" alt="Dr. Priya Sharma – Chief Pediatrician" class="w-full h-full object-cover" />
+            <img src="https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=400&auto=format&fit=crop&q=80" alt="Dr. Gunda Srinivas – Pediatric Specialist" class="w-full h-full object-cover" />
           </div>
           <div class="absolute -bottom-1 -right-1 bg-brand-orange text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">
             15% OFF
@@ -614,7 +899,7 @@
           <div class="text-sm font-bold text-white/70 mb-2 uppercase tracking-widest">Limited Time Offer</div>
           <h2 class="text-2xl md:text-3xl font-bold mb-3">First Visit Discount – Get 15% Off</h2>
           <p class="text-white/80 mb-6 leading-relaxed max-w-lg">
-            Book your child's first consultation with Dr. Priya Sharma today and receive 15% off on all services. Give your little one the best start in life.
+            Book your child's first consultation with Dr. Gunda Srinivas today and receive 15% off on all services. Give your little one the best start in life.
           </p>
           <a href="#contact" class="inline-flex items-center gap-2 bg-brand-orange hover:bg-brand-orange-dark text-white font-bold px-7 py-3.5 rounded-full shadow-orange transition-colors">
             Book First Visit
@@ -635,7 +920,7 @@
         <div class="absolute inset-0 bg-brand-green opacity-10 rounded-5xl -rotate-3 pointer-events-none"></div>
         <img
           src="https://images.unsplash.com/photo-1551601651-2a8555f1a136?w=800&auto=format&fit=crop&q=80"
-          alt="Dr. Sharma consulting with a young patient in a warm, welcoming clinic"
+          alt="Dr. Gunda Srinivas consulting with a young patient in a warm, welcoming clinic"
           class="relative rounded-5xl w-full h-80 md:h-[480px] object-cover shadow-card"
         />
         <!-- Mini stat card -->
@@ -653,7 +938,7 @@
         </div>
         <h2 class="text-3xl md:text-4xl font-bold text-brand-dark mb-5">Providing Exceptional Care<br />for Every Child</h2>
         <p class="text-gray-600 leading-relaxed mb-4">
-          Little Smiles Pediatric Clinic was founded with one simple belief — every child deserves healthcare that is not just medically excellent, but also gentle, kind, and reassuring. Our lead pediatrician, Dr. Priya Sharma, brings over 15 years of experience in child healthcare.
+          The Better Kids Clinic was founded with one simple belief — every child deserves healthcare that is not just medically excellent, but also gentle, kind, and reassuring. Our lead pediatrician, Dr. Gunda Srinivas, brings trusted child-focused care to every visit.
         </p>
         <p class="text-gray-600 leading-relaxed mb-4">
           We have created a clinic that feels less like a medical facility and more like a friendly, safe space where children feel comfortable and parents feel heard. Our waiting area, consultation rooms, and staff have all been thoughtfully designed to reduce anxiety for both children and parents.
@@ -771,7 +1056,7 @@
           <span class="text-sm font-bold text-brand-green tracking-wide">Book Appointment</span>
         </div>
         <h2 class="text-3xl md:text-4xl font-bold text-brand-dark mb-3">Schedule Your Child's Visit</h2>
-        <p class="text-gray-500 max-w-md mx-auto">Fill in the form and we'll confirm your appointment within a few hours.</p>
+        <p class="text-gray-500 max-w-md mx-auto">Choose a convenient time directly from our live appointment calendar.</p>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
@@ -779,16 +1064,30 @@
         <div class="fade-in">
           <img
             src="https://images.unsplash.com/photo-1631815589968-fdb09a223b1e?w=800&auto=format&fit=crop&q=80"
-            alt="Welcoming consultation room at Little Smiles Pediatric Clinic"
-            class="rounded-5xl w-full h-80 md:h-[440px] object-cover shadow-card"
+            alt="Welcoming consultation room at The Better Kids Clinic"
+            class="hidden lg:block rounded-5xl w-full h-80 md:h-[440px] object-cover shadow-card"
           />
         </div>
 
-        <!-- Form -->
-        <div class="fade-in bg-white rounded-5xl p-8 md:p-10 shadow-card">
-          <h3 class="text-xl font-bold text-brand-dark mb-6">Book an Appointment</h3>
+        <!-- Calendar -->
+        <div class="fade-in bg-white rounded-5xl p-4 md:p-5 shadow-card overflow-hidden">
+          <div class="px-4 pt-4 pb-3 md:px-5">
+            <h3 class="text-xl font-bold text-brand-dark">Book an Appointment</h3>
+            <p class="mt-2 text-sm text-gray-500">View live availability and schedule your visit instantly.</p>
+          </div>
+          <!-- Google Calendar Appointment Scheduling begin -->
+          <iframe
+            src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ0GcwKismJrIn6achwop4QOLBDaRnRL1OLHl_4be5-ZihZ_cbNdePeGbVvz9O8rxyBh8AnILFiu?gv=true"
+            style="border: 0"
+            width="100%"
+            height="600"
+            frameborder="0"
+            class="rounded-4xl bg-white"
+            title="Google Calendar Appointment Scheduling"
+          ></iframe>
+          <!-- end Google Calendar Appointment Scheduling -->
 
-          <div class="space-y-4">
+          <div class="hidden space-y-4">
             <!-- Parent Name -->
             <div>
               <label for="parent-name" class="block text-sm font-semibold text-brand-dark mb-1.5">Parent's Name</label>
@@ -825,14 +1124,14 @@
           </div>
 
           <!-- WhatsApp -->
-          <div class="mt-6 pt-6 border-t border-gray-100 flex items-center gap-3">
+          <div class="hidden mt-6 pt-6 border-t border-gray-100 flex items-center gap-3">
             <a href="https://wa.me/919513988840?text=Hi%2C%20I%20would%20like%20to%20book%20an%20appointment%20at%20The%20Best%20Child%20Clinic." target="_blank" rel="noopener noreferrer"
                class="flex-1 flex items-center justify-center gap-2.5 bg-[#25D366] hover:bg-[#1ebe5d] text-white font-bold py-3 rounded-full transition-colors">
               <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
               Chat on WhatsApp
             </a>
           </div>
-          <p class="text-xs text-gray-400 text-center mt-2">Need help? Chat with us on WhatsApp — we respond within minutes.</p>
+          <p class="hidden text-xs text-gray-400 text-center mt-2">Need help? Chat with us on WhatsApp — we respond within minutes.</p>
         </div>
       </div>
     </div>
@@ -854,8 +1153,8 @@
               </svg>
             </div>
             <div>
-              <div class="font-heading font-bold text-lg leading-tight">Little Smiles</div>
-              <div class="text-xs text-white/60">Pediatric Clinic</div>
+              <div class="font-heading font-bold text-lg leading-tight">Dr. Gunda Srinivas's</div>
+              <div class="text-xs text-white/60">The Better Kids Clinic</div>
             </div>
           </div>
           <p class="text-white/70 text-sm leading-relaxed mb-5">
@@ -926,7 +1225,7 @@
 
       <!-- Copyright -->
       <div class="border-t border-white/10 pt-6 flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-white/50">
-        <div>© 2025 Little Smiles Pediatric Clinic. All rights reserved.</div>
+        <div>© 2025 The Better Kids Clinic. All rights reserved.</div>
         <div class="flex gap-4">
           <a href="#" class="hover:text-white/80 transition-colors">Privacy Policy</a>
           <a href="#" class="hover:text-white/80 transition-colors">Terms of Service</a>
@@ -968,15 +1267,81 @@
       mobileMenu.classList.remove('open');
     }
 
+    if (!document.getElementById('scroll-booking-mascot')) {
+      document.body.insertAdjacentHTML('beforeend', `
+        <a href="#contact" id="scroll-booking-mascot" class="scroll-booking-mascot" aria-label="Book appointment">
+          <div class="scroll-booking-clip" aria-hidden="true">
+            <svg viewBox="0 0 120 126" fill="none">
+              <circle cx="36" cy="28" r="15" fill="#B8A6F3"/>
+              <circle cx="78" cy="28" r="15" fill="#B8A6F3"/>
+              <ellipse cx="58" cy="56" rx="31" ry="29" fill="#8ED3C7"/>
+              <ellipse cx="58" cy="63" rx="20" ry="16" fill="#FFF8F0"/>
+              <circle cx="48" cy="53" r="3.1" fill="#FFF8F0"/>
+              <circle cx="69" cy="53" r="3.1" fill="#FFF8F0"/>
+              <circle cx="48" cy="54" r="1.5" fill="#25413B"/>
+              <circle cx="69" cy="54" r="1.5" fill="#25413B"/>
+              <ellipse cx="58" cy="62.5" rx="3.7" ry="2.7" fill="#FF8A4C"/>
+              <path d="M53 69c1.7 1.9 3.3 2.6 5 2.6 1.7 0 3.3-.7 5-2.6" stroke="#25413B" stroke-width="2" stroke-linecap="round"/>
+              <path d="M41 84c4.8-4.2 10.8-6.2 17-6.2 6.2 0 12.2 2 17 6.2v18H41V84z" fill="#FFF8F0" stroke="#25413B" stroke-width="2.1" stroke-linejoin="round"/>
+              <path d="M58 77.8v24" stroke="#25413B" stroke-width="2"/>
+              <path class="wave-arm" d="M41 88c-8-2.2-13.5-8-16-15" stroke="#25413B" stroke-width="4.4" stroke-linecap="round"/>
+              <path d="M75 88c8.5 2 16-1 24-7" stroke="#25413B" stroke-width="4.4" stroke-linecap="round"/>
+              <path d="M47 102l-4.3 11" stroke="#25413B" stroke-width="4" stroke-linecap="round"/>
+              <path d="M68 102l4.7 11" stroke="#25413B" stroke-width="4" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="scroll-booking-bubble">Hi! <span>Book Appointment</span></div>
+        </a>
+      `);
+    }
+
     // Navbar shadow on scroll
     const navbar = document.getElementById('navbar');
+    const heroSection = document.getElementById('home');
+    const scrollBookingMascot = document.getElementById('scroll-booking-mascot');
+    let scrollMascotTimer = null;
+    let scrollMascotShown = false;
     window.addEventListener('scroll', () => {
+      const heroBottom = heroSection ? heroSection.offsetTop + heroSection.offsetHeight : 260;
+      const pastHero = window.scrollY > heroBottom - 120;
+
       if (window.scrollY > 20) {
         navbar.classList.add('navbar-scrolled');
       } else {
         navbar.classList.remove('navbar-scrolled');
       }
+
+      if (scrollBookingMascot) {
+        if (pastHero) {
+          if (!scrollMascotShown && !scrollMascotTimer) {
+            scrollMascotTimer = window.setTimeout(() => {
+              scrollBookingMascot.classList.add('is-visible');
+              scrollMascotShown = true;
+              scrollMascotTimer = null;
+            }, 6000);
+          }
+        } else {
+          if (scrollMascotTimer) {
+            window.clearTimeout(scrollMascotTimer);
+            scrollMascotTimer = null;
+          }
+          scrollBookingMascot.classList.remove('is-visible');
+          scrollMascotShown = false;
+        }
+      }
     });
+
+    if (scrollBookingMascot) {
+      const heroBottom = heroSection ? heroSection.offsetTop + heroSection.offsetHeight : 260;
+      const pastHero = window.scrollY > heroBottom - 120;
+      if (pastHero) {
+      scrollMascotTimer = window.setTimeout(() => {
+        scrollBookingMascot.classList.add('is-visible');
+        scrollMascotShown = true;
+        scrollMascotTimer = null;
+      }, 6000);
+      }
+    }
 
     // Scroll fade-in observer
     const observer = new IntersectionObserver((entries) => {
@@ -990,9 +1355,8 @@
 
     document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
 
-    // Typing hero names
     const heroName = document.getElementById('hero-name');
-    const heroNames = ['Kutty', 'Kanna', 'Chinnu', 'Chinni', 'Baby', 'Sweetu', 'Pattu', 'Kuttu', 'Appu', 'Ammu', 'Lachu', 'Lakku', 'Meenu', 'Minnu', 'Pappu', 'Bujji', 'Bujju', 'Chiku', 'Chikki', 'Molu', 'Ponnu', 'Thangam', 'Lakshmi Kutty', 'Ammukutty', 'Molkutty', 'Baby Kutty', 'Chellam', 'Selvi', 'Rani', 'Anu', 'Anni', 'Viji', 'Devi Kutty', 'Monu', 'Unni', 'Babu', 'Raju', 'Kicha', 'Kittu', 'Manu', 'Balu', 'Gopu', 'Sasi', 'Kannan', 'Binu', 'Ramu', 'Ravi', 'Hari', 'Mani', 'Selvam', 'Thambi'];
+    const heroNames = ['Baby', 'Kuttu', 'Babu', 'Chinnu', 'Appu', 'Kanna', 'Minnu', 'Pappu', 'Bittu', 'Kutty'];
     let heroNameIndex = 0;
 
     if (heroName) {
@@ -1006,7 +1370,7 @@
             clearInterval(typer);
             if (onDone) onDone();
           }
-        }, 90);
+        }, 95);
       };
 
       const loopHeroNames = () => {
@@ -1021,6 +1385,7 @@
 
       loopHeroNames();
     }
+
   </script>
 </body>
 </html>
