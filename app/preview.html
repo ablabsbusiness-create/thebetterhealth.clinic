@@ -1450,33 +1450,30 @@
         return;
       }
 
-      const chartsPerPage = 2;
-      for (let index = 0; index < pages.length; index += chartsPerPage) {
-        const pageGroup = pages.slice(index, index + chartsPerPage);
-        pdf.addPage('a4', 'portrait');
+      for (let index = 0; index < pages.length; index += 1) {
+        const chartPage = pages[index];
+        pdf.addPage('a4', 'landscape');
         pdf.setFont('helvetica', 'bold');
         pdf.setFontSize(12);
-        pdf.text('Growth Charts', 15, 16);
+        pdf.text('Growth Chart', 15, 16);
 
-        pageGroup.forEach((chartPage, groupIndex) => {
-          const slotTop = 24 + groupIndex * 128;
-          const slotWidth = 180;
-          const slotHeight = 108;
-          const imageWidth = Number(chartPage.width) || 1040;
-          const imageHeight = Number(chartPage.height) || 752;
-          const scale = Math.min(slotWidth / imageWidth, slotHeight / imageHeight);
-          const renderWidth = imageWidth * scale;
-          const renderHeight = imageHeight * scale;
-          const renderX = 15 + (slotWidth - renderWidth) / 2;
-          const renderY = slotTop + 8;
+        const slotTop = 24;
+        const slotWidth = 267;
+        const slotHeight = 170;
+        const imageWidth = Number(chartPage.width) || 1040;
+        const imageHeight = Number(chartPage.height) || 752;
+        const scale = Math.min(slotWidth / imageWidth, slotHeight / imageHeight);
+        const renderWidth = imageWidth * scale;
+        const renderHeight = imageHeight * scale;
+        const renderX = 15 + (slotWidth - renderWidth) / 2;
+        const renderY = slotTop + 10 + (slotHeight - renderHeight) / 2;
 
-          pdf.setFont('helvetica', 'bold');
-          pdf.setFontSize(10);
-          pdf.text(chartTitle(chartPage.label, index + groupIndex), 15, slotTop);
-          pdf.setDrawColor(214, 223, 217);
-          pdf.roundedRect(15, slotTop + 4, slotWidth, slotHeight, 4, 4);
-          pdf.addImage(chartPage.dataUrl, 'PNG', renderX, renderY, renderWidth, renderHeight, undefined, 'FAST');
-        });
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(10);
+        pdf.text(chartTitle(chartPage.label, index), 15, slotTop);
+        pdf.setDrawColor(214, 223, 217);
+        pdf.roundedRect(15, slotTop + 4, slotWidth, slotHeight, 4, 4);
+        pdf.addImage(chartPage.dataUrl, 'PNG', renderX, renderY, renderWidth, renderHeight, undefined, 'FAST');
       }
     }
 
