@@ -723,8 +723,8 @@
     let savedPrescriptionRecord = null;
     let preparedChartRecord = null;
     const CHART_ASSET_VERSION = '2026-04-25-age-years-axis-hires';
-    const CHART_RENDER_MAX_WIDTH = 1200;
-    const CHART_RENDER_SCALE = 4;
+    const CHART_RENDER_MAX_WIDTH = 1600;
+    const CHART_RENDER_SCALE = 6;
     const CHART_POINT_RADIUS = 14.4;
     const chartTemplateAxis = {
       xStart: 0.1731,
@@ -949,9 +949,9 @@
 
       context.beginPath();
       context.arc(x, y, CHART_POINT_RADIUS * renderScale, 0, Math.PI * 2);
-      context.fillStyle = '#111111';
+      context.fillStyle = '#b91c1c';
       context.fill();
-      context.lineWidth = 2.4 * renderScale;
+      context.lineWidth = 3.2 * renderScale;
       context.strokeStyle = '#ffffff';
       context.stroke();
 
@@ -1410,7 +1410,7 @@
           pdf.setFont('helvetica', 'bold');
           pdf.setFontSize(8.5);
           pdf.text(chartTitle(page.label, index), x, chartBlockTop);
-          pdf.addImage(page.dataUrl, 'PNG', x, chartBlockTop + 3, chartWidth, chartHeight, undefined, 'FAST');
+          pdf.addImage(page.dataUrl, 'PNG', x, chartBlockTop + 3, chartWidth, chartHeight, undefined, 'NONE');
         });
       }
 

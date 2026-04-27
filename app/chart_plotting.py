@@ -176,7 +176,7 @@ TEMPLATE_LIBRARY: dict[str, dict[str, Any]] = {
     },
 }
 
-MARKER_FILL = "#111111"
+MARKER_FILL = "#b91c1c"
 MARKER_OUTLINE = "#ffffff"
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -273,7 +273,7 @@ def render_template_page(template_request: dict[str, Any], plot_series: dict[str
 
     image = Image.open(image_path).convert("RGB")
     draw = ImageDraw.Draw(image)
-    line_width = max(6, round(image.width * 0.0034))
+    line_width = max(8, round(image.width * 0.0042))
 
     for metric_key in template_request.get("metrics", []):
         region = template["regions"].get(metric_key)
