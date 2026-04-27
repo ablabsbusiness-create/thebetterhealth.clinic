@@ -724,7 +724,7 @@
     const CHART_ASSET_VERSION = '2026-04-25-age-years-axis-hires';
     const CHART_RENDER_MAX_WIDTH = 1200;
     const CHART_RENDER_SCALE = 4;
-    const CHART_POINT_RADIUS = 3.5;
+    const CHART_POINT_RADIUS = 4.4;
     const chartTemplateAxis = {
       xStart: 0.1731,
       xEnd: 0.8269,
@@ -950,7 +950,7 @@
       context.arc(x, y, CHART_POINT_RADIUS * renderScale, 0, Math.PI * 2);
       context.fillStyle = '#111111';
       context.fill();
-      context.lineWidth = 1.5 * renderScale;
+      context.lineWidth = 1.8 * renderScale;
       context.strokeStyle = '#ffffff';
       context.stroke();
 
@@ -1401,16 +1401,10 @@
       const chartPages = (chartRecord?.chartPages || []).slice(0, 4);
       if (chartPages.length) {
         y += 3;
-        const chartWidth = 33;
-        const chartGap = 4;
-        chartPages.forEach((page, index) => {
-          const x = 15 + index * (chartWidth + chartGap);
-          pdf.setFont('helvetica', 'normal');
-          pdf.setFontSize(7.2);
-          pdf.text(chartTitle(page.label, index), x, y);
-          pdf.addImage(page.dataUrl, 'PNG', x, y + 3, chartWidth, 24, undefined, 'NONE');
-        });
-        y += 33;
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(8.5);
+        pdf.text('Growth charts attached on following page(s).', 15, y);
+        y += 6;
       }
 
       pdf.line(15, 250, 38, 250);
@@ -1421,6 +1415,8 @@
       pdf.text('MBBS, DCH, DNB - Paediatrics, PGDDN, FPEM', 15, 264);
       pdf.setFontSize(7);
       pdf.text('71826', 15, 269);
+
+      appendChartPagesToPdf(pdf, chartPages);
 
       return {
         pdf,
@@ -1442,6 +1438,42 @@
         diastolic: chartRecord?.diastolic || '',
         temp: chartRecord?.temp || ''
       };
+    }
+
+    function appendChartPagesToPdf(pdf, chartPages = []) {
+      const pages = chartPages.slice(0, 4).filter((page) => page?.dataUrl);
+      if (!pages.length) {
+        return;
+      }
+
+      const chartsPerPage = 2;
+      for (let index = 0; index < pages.length; index += chartsPerPage) {
+        const pageGroup = pages.slice(index, index + chartsPerPage);
+        pdf.addPage('a4', 'portrait');
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(12);
+        pdf.text('Growth Charts', 15, 16);
+
+        pageGroup.forEach((chartPage, groupIndex) => {
+          const slotTop = 24 + groupIndex * 128;
+          const slotWidth = 180;
+          const slotHeight = 108;
+          const imageWidth = Number(chartPage.width) || 1040;
+          const imageHeight = Number(chartPage.height) || 752;
+          const scale = Math.min(slotWidth / imageWidth, slotHeight / imageHeight);
+          const renderWidth = imageWidth * scale;
+          const renderHeight = imageHeight * scale;
+          const renderX = 15 + (slotWidth - renderWidth) / 2;
+          const renderY = slotTop + 8;
+
+          pdf.setFont('helvetica', 'bold');
+          pdf.setFontSize(10);
+          pdf.text(chartTitle(chartPage.label, index + groupIndex), 15, slotTop);
+          pdf.setDrawColor(214, 223, 217);
+          pdf.roundedRect(15, slotTop + 4, slotWidth, slotHeight, 4, 4);
+          pdf.addImage(chartPage.dataUrl, 'PNG', renderX, renderY, renderWidth, renderHeight, undefined, 'FAST');
+        });
+      }
     }
 
     async function buildPrescriptionPreviewBlob() {
