@@ -1077,7 +1077,7 @@
     }
 
     function renderTextRow(label, values, detailMap = {}, sectionName = '') {
-      return `<p class="text-row"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(formatDetailedSelections(values, detailMap, sectionName))}</p>`;
+      return `<p class="text-row"><strong>${escapeHtml(label)}:</strong>${escapeHtml(formatDetailedSelections(values, detailMap, sectionName))}</p>`;
     }
 
     function formatDuration(value) {

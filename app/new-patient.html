@@ -593,42 +593,34 @@
         <form id="new-patient-form" class="intake-form" novalidate>
           <div class="field-grid">
             <div class="field">
-              <label for="first-name">First Name <span class="required">*</span></label>
-              <input id="first-name" name="firstName" type="text" placeholder="Enter first name" required>
-              <span class="field-hint">This will be used as part of the patient name.</span>
-            </div>
-
-            <div class="field">
-              <label for="middle-name">Middle Name</label>
-              <input id="middle-name" name="middleName" type="text" placeholder="Enter middle name">
-              <span class="field-hint">Leave blank if not used.</span>
-            </div>
-
-            <div class="field">
-              <label for="last-name">Last Name</label>
-              <input id="last-name" name="lastName" type="text" placeholder="Enter last name">
-              <span class="field-hint">Leave blank if not used.</span>
-            </div>
-
-            <div class="field">
-              <label for="mobile-number">Mobile Number <span class="required">*</span></label>
-              <input id="mobile-number" name="mobileNumber" type="tel" inputmode="tel" placeholder="Enter mobile number" required>
+              <label for="mobile-number">Phone Number <span class="required">*</span></label>
+              <input id="mobile-number" name="mobileNumber" type="tel" inputmode="tel" placeholder="Enter phone number" required>
               <span class="field-hint">Use the main contact number for this patient.</span>
             </div>
 
             <div class="field">
-              <label for="email">Email</label>
-              <input id="email" name="email" type="email" placeholder="Enter email address">
+              <label for="parent-name">Parent Name</label>
+              <input id="parent-name" name="parentName" type="text" placeholder="Enter parent name">
               <span class="field-hint">Leave blank if not available.</span>
             </div>
 
             <div class="field">
-              <label for="blood-group">Blood Group</label>
-              <input id="blood-group" name="bloodGroup" type="text" placeholder="e.g. O+">
-              <span class="field-hint">Leave blank if not known.</span>
+              <label for="child-name">Child Name <span class="required">*</span></label>
+              <input id="child-name" name="childName" type="text" placeholder="Enter child name" required>
+              <span class="field-hint">Enter the child name used in clinic records.</span>
             </div>
 
-            <div class="field field-full">
+            <div class="field">
+              <span class="field-label">Date of Birth <span class="required">*</span></span>
+              <div class="dob-group">
+                <input id="dob-day" name="dobDay" type="text" inputmode="numeric" placeholder="DD" maxlength="2" required>
+                <input id="dob-month" name="dobMonth" type="text" inputmode="numeric" placeholder="MM" maxlength="2" required>
+                <input id="dob-year" name="dobYear" type="text" inputmode="numeric" placeholder="YYYY" maxlength="4" required>
+              </div>
+              <span class="field-hint">Enter date of birth as day, month, and year.</span>
+            </div>
+
+            <div class="field">
               <span class="field-label">Gender <span class="required">*</span></span>
               <div class="radio-row" role="radiogroup" aria-label="Gender selection">
                 <div class="radio-pill">
@@ -644,19 +636,15 @@
             </div>
 
             <div class="field">
-              <span class="field-label">Date of Birth <span class="required">*</span></span>
-              <div class="dob-group">
-                <input id="dob-day" name="dobDay" type="text" inputmode="numeric" placeholder="DD" maxlength="2" required>
-                <input id="dob-month" name="dobMonth" type="text" inputmode="numeric" placeholder="MM" maxlength="2" required>
-                <input id="dob-year" name="dobYear" type="text" inputmode="numeric" placeholder="YYYY" maxlength="4" required>
-              </div>
-              <span class="field-hint">Enter date of birth as day, month, and year.</span>
+              <label for="blood-group">Blood</label>
+              <input id="blood-group" name="bloodGroup" type="text" placeholder="e.g. O+">
+              <span class="field-hint">Leave blank if not known.</span>
             </div>
 
             <div class="field">
-              <label for="referred-by">Referred By</label>
-              <input id="referred-by" name="referredBy" type="text" placeholder="Enter referral name">
-              <span class="field-hint">Leave blank if there is no referral.</span>
+              <label for="email">Email</label>
+              <input id="email" name="email" type="email" placeholder="Enter email address">
+              <span class="field-hint">Leave blank if not available.</span>
             </div>
           </div>
         </form>
@@ -728,14 +716,6 @@
       return `SX${suffix}`;
     }
 
-    function buildFullName() {
-      return [
-        newPatientForm.elements.firstName.value.trim(),
-        newPatientForm.elements.middleName.value.trim(),
-        newPatientForm.elements.lastName.value.trim()
-      ].filter(Boolean).join(' ');
-    }
-
     function parseDobInput(dayValue, monthValue, yearValue) {
       const day = Number.parseInt(dayValue.trim(), 10);
       const month = Number.parseInt(monthValue.trim(), 10);
@@ -763,18 +743,14 @@
       const normalizedDob = parseDobInput(dobDayInput.value, dobMonthInput.value, dobYearInput.value);
       const patientRecord = {
         patientId,
-        firstName: newPatientForm.elements.firstName.value.trim(),
-        middleName: newPatientForm.elements.middleName.value.trim(),
-        lastName: newPatientForm.elements.lastName.value.trim(),
-        childName: buildFullName(),
-        parentName: '',
+        childName: newPatientForm.elements.childName.value.trim(),
+        parentName: newPatientForm.elements.parentName.value.trim(),
         gender: newPatientForm.elements.gender.value,
         dob: normalizedDob,
         phone: newPatientForm.elements.mobileNumber.value.trim(),
         mobileNumber: newPatientForm.elements.mobileNumber.value.trim(),
         email: newPatientForm.elements.email.value.trim(),
         bloodGroup: newPatientForm.elements.bloodGroup.value.trim(),
-        referredBy: newPatientForm.elements.referredBy.value.trim(),
         createdAt: firebaseConfigured ? serverTimestamp() : new Date().toISOString()
       };
 
