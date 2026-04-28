@@ -723,9 +723,16 @@
     let savedPrescriptionRecord = null;
     let preparedChartRecord = null;
     const CHART_ASSET_VERSION = '2026-04-25-age-years-axis-hires';
+    const CHART_PREVIEW_VERSION = 'preview-rebuilt-2026-04-hires-mini-crop';
     const CHART_RENDER_MAX_WIDTH = 1600;
     const CHART_RENDER_SCALE = 6;
-    const CHART_POINT_RADIUS = 144;
+    const CHART_POINT_RADIUS = 120;
+    const chartMiniCrop = {
+      left: 0.05,
+      top: 0.055,
+      right: 0.965,
+      bottom: 0.985
+    };
     const chartTemplateAxis = {
       xStart: 0.1731,
       xEnd: 0.8269,
@@ -921,8 +928,75 @@
       });
     }
 
+    function loadChartImageFromSource(source) {
+      return new Promise((resolve, reject) => {
+        const image = new Image();
+        image.addEventListener('load', () => resolve(image), { once: true });
+        image.addEventListener('error', () => reject(new Error('Unable to prepare chart preview image.')), { once: true });
+        image.src = source;
+      });
+    }
+
     function clampRatio(value) {
       return Math.min(1, Math.max(0, value));
+    }
+
+    function getMiniChartCropRect(width, height) {
+      const left = Math.round(width * chartMiniCrop.left);
+      const top = Math.round(height * chartMiniCrop.top);
+      const right = Math.round(width * chartMiniCrop.right);
+      const bottom = Math.round(height * chartMiniCrop.bottom);
+      return {
+        left,
+        top,
+        width: Math.max(1, right - left),
+        height: Math.max(1, bottom - top)
+      };
+    }
+
+    async function buildMiniChartDataUrl(dataUrl) {
+      if (!dataUrl) {
+        return '';
+      }
+
+      const image = await loadChartImageFromSource(dataUrl);
+      const crop = getMiniChartCropRect(image.naturalWidth || image.width || 1, image.naturalHeight || image.height || 1);
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      canvas.width = crop.width;
+      canvas.height = crop.height;
+      context.imageSmoothingEnabled = true;
+      context.imageSmoothingQuality = 'high';
+      context.fillStyle = '#ffffff';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(
+        image,
+        crop.left,
+        crop.top,
+        crop.width,
+        crop.height,
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
+      return canvas.toDataURL('image/png');
+    }
+
+    async function prepareMiniChartPage(page) {
+      if (!page?.dataUrl) {
+        return page;
+      }
+
+      if (page.miniDataUrl && page.chartFormatVersion === CHART_PREVIEW_VERSION) {
+        return page;
+      }
+
+      return {
+        ...page,
+        miniDataUrl: await buildMiniChartDataUrl(page.dataUrl),
+        chartFormatVersion: CHART_PREVIEW_VERSION
+      };
     }
 
     async function renderFreshChartPage(request, patientData) {
@@ -960,7 +1034,7 @@
         dataUrl: canvas.toDataURL('image/png'),
         width: canvas.width,
         height: canvas.height,
-        chartFormatVersion: 'preview-rebuilt-2026-04-hires'
+        chartFormatVersion: CHART_PREVIEW_VERSION
       };
     }
 
@@ -970,7 +1044,21 @@
       }
 
       if (Array.isArray(record.chartPages) && record.chartPages.some((page) => page?.dataUrl)) {
-        return record;
+        try {
+          const chartPages = [];
+          for (const page of record.chartPages.slice(0, 4)) {
+            chartPages.push(await prepareMiniChartPage(page));
+          }
+
+          return {
+            ...record,
+            chartPages,
+            chartFormatVersion: CHART_PREVIEW_VERSION
+          };
+        } catch (error) {
+          console.warn(`Unable to refresh existing chart previews: ${error.message}`);
+          return record;
+        }
       }
 
       const patientData = getChartPatientData(record);
@@ -982,13 +1070,13 @@
       try {
         const chartPages = [];
         for (const request of requests.slice(0, 4)) {
-          chartPages.push(await renderFreshChartPage(request, patientData));
+          chartPages.push(await prepareMiniChartPage(await renderFreshChartPage(request, patientData)));
         }
 
         return {
           ...record,
           chartPages,
-          chartFormatVersion: 'preview-rebuilt-2026-04-hires'
+          chartFormatVersion: CHART_PREVIEW_VERSION
         };
       } catch (error) {
         console.warn(`Unable to rebuild chart previews: ${error.message}`);
@@ -1191,7 +1279,7 @@
           ${pages.slice(0, 4).map((page, index) => `
             <div class="mini-chart-card">
               <strong>${escapeHtml(chartTitle(page.label, index))}</strong>
-              <img data-chart-index="${index}" src="${escapeHtml(page.dataUrl)}" alt="${escapeHtml(page.label)} chart">
+              <img data-chart-index="${index}" src="${escapeHtml(page.miniDataUrl || page.dataUrl)}" alt="${escapeHtml(page.label)} chart">
             </div>
           `).join('')}
         </div>
@@ -1291,7 +1379,12 @@
 
     async function buildPdf() {
       const draft = getActivePrescriptionDraft();
-      const chartRecord = getCurrentChartRecord();
+      const activeChartRecord = getCurrentChartRecord();
+      const chartRecord = await rebuildChartPages(activeChartRecord);
+      if (chartRecord) {
+        preparedChartRecord = chartRecord;
+        persistPreparedChartRecord(chartRecord);
+      }
       const sections = draft?.sections || {};
       const sectionDetails = draft?.sectionDetails || {};
       const medicineRows = getMedicineRows(draft);
@@ -1416,7 +1509,7 @@
           pdf.setFont('helvetica', 'bold');
           pdf.setFontSize(8.5);
           pdf.text(chartTitle(page.label, index), x, chartBlockTop);
-          pdf.addImage(page.dataUrl, 'PNG', x, chartBlockTop + 3, chartWidth, chartHeight, undefined, 'NONE');
+          pdf.addImage(page.miniDataUrl || page.dataUrl, 'PNG', x, chartBlockTop + 3, chartWidth, chartHeight, undefined, 'NONE');
         });
       }
 

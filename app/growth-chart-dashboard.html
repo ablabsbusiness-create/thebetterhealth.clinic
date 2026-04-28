@@ -1317,7 +1317,7 @@
     let generatedPreviewPages = [];
     let generatedPdfBase64 = '';
     const CHART_RENDER_MAX_WIDTH = 760;
-    const CHART_POINT_RADIUS = 14;
+    const CHART_POINT_RADIUS = 12;
     const CAN_USE_PYTHON_CHART_SERVICE = ['localhost', '127.0.0.1'].includes(window.location.hostname);
     const LOCAL_RECORD_KEY = 'growthChartRecentRecords';
     const LOCAL_RECORD_TTL_MS = 10 * 60 * 1000;
@@ -1416,12 +1416,34 @@
       return { x, y };
     }
 
-    function drawMarker(region, patientData) {
-      const point = mapPoint(region, patientData);
+    function getPlotBounds(region, inset = 0) {
+      const left = Math.min(region.x.start, region.x.end) * chartCanvas.width + inset;
+      const right = Math.max(region.x.start, region.x.end) * chartCanvas.width - inset;
+      const top = Math.min(region.y.start, region.y.end) * chartCanvas.height + inset;
+      const bottom = Math.max(region.y.start, region.y.end) * chartCanvas.height - inset;
+      return {
+        left: Math.min(left, right),
+        right: Math.max(left, right),
+        top: Math.min(top, bottom),
+        bottom: Math.max(top, bottom)
+      };
+    }
 
-      if (!point) {
+    function constrainPointToBounds(point, bounds) {
+      return {
+        x: Math.min(Math.max(point.x, bounds.left), bounds.right),
+        y: Math.min(Math.max(point.y, bounds.top), bounds.bottom)
+      };
+    }
+
+    function drawMarker(region, patientData) {
+      const mappedPoint = mapPoint(region, patientData);
+
+      if (!mappedPoint) {
         return false;
       }
+
+      const point = constrainPointToBounds(mappedPoint, getPlotBounds(region, CHART_POINT_RADIUS));
 
       chartContext.beginPath();
       chartContext.arc(point.x, point.y, CHART_POINT_RADIUS, 0, Math.PI * 2);

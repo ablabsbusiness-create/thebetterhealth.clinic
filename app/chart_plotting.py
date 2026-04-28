@@ -245,13 +245,40 @@ def map_point(region: dict[str, Any], patient_data: dict[str, float], width: int
     return x, y
 
 
+def get_plot_bounds(region: dict[str, Any], width: int, height: int, inset: float = 0.0) -> tuple[float, float, float, float]:
+    left = min(region["x"]["start"], region["x"]["end"]) * width + inset
+    right = max(region["x"]["start"], region["x"]["end"]) * width - inset
+    top = min(region["y"]["start"], region["y"]["end"]) * height + inset
+    bottom = max(region["y"]["start"], region["y"]["end"]) * height - inset
+    if left > right:
+        midpoint_x = (left + right) / 2
+        left = midpoint_x
+        right = midpoint_x
+    if top > bottom:
+        midpoint_y = (top + bottom) / 2
+        top = midpoint_y
+        bottom = midpoint_y
+    return left, right, top, bottom
+
+
+def constrain_point_to_bounds(point: tuple[float, float], bounds: tuple[float, float, float, float]) -> tuple[float, float]:
+    left, right, top, bottom = bounds
+    x, y = point
+    return min(max(x, left), right), min(max(y, top), bottom)
+
+
 def sort_entries(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return sorted(entries, key=lambda entry: parse_datetime(entry.get("measuredAt")) or datetime.min)
 
 
-def draw_marker(draw: ImageDraw.ImageDraw, point: tuple[float, float], image_width: int) -> None:
-    radius = max(240, round(image_width * 0.22))
+def get_marker_metrics(image_width: int) -> tuple[int, int]:
+    radius = max(210, round(image_width * 0.19))
     outline_width = max(18, round(radius * 0.18))
+    return radius, outline_width
+
+
+def draw_marker(draw: ImageDraw.ImageDraw, point: tuple[float, float], image_width: int) -> None:
+    radius, outline_width = get_marker_metrics(image_width)
     x, y = point
     draw.ellipse(
         (x - radius, y - radius, x + radius, y + radius),
@@ -274,12 +301,14 @@ def render_template_page(template_request: dict[str, Any], plot_series: dict[str
     image = Image.open(image_path).convert("RGB")
     draw = ImageDraw.Draw(image)
     line_width = max(20, round(image.width * 0.012))
+    marker_radius, _ = get_marker_metrics(image.width)
 
     for metric_key in template_request.get("metrics", []):
         region = template["regions"].get(metric_key)
         if not region:
             continue
 
+        plot_bounds = get_plot_bounds(region, image.width, image.height, max(marker_radius, line_width / 2))
         entries = sort_entries(list(plot_series.get(metric_key, [])))
         mapped_points = []
         for entry in entries:
@@ -288,7 +317,7 @@ def render_template_page(template_request: dict[str, Any], plot_series: dict[str
                 continue
             point = map_point(region, patient_data, image.width, image.height)
             if point is not None:
-                mapped_points.append(point)
+                mapped_points.append(constrain_point_to_bounds(point, plot_bounds))
 
         if len(mapped_points) > 1:
             draw.line(mapped_points, fill=MARKER_FILL, width=line_width, joint="curve")
