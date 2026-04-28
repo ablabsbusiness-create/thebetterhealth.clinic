@@ -2051,7 +2051,7 @@
     let generatedPreviewPages = [];
     let generatedPdfBase64 = '';
     const CHART_RENDER_MAX_WIDTH = 760;
-    const CHART_POINT_RADIUS = 4.5;
+    const CHART_POINT_RADIUS = 14;
     const CAN_USE_PYTHON_CHART_SERVICE = ['localhost', '127.0.0.1'].includes(window.location.hostname);
     const LOCAL_RECORD_KEY = 'growthChartRecentRecords';
 
@@ -2640,7 +2640,7 @@
       chartContext.stroke();
 
       chartContext.beginPath();
-      chartContext.arc(point.x, point.y, 1, 0, Math.PI * 2);
+      chartContext.arc(point.x, point.y, 3, 0, Math.PI * 2);
       chartContext.fillStyle = '#111111';
       chartContext.fill();
       return true;
