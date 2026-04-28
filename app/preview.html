@@ -1237,13 +1237,16 @@
         </section>
 
         ${renderTextRow('Symptoms', sections.Symptoms, sectionDetails.Symptoms, 'Symptoms')}
-        ${renderTextRow('Findings', sections.Finding, sectionDetails.Finding, 'Finding')}
+        ${renderTextRow('Finding', sections.Finding, sectionDetails.Finding, 'Finding')}
+        ${renderTextRow('Notes', sections.Notes)}
         ${renderTextRow('Diagnosis', sections.Diagnosis)}
+        ${renderTextRow('Investigation', sections.Investigation)}
+        ${renderTextRow('Past Medical History', sections['Past Medical History'])}
 
         ${renderMedicineTable(medicineRows)}
 
         <section class="instructions-block">
-          <strong>Instructions:</strong>
+          <strong>Instruction:</strong>
           ${instructions.length
             ? `<ul>${instructions.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`
             : '<p class="empty-note">No instructions selected.</p>'}
@@ -1330,8 +1333,11 @@
       let y = 79;
       pdf.setFontSize(8.8);
       y = addWrappedSection(pdf, 'Symptoms', formatDetailedSelections(sections.Symptoms, sectionDetails.Symptoms, 'Symptoms'), y);
-      y = addWrappedSection(pdf, 'Findings', formatDetailedSelections(sections.Finding, sectionDetails.Finding, 'Finding'), y - 2);
+      y = addWrappedSection(pdf, 'Finding', formatDetailedSelections(sections.Finding, sectionDetails.Finding, 'Finding'), y - 2);
+      y = addWrappedSection(pdf, 'Notes', sections.Notes, y - 2);
       y = addWrappedSection(pdf, 'Diagnosis', sections.Diagnosis, y - 2);
+      y = addWrappedSection(pdf, 'Investigation', sections.Investigation, y - 2);
+      y = addWrappedSection(pdf, 'Past Medical History', sections['Past Medical History'], y - 2);
 
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(8.5);
@@ -1385,7 +1391,7 @@
       y += 8;
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(9);
-      pdf.text('Instructions:', 15, y);
+      pdf.text('Instruction:', 15, y);
       y += 5;
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(8);
