@@ -1816,6 +1816,37 @@
       savePrescriptionDraft();
     }
 
+    function formatSelectedItemLabel(sectionName, value) {
+      if (sectionName !== 'Symptoms') {
+        return value;
+      }
+
+      const detail = getSectionItemDetail(sectionName, value);
+      const parts = [value];
+      if (detail.days) {
+        parts.push(detail.days);
+      }
+      if (detail.severity) {
+        parts.push(detail.severity.toLowerCase());
+      }
+      return parts.join(', ');
+    }
+
+    function refreshSelectedItemsForSection(sectionName) {
+      const card = sectionMap.get(sectionName);
+      const selectedValues = prescriptionSelections[sectionName];
+      if (!card || !selectedValues) {
+        return;
+      }
+
+      const selectedList = card.querySelector('[data-selected-list]');
+      if (!selectedList) {
+        return;
+      }
+
+      renderSelectedItems(selectedList, [...selectedValues], sectionName);
+    }
+
     function syncSelectionDetailsFromDom() {
       if (!activeSelectionDetail) {
         return;
@@ -1834,6 +1865,7 @@
 
       detail.note = noteInput?.value.trim() || '';
       sectionItemDetails[sectionName].set(value, { ...detail });
+      refreshSelectedItemsForSection(sectionName);
       saveSelectionDetailsToDraft();
     }
 
@@ -2003,7 +2035,7 @@
       }
     });
 
-    function renderSelectedItems(selectedList, values) {
+    function renderSelectedItems(selectedList, values, sectionName = '') {
       selectedList.innerHTML = '';
 
       if (!values.length) {
@@ -2019,7 +2051,7 @@
         item.className = 'selected-item';
         item.type = 'button';
         item.dataset.selectedValue = value;
-        item.textContent = value;
+        item.textContent = formatSelectedItemLabel(sectionName, value);
 
         const removeIcon = document.createElement('span');
         removeIcon.className = 'selected-item-remove';
@@ -2819,7 +2851,7 @@
           selectedValues.delete(value);
         }
 
-        renderSelectedItems(selectedList, [...selectedValues]);
+        renderSelectedItems(selectedList, [...selectedValues], sectionName);
         savePrescriptionDraft();
 
         if (sectionName === 'Medication') {
