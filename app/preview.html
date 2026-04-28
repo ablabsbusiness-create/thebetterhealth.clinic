@@ -308,6 +308,8 @@
       min-height: 1123px;
       margin: 0 auto;
       padding: 48px 50px;
+      display: flex;
+      flex-direction: column;
       overflow: hidden;
       border-radius: 6px;
       border: 1px solid #e5e7eb;
@@ -371,7 +373,7 @@
     }
 
     .text-row {
-      margin: 9px 0;
+      margin: 6px 0;
       font-size: 13px;
       line-height: 1.35;
     }
@@ -451,6 +453,10 @@
       font-size: 14px;
     }
 
+    .instructions-block p {
+      margin: 0;
+    }
+
     .instructions-block ul {
       margin: 4px 0 0 22px;
       padding: 0;
@@ -492,10 +498,21 @@
     }
 
     .rx-footer {
-      display: block;
-      margin-top: 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 18px;
+      margin-top: auto;
+      padding-top: 26px;
       font-size: 12px;
       line-height: 1.25;
+    }
+
+    .footer-address {
+      max-width: 300px;
+      text-align: right;
+      font-size: 11px;
+      line-height: 1.3;
     }
 
     .signature-line {
@@ -1164,8 +1181,25 @@
       }).join(', ');
     }
 
+    function formatInstructionLines(values) {
+      if (!Array.isArray(values) || !values.length) {
+        return [];
+      }
+
+      const cleanedValues = values
+        .map((value) => String(value || '').trim())
+        .filter(Boolean);
+      const lines = [];
+
+      for (let index = 0; index < cleanedValues.length; index += 5) {
+        lines.push(cleanedValues.slice(index, index + 5).join(', '));
+      }
+
+      return lines;
+    }
+
     function renderTextRow(label, values, detailMap = {}, sectionName = '') {
-      return `<p class="text-row"><strong>${escapeHtml(label)}:</strong>${escapeHtml(formatDetailedSelections(values, detailMap, sectionName))}</p>`;
+      return `<p class="text-row"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(formatDetailedSelections(values, detailMap, sectionName))}</p>`;
     }
 
     function formatDuration(value) {
@@ -1336,7 +1370,7 @@
         <section class="instructions-block">
           <strong>Instruction:</strong>
           ${instructions.length
-            ? `<ul>${instructions.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`
+            ? `<p>${formatInstructionLines(instructions).map((line) => escapeHtml(line)).join('<br>')}</p>`
             : '<p class="empty-note">No instructions selected.</p>'}
         </section>
 
@@ -1348,6 +1382,10 @@
             <strong>Dr. Gunda Srinivas</strong><br>
             MBBS, DCH, DNB - Paediatrics, PGDDN, FPEM<br>
             71826
+          </div>
+          <div class="footer-address">
+            The Better Health Clinic - Paediatrician #118, 5th Cross, Omkar Nagar Akere,<br>
+            Bannerghatta road 560076 Bengaluru Karnataka
           </div>
         </footer>
       `;
@@ -1365,16 +1403,17 @@
         y = 16;
       }
 
-      pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(8.8);
-      pdf.text(title, 14, y);
-      y += 5;
-      pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(8.2);
       const sectionText = Array.isArray(values)
         ? (values.length ? values.join(', ') : 'No items selected.')
         : (String(values || '').trim() || 'No items selected.');
-      return addTextLine(pdf, sectionText, 14, y, { maxWidth: 182, lineHeight: 4.2 }) + 3;
+      const labelText = `${title}:`;
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(8.6);
+      pdf.text(labelText, 14, y);
+      const labelWidth = pdf.getTextWidth(labelText) + 2;
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(8.2);
+      return addTextLine(pdf, sectionText, 14 + labelWidth, y, { maxWidth: 181 - labelWidth, lineHeight: 4.1 }) + 1.5;
     }
 
     async function buildPdf() {
@@ -1396,41 +1435,38 @@
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(12);
       pdf.text('The Better Health Clinic', 15, 16);
-      pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(8.5);
-      pdf.text(['The Better Health Clinic - Paediatrician #118, 5th', 'Cross, Omkar Nagar Akere, Bannerghatta', 'road 560076 Bengaluru Karnataka'], 15, 25);
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(8.5);
       pdf.text('Dr. Gunda Srinivas', 170, 16, { align: 'right' });
       pdf.setFont('helvetica', 'normal');
       pdf.text('MBBS, DCH, DNB - Paediatrics, PGDDN, FPEM', 170, 23, { align: 'right' });
-      pdf.line(15, 42, 195, 42);
+      pdf.line(15, 32, 195, 32);
 
-      pdf.rect(15, 50, 180, 18);
+      pdf.rect(15, 40, 180, 18);
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(8.5);
-      pdf.text('Name:', 18, 57);
-      pdf.text('Age/Sex:', 18, 63);
-      pdf.text('Office ID:', 18, 67);
-      pdf.text('Date:', 87, 57);
-      pdf.text('Mobile:', 87, 63);
-      pdf.text('Weight:', 165, 57);
+      pdf.text('Name:', 18, 47);
+      pdf.text('Age/Sex:', 18, 53);
+      pdf.text('Office ID:', 18, 57);
+      pdf.text('Date:', 87, 47);
+      pdf.text('Mobile:', 87, 53);
+      pdf.text('Weight:', 165, 47);
       pdf.setFont('helvetica', 'normal');
-      pdf.text(chartRecord?.childName || '-', 31, 57);
-      pdf.text(`${formatCompactAge(chartRecord?.age || '-')} / ${chartRecord?.gender || '-'}`, 35, 63);
-      pdf.text(patientId, 36, 67);
-      pdf.text(formatShortDate(now), 98, 57);
-      pdf.text(chartRecord?.phone || '-', 102, 63);
-      pdf.text(`${chartRecord?.weight || '-'} kg`, 181, 57);
+      pdf.text(chartRecord?.childName || '-', 31, 47);
+      pdf.text(`${formatCompactAge(chartRecord?.age || '-')} / ${chartRecord?.gender || '-'}`, 35, 53);
+      pdf.text(patientId, 36, 57);
+      pdf.text(formatShortDate(now), 98, 47);
+      pdf.text(chartRecord?.phone || '-', 102, 53);
+      pdf.text(`${chartRecord?.weight || '-'} kg`, 181, 47);
 
-      let y = 79;
+      let y = 68;
       pdf.setFontSize(8.8);
       y = addWrappedSection(pdf, 'Symptoms', formatDetailedSelections(sections.Symptoms, sectionDetails.Symptoms, 'Symptoms'), y);
-      y = addWrappedSection(pdf, 'Finding', formatDetailedSelections(sections.Finding, sectionDetails.Finding, 'Finding'), y - 2);
-      y = addWrappedSection(pdf, 'Notes', sections.Notes, y - 2);
-      y = addWrappedSection(pdf, 'Diagnosis', sections.Diagnosis, y - 2);
-      y = addWrappedSection(pdf, 'Investigation', sections.Investigation, y - 2);
-      y = addWrappedSection(pdf, 'Past Medical History', sections['Past Medical History'], y - 2);
+      y = addWrappedSection(pdf, 'Finding', formatDetailedSelections(sections.Finding, sectionDetails.Finding, 'Finding'), y);
+      y = addWrappedSection(pdf, 'Notes', sections.Notes, y);
+      y = addWrappedSection(pdf, 'Diagnosis', sections.Diagnosis, y);
+      y = addWrappedSection(pdf, 'Investigation', sections.Investigation, y);
+      y = addWrappedSection(pdf, 'Past Medical History', sections['Past Medical History'], y);
 
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(8.5);
@@ -1481,17 +1517,17 @@
         y += 9;
       }
 
-      y += 8;
+      y += 10;
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(9);
       pdf.text('Instruction:', 15, y);
-      y += 5;
+      y += 5.5;
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(8);
-      const instructions = sections.Instruction || [];
-      if (instructions.length) {
-        instructions.forEach((item) => {
-          y = addTextLine(pdf, `• ${item}`, 20, y, { maxWidth: 170, lineHeight: 5 });
+      const instructionLines = formatInstructionLines(sections.Instruction || []);
+      if (instructionLines.length) {
+        instructionLines.forEach((line) => {
+          y = addTextLine(pdf, line, 20, y, { maxWidth: 168, lineHeight: 4.8 });
         });
       } else {
         pdf.text('No instructions selected.', 20, y);
@@ -1499,8 +1535,9 @@
       }
 
       const chartPages = (chartRecord?.chartPages || []).slice(0, 4);
+      const footerTop = 250;
       if (chartPages.length) {
-        const chartBlockTop = Math.max(y + 4, 184);
+        const chartBlockTop = Math.min(Math.max(y + 4, 184), footerTop - 39);
         const chartWidth = 42;
         const chartGap = 4;
         const chartHeight = 31;
@@ -1513,14 +1550,16 @@
         });
       }
 
-      pdf.line(15, 250, 38, 250);
+      pdf.line(15, footerTop, 38, footerTop);
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(8.5);
-      pdf.text('Dr. Gunda Srinivas', 15, 258);
+      pdf.text('Dr. Gunda Srinivas', 15, footerTop + 8);
       pdf.setFont('helvetica', 'normal');
-      pdf.text('MBBS, DCH, DNB - Paediatrics, PGDDN, FPEM', 15, 264);
+      pdf.text('MBBS, DCH, DNB - Paediatrics, PGDDN, FPEM', 15, footerTop + 14);
       pdf.setFontSize(7);
-      pdf.text('71826', 15, 269);
+      pdf.text('71826', 15, footerTop + 19);
+      pdf.setFontSize(7.5);
+      pdf.text(['The Better Health Clinic - Paediatrician #118, 5th Cross, Omkar Nagar Akere,', 'Bannerghatta road 560076 Bengaluru Karnataka'], 195, footerTop + 12, { align: 'right' });
 
       return {
         pdf,

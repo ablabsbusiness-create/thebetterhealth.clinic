@@ -1563,14 +1563,6 @@
         .sort((a, b) => new Date(b.createdAtIso || 0) - new Date(a.createdAtIso || 0));
     }
 
-    function buildEmbeddedPrescriptionUrl(url) {
-      if (!url) {
-        return '';
-      }
-
-      return url.includes('#') ? url : `${url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`;
-    }
-
     function renderPrescriptionListHtml(patientId) {
       const entries = getPrescriptionEntries(patientId);
 
@@ -1587,7 +1579,6 @@
               const previewImageUrl = entry.previewImageURL || '';
               const cardUrl = escapeHtml(downloadUrl);
               const cardPreviewUrl = escapeHtml(previewImageUrl);
-              const embeddedUrl = escapeHtml(buildEmbeddedPrescriptionUrl(downloadUrl));
 
               return `
                 <div class="prescription-preview-card" data-open-prescription-url="${cardUrl}" data-preview-image-url="${cardPreviewUrl}">
@@ -1603,7 +1594,7 @@
                       <div class="prescription-preview-surface">
                         ${downloadUrl
                           ? `
-                            <iframe class="prescription-preview-embed" src="${embeddedUrl}" title="Prescription preview ${index + 1}"></iframe>
+                            <div class="prescription-preview-placeholder">Tap to open this prescription PDF.</div>
                             <a class="prescription-preview-open-chip" href="${cardUrl}" target="_blank" rel="noopener noreferrer">Open prescription</a>
                           `
                           : '<div class="prescription-preview-placeholder is-error">Prescription PDF could not be loaded for this record.</div>'}
@@ -1661,21 +1652,23 @@
               <a class="continue-link" href="prescription-growth-chart-dashboard.html?patientId=${encodeURIComponent(patientId)}">Continue</a>
             </div>
 
-            <div class="result-layout ${isExpanded ? '' : 'is-hidden'}">
-              <section class="info-panel">
-                <div class="panel-content">
-                  <h3>Info regarding patient details and current clinic record.</h3>
-                  ${renderMeasurementTableHtml(patient, selectedHistoryDate)}
-                </div>
-              </section>
+            ${isExpanded ? `
+              <div class="result-layout">
+                <section class="info-panel">
+                  <div class="panel-content">
+                    <h3>Info regarding patient details and current clinic record.</h3>
+                    ${renderMeasurementTableHtml(patient, selectedHistoryDate)}
+                  </div>
+                </section>
 
-              <section class="history-panel">
-                <div class="panel-content">
-                  <h3>Past prescription</h3>
-                  ${renderPrescriptionListHtml(patientId)}
-                </div>
-              </section>
-            </div>
+                <section class="history-panel">
+                  <div class="panel-content">
+                    <h3>Past prescription</h3>
+                    ${renderPrescriptionListHtml(patientId)}
+                  </div>
+                </section>
+              </div>
+            ` : ''}
           </article>
         `;
       }).join('');
