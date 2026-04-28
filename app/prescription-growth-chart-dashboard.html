@@ -2334,7 +2334,22 @@
       metricInputs.weight.focus();
     }
 
+    function clearMeasurementInputs() {
+      Object.values(metricInputs).forEach((input) => {
+        input.value = '';
+      });
+      activeHistoryEditKey = '';
+      generatedTemplates = [];
+      generatedPreviewPages = [];
+      generatedPdfBase64 = '';
+      updatePreview();
+      renderPreviewGallery();
+      drawBaseTemplate(null);
+      setChartPreviewMessage('Add the available measurements, then click Generate Chart to prepare the matching IAP templates for PDF download.');
+    }
+
     function applyPatientRecord(patientRecord) {
+      clearMeasurementInputs();
       childNameInput.value = patientRecord.childName || '';
       parentNameInput.value = patientRecord.parentName || '';
       phoneInput.value = patientRecord.phone || '';
@@ -2375,6 +2390,7 @@
       const patientId = patientIdInput.value.trim().toUpperCase();
 
       if (!patientId) {
+        clearMeasurementInputs();
         childNameInput.value = '';
         parentNameInput.value = '';
         phoneInput.value = '';
@@ -2394,6 +2410,7 @@
         const patientRecord = await fetchPatientRecord(patientId);
 
         if (!patientRecord) {
+          clearMeasurementInputs();
           childNameInput.value = '';
           parentNameInput.value = '';
           phoneInput.value = '';
