@@ -267,6 +267,21 @@ def constrain_point_to_bounds(point: tuple[float, float], bounds: tuple[float, f
     return min(max(x, left), right), min(max(y, top), bottom)
 
 
+def clip_overlay_to_bounds(
+    overlay: Image.Image,
+    width: int,
+    height: int,
+    bounds: tuple[float, float, float, float],
+) -> Image.Image:
+    left, right, top, bottom = bounds
+    clipped_overlay = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+    mask = Image.new("L", (width, height), 0)
+    mask_draw = ImageDraw.Draw(mask)
+    mask_draw.rectangle((left, top, right, bottom), fill=255)
+    clipped_overlay.paste(overlay, (0, 0), mask)
+    return clipped_overlay
+
+
 def sort_entries(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return sorted(entries, key=lambda entry: parse_datetime(entry.get("measuredAt")) or datetime.min)
 
@@ -298,8 +313,7 @@ def render_template_page(template_request: dict[str, Any], plot_series: dict[str
     if not image_path.exists():
         raise ChartPlotError(f"Missing chart asset: {template['path']}")
 
-    image = Image.open(image_path).convert("RGB")
-    draw = ImageDraw.Draw(image)
+    image = Image.open(image_path).convert("RGBA")
     line_width = max(20, round(image.width * 0.012))
     marker_radius, _ = get_marker_metrics(image.width)
 
@@ -309,6 +323,7 @@ def render_template_page(template_request: dict[str, Any], plot_series: dict[str
             continue
 
         plot_bounds = get_plot_bounds(region, image.width, image.height, max(marker_radius, line_width / 2))
+        clip_bounds = get_plot_bounds(region, image.width, image.height, 0)
         entries = sort_entries(list(plot_series.get(metric_key, [])))
         mapped_points = []
         for entry in entries:
@@ -319,13 +334,17 @@ def render_template_page(template_request: dict[str, Any], plot_series: dict[str
             if point is not None:
                 mapped_points.append(constrain_point_to_bounds(point, plot_bounds))
 
+        overlay = Image.new("RGBA", image.size, (0, 0, 0, 0))
+        overlay_draw = ImageDraw.Draw(overlay)
         if len(mapped_points) > 1:
-            draw.line(mapped_points, fill=MARKER_FILL, width=line_width, joint="curve")
+            overlay_draw.line(mapped_points, fill=MARKER_FILL, width=line_width, joint="curve")
 
         for point in mapped_points:
-            draw_marker(draw, point, image.width)
+            draw_marker(overlay_draw, point, image.width)
 
-    return image
+        image = Image.alpha_composite(image, clip_overlay_to_bounds(overlay, image.width, image.height, clip_bounds))
+
+    return image.convert("RGB")
 
 
 def encode_png_data_url(image: Image.Image) -> str:

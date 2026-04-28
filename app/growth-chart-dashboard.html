@@ -1436,6 +1436,24 @@
       };
     }
 
+    function withPlotClip(region, callback) {
+      const bounds = getPlotBounds(region, 0);
+      chartContext.save();
+      chartContext.beginPath();
+      chartContext.rect(
+        bounds.left,
+        bounds.top,
+        Math.max(0, bounds.right - bounds.left),
+        Math.max(0, bounds.bottom - bounds.top)
+      );
+      chartContext.clip();
+      try {
+        callback();
+      } finally {
+        chartContext.restore();
+      }
+    }
+
     function drawMarker(region, patientData) {
       const mappedPoint = mapPoint(region, patientData);
 
@@ -1445,18 +1463,20 @@
 
       const point = constrainPointToBounds(mappedPoint, getPlotBounds(region, CHART_POINT_RADIUS));
 
-      chartContext.beginPath();
-      chartContext.arc(point.x, point.y, CHART_POINT_RADIUS, 0, Math.PI * 2);
-      chartContext.fillStyle = '#111111';
-      chartContext.fill();
-      chartContext.lineWidth = 1.5;
-      chartContext.strokeStyle = '#ffffff';
-      chartContext.stroke();
+      withPlotClip(region, () => {
+        chartContext.beginPath();
+        chartContext.arc(point.x, point.y, CHART_POINT_RADIUS, 0, Math.PI * 2);
+        chartContext.fillStyle = '#111111';
+        chartContext.fill();
+        chartContext.lineWidth = 1.5;
+        chartContext.strokeStyle = '#ffffff';
+        chartContext.stroke();
 
-      chartContext.beginPath();
-      chartContext.arc(point.x, point.y, 3, 0, Math.PI * 2);
-      chartContext.fillStyle = '#111111';
-      chartContext.fill();
+        chartContext.beginPath();
+        chartContext.arc(point.x, point.y, 3, 0, Math.PI * 2);
+        chartContext.fillStyle = '#111111';
+        chartContext.fill();
+      });
       return true;
     }
 
