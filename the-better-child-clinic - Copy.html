@@ -72,6 +72,28 @@
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-8px); }
     }
+    @keyframes sparkleTwinkle {
+      0%, 100% {
+        opacity: 0.15;
+        transform: scale(0.7);
+      }
+      50% {
+        opacity: 0.95;
+        transform: scale(1.15);
+      }
+    }
+    @keyframes nameTwinkle {
+      0%, 100% {
+        opacity: 0.42;
+        text-shadow: none;
+      }
+      50% {
+        opacity: 0.9;
+        text-shadow:
+          0 0 8px rgba(255,255,255,0.18),
+          0 0 14px rgba(255,255,255,0.08);
+      }
+    }
     .float-badge { animation: float 3s ease-in-out infinite; }
     .float-badge-2 { animation: float 3.5s ease-in-out infinite 0.5s; }
     .float-badge-3 { animation: float 4s ease-in-out infinite 1s; }
@@ -83,31 +105,53 @@
     .underline-brand { text-decoration: underline; text-decoration-color: #FF8A4C; text-underline-offset: 6px; text-decoration-thickness: 3px; }
 
     .hero-soft {
+      min-height: 78vh;
       background:
-        radial-gradient(circle at 15% 18%, rgba(178,229,216,0.45) 0%, transparent 24%),
-        radial-gradient(circle at 86% 20%, rgba(253,226,204,0.55) 0%, transparent 22%),
-        linear-gradient(180deg, #fbfffd 0%, #f5f1e8 100%);
+        radial-gradient(circle at 18% 14%, rgba(178,229,216,0.22) 0%, transparent 24%),
+        radial-gradient(circle at 84% 20%, rgba(255,138,76,0.12) 0%, transparent 20%),
+        linear-gradient(180deg, #fffdf9 0%, #f8f6ef 100%);
     }
     .hero-soft::before {
       content: '';
       position: absolute;
       inset: auto 0 0 0;
       height: 120px;
-      background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.55) 100%);
+      background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.38) 100%);
       pointer-events: none;
+    }
+    .hero-soft::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.46) 0%, rgba(255,255,255,0.2) 35%, rgba(255,255,255,0.32) 100%);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+      pointer-events: none;
+      z-index: 4;
     }
     .hero-content {
       position: relative;
       z-index: 2;
-      padding: 0.5rem 0 0.25rem;
+      padding: 1.6rem 1.4rem 1.25rem;
+      border-radius: 2rem;
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.32);
+      box-shadow: 0 18px 40px rgba(31,41,55,0.06);
+      backdrop-filter: blur(6px);
     }
     .hero-content::before {
       content: '';
       position: absolute;
-      inset: -1.5rem -1rem -1rem;
-      background: radial-gradient(circle at top, rgba(255,255,255,0.4), rgba(255,255,255,0));
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.04) 100%);
       pointer-events: none;
       z-index: -1;
+    }
+    .hero-content > * {
+      position: relative;
+      z-index: 1;
     }
     .hero-kid-badge {
       display: inline-flex;
@@ -135,9 +179,29 @@
       max-width: 34rem;
       padding: 0.9rem 1.1rem;
       border-radius: 1.4rem;
-      background: rgba(255,255,255,0.52);
+      background: rgba(255,255,255,0.82);
       border: 1px solid rgba(46,125,107,0.10);
       box-shadow: 0 12px 30px rgba(46,125,107,0.06);
+    }
+    .hero-intro-copy {
+      max-width: 31rem;
+      margin-inline: auto;
+      padding: 0.95rem 1.05rem;
+      border-radius: 1.3rem;
+      background: rgba(255,255,255,0.62);
+      border: 1px solid rgba(255,255,255,0.72);
+      box-shadow: 0 12px 28px rgba(31,41,55,0.06);
+      backdrop-filter: blur(8px);
+    }
+    .hero-content > p.hidden.md\:block {
+      max-width: 31rem;
+      margin-inline: auto;
+      padding: 0.95rem 1.05rem;
+      border-radius: 1.3rem;
+      background: rgba(255,255,255,0.62);
+      border: 1px solid rgba(255,255,255,0.72);
+      box-shadow: 0 12px 28px rgba(31,41,55,0.06);
+      backdrop-filter: blur(8px);
     }
     .hero-cta-wrap {
       position: relative;
@@ -348,43 +412,74 @@
       50%, 100% { opacity: 0; }
     }
     @media (max-width: 767px) {
+      .hero-soft {
+        min-height: 132vh;
+      }
+      .hero-soft::after {
+        background:
+          linear-gradient(180deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.06) 34%, rgba(255,255,255,0.12) 100%);
+        inset: 0 0 -34rem 0;
+      }
       .hero-content h1 {
-        font-size: 3.35rem;
-        line-height: 0.95;
-        margin-bottom: 0.85rem;
+        font-size: 2.9rem;
+        line-height: 0.9;
+        margin-bottom: 0.55rem;
+        letter-spacing: -0.04em;
+      }
+      .hero-content {
+        padding: 1.1rem 0.95rem 1rem;
+        border-radius: 1.55rem;
+        max-width: min(100%, 24rem);
+        margin-inline: auto;
+        background: rgba(255,255,255,0.22);
+        border-color: rgba(255,255,255,0.4);
+        box-shadow: 0 18px 36px rgba(31,41,55,0.06);
+        backdrop-filter: blur(5px);
+        transform: translateY(-3.6rem);
       }
       .name-slot {
         width: min(88vw, 12rem);
         min-height: 2rem;
       }
       .name-stage {
-        font-size: 1.3rem;
+        font-size: 1.42rem;
       }
       .hero-kid-badge {
-        font-size: 0.82rem;
-        padding: 0.62rem 0.9rem;
+        font-size: 0.78rem;
+        padding: 0.58rem 0.86rem;
+      }
+      .hero-intro-copy {
+        max-width: 100%;
+        padding: 0.72rem 0.82rem;
+        border-radius: 1.15rem;
+        background: rgba(255,255,255,0.74);
       }
       .hero-tagline {
-        padding: 0.8rem 0.9rem;
-        border-radius: 1.2rem;
+        padding: 0.72rem 0.86rem;
+        border-radius: 1.1rem;
+        font-size: 0.98rem;
+        line-height: 1.38;
       }
       .hero-popup-mascot {
-        left: 0.25rem;
-        top: -2.15rem;
-        width: 7.9rem;
-        transform: translateY(10px) rotate(-8deg) scale(0.9);
+        display: block;
+        left: 50%;
+        top: auto;
+        bottom: -0.95rem;
+        width: 6.8rem;
+        transform: translateX(-50%) translateY(10px) rotate(-4deg) scale(0.9);
       }
       .hero-popup-mascot-clip {
-        width: 4.8rem;
-        height: 2.7rem;
+        width: 4.2rem;
+        height: 2.45rem;
       }
       .hero-popup-bubble {
-        left: 2.85rem;
-        font-size: 0.7rem;
-        padding: 0.4rem 0.65rem;
+        left: 2.45rem;
+        top: -0.15rem;
+        font-size: 0.66rem;
+        padding: 0.36rem 0.58rem;
       }
       .hero-popup-mascot svg {
-        width: 4.8rem;
+        width: 4.2rem;
       }
       .scroll-booking-mascot {
         top: 54%;
@@ -403,15 +498,40 @@
         width: 4.2rem;
       }
       .hero-names-wall {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        min-height: 18rem;
-        gap: 0.55rem;
-        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.08rem;
+        padding: 0.3rem 0.55rem 0.45rem;
+        opacity: 0.95;
+        min-height: calc(100% + 34rem);
+        inset: 0 0 -34rem 0;
       }
       .hero-names-wall span {
-        min-height: 2.6rem;
-        padding: 0.55rem 0.65rem;
-        font-size: 0.95rem;
+        min-height: 0;
+        padding: 0;
+        font-size: clamp(1.45rem, 7.5vw, 2.2rem);
+        line-height: 0.96;
+        letter-spacing: -0.05em;
+        color: rgba(0, 0, 0, 0.78);
+        -webkit-text-stroke: 0.2px rgba(255,255,255,0.02);
+        animation: nameTwinkle 4.8s ease-in-out infinite;
+      }
+      .hero-cta-wrap {
+        width: 100%;
+        gap: 0.72rem;
+      }
+      .hero-book-button-wrap,
+      .hero-cta-wrap > a {
+        width: 100%;
+      }
+      .hero-book-button-wrap > a,
+      .hero-cta-wrap > a {
+        width: 100%;
+        justify-content: center;
+        min-height: 3.35rem;
+      }
+      .hero-sparkle {
+        opacity: 0.08;
       }
       @keyframes mascotPopIn {
         to {
@@ -421,11 +541,7 @@
       }
     }
     .hero-cloud {
-      position: absolute;
-      border-radius: 999px;
-      pointer-events: none;
-      opacity: 0.85;
-      animation: float 5s ease-in-out infinite;
+      display: none;
     }
     .hero-cloud.one {
       width: 82px;
@@ -479,49 +595,108 @@
     .hero-photo-card {
       position: relative;
       z-index: 1;
-      background: rgba(255,255,255,0.9);
-      border: 1px solid rgba(46,125,107,0.10);
-      box-shadow: 0 18px 48px rgba(31,41,55,0.10);
-      backdrop-filter: blur(10px);
+      background: rgba(255,255,255,0.84);
+      border: 1px solid rgba(255,255,255,0.85);
+      box-shadow: 0 24px 58px rgba(31,41,55,0.12);
+      backdrop-filter: blur(16px);
     }
     .hero-names-wall {
       position: absolute;
       inset: 0;
       z-index: 1;
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      align-content: stretch;
-      gap: 0.7rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 0.12rem;
       min-height: 100%;
-      padding: 2rem;
+      padding: 0.05rem 0.75rem 0.55rem;
+      overflow: hidden;
+      mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.88) 10%, rgba(0,0,0,0.92) 84%, transparent 100%);
+      -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.88) 10%, rgba(0,0,0,0.92) 84%, transparent 100%);
+      opacity: 0.68;
     }
     .hero-names-wall span {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 3rem;
-      padding: 0.65rem 0.85rem;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.35);
-      border: 1px solid rgba(46,125,107,0.08);
-      color: rgba(46,125,107,0.58);
-      font-family: "Playfair Display", serif;
-      font-size: clamp(1rem, 1.7vw, 1.55rem);
+      display: block;
+      justify-content: flex-start;
+      min-height: 0;
+      padding: 0;
+      color: rgba(0, 0, 0, 0.82);
+      font-family: 'Nunito', sans-serif;
+      font-size: clamp(2.15rem, 4.1vw, 3.65rem);
       font-weight: 800;
-      letter-spacing: 0.02em;
-      text-align: center;
-      box-shadow: 0 8px 18px rgba(46,125,107,0.05);
-      backdrop-filter: blur(4px);
+      line-height: 0.98;
+      letter-spacing: -0.04em;
+      white-space: nowrap;
+      text-align: left;
+      -webkit-text-stroke: 0.45px rgba(255,255,255,0.28);
+      text-shadow:
+        0 1px 0 rgba(255,255,255,0.18);
+      animation: nameTwinkle 5.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      animation-delay: 0s;
     }
     .hero-names-wall span:nth-child(3n) {
-      color: rgba(255,138,76,0.56);
-      transform: rotate(-4deg);
+      color: rgba(0, 0, 0, 0.82);
     }
     .hero-names-wall span:nth-child(4n) {
-      transform: rotate(3deg);
     }
-    .hero-names-wall span:nth-child(5n) {
-      background: rgba(255,248,240,0.46);
+    .hero-names-wall span:nth-child(even) {
+      color: rgba(0, 0, 0, 0.82);
+    }
+    .hero-sparkle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      pointer-events: none;
+      z-index: 2;
+      opacity: 0.12;
+      animation: sparkleTwinkle 3.4s ease-in-out infinite;
+    }
+    .hero-sparkle::before,
+    .hero-sparkle::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(178,229,216,0.95) 0%, rgba(178,229,216,0.18) 65%, transparent 100%);
+    }
+    .hero-sparkle::after {
+      inset: 50% auto auto 50%;
+      width: 2px;
+      height: 14px;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(180deg, transparent 0%, rgba(46,125,107,0.75) 50%, transparent 100%);
+      border-radius: 999px;
+    }
+    .hero-sparkle.orange::after {
+      background: linear-gradient(180deg, transparent 0%, rgba(255,138,76,0.75) 50%, transparent 100%);
+    }
+    .hero-sparkle.orange::before,
+    .hero-sparkle.orange::after {
+      box-shadow: 0 0 12px rgba(255,138,76,0.28);
+    }
+    .hero-sparkle::before {
+      inset: 50% auto auto 50%;
+      width: 14px;
+      height: 2px;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(90deg, transparent 0%, rgba(46,125,107,0.75) 50%, transparent 100%);
+    }
+    .hero-sparkle.orange::before {
+      background: linear-gradient(90deg, transparent 0%, rgba(255,138,76,0.75) 50%, transparent 100%);
+    }
+    .hero-sparkle.green::before,
+    .hero-sparkle.green::after {
+      box-shadow: 0 0 12px rgba(46,125,107,0.22);
+    }
+    .hero-sparkle.cream::before,
+    .hero-sparkle.cream::after {
+      box-shadow: 0 0 12px rgba(245,241,232,0.45);
+    }
+    .hero-sparkle.cream::before {
+      background: linear-gradient(90deg, transparent 0%, rgba(245,241,232,0.95) 50%, transparent 100%);
+    }
+    .hero-sparkle.cream::after {
+      background: linear-gradient(180deg, transparent 0%, rgba(245,241,232,0.95) 50%, transparent 100%);
     }
     .hero-photo-card img {
       display: block;
@@ -670,40 +845,152 @@
   <section id="home" class="hero-soft relative overflow-hidden pt-14 pb-16 md:pt-20 md:pb-20">
     <div class="hero-cloud one"></div>
     <div class="hero-cloud two"></div>
+    <span class="hero-sparkle green" style="top: 16%; left: 18%; animation-delay: 0.2s;"></span>
+    <span class="hero-sparkle orange" style="top: 22%; left: 64%; animation-delay: 1.1s;"></span>
+    <span class="hero-sparkle cream" style="top: 34%; left: 44%; animation-delay: 1.8s;"></span>
+    <span class="hero-sparkle orange" style="top: 48%; left: 78%; animation-delay: 0.7s;"></span>
+    <span class="hero-sparkle green" style="top: 58%; left: 28%; animation-delay: 2.2s;"></span>
+    <span class="hero-sparkle orange" style="top: 72%; left: 56%; animation-delay: 1.4s;"></span>
+    <span class="hero-sparkle cream" style="top: 82%; left: 86%; animation-delay: 2.6s;"></span>
     <div class="hero-names-wall" aria-label="Children names background">
-      <span>Aarav</span>
-      <span>Anaya</span>
-      <span>Vihaan</span>
-      <span>Diya</span>
-      <span>Advik</span>
-      <span>Myra</span>
-      <span>Ishaan</span>
-      <span>Kiara</span>
-      <span>Reyansh</span>
-      <span>Saanvi</span>
-      <span>Krish</span>
-      <span>Anika</span>
-      <span>Riaan</span>
-      <span>Aadhya</span>
-      <span>Arjun</span>
-      <span>Minnu</span>
-      <span>Kabir</span>
-      <span>Tara</span>
-      <span>Rudra</span>
-      <span>Navya</span>
-      <span>Dev</span>
-      <span>Meera</span>
-      <span>Yuvan</span>
-      <span>Riya</span>
-      <span>Ayaan</span>
-      <span>Pari</span>
-      <span>Shlok</span>
-      <span>Sia</span>
-      <span>Vivaan</span>
-      <span>Anvi</span>
-      <span>Nivaan</span>
-      <span>Ira</span>
+      <span>Aarav Anaya Chinnu Diya Ishaan Kiara Myra Reyansh Saanvi Krish Anika Riaan</span>
+      <span>Aadhya Arjun Kabir Tara Riya Vihaan Pari Dev Meera Yuvan Navya</span>
+      <span>Ira Minnu Appu Kanna Kutty Bittu Pappu Babu Kuttu Chinnu Ayaan</span>
+      <span>Reyansh Sia Anvi Nivaan Rudra Shlok Kiara Aadhya Myra Tara Kabir</span>
+      <span>Diya Ishaan Aarav Anaya Krish Anika Riaan Pari Meera Dev Yuvan</span>
+      <span>Chinnu Kanna Minnu Appu Kutty Bittu Pappu Babu Kuttu Ira Ayaan</span>
+      <span>Navya Riya Vihaan Saanvi Myra Kiara Tara Arjun Kabir Aadhya</span>
+      <span>Anvi Nivaan Rudra Shlok Sia Reyansh Diya Ishaan Krish Anika</span>
+      <span>Aarav Anaya Chinnu Diya Ishaan Kiara Myra Reyansh Saanvi Krish</span>
+      <span>Pari Meera Dev Yuvan Navya Riya Vihaan Tara Kabir Arjun Aadhya</span>
+      <span>Kanna Minnu Appu Kutty Bittu Pappu Babu Kuttu Chinnu Ira Ayaan</span>
+      <span>Shlok Rudra Nivaan Anvi Sia Myra Kiara Tara Reyansh Saanvi</span>
+      <span>Anika Riaan Krish Diya Ishaan Aarav Anaya Pari Meera Dev</span>
+      <span>Yuvan Navya Riya Vihaan Kabir Arjun Aadhya Tara Kiara Myra</span>
+      <span>Appu Kutty Bittu Pappu Babu Kuttu Chinnu Kanna Minnu Ira Ayaan</span>
+      <span>Reyansh Saanvi Shlok Rudra Nivaan Anvi Sia Tara Myra Kiara</span>
+      <span>Diya Ishaan Aarav Anaya Krish Anika Riaan Kabir Arjun Aadhya</span>
+      <span>Pari Meera Dev Yuvan Navya Riya Vihaan Chinnu Kanna Minnu</span>
+      <span>Appu Kutty Bittu Pappu Babu Kuttu Ira Ayaan Reyansh Saanvi</span>
+      <span>Myra Kiara Tara Shlok Rudra Nivaan Anvi Sia Krish Anika Riaan</span>
+      <span>Aarav Vihaan Meera Chinnu Kabir Anaya Diya Tara Ishaan Myra</span>
+      <span>Kuttu Babu Pappu Bittu Appu Kanna Minnu Ira Ayaan Pari</span>
+      <span>Navya Reyansh Saanvi Shlok Rudra Krish Anika Riaan Yuvan Dev</span>
+      <span>Kiara Myra Tara Aadhya Arjun Kabir Vihaan Diya Ishaan Chinnu</span>
+      <span>Anvi Nivaan Sia Pari Meera Navya Riya Aarav Anaya Krish</span>
+      <span>Rudra Shlok Kanna Minnu Appu Kutty Bittu Pappu Babu Kuttu Ira</span>
     </div>
+
+    <div class="max-w-6xl mx-auto px-4 grid lg:grid-cols-[1.05fr_0.95fr] gap-10 items-center relative z-20">
+      <div class="hero-content fade-in max-w-2xl mx-auto text-center">
+        <div class="flex justify-center mb-4">
+          <div class="hero-kid-badge">
+            <span class="dot"></span>
+            Gentle child specialist care
+          </div>
+        </div>
+        <h1 class="text-5xl md:text-6xl xl:text-7xl font-bold leading-tight text-brand-dark mb-3">
+          The Better Clinic
+        </h1>
+
+        <p class="text-xl md:text-2xl text-gray-600 leading-relaxed">
+          for your child
+        </p>
+
+        <div class="mt-2 mb-3 flex items-center justify-center">
+          <div class="name-slot">
+            <span id="hero-name" class="name-stage font-heading text-brand-green">Baby</span>
+          </div>
+        </div>
+
+        <p class="hidden md:block text-base md:text-lg text-gray-500 leading-relaxed max-w-xl mx-auto">
+          Dr. Gunda Srinivas brings compassionate pediatric care, clear guidance, and reassuring support for every family at The Better Kids Clinic.
+        </p>
+
+        <p class="hero-tagline mt-3 text-lg md:text-xl font-bold text-brand-green max-w-xl mx-auto">
+          Dr. Gunda care for every small name and every big worry.
+        </p>
+
+        <div class="mt-6 hero-cta-wrap">
+          <div class="hero-book-button-wrap">
+            <a href="#contact" class="bg-brand-orange hover:bg-brand-orange-dark text-white font-bold px-7 py-3.5 rounded-full shadow-orange transition-colors text-base">
+              Book Appointment
+            </a>
+            <div class="hero-popup-mascot" aria-hidden="true">
+              <div class="hero-popup-bubble">Book a visit</div>
+              <div class="hero-popup-mascot-clip">
+              <svg viewBox="0 0 120 126" fill="none">
+              <circle cx="36" cy="28" r="15" fill="#B8A6F3"/>
+              <circle cx="78" cy="28" r="15" fill="#B8A6F3"/>
+              <ellipse cx="58" cy="56" rx="31" ry="29" fill="#8ED3C7"/>
+              <ellipse cx="58" cy="63" rx="20" ry="16" fill="#FFF8F0"/>
+              <circle cx="48" cy="53" r="3.1" fill="#FFF8F0"/>
+              <circle cx="69" cy="53" r="3.1" fill="#FFF8F0"/>
+              <circle cx="48" cy="54" r="1.5" fill="#25413B"/>
+              <circle cx="69" cy="54" r="1.5" fill="#25413B"/>
+              <ellipse cx="58" cy="62.5" rx="3.7" ry="2.7" fill="#FF8A4C"/>
+              <path d="M53 69c1.7 1.9 3.3 2.6 5 2.6 1.7 0 3.3-.7 5-2.6" stroke="#25413B" stroke-width="2" stroke-linecap="round"/>
+              <path d="M41 84c4.8-4.2 10.8-6.2 17-6.2 6.2 0 12.2 2 17 6.2v18H41V84z" fill="#FFF8F0" stroke="#25413B" stroke-width="2.1" stroke-linejoin="round"/>
+              <path d="M58 77.8v24" stroke="#25413B" stroke-width="2"/>
+              <path class="wave-arm" d="M41 88c-8-2.2-13.5-8-16-15" stroke="#25413B" stroke-width="4.4" stroke-linecap="round"/>
+              <path d="M75 88c8.5 2 16-1 24-7" stroke="#25413B" stroke-width="4.4" stroke-linecap="round"/>
+              <path d="M47 102l-4.3 11" stroke="#25413B" stroke-width="4" stroke-linecap="round"/>
+              <path d="M68 102l4.7 11" stroke="#25413B" stroke-width="4" stroke-linecap="round"/>
+              </svg>
+              </div>
+            </div>
+          </div>
+          <a href="#services" class="border-2 border-brand-green text-brand-green hover:bg-brand-green hover:text-white font-bold px-7 py-3.5 rounded-full transition-colors text-base">
+            Explore Services
+          </a>
+        </div>
+
+        <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 justify-center">
+          <div class="hero-stat rounded-3xl p-4 text-center sm:col-start-1 sm:col-end-3 max-w-md mx-auto w-full">
+            <div class="text-sm font-bold text-brand-green uppercase tracking-wide">4.8 Rating</div>
+            <div class="mt-2 text-sm text-gray-600">118 reviews and a reputation for clear explanations and caring support.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hidden lg:block fade-in">
+        <div class="hero-photo-shell max-w-xl mx-auto">
+          <div class="hero-photo-card rounded-5xl overflow-hidden p-4 md:p-5">
+            <div class="rounded-4xl overflow-hidden">
+              <img
+                src="https://images.unsplash.com/photo-1584515933487-779824d29309?w=1200&auto=format&fit=crop&q=80"
+                alt="Doctor with child patient in a calm clinic room"
+              />
+            </div>
+
+            <div class="mt-5">
+              <div class="flex flex-wrap gap-2">
+                <span class="hero-info-pill">Dr. Gunda Srinivas</span>
+                <span class="hero-info-pill">South Bangalore</span>
+                <span class="hero-info-pill">Closes 7:30 pm</span>
+              </div>
+
+              <div class="mt-4">
+                <h2 class="text-2xl md:text-3xl font-bold text-brand-dark">Dr. Gunda Srinivas's The Better Kids Clinic</h2>
+                <p class="mt-2 text-sm md:text-base text-gray-600 leading-relaxed">
+                  118, 5th Cross, Bannerghatta Rd, Omkar Nagar, Arekere, Bengaluru, Karnataka 560076
+                </p>
+              </div>
+
+              <div class="mt-4 flex flex-wrap gap-3">
+                <a href="tel:09513988840" class="bg-brand-green hover:bg-brand-green-dark text-white font-bold px-5 py-3 rounded-full transition-colors shadow-soft">
+                  Call 095139 88840
+                </a>
+                <a href="#contact" class="border border-brand-green text-brand-green hover:bg-brand-green hover:text-white font-bold px-5 py-3 rounded-full transition-colors">
+                  Book Visit
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </section>
 
   <!-- ══════════════════════════════════════════
@@ -1471,6 +1758,37 @@
         bookingSubmissionActive = true;
         bookingForm.submit();
       });
+    }
+
+    const heroName = document.getElementById('hero-name');
+    const heroNames = ['Baby', 'Kuttu', 'Babu', 'Chinnu', 'Appu', 'Kanna', 'Minnu', 'Pappu', 'Bittu', 'Kutty'];
+    let heroNameIndex = 0;
+
+    if (heroName) {
+      const typeHeroName = (name, onDone) => {
+        let charIndex = 0;
+        heroName.textContent = '';
+        const typer = setInterval(() => {
+          charIndex += 1;
+          heroName.textContent = name.slice(0, charIndex);
+          if (charIndex >= name.length) {
+            clearInterval(typer);
+            if (onDone) onDone();
+          }
+        }, 95);
+      };
+
+      const loopHeroNames = () => {
+        const currentName = heroNames[heroNameIndex];
+        typeHeroName(currentName, () => {
+          setTimeout(() => {
+            heroNameIndex = (heroNameIndex + 1) % heroNames.length;
+            loopHeroNames();
+          }, 1100);
+        });
+      };
+
+      loopHeroNames();
     }
 
   </script>
