@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>The Better Health Clinic – Child & Lung Specialist Care</title>
+  <title>The Better Health Clinic â€“ Child & Lung Specialist Care</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -68,12 +68,12 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ── Scrollbar ── */
+    /* â”€â”€ Scrollbar â”€â”€ */
     ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-track { background: var(--bg-secondary); }
     ::-webkit-scrollbar-thumb { background: var(--accent-beige); border-radius: 4px; }
 
-    /* ── Glass Navbar ── */
+    /* â”€â”€ Glass Navbar â”€â”€ */
     #navbar {
       backdrop-filter: blur(18px);
       -webkit-backdrop-filter: blur(18px);
@@ -85,7 +85,7 @@
       box-shadow: 0 4px 30px rgba(28,25,23,0.10);
     }
 
-    /* ── Fade-in scroll animation ── */
+    /* â”€â”€ Fade-in scroll animation â”€â”€ */
     .fade-up {
       opacity: 0;
       transform: translateY(32px);
@@ -97,7 +97,7 @@
     .fade-up.delay-3 { transition-delay: 0.3s; }
     .fade-up.delay-4 { transition-delay: 0.4s; }
 
-    /* ── Card hover ── */
+    /* â”€â”€ Card hover â”€â”€ */
     .hover-lift {
       transition: transform 0.25s cubic-bezier(.4,0,.2,1), box-shadow 0.25s cubic-bezier(.4,0,.2,1);
     }
@@ -106,7 +106,7 @@
       box-shadow: 0 20px 56px rgba(28,25,23,0.13);
     }
 
-    /* ── Hero background texture ── */
+    /* â”€â”€ Hero background texture â”€â”€ */
     .hero-bg {
       background-color: var(--bg-primary);
       background-image:
@@ -139,7 +139,7 @@
       animation: bubbleFloat 10s ease-in-out infinite reverse;
     }
 
-    /* ── Section divider ── */
+    /* â”€â”€ Section divider â”€â”€ */
     .section-divider {
       height: 1px;
       background: linear-gradient(90deg, transparent, var(--accent-beige), transparent);
@@ -148,7 +148,7 @@
       max-width: 800px;
     }
 
-    /* ── Label pill ── */
+    /* â”€â”€ Label pill â”€â”€ */
     .label-pill {
       display: inline-flex;
       align-items: center;
@@ -170,7 +170,7 @@
       background: var(--accent-beige);
     }
 
-    /* ── Specialty card (hero) ── */
+    /* â”€â”€ Specialty card (hero) â”€â”€ */
     .spec-card {
       background: white;
       border: 1.5px solid rgba(200,169,126,0.2);
@@ -210,8 +210,64 @@
     .spec-card.sky .card-glow {
       background: radial-gradient(circle, rgba(207,231,255,0.95) 0%, rgba(207,231,255,0) 72%);
     }
+    .spec-icon {
+      position: relative;
+      width: 4.9rem;
+      height: 4.9rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+      border-radius: 1.45rem;
+      overflow: hidden;
+      isolation: isolate;
+    }
+    .spec-icon::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      opacity: 0.9;
+      z-index: 0;
+    }
+    .spec-icon svg {
+      position: relative;
+      z-index: 1;
+      width: 2.65rem;
+      height: 2.65rem;
+    }
+    .spec-icon.child::before {
+      background: linear-gradient(135deg, rgba(181,241,228,0.95), rgba(223,248,239,0.95));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.75), 0 14px 28px rgba(45,123,111,0.16);
+    }
+    .spec-icon.lung::before {
+      background: linear-gradient(135deg, rgba(219,239,255,0.98), rgba(239,248,255,0.98));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 14px 28px rgba(59,130,196,0.16);
+    }
+    .spec-icon.child svg {
+      color: #2D7B6F;
+    }
+    .spec-icon.lung svg {
+      color: #3B82C4;
+    }
+    .child-face {
+      transform-origin: center;
+      animation: childBounce 3.4s ease-in-out infinite;
+    }
+    .child-face .wink {
+      animation: childWink 3.4s ease-in-out infinite;
+      transform-origin: center;
+    }
+    .lung-breath {
+      transform-origin: center;
+      animation: lungBreathe 4.6s ease-in-out infinite;
+    }
+    .lung-breath .lungs-shape {
+      transform-origin: center;
+      animation: lungLift 4.6s ease-in-out infinite;
+    }
 
-    /* ── Service chip ── */
+    /* â”€â”€ Service chip â”€â”€ */
     .service-chip {
       display: inline-flex;
       align-items: center;
@@ -230,7 +286,7 @@
       flex-shrink: 0;
     }
 
-    /* ── Why card ── */
+    /* â”€â”€ Why card â”€â”€ */
     .why-card {
       background: white;
       border: 1px solid rgba(200,169,126,0.2);
@@ -326,11 +382,11 @@
       50% { transform: translateY(-12px); }
     }
 
-    /* ── Mobile menu ── */
+    /* â”€â”€ Mobile menu â”€â”€ */
     #mobile-menu { display: none; }
     #mobile-menu.open { display: block; }
 
-    /* ── CTA section ── */
+    /* â”€â”€ CTA section â”€â”€ */
     .cta-section {
       background: linear-gradient(135deg, #1C1917 0%, #2c2520 100%);
       position: relative;
@@ -353,7 +409,7 @@
       background: rgba(45,123,111,0.06);
     }
 
-    /* ── Floating icons ── */
+    /* â”€â”€ Floating icons â”€â”€ */
     @keyframes floatA {
       0%,100% { transform: translateY(0px) rotate(0deg); }
       50% { transform: translateY(-10px) rotate(3deg); }
@@ -364,11 +420,63 @@
     }
     .float-a { animation: floatA 4s ease-in-out infinite; }
     .float-b { animation: floatB 5s ease-in-out infinite 0.8s; }
+    @keyframes lungBreath {
+      0%, 100% {
+        transform: translateY(0) scale(1);
+      }
+      50% {
+        transform: translateY(-5px) scale(1.08);
+      }
+    }
+    @keyframes lungAura {
+      0%, 100% {
+        opacity: 0.24;
+        transform: translate(-50%, -50%) scale(0.92);
+      }
+      50% {
+        opacity: 0.52;
+        transform: translate(-50%, -50%) scale(1.08);
+      }
+    }
+    .lung-emoji {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 4.2rem;
+      height: 4.2rem;
+      margin-bottom: 1rem;
+      font-size: 3rem;
+      animation: lungBreath 4.8s ease-in-out infinite;
+      transform-origin: center;
+    }
+    .lung-emoji::before,
+    .lung-emoji::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      border-radius: 999px;
+      pointer-events: none;
+      animation: lungAura 4.8s ease-in-out infinite;
+    }
+    .lung-emoji::before {
+      width: 3.5rem;
+      height: 3.5rem;
+      border: 1.5px solid rgba(59,130,196,0.22);
+      box-shadow: 0 0 22px rgba(59,130,196,0.10);
+    }
+    .lung-emoji::after {
+      width: 4.4rem;
+      height: 4.4rem;
+      border: 1px solid rgba(59,130,196,0.14);
+      animation-delay: 0.45s;
+    }
 
-    /* ── Serif italic highlight ── */
+    /* â”€â”€ Serif italic highlight â”€â”€ */
     .highlight { font-family: 'Playfair Display', serif; font-style: italic; }
 
-    /* ── Button base ── */
+    /* â”€â”€ Button base â”€â”€ */
     .btn-teal {
       display: inline-flex; align-items: center; gap: 8px;
       background: #2D7B6F; color: white;
@@ -427,9 +535,9 @@
 </head>
 <body class="antialiased">
 
-  <!-- ═══════════════════════════════════
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
        FIXED GLASS NAVBAR
-  ═══════════════════════════════════ -->
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <header id="navbar" class="fixed top-0 left-0 right-0 z-50">
     <div class="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between">
 
@@ -451,7 +559,7 @@
       <nav class="hidden lg:flex items-center gap-7 text-sm font-semibold text-stone-700">
         <a href="#child-care"  class="hover:text-teal-700 transition-colors">Child Care</a>
         <a href="#lung-care"   class="hover:text-blue-700 transition-colors">Lung Care</a>
-        <a href="#why-us"      class="hover:text-stone-900 transition-colors">About</a>
+        <a href="#about-clinic" class="hover:text-stone-900 transition-colors">About Clinic</a>
         <a href="#contact-cta" class="hover:text-stone-900 transition-colors">Contact</a>
         <a href="tel:+91XXXXXXXXXX" class="btn-warm text-sm">Book Appointment</a>
       </nav>
@@ -469,7 +577,7 @@
       <nav class="flex flex-col gap-2 pt-4 text-sm font-semibold text-stone-700">
         <a href="#child-care"  class="py-2.5 border-b border-stone-200/50 hover:text-teal-700" onclick="closeMobile()">Child Care</a>
         <a href="#lung-care"   class="py-2.5 border-b border-stone-200/50 hover:text-blue-700" onclick="closeMobile()">Lung Care</a>
-        <a href="#why-us"      class="py-2.5 border-b border-stone-200/50" onclick="closeMobile()">About</a>
+        <a href="#about-clinic" class="py-2.5 border-b border-stone-200/50" onclick="closeMobile()">About Clinic</a>
         <a href="#contact-cta" class="py-2.5 border-b border-stone-200/50" onclick="closeMobile()">Contact</a>
         <a href="tel:+91XXXXXXXXXX" class="btn-warm mt-3 justify-center" onclick="closeMobile()">Book Appointment</a>
       </nav>
@@ -477,9 +585,9 @@
   </header>
 
 
-  <!-- ═══════════════════════════════════
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
        HERO SECTION
-  ═══════════════════════════════════ -->
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <section id="home" class="hero-bg min-h-screen flex flex-col justify-center pt-32 pb-20 px-5 relative">
     <div class="max-w-6xl mx-auto w-full">
 
@@ -507,12 +615,14 @@
       <!-- Two specialty cards -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto fade-up delay-3">
 
-        <!-- Card 1 — Children's Specialist -->
+        <!-- Card 1 â€” Children's Specialist -->
         <div class="spec-card teal">
           <span class="card-glow"></span>
           <div class="float-a text-5xl mb-4">👶</div>
           <h2 class="font-serif font-bold text-2xl text-stone-900 mb-1">Children's Specialist</h2>
-          <p class="text-teal-700 text-sm font-semibold mb-2">Dr. Gunda Srinivas</p>
+          <p class="text-teal-700 text-sm font-semibold mb-1">(Pediatrician)</p>
+          <p class="text-stone-800 text-sm font-semibold mb-1">Dr. Gunda Srinivas</p>
+          <p class="text-stone-500 text-xs leading-relaxed mb-2">DCH, DNB(Pediatrics), PGDDN, FPEM</p>
           <p class="text-stone-500 text-sm leading-relaxed mb-5">
             Pediatric care, vaccinations, growth tracking, fever, cough, and child health support.
           </p>
@@ -522,17 +632,19 @@
           </a>
         </div>
 
-        <!-- Card 2 — Chest Physician -->
+        <!-- Card 2 â€” Chest Physician -->
         <div class="spec-card sky">
           <span class="card-glow"></span>
-          <div class="float-b text-5xl mb-4">🫁</div>
+          <div class="lung-emoji" aria-hidden="true">🫁</div>
           <h2 class="font-serif font-bold text-2xl text-stone-900 mb-1">Chest Physician</h2>
-          <p class="text-blue-700 text-sm font-semibold mb-2">Dr. Chaitanya Sravanthi</p>
+          <p class="text-blue-700 text-sm font-semibold mb-1">(Pulmonologist)</p>
+          <p class="text-stone-800 text-sm font-semibold mb-1">Dr. Chaitanya Sravanthi R</p>
+          <p class="text-stone-500 text-xs leading-relaxed mb-2">MD(Pulmonology), DNB(TB and Respiratory diseases)</p>
           <p class="text-stone-500 text-sm leading-relaxed mb-5">
             Asthma, breathing problems, allergy, cough, chest issues, and respiratory care.
           </p>
-          <a href="#lung-care" class="btn-sky text-sm">
-            Visit Lung Care
+          <a href="the-better-lungs-clinic.html" class="btn-sky text-sm">
+            Enter Lungs Clinic
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </a>
         </div>
@@ -560,9 +672,52 @@
   <div class="section-divider my-2"></div>
 
 
-  <!-- ═══════════════════════════════════
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
        CHILD CARE SECTION
-  ═══════════════════════════════════ -->
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <section id="about-clinic" class="py-20 px-5" style="background:linear-gradient(180deg,#f7f1e7 0%,#fffaf4 100%);">
+    <div class="max-w-6xl mx-auto grid lg:grid-cols-[1.05fr_0.95fr] gap-10 items-center">
+      <div class="fade-up">
+        <div class="label-pill mb-4">
+          <span class="dot"></span>
+          About Clinic
+        </div>
+        <h2 class="font-serif font-bold text-3xl md:text-4xl xl:text-5xl text-stone-900 leading-tight mb-5">
+          Thoughtful care for<br/><span class="highlight" style="color:var(--accent-dark);">every stage of family health</span>
+        </h2>
+        <p class="text-stone-600 text-base md:text-lg leading-relaxed mb-4">
+          The Better Health Clinic brings child care and lung care together under one trusted roof, with dedicated spaces and specialist attention for every patient.
+        </p>
+        <p class="text-stone-600 text-base md:text-lg leading-relaxed mb-8">
+          We focus on calm consultations, clear guidance, and treatment plans that feel personal, practical, and easy for families to follow.
+        </p>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div class="why-card fade-up delay-1">
+            <h3 class="font-semibold text-stone-900 mb-2">Specialist-Led Care</h3>
+            <p class="text-stone-500 text-sm leading-relaxed">Dedicated child and lung care services with focused clinical attention.</p>
+          </div>
+          <div class="why-card fade-up delay-2">
+            <h3 class="font-semibold text-stone-900 mb-2">Warm Clinic Experience</h3>
+            <p class="text-stone-500 text-sm leading-relaxed">A welcoming environment designed to reduce stress for patients and families.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="fade-up delay-2">
+        <div class="rounded-[2rem] overflow-hidden shadow-2xl border border-stone-200/70">
+          <img
+            src="https://images.unsplash.com/photo-1584515933487-779824d29309?w=1200&auto=format&fit=crop&q=80"
+            alt="Modern clinic consultation room"
+            class="w-full h-[320px] md:h-[460px] object-cover"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider my-2"></div>
+
+
   <section id="child-care" class="child-section py-20 px-5">
     <div class="max-w-6xl mx-auto">
 
@@ -576,7 +731,7 @@
           Expert Care for Your<br/><span class="highlight text-teal-700">Little Ones</span>
         </h2>
         <p class="text-stone-500 text-base leading-relaxed mb-8">
-          Our pediatric wing provides comprehensive health support for newborns to teenagers — delivered with warmth and medical precision.
+          Our pediatric wing provides comprehensive health support for newborns to teenagers â€” delivered with warmth and medical precision.
         </p>
       </div>
 
@@ -585,7 +740,7 @@
 
         <!-- Service cards -->
         <div class="why-card child-card hover-lift fade-up delay-1">
-          <div class="text-3xl mb-3">💉</div>
+          <div class="text-3xl mb-3">ðŸ’‰</div>
           <h3 class="font-semibold text-stone-900 mb-1.5">Vaccinations</h3>
           <p class="text-stone-500 text-sm leading-relaxed">Complete immunisation schedules for infants and children as per national guidelines.</p>
           <div class="mt-3 flex flex-wrap gap-1.5">
@@ -595,7 +750,7 @@
         </div>
 
         <div class="why-card child-card hover-lift fade-up delay-2">
-          <div class="text-3xl mb-3">🌡️</div>
+          <div class="text-3xl mb-3">ðŸŒ¡ï¸</div>
           <h3 class="font-semibold text-stone-900 mb-1.5">Child Fever & Infections</h3>
           <p class="text-stone-500 text-sm leading-relaxed">Prompt diagnosis and treatment for fever, viral infections, and seasonal illnesses.</p>
           <div class="mt-3 flex flex-wrap gap-1.5">
@@ -605,7 +760,7 @@
         </div>
 
         <div class="why-card child-card hover-lift fade-up delay-3">
-          <div class="text-3xl mb-3">📈</div>
+          <div class="text-3xl mb-3">ðŸ“ˆ</div>
           <h3 class="font-semibold text-stone-900 mb-1.5">Growth Monitoring</h3>
           <p class="text-stone-500 text-sm leading-relaxed">Track height, weight, and developmental milestones with our specialist paediatricians.</p>
           <div class="mt-3 flex flex-wrap gap-1.5">
@@ -615,7 +770,7 @@
         </div>
 
         <div class="why-card child-card hover-lift fade-up delay-1">
-          <div class="text-3xl mb-3">🥗</div>
+          <div class="text-3xl mb-3">ðŸ¥—</div>
           <h3 class="font-semibold text-stone-900 mb-1.5">Nutrition Guidance</h3>
           <p class="text-stone-500 text-sm leading-relaxed">Personalised dietary advice for optimal growth, immunity, and childhood development.</p>
           <div class="mt-3 flex flex-wrap gap-1.5">
@@ -625,7 +780,7 @@
         </div>
 
         <div class="why-card child-card hover-lift fade-up delay-2">
-          <div class="text-3xl mb-3">🩺</div>
+          <div class="text-3xl mb-3">ðŸ©º</div>
           <h3 class="font-semibold text-stone-900 mb-1.5">Regular Checkups</h3>
           <p class="text-stone-500 text-sm leading-relaxed">Routine health screenings and well-child visits to ensure your child's continued wellness.</p>
           <div class="mt-3 flex flex-wrap gap-1.5">
@@ -641,16 +796,16 @@
             <h3 class="text-white font-serif font-bold text-xl leading-snug mb-3">
               Ready to book a pediatric appointment?
             </h3>
-            <p class="text-teal-100/75 text-sm">Call us or WhatsApp — we'll schedule you at the earliest slot.</p>
+            <p class="text-teal-100/75 text-sm">Call us or WhatsApp â€” we'll schedule you at the earliest slot.</p>
           </div>
           <div class="mt-6 flex flex-wrap gap-3">
             <a href="the-better-child-clinic.html" class="flex items-center gap-2 bg-white text-teal-800 font-bold text-sm px-4 py-2.5 rounded-full hover:bg-teal-50 transition-colors shadow-sm">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
               Enter Child Clinic
             </a>
-            <a href="tel:+91XXXXXXXXXX" class="flex items-center gap-2 bg-white text-teal-800 font-bold text-sm px-4 py-2.5 rounded-full hover:bg-teal-50 transition-colors shadow-sm">
+            <a href="the-better-lungs-clinic.html" class="flex items-center gap-2 bg-white text-teal-800 font-bold text-sm px-4 py-2.5 rounded-full hover:bg-teal-50 transition-colors shadow-sm">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21L8.5 10.5s1 2 3 4 4 3 4 3l1.1-1.724a1 1 0 011.21-.502l4.493 1.498A1 1 0 0121 17.72V21a2 2 0 01-2 2C7.716 23 1 16.284 1 9a2 2 0 012-2z"/></svg>
-              Call Now
+              Enter Lungs Clinic
             </a>
             <a href="https://wa.me/91XXXXXXXXXX?text=I%20would%20like%20to%20book%20a%20child%20care%20appointment" target="_blank" class="flex items-center gap-2 bg-white/15 text-white font-bold text-sm px-4 py-2.5 rounded-full hover:bg-white/25 transition-colors border border-white/20">
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.464 3.488"/></svg>
@@ -666,9 +821,9 @@
   <div class="section-divider my-2"></div>
 
 
-  <!-- ═══════════════════════════════════
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
        LUNG CARE SECTION
-  ═══════════════════════════════════ -->
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <section id="lung-care" class="lung-section py-20 px-5">
     <div class="max-w-6xl mx-auto">
 
@@ -682,7 +837,7 @@
           Breathe Easier with<br/><span class="highlight" style="color:#3B82C4;">Expert Lung Care</span>
         </h2>
         <p class="text-stone-500 text-base leading-relaxed mb-8">
-          Our pulmonology specialists treat the full spectrum of respiratory conditions — from common allergies to chronic lung disease.
+          Our pulmonology specialists treat the full spectrum of respiratory conditions â€” from common allergies to chronic lung disease.
         </p>
       </div>
 
@@ -690,7 +845,7 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
 
         <div class="why-card lung-card hover-lift fade-up delay-1">
-          <div class="text-3xl mb-3">🌬️</div>
+          <div class="text-3xl mb-3">ðŸŒ¬ï¸</div>
           <h3 class="font-semibold text-stone-900 mb-1.5">Asthma Care</h3>
           <p class="text-stone-500 text-sm leading-relaxed">Long-term asthma management with personalised action plans to reduce flare-ups.</p>
           <div class="mt-3 flex flex-wrap gap-1.5">
@@ -700,7 +855,7 @@
         </div>
 
         <div class="why-card lung-card hover-lift fade-up delay-2">
-          <div class="text-3xl mb-3">😤</div>
+          <div class="text-3xl mb-3">ðŸ˜¤</div>
           <h3 class="font-semibold text-stone-900 mb-1.5">Breathing Difficulty</h3>
           <p class="text-stone-500 text-sm leading-relaxed">Assessment and treatment of breathlessness, shortness of breath, and lung obstruction.</p>
           <div class="mt-3 flex flex-wrap gap-1.5">
@@ -710,7 +865,7 @@
         </div>
 
         <div class="why-card lung-card hover-lift fade-up delay-3">
-          <div class="text-3xl mb-3">🤧</div>
+          <div class="text-3xl mb-3">ðŸ¤§</div>
           <h3 class="font-semibold text-stone-900 mb-1.5">Allergy Management</h3>
           <p class="text-stone-500 text-sm leading-relaxed">Identify and manage respiratory allergies including dust, pollen, mold, and pet dander.</p>
           <div class="mt-3 flex flex-wrap gap-1.5">
@@ -720,9 +875,9 @@
         </div>
 
         <div class="why-card lung-card hover-lift fade-up delay-1">
-          <div class="text-3xl mb-3">🫁</div>
+          <div class="text-3xl mb-3">ðŸ«</div>
           <h3 class="font-semibold text-stone-900 mb-1.5">Chronic Cough</h3>
-          <p class="text-stone-500 text-sm leading-relaxed">Thorough evaluation of persistent cough lasting more than 3 weeks — finding root causes.</p>
+          <p class="text-stone-500 text-sm leading-relaxed">Thorough evaluation of persistent cough lasting more than 3 weeks â€” finding root causes.</p>
           <div class="mt-3 flex flex-wrap gap-1.5">
             <span class="service-chip"><span class="dot-sm" style="background:#3B82C4;"></span>Root cause</span>
             <span class="service-chip"><span class="dot-sm" style="background:#3B82C4;"></span>Targeted therapy</span>
@@ -730,7 +885,7 @@
         </div>
 
         <div class="why-card lung-card hover-lift fade-up delay-2">
-          <div class="text-3xl mb-3">🫀</div>
+          <div class="text-3xl mb-3">ðŸ«€</div>
           <h3 class="font-semibold text-stone-900 mb-1.5">Chest Consultation</h3>
           <p class="text-stone-500 text-sm leading-relaxed">Comprehensive chest pain and pulmonary evaluation, including X-ray interpretation and CT review.</p>
           <div class="mt-3 flex flex-wrap gap-1.5">
@@ -739,19 +894,19 @@
           </div>
         </div>
 
-        <!-- CTA card — sky -->
+        <!-- CTA card â€” sky -->
         <div class="rounded-2xl p-6 flex flex-col justify-between fade-up delay-3" style="background:linear-gradient(135deg,#3B82C4 0%,#2352a0 100%);">
           <div>
             <p class="text-blue-100/80 text-xs font-bold tracking-widest uppercase mb-2">Book Now</p>
             <h3 class="text-white font-serif font-bold text-xl leading-snug mb-3">
               Struggling with breathing issues?
             </h3>
-            <p class="text-blue-100/75 text-sm">Book a lung consultation — our specialists are ready.</p>
+            <p class="text-blue-100/75 text-sm">Book a lung consultation â€” our specialists are ready.</p>
           </div>
           <div class="mt-6 flex flex-wrap gap-3">
-            <a href="tel:+91XXXXXXXXXX" class="flex items-center gap-2 bg-white text-blue-800 font-bold text-sm px-4 py-2.5 rounded-full hover:bg-blue-50 transition-colors shadow-sm">
+            <a href="the-better-lungs-clinic.html" class="flex items-center gap-2 bg-white text-blue-800 font-bold text-sm px-4 py-2.5 rounded-full hover:bg-blue-50 transition-colors shadow-sm">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21L8.5 10.5s1 2 3 4 4 3 4 3l1.1-1.724a1 1 0 011.21-.502l4.493 1.498A1 1 0 0121 17.72V21a2 2 0 01-2 2C7.716 23 1 16.284 1 9a2 2 0 012-2z"/></svg>
-              Call Now
+              Enter Lungs Clinic
             </a>
             <a href="https://wa.me/91XXXXXXXXXX?text=I%20would%20like%20to%20book%20a%20lung%20care%20appointment" target="_blank" class="flex items-center gap-2 bg-white/15 text-white font-bold text-sm px-4 py-2.5 rounded-full hover:bg-white/25 transition-colors border border-white/20">
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.464 3.488"/></svg>
@@ -767,9 +922,9 @@
   <div class="section-divider my-2"></div>
 
 
-  <!-- ═══════════════════════════════════
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
        WHY CHOOSE US
-  ═══════════════════════════════════ -->
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <section id="why-us" class="py-20 px-5" style="background:var(--bg-primary);">
     <div class="max-w-6xl mx-auto">
 
@@ -786,25 +941,25 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
 
         <div class="why-card text-center fade-up delay-1">
-          <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl" style="background:rgba(45,123,111,0.1);">🩺</div>
+          <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl" style="background:rgba(45,123,111,0.1);">ðŸ©º</div>
           <h3 class="font-semibold text-stone-900 mb-2">Experienced Doctors</h3>
           <p class="text-stone-500 text-sm leading-relaxed">Board-certified specialists with years of clinical experience in their respective fields.</p>
         </div>
 
         <div class="why-card text-center fade-up delay-2">
-          <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl" style="background:rgba(59,130,196,0.1);">🏥</div>
+          <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl" style="background:rgba(59,130,196,0.1);">ðŸ¥</div>
           <h3 class="font-semibold text-stone-900 mb-2">Two Dedicated Branches</h3>
-          <p class="text-stone-500 text-sm leading-relaxed">Separate specialised wings for pediatric and pulmonology care — no compromise.</p>
+          <p class="text-stone-500 text-sm leading-relaxed">Separate specialised wings for pediatric and pulmonology care â€” no compromise.</p>
         </div>
 
         <div class="why-card text-center fade-up delay-3">
-          <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl" style="background:rgba(200,169,126,0.15);">📅</div>
+          <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl" style="background:rgba(200,169,126,0.15);">ðŸ“…</div>
           <h3 class="font-semibold text-stone-900 mb-2">Easy Appointment Booking</h3>
-          <p class="text-stone-500 text-sm leading-relaxed">Book over phone or WhatsApp — we respond fast and confirm same day.</p>
+          <p class="text-stone-500 text-sm leading-relaxed">Book over phone or WhatsApp â€” we respond fast and confirm same day.</p>
         </div>
 
         <div class="why-card text-center fade-up delay-4">
-          <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl" style="background:rgba(45,123,111,0.08);">🤝</div>
+          <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl" style="background:rgba(45,123,111,0.08);">ðŸ¤</div>
           <h3 class="font-semibold text-stone-900 mb-2">Patient-Friendly Care</h3>
           <p class="text-stone-500 text-sm leading-relaxed">We listen first. Every patient receives personalised attention in a calm, welcoming environment.</p>
         </div>
@@ -816,9 +971,9 @@
   <div class="section-divider my-2"></div>
 
 
-  <!-- ═══════════════════════════════════
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
        APPOINTMENT CTA SECTION
-  ═══════════════════════════════════ -->
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <section id="contact-cta" class="cta-section py-20 px-5">
     <div class="max-w-3xl mx-auto text-center relative z-10 fade-up">
 
@@ -853,11 +1008,11 @@
       <div class="mt-12 flex flex-wrap justify-center gap-6 text-sm text-stone-500">
         <div class="flex items-center gap-2">
           <svg class="w-4 h-4 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 6v6l4 2"/></svg>
-          Mon – Sat &nbsp;|&nbsp; 9:00 AM – 7:00 PM
+          Mon â€“ Sat &nbsp;|&nbsp; 9:00 AM â€“ 7:00 PM
         </div>
         <div class="flex items-center gap-2">
           <svg class="w-4 h-4 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-          Two branches — Jaipur, Rajasthan
+          Two branches â€” Jaipur, Rajasthan
         </div>
       </div>
 
@@ -865,9 +1020,9 @@
   </section>
 
 
-  <!-- ═══════════════════════════════════
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
        FOOTER
-  ═══════════════════════════════════ -->
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <footer style="background:#14110F; color:#A8A29E;" class="pt-14 pb-8 px-5">
     <div class="max-w-6xl mx-auto">
 
@@ -900,16 +1055,16 @@
           </div>
         </div>
 
-        <!-- Branch 1 — Child -->
+        <!-- Branch 1 â€” Child -->
         <div>
           <div class="flex items-center gap-2 mb-4">
-            <div class="w-7 h-7 rounded-lg flex items-center justify-center text-sm" style="background:rgba(45,123,111,0.2);">👶</div>
+            <div class="w-7 h-7 rounded-lg flex items-center justify-center text-sm" style="background:rgba(45,123,111,0.2);">ðŸ‘¶</div>
             <h4 class="font-semibold text-white text-sm">The Better Kids Clinic</h4>
           </div>
           <ul class="space-y-2.5 text-sm text-stone-500">
             <li class="flex gap-2">
               <svg class="w-4 h-4 text-stone-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-              <span>12, [Branch Address], Jaipur – 302XXX, Rajasthan</span>
+              <span>12, [Branch Address], Jaipur â€“ 302XXX, Rajasthan</span>
             </li>
             <li class="flex gap-2">
               <svg class="w-4 h-4 text-stone-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21L8.5 10.5s1 2 3 4 4 3 4 3l1.1-1.724a1 1 0 011.21-.502l4.493 1.498A1 1 0 0121 17.72V21a2 2 0 01-2 2C7.716 23 1 16.284 1 9a2 2 0 012-2z"/></svg>
@@ -917,21 +1072,21 @@
             </li>
             <li class="flex gap-2">
               <svg class="w-4 h-4 text-stone-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 6v6l4 2"/></svg>
-              <span>Mon – Sat &nbsp;|&nbsp; 9:00 AM – 7:00 PM</span>
+              <span>Mon â€“ Sat &nbsp;|&nbsp; 9:00 AM â€“ 7:00 PM</span>
             </li>
           </ul>
         </div>
 
-        <!-- Branch 2 — Lung -->
+        <!-- Branch 2 â€” Lung -->
         <div>
           <div class="flex items-center gap-2 mb-4">
-            <div class="w-7 h-7 rounded-lg flex items-center justify-center text-sm" style="background:rgba(59,130,196,0.2);">🫁</div>
+            <div class="w-7 h-7 rounded-lg flex items-center justify-center text-sm" style="background:rgba(59,130,196,0.2);">ðŸ«</div>
             <h4 class="font-semibold text-white text-sm">The Better Lungs Clinic</h4>
           </div>
           <ul class="space-y-2.5 text-sm text-stone-500">
             <li class="flex gap-2">
               <svg class="w-4 h-4 text-stone-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-              <span>45, [Branch Address], Jaipur – 302XXX, Rajasthan</span>
+              <span>45, [Branch Address], Jaipur â€“ 302XXX, Rajasthan</span>
             </li>
             <li class="flex gap-2">
               <svg class="w-4 h-4 text-stone-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21L8.5 10.5s1 2 3 4 4 3 4 3l1.1-1.724a1 1 0 011.21-.502l4.493 1.498A1 1 0 0121 17.72V21a2 2 0 01-2 2C7.716 23 1 16.284 1 9a2 2 0 012-2z"/></svg>
@@ -939,7 +1094,7 @@
             </li>
             <li class="flex gap-2">
               <svg class="w-4 h-4 text-stone-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 6v6l4 2"/></svg>
-              <span>Mon – Sat &nbsp;|&nbsp; 9:00 AM – 7:00 PM</span>
+              <span>Mon â€“ Sat &nbsp;|&nbsp; 9:00 AM â€“ 7:00 PM</span>
             </li>
           </ul>
         </div>
@@ -948,7 +1103,7 @@
 
       <!-- Bottom bar -->
       <div class="flex flex-col sm:flex-row justify-between items-center gap-3 pt-7 text-xs text-stone-600">
-        <span>© 2025 The Better Health Clinic. All rights reserved.</span>
+        <span>Â© 2025 The Better Health Clinic. All rights reserved.</span>
         <span>Designed with care for better health outcomes.</span>
       </div>
 
@@ -956,18 +1111,18 @@
   </footer>
 
 
-  <!-- ═══════════════════════════════════
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
        JAVASCRIPT
-  ═══════════════════════════════════ -->
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <script>
-    // ── Navbar glass shadow on scroll
+    // â”€â”€ Navbar glass shadow on scroll
     const navbar = document.getElementById('navbar');
     window.addEventListener('scroll', () => {
       if (window.scrollY > 30) navbar.classList.add('scrolled');
       else navbar.classList.remove('scrolled');
     });
 
-    // ── Mobile menu toggle
+    // â”€â”€ Mobile menu toggle
     const menuBtn = document.getElementById('menu-btn');
     const mobileMenu = document.getElementById('mobile-menu');
     menuBtn.addEventListener('click', () => {
@@ -977,7 +1132,7 @@
       mobileMenu.classList.remove('open');
     }
 
-    // ── Scroll fade-up animation
+    // â”€â”€ Scroll fade-up animation
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(e => {
         if (e.isIntersecting) {
@@ -989,7 +1144,7 @@
 
     document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
 
-    // ── Hero elements appear on load
+    // â”€â”€ Hero elements appear on load
     window.addEventListener('load', () => {
       document.querySelectorAll('.hero-bg .fade-up').forEach((el, i) => {
         setTimeout(() => el.classList.add('visible'), 150 + i * 120);
@@ -999,3 +1154,4 @@
 
 </body>
 </html>
+
