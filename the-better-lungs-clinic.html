@@ -672,9 +672,8 @@
         linear-gradient(180deg, #7fd2c6 0%, #3f9f97 52%, #245f69 100%);
       color: white;
       box-shadow: inset 0 10px 24px rgba(255,255,255,0.2), 0 18px 36px rgba(36,95,105,0.2);
-      font-family: 'Playfair Display', serif;
-      font-size: 2.7rem;
-      font-weight: 700;
+      font-size: 3.25rem;
+      line-height: 1;
     }
     .breathing-result-rating {
       margin-top: 1rem;
@@ -1034,7 +1033,7 @@
           ×
         </button>
       </div>
-      <div id="breathing-result-score" class="breathing-result-score">0s</div>
+      <div id="breathing-result-score" class="breathing-result-score" aria-hidden="true">🫁</div>
       <div id="breathing-result-rating" class="breathing-result-rating">Rating: <strong>Feeble</strong></div>
       <p id="breathing-result-message" class="breathing-result-message">
         A short hold can still be a useful reminder to check in on your breathing and overall chest comfort.
@@ -1669,17 +1668,17 @@
     }
     function getBreathingMessage(score) {
       if (score >= 60) {
-        return 'Strong hold. Your result suggests solid breath control. If you still notice cough, wheeze, or chest tightness, a chest review can give you more confidence.';
+        return `You held for ${Math.floor(score)} seconds. Strong hold. Your result suggests solid breath control. If you still notice cough, wheeze, or chest tightness, a chest review can give you more confidence.`;
       }
       if (score >= 25) {
-        return 'Healthy mid-range hold. If you want a clearer picture of your breathing comfort, booking a consultation can help you understand it better.';
+        return `You held for ${Math.floor(score)} seconds. Healthy mid-range hold. If you want a clearer picture of your breathing comfort, booking a consultation can help you understand it better.`;
       }
-      return 'Shorter hold. If breathing feels tiring, uncomfortable, or strained in daily life, it may be worth booking an appointment for a proper review.';
+      return `You held for ${Math.floor(score)} seconds. Shorter hold. If breathing feels tiring, uncomfortable, or strained in daily life, it may be worth booking an appointment for a proper review.`;
     }
     function showBreathingResult(score) {
       if (!breathingResultModal) return;
       if (breathingResultScore) {
-        breathingResultScore.textContent = `${Math.floor(score)}s`;
+        breathingResultScore.textContent = '🫁';
       }
       if (breathingResultRating) {
         breathingResultRating.innerHTML = `Rating: <strong>${getBreathingRating(score)}</strong>`;
