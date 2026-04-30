@@ -1248,6 +1248,28 @@
         }));
     }
 
+    function markPrescriptionPreviewReady(previewElement) {
+      if (!previewElement) {
+        return;
+      }
+
+      previewElement.dataset.rendered = 'true';
+      previewElement.classList.add('is-ready');
+      const placeholder = previewElement.parentElement?.querySelector('.prescription-preview-placeholder');
+      if (placeholder) {
+        placeholder.hidden = true;
+      }
+    }
+
+    function markPrescriptionPreviewError(previewElement, message) {
+      const placeholder = previewElement?.parentElement?.querySelector('.prescription-preview-placeholder');
+      if (placeholder) {
+        placeholder.hidden = false;
+        placeholder.classList.add('is-error');
+        placeholder.textContent = message;
+      }
+    }
+
     function renderPrescriptionPreviewImage(imageElement) {
       if (!(imageElement instanceof HTMLImageElement)) {
         return;
@@ -1262,32 +1284,60 @@
         return;
       }
 
-      const placeholder = imageElement.parentElement?.querySelector('.prescription-preview-placeholder');
       imageElement.onload = () => {
-        imageElement.dataset.rendered = 'true';
-        imageElement.classList.add('is-ready');
-        if (placeholder) {
-          placeholder.hidden = true;
-        }
+        markPrescriptionPreviewReady(imageElement);
       };
       imageElement.onerror = () => {
-        if (placeholder) {
-          placeholder.hidden = false;
-          placeholder.classList.add('is-error');
-          placeholder.textContent = 'Preview image could not be loaded. Tap to open the prescription.';
-        }
+        markPrescriptionPreviewError(imageElement, 'Preview image could not be loaded. Open the prescription PDF instead.');
       };
       imageElement.src = previewImageUrl;
     }
 
+    function renderPrescriptionPreviewPdf(frameElement) {
+      if (!(frameElement instanceof HTMLIFrameElement)) {
+        return;
+      }
+
+      if (frameElement.dataset.rendered === 'true') {
+        return;
+      }
+
+      const pdfUrl = frameElement.dataset.previewPdfUrl || '';
+      if (!pdfUrl) {
+        return;
+      }
+
+      frameElement.onload = () => {
+        markPrescriptionPreviewReady(frameElement);
+      };
+      frameElement.onerror = () => {
+        markPrescriptionPreviewError(frameElement, 'Prescription PDF could not be previewed here. Use open prescription instead.');
+      };
+      frameElement.src = pdfUrl.includes('#')
+        ? pdfUrl
+        : `${pdfUrl}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`;
+    }
+
     function attachPrescriptionPreviewRendering() {
-      const previewImages = [...resultsPanel.querySelectorAll('.prescription-preview-frame[data-preview-image-url]')];
-      if (!previewImages.length) {
+      const previewElements = [
+        ...resultsPanel.querySelectorAll('.prescription-preview-frame[data-preview-image-url]'),
+        ...resultsPanel.querySelectorAll('.prescription-preview-embed[data-preview-pdf-url]')
+      ];
+      if (!previewElements.length) {
         return;
       }
 
       if (!('IntersectionObserver' in window)) {
-        previewImages.forEach(renderPrescriptionPreviewImage);
+        previewElements.forEach((previewElement) => {
+          if (previewElement instanceof HTMLImageElement) {
+            renderPrescriptionPreviewImage(previewElement);
+            return;
+          }
+
+          if (previewElement instanceof HTMLIFrameElement) {
+            renderPrescriptionPreviewPdf(previewElement);
+          }
+        });
         return;
       }
 
@@ -1298,7 +1348,11 @@
               return;
             }
 
-            renderPrescriptionPreviewImage(entry.target);
+            if (entry.target instanceof HTMLImageElement) {
+              renderPrescriptionPreviewImage(entry.target);
+            } else if (entry.target instanceof HTMLIFrameElement) {
+              renderPrescriptionPreviewPdf(entry.target);
+            }
             observer.unobserve(entry.target);
           });
         }, {
@@ -1308,8 +1362,8 @@
         });
       }
 
-      previewImages.forEach((imageElement) => {
-        prescriptionPreviewObserver.observe(imageElement);
+      previewElements.forEach((previewElement) => {
+        prescriptionPreviewObserver.observe(previewElement);
       });
     }
 
@@ -1594,7 +1648,8 @@
                       <div class="prescription-preview-surface">
                         ${downloadUrl
                           ? `
-                            <div class="prescription-preview-placeholder">Tap to open this prescription PDF.</div>
+                            <div class="prescription-preview-placeholder">Loading prescription preview...</div>
+                            <iframe class="prescription-preview-embed" data-preview-pdf-url="${cardUrl}" title="Prescription PDF preview ${index + 1}" loading="lazy"></iframe>
                             <a class="prescription-preview-open-chip" href="${cardUrl}" target="_blank" rel="noopener noreferrer">Open prescription</a>
                           `
                           : '<div class="prescription-preview-placeholder is-error">Prescription PDF could not be loaded for this record.</div>'}
@@ -1739,6 +1794,10 @@
             behavior: 'smooth'
           });
         }
+        return;
+      }
+
+      if (target.closest('.prescription-preview-open-chip')) {
         return;
       }
 

@@ -1186,16 +1186,10 @@
         return [];
       }
 
-      const cleanedValues = values
+      return values
         .map((value) => String(value || '').trim())
-        .filter(Boolean);
-      const lines = [];
-
-      for (let index = 0; index < cleanedValues.length; index += 5) {
-        lines.push(cleanedValues.slice(index, index + 5).join(', '));
-      }
-
-      return lines;
+        .filter(Boolean)
+        .map((value) => `. ${value}`);
     }
 
     function renderTextRow(label, values, detailMap = {}, sectionName = '') {
