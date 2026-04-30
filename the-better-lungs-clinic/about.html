@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Better Lungs Clinic - About</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            "brand-green": "#2f8f83",
+            "brand-orange": "#ff8a4c",
+            "brand-cream": "#f4fbfb",
+            "brand-dark": "#243447"
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="bg-brand-cream text-brand-dark">
+  <header class="sticky top-0 z-20 border-b border-brand-green/10 bg-white/95 backdrop-blur">
+    <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+      <a href="./index.html" class="text-2xl font-bold text-brand-dark">The Better Lungs Clinic</a>
+      <nav class="hidden gap-6 text-sm font-semibold md:flex">
+        <a href="./index.html" class="hover:text-brand-green">Home</a>
+        <a href="./services.html" class="hover:text-brand-green">Services</a>
+        <a href="./about.html" class="text-brand-green">About</a>
+        <a href="./testimonials.html" class="hover:text-brand-green">Testimonials</a>
+        <a href="./contact.html" class="hover:text-brand-green">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-5xl px-6 py-16">
+    <p class="text-sm font-bold uppercase tracking-[0.2em] text-brand-green">About The Clinic</p>
+    <h1 class="mt-3 text-4xl font-bold md:text-5xl">Respiratory care that feels calm, clear, and practical.</h1>
+
+    <div class="mt-10 grid gap-8 md:grid-cols-[1.2fr_0.8fr]">
+      <section class="rounded-[2rem] bg-white p-8 shadow-sm">
+        <p class="text-lg leading-8 text-slate-600">The Better Lungs Clinic was built to make chest and breathing care feel less overwhelming. Every consultation aims to combine clear explanations, focused review, and practical treatment guidance that patients can actually use.</p>
+        <p class="mt-5 text-lg leading-8 text-slate-600">From chronic cough and asthma reviews to allergy and breathing follow-up, the clinic focuses on symptom clarity, confident next steps, and a calmer care experience.</p>
+      </section>
+      <aside class="rounded-[2rem] bg-brand-green p-8 text-white shadow-sm">
+        <div class="text-sm uppercase tracking-[0.2em] text-white/75">Lead Chest Physician</div>
+        <h2 class="mt-3 text-3xl font-bold">Dr. Chaitanya Sravanthi R</h2>
+        <p class="mt-3 text-white/85">MD (Pulmonology), DNB (TB and Respiratory Diseases)</p>
+        <p class="mt-6 text-white/85">Focused on asthma, allergy-related breathing issues, chronic cough, chest discomfort, and long-term respiratory review.</p>
+      </aside>
+    </div>
+  </main>
+</body>
+</html>
