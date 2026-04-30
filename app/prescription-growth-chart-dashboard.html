@@ -2603,11 +2603,64 @@
       chartContext.fillText('Loading IAP Template...', 90, 120);
     }
 
+    function drawFocusedTemplate(image, region, viewport) {
+      if (!image || !region || !viewport) {
+        drawBaseTemplate(image);
+        return;
+      }
+
+      const sourceWidth = image.naturalWidth || image.width;
+      const sourceHeight = image.naturalHeight || image.height;
+      const fullSpan = region.x.max - region.x.min;
+      if (!sourceWidth || !sourceHeight || !Number.isFinite(fullSpan) || fullSpan <= 0) {
+        drawBaseTemplate(image);
+        return;
+      }
+
+      const sourcePlotLeft = region.x.start * sourceWidth;
+      const sourcePlotRight = region.x.end * sourceWidth;
+      const sourcePlotWidth = sourcePlotRight - sourcePlotLeft;
+      const destPlotLeft = region.x.start * chartCanvas.width;
+      const destPlotRight = region.x.end * chartCanvas.width;
+      const destPlotWidth = destPlotRight - destPlotLeft;
+      const viewportLeftRatio = clampRatio((viewport.min - region.x.min) / fullSpan);
+      const viewportRightRatio = clampRatio((viewport.max - region.x.min) / fullSpan);
+      const viewportSourceLeft = sourcePlotLeft + sourcePlotWidth * viewportLeftRatio;
+      const viewportSourceRight = sourcePlotLeft + sourcePlotWidth * viewportRightRatio;
+      const viewportSourceWidth = Math.max(1, viewportSourceRight - viewportSourceLeft);
+
+      chartContext.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+      chartContext.fillStyle = '#ffffff';
+      chartContext.fillRect(0, 0, chartCanvas.width, chartCanvas.height);
+
+      if (destPlotLeft > 0) {
+        chartContext.drawImage(
+          image,
+          0, 0, sourcePlotLeft, sourceHeight,
+          0, 0, destPlotLeft, chartCanvas.height
+        );
+      }
+
+      chartContext.drawImage(
+        image,
+        viewportSourceLeft, 0, viewportSourceWidth, sourceHeight,
+        destPlotLeft, 0, destPlotWidth, chartCanvas.height
+      );
+
+      if (chartCanvas.width - destPlotRight > 0) {
+        chartContext.drawImage(
+          image,
+          sourcePlotRight, 0, sourceWidth - sourcePlotRight, sourceHeight,
+          destPlotRight, 0, chartCanvas.width - destPlotRight, chartCanvas.height
+        );
+      }
+    }
+
     function clampRatio(value) {
       return Math.min(1, Math.max(0, value));
     }
 
-    function mapPoint(region, patientData) {
+    function mapPoint(region, patientData, viewport = null) {
       const xValue = patientData[region.x.source];
       const yValue = patientData[region.y.source];
 
@@ -2615,7 +2668,9 @@
         return null;
       }
 
-      const xRatio = clampRatio((xValue - region.x.min) / (region.x.max - region.x.min));
+      const xMin = viewport?.min ?? region.x.min;
+      const xMax = viewport?.max ?? region.x.max;
+      const xRatio = clampRatio((xValue - xMin) / (xMax - xMin));
       const yRatio = clampRatio((yValue - region.y.min) / (region.y.max - region.y.min));
 
       const x = (region.x.start + (region.x.end - region.x.start) * xRatio) * chartCanvas.width;
@@ -2787,7 +2842,133 @@
       return getMetricPlotHistory(metricKey);
     }
 
-    function drawMetricHistory(region, metricKey) {
+    function getMetricAxisAgeValues(region, metricKey) {
+      return getChartPlotEntries(metricKey)
+        .map((entry) => {
+          const timestamp = getHistoryTimestamp(entry);
+          const measuredAt = timestamp ? new Date(timestamp) : new Date();
+          const patientData = buildPatientDataFromValues(entry, measuredAt);
+          return patientData[region.x.source];
+        })
+        .filter((value) => Number.isFinite(value))
+        .sort((left, right) => left - right);
+    }
+
+    function getCustomAxisStep(source, span) {
+      if (source === 'ageMonths') {
+        if (span <= 4) return 1;
+        if (span <= 10) return 2;
+        return 3;
+      }
+
+      if (span <= 1.2) return 0.2;
+      if (span <= 2.5) return 0.5;
+      if (span <= 5) return 1;
+      return 2;
+    }
+
+    function roundDownToStep(value, step) {
+      return Math.floor(value / step) * step;
+    }
+
+    function roundUpToStep(value, step) {
+      return Math.ceil(value / step) * step;
+    }
+
+    function getFocusedXAxisViewport(region, metricKey) {
+      const ageValues = getMetricAxisAgeValues(region, metricKey);
+      if (!ageValues.length) {
+        return null;
+      }
+
+      const minAge = ageValues[0];
+      const maxAge = ageValues[ageValues.length - 1];
+      const span = Math.max(maxAge - minAge, 0);
+      const step = getCustomAxisStep(region.x.source, span);
+      const minimumWindow = region.x.source === 'ageMonths' ? 6 : 1.2;
+      const padding = step * 1.5;
+      let viewportMin = roundDownToStep(minAge - padding, step);
+      let viewportMax = roundUpToStep(maxAge + padding, step);
+
+      if (viewportMax - viewportMin < minimumWindow) {
+        const center = (minAge + maxAge) / 2;
+        viewportMin = roundDownToStep(center - minimumWindow / 2, step);
+        viewportMax = roundUpToStep(center + minimumWindow / 2, step);
+      }
+
+      viewportMin = Math.max(region.x.min, viewportMin);
+      viewportMax = Math.min(region.x.max, viewportMax);
+
+      if (!(viewportMax > viewportMin)) {
+        return null;
+      }
+
+      return {
+        min: viewportMin,
+        max: viewportMax,
+        step
+      };
+    }
+
+    function formatCustomAxisLabel(source, value, step) {
+      if (source === 'ageMonths') {
+        return `${Math.round(value)}m`;
+      }
+
+      const decimals = step < 1 ? 1 : 0;
+      return `${value.toFixed(decimals)}y`;
+    }
+
+    function drawCustomXAxisLabels(region, viewport) {
+      if (!viewport) {
+        return false;
+      }
+
+      const plotBounds = getPlotBounds(region, CHART_POINT_RADIUS);
+      const bandTop = Math.max(0, plotBounds.bottom - 10);
+      const bandBottom = chartCanvas.height;
+      const bandHeight = bandBottom - bandTop;
+      if (bandHeight < 24) {
+        return false;
+      }
+
+      chartContext.save();
+      chartContext.fillStyle = 'rgba(255, 255, 255, 0.96)';
+      chartContext.fillRect(0, bandTop, chartCanvas.width, bandHeight);
+
+      const axisY = bandTop + 10;
+      chartContext.beginPath();
+      chartContext.moveTo(plotBounds.left, axisY);
+      chartContext.lineTo(plotBounds.right, axisY);
+      chartContext.strokeStyle = '#c9d6cc';
+      chartContext.lineWidth = 1;
+      chartContext.stroke();
+
+      chartContext.font = '10px IBM Plex Mono, monospace';
+      chartContext.fillStyle = '#415146';
+      chartContext.textAlign = 'center';
+      chartContext.textBaseline = 'top';
+
+      for (let value = viewport.min; value <= viewport.max + viewport.step / 2; value += viewport.step) {
+        const tickValue = Number(value.toFixed(4));
+        const tickRatio = clampRatio((tickValue - viewport.min) / (viewport.max - viewport.min));
+        const tickX = (region.x.start + (region.x.end - region.x.start) * tickRatio) * chartCanvas.width;
+
+        chartContext.beginPath();
+        chartContext.moveTo(tickX, axisY);
+        chartContext.lineTo(tickX, axisY + 5);
+        chartContext.strokeStyle = '#c9d6cc';
+        chartContext.lineWidth = 1;
+        chartContext.stroke();
+
+        chartContext.fillText(formatCustomAxisLabel(region.x.source, tickValue, viewport.step), tickX, axisY + 10);
+      }
+
+      chartContext.restore();
+      return true;
+    }
+
+    function drawMetricHistory(region, metricKey, viewport = null) {
       const historyEntries = getChartPlotEntries(metricKey)
         .map((entry) => {
           const timestamp = getHistoryTimestamp(entry);
@@ -2802,7 +2983,7 @@
 
       const plotBounds = getPlotBounds(region, CHART_POINT_RADIUS);
       const mappedPoints = historyEntries
-        .map((entry) => mapPoint(region, entry))
+        .map((entry) => mapPoint(region, entry, viewport))
         .filter(Boolean)
         .map((point) => constrainPointToBounds(point, plotBounds))
         .filter(Boolean);
@@ -3016,13 +3197,15 @@
       chartCanvas.height = Math.round(image.naturalHeight * renderScale);
       chartContext.imageSmoothingEnabled = true;
       chartContext.imageSmoothingQuality = 'high';
-      drawBaseTemplate(image);
 
       const template = templateLibrary[templateRequest.key];
       templateRequest.metrics.forEach((metricKey) => {
         const region = template.regions[metricKey];
         if (region) {
-          drawMetricHistory(region, metricKey);
+          const viewport = getFocusedXAxisViewport(region, metricKey);
+          drawFocusedTemplate(image, region, viewport);
+          drawMetricHistory(region, metricKey, viewport);
+          drawCustomXAxisLabels(region, viewport);
         }
       });
 
