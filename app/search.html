@@ -1315,7 +1315,7 @@
       };
       frameElement.src = pdfUrl.includes('#')
         ? pdfUrl
-        : `${pdfUrl}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`;
+        : `${pdfUrl}#page=1&toolbar=0&navpanes=0&scrollbar=0&view=FitH`;
     }
 
     function attachPrescriptionPreviewRendering() {
@@ -1331,10 +1331,7 @@
         previewElements.forEach((previewElement) => {
           if (previewElement instanceof HTMLImageElement) {
             renderPrescriptionPreviewImage(previewElement);
-            return;
-          }
-
-          if (previewElement instanceof HTMLIFrameElement) {
+          } else if (previewElement instanceof HTMLIFrameElement) {
             renderPrescriptionPreviewPdf(previewElement);
           }
         });
