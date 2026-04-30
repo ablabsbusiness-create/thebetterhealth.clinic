@@ -1830,6 +1830,14 @@
         return;
       }
 
+      if (navigator.onLine === false) {
+        allPatients = withTestPastChartsPatient([]).sort(sortByPatientName);
+        allHistory = getLocalPrescriptionEntries();
+        filterPatients();
+        setStatus('Internet is disconnected. Showing locally available patient data only.', 'warning');
+        return;
+      }
+
       setStatus('Loading patients...');
 
       try {
@@ -1932,6 +1940,15 @@
         setStatus(`Unable to load Firebase patients: ${error.message}. Showing the built-in test patient instead.`, 'warning');
       }
     }
+
+    window.addEventListener('online', () => {
+      setStatus('Connection restored. Reloading patients...', 'ready');
+      loadPatients();
+    });
+
+    window.addEventListener('offline', () => {
+      setStatus('Internet is disconnected. Search results may be limited to locally available data.', 'warning');
+    });
 
     function clearSearch() {
       searchInput.value = '';

@@ -3131,10 +3131,9 @@
           throw new Error('Python chart service is not enabled for this deployment.');
         }
 
-        const generatedResult = await requestPythonGeneratedCharts(buildChartGenerationPayload());
-        generatedPreviewPages = Array.isArray(generatedResult.pages) ? generatedResult.pages.filter((preview) => preview?.dataUrl) : [];
-        generatedPdfBase64 = typeof generatedResult.pdfBase64 === 'string' ? generatedResult.pdfBase64 : '';
-        renderPreviewGallery();
+        await requestPythonGeneratedCharts(buildChartGenerationPayload());
+        await renderAllGeneratedPreviews();
+        generatedPdfBase64 = '';
         await renderCanvasFromGeneratedPreview(generatedPreviewPages[0] || null);
       } catch (error) {
         await renderAllGeneratedPreviews();
