@@ -3216,6 +3216,14 @@
       };
     }
 
+    function applyGeneratedPreviewPayload(previews, pdfBase64 = '') {
+      generatedPreviewPages = Array.isArray(previews)
+        ? previews.filter((preview) => preview && preview.dataUrl)
+        : [];
+      generatedPdfBase64 = typeof pdfBase64 === 'string' ? pdfBase64 : '';
+      renderPreviewGallery();
+    }
+
     async function renderAllGeneratedPreviews() {
       const previews = [];
 
@@ -3236,8 +3244,7 @@
         }
       }
 
-      generatedPreviewPages = previews.filter((preview) => preview.dataUrl);
-      renderPreviewGallery();
+      applyGeneratedPreviewPayload(previews, '');
     }
 
     function renderPreviewGallery() {
@@ -3314,9 +3321,8 @@
           throw new Error('Python chart service is not enabled for this deployment.');
         }
 
-        await requestPythonGeneratedCharts(buildChartGenerationPayload());
-        await renderAllGeneratedPreviews();
-        generatedPdfBase64 = '';
+        const generatedPackage = await requestPythonGeneratedCharts(buildChartGenerationPayload());
+        applyGeneratedPreviewPayload(generatedPackage.pages, generatedPackage.pdfBase64);
         await renderCanvasFromGeneratedPreview(generatedPreviewPages[0] || null);
       } catch (error) {
         await renderAllGeneratedPreviews();
