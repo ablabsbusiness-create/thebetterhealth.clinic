@@ -2087,17 +2087,46 @@
       ageInput.value = calculateAgeLabel(dobInput.value);
     }
 
-    function getAgeInYearsAtDate(dobValue, referenceDate = new Date()) {
-      if (!dobValue) return NaN;
+    function getPreciseAgePartsAtDate(dobValue, referenceDate = new Date()) {
+      if (!dobValue) return null;
 
       const dob = new Date(dobValue);
       const targetDate = referenceDate instanceof Date ? referenceDate : new Date(referenceDate);
 
       if (Number.isNaN(dob.getTime()) || Number.isNaN(targetDate.getTime()) || dob > targetDate) {
-        return NaN;
+        return null;
       }
 
-      return (targetDate - dob) / (365.25 * 24 * 60 * 60 * 1000);
+      let years = targetDate.getFullYear() - dob.getFullYear();
+      let months = targetDate.getMonth() - dob.getMonth();
+      let days = targetDate.getDate() - dob.getDate();
+
+      if (days < 0) {
+        const previousMonthDays = new Date(targetDate.getFullYear(), targetDate.getMonth(), 0).getDate();
+        days += previousMonthDays;
+        months -= 1;
+      }
+
+      if (months < 0) {
+        years -= 1;
+        months += 12;
+      }
+
+      const currentMonthDays = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0).getDate() || 30;
+      const totalMonths = years * 12 + months + (days / currentMonthDays);
+
+      return {
+        years,
+        months,
+        days,
+        totalMonths,
+        totalYears: totalMonths / 12
+      };
+    }
+
+    function getAgeInYearsAtDate(dobValue, referenceDate = new Date()) {
+      const ageParts = getPreciseAgePartsAtDate(dobValue, referenceDate);
+      return ageParts ? ageParts.totalYears : NaN;
     }
 
     function getAgeInYears(dobValue) {
@@ -2105,8 +2134,8 @@
     }
 
     function getAgeInMonthsAtDate(dobValue, referenceDate = new Date()) {
-      const ageYears = getAgeInYearsAtDate(dobValue, referenceDate);
-      return Number.isFinite(ageYears) ? ageYears * 12 : NaN;
+      const ageParts = getPreciseAgePartsAtDate(dobValue, referenceDate);
+      return ageParts ? ageParts.totalMonths : NaN;
     }
 
     function getAgeInMonths(dobValue) {
@@ -2841,6 +2870,63 @@
       return true;
     }
 
+    function formatDenseAxisLabel(source, value, step) {
+      if (source === 'ageMonths') {
+        return `${Math.round(value)}m`;
+      }
+
+      const decimals = step < 1 ? 1 : 0;
+      return `${value.toFixed(decimals)}y`;
+    }
+
+    function drawDenseXAxisLabels(region) {
+      const plotBounds = getPlotBounds(region, CHART_POINT_RADIUS);
+      const bandTop = Math.max(0, plotBounds.bottom - 10);
+      const bandBottom = chartCanvas.height;
+      const bandHeight = bandBottom - bandTop;
+
+      if (bandHeight < 24) {
+        return false;
+      }
+
+      const source = region.x.source;
+      const step = source === 'ageMonths' ? 6 : 1;
+
+      chartContext.save();
+      chartContext.fillStyle = 'rgba(255, 255, 255, 0.96)';
+      chartContext.fillRect(0, bandTop, chartCanvas.width, bandHeight);
+
+      const axisY = bandTop + 10;
+      chartContext.beginPath();
+      chartContext.moveTo(plotBounds.left, axisY);
+      chartContext.lineTo(plotBounds.right, axisY);
+      chartContext.strokeStyle = '#c9d6cc';
+      chartContext.lineWidth = 1;
+      chartContext.stroke();
+
+      chartContext.font = '10px IBM Plex Mono, monospace';
+      chartContext.fillStyle = '#415146';
+      chartContext.textAlign = 'center';
+      chartContext.textBaseline = 'top';
+
+      for (let value = region.x.min; value <= region.x.max + step / 2; value += step) {
+        const tickRatio = clampRatio((value - region.x.min) / (region.x.max - region.x.min));
+        const tickX = (region.x.start + (region.x.end - region.x.start) * tickRatio) * chartCanvas.width;
+
+        chartContext.beginPath();
+        chartContext.moveTo(tickX, axisY);
+        chartContext.lineTo(tickX, axisY + 5);
+        chartContext.strokeStyle = '#c9d6cc';
+        chartContext.lineWidth = 1;
+        chartContext.stroke();
+
+        chartContext.fillText(formatDenseAxisLabel(source, value, step), tickX, axisY + 10);
+      }
+
+      chartContext.restore();
+      return true;
+    }
+
     function normalizePlotSeriesEntry(entry = {}) {
       return {
         measuredAt: entry.measuredAt || entry.createdAtIso || entry.savedAt || entry.createdAtDisplay || new Date().toISOString(),
@@ -3023,6 +3109,7 @@
         const region = template.regions[metricKey];
         if (region) {
           drawMetricHistory(region, metricKey);
+          drawDenseXAxisLabels(region);
         }
       });
 

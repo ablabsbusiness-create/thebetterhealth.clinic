@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import base64
 import io
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -209,7 +209,25 @@ def get_age_years_at_date(dob_value: str, measured_at_value: Any) -> float:
     measured_at = parse_datetime(measured_at_value)
     if dob is None or measured_at is None or measured_at < dob:
         return float("nan")
-    return (measured_at - dob).total_seconds() / (365.25 * 24 * 60 * 60)
+
+    years = measured_at.year - dob.year
+    months = measured_at.month - dob.month
+    days = measured_at.day - dob.day
+
+    if days < 0:
+        previous_month_anchor = measured_at.replace(day=1)
+        previous_month_last_day = previous_month_anchor - timedelta(days=1)
+        days += previous_month_last_day.day
+        months -= 1
+
+    if months < 0:
+        years -= 1
+        months += 12
+
+    current_month_anchor = measured_at.replace(day=28) + timedelta(days=4)
+    current_month_last_day = (current_month_anchor - timedelta(days=current_month_anchor.day)).day
+    total_months = years * 12 + months + (days / max(current_month_last_day, 1))
+    return total_months / 12
 
 
 def clamp_ratio(value: float) -> float:
