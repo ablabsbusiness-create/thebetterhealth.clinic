@@ -927,34 +927,72 @@
 
     .preview-gallery {
       display: grid;
-      gap: 16px;
-      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 18px;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     }
 
     .preview-frame {
-      padding: 12px;
-      border-radius: 20px;
+      position: relative;
+      overflow: hidden;
+      padding: 14px;
+      border-radius: 24px;
       border: 1px solid rgba(124, 149, 129, 0.18);
       background:
-        linear-gradient(180deg, rgba(255,255,255,0.98), rgba(245, 249, 245, 0.95));
-      box-shadow: 0 16px 36px rgba(23, 44, 27, 0.08);
+        radial-gradient(circle at top right, rgba(34, 197, 94, 0.12), transparent 30%),
+        linear-gradient(180deg, rgba(255,255,255,0.99), rgba(244, 249, 244, 0.96));
+      box-shadow: 0 18px 40px rgba(23, 44, 27, 0.08);
+    }
+
+    .preview-frame::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      border: 1px solid rgba(255,255,255,0.72);
+    }
+
+    .preview-frame-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
     }
 
     .preview-frame strong {
       display: block;
-      margin-bottom: 10px;
-      font-size: 13px;
+      margin: 0;
+      font-size: 14px;
+      font-weight: 700;
       letter-spacing: 0.01em;
       color: var(--ink);
+      line-height: 1.35;
+    }
+
+    .preview-frame-note {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(220, 252, 231, 0.9);
+      color: var(--brand-strong);
+      border: 1px solid rgba(134, 239, 172, 0.8);
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
     }
 
     .preview-frame img {
       display: block;
       width: 100%;
-      border-radius: 14px;
+      border-radius: 18px;
       border: 1px solid rgba(124, 149, 129, 0.18);
       background: #ffffff;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.5);
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.55),
+        0 12px 28px rgba(23, 44, 27, 0.07);
     }
 
     .summary-count {
@@ -2051,7 +2089,11 @@
     let generatedPreviewPages = [];
     let generatedPdfBase64 = '';
     const CHART_RENDER_MAX_WIDTH = 760;
-    const CHART_POINT_RADIUS = 12;
+    const CHART_POINT_RADIUS = 11;
+    const CHART_SERIES_COLOR = '#1f2937';
+    const CHART_SERIES_MUTED = 'rgba(31, 41, 55, 0.48)';
+    const CHART_POINT_RING = '#ffffff';
+    const CHART_POINT_SOFT = '#f8fafc';
     const CAN_USE_PYTHON_CHART_SERVICE = ['localhost', '127.0.0.1'].includes(window.location.hostname);
     const LOCAL_RECORD_KEY = 'growthChartRecentRecords';
 
@@ -2933,19 +2975,19 @@
       }
 
       chartContext.save();
-      chartContext.fillStyle = 'rgba(255, 255, 255, 0.96)';
+      chartContext.fillStyle = 'rgba(255, 255, 255, 0.985)';
       chartContext.fillRect(0, bandTop, chartCanvas.width, bandHeight);
 
-      const axisY = bandTop + 10;
+      const axisY = bandTop + 12;
       chartContext.beginPath();
       chartContext.moveTo(plotBounds.left, axisY);
       chartContext.lineTo(plotBounds.right, axisY);
-      chartContext.strokeStyle = '#c9d6cc';
-      chartContext.lineWidth = 1;
+      chartContext.strokeStyle = '#b7c8bb';
+      chartContext.lineWidth = 1.25;
       chartContext.stroke();
 
-      chartContext.font = '10px IBM Plex Mono, monospace';
-      chartContext.fillStyle = '#415146';
+      chartContext.font = '600 11px IBM Plex Mono, monospace';
+      chartContext.fillStyle = '#334155';
       chartContext.textAlign = 'center';
       chartContext.textBaseline = 'top';
 
@@ -2956,16 +2998,39 @@
 
         chartContext.beginPath();
         chartContext.moveTo(tickX, axisY);
-        chartContext.lineTo(tickX, axisY + 5);
-        chartContext.strokeStyle = '#c9d6cc';
-        chartContext.lineWidth = 1;
+        chartContext.lineTo(tickX, axisY + 7);
+        chartContext.strokeStyle = '#bccdc0';
+        chartContext.lineWidth = 1.15;
         chartContext.stroke();
 
-        chartContext.fillText(formatCustomAxisLabel(region.x.source, tickValue, viewport.step), tickX, axisY + 10);
+        chartContext.fillText(formatCustomAxisLabel(region.x.source, tickValue, viewport.step), tickX, axisY + 12);
       }
 
       chartContext.restore();
       return true;
+    }
+
+    function drawHistoryPoint(point, radius, fillStyle, strokeStyle = CHART_POINT_RING, innerFill = null) {
+      chartContext.beginPath();
+      chartContext.arc(point.x, point.y, radius, 0, Math.PI * 2);
+      chartContext.fillStyle = fillStyle;
+      chartContext.shadowColor = 'rgba(15, 23, 42, 0.14)';
+      chartContext.shadowBlur = 12;
+      chartContext.shadowOffsetY = 3;
+      chartContext.fill();
+      chartContext.shadowColor = 'transparent';
+      chartContext.shadowBlur = 0;
+      chartContext.shadowOffsetY = 0;
+      chartContext.lineWidth = 2.4;
+      chartContext.strokeStyle = strokeStyle;
+      chartContext.stroke();
+
+      if (innerFill) {
+        chartContext.beginPath();
+        chartContext.arc(point.x, point.y, Math.max(2.6, radius * 0.28), 0, Math.PI * 2);
+        chartContext.fillStyle = innerFill;
+        chartContext.fill();
+      }
     }
 
     function drawMetricHistory(region, metricKey, viewport = null) {
@@ -2999,23 +3064,30 @@
           mappedPoints.slice(1).forEach((point) => {
             chartContext.lineTo(point.x, point.y);
           });
-          chartContext.lineWidth = 2.8;
-          chartContext.strokeStyle = '#111111';
+          chartContext.lineWidth = 3.2;
+          chartContext.strokeStyle = CHART_SERIES_COLOR;
           chartContext.lineJoin = 'round';
           chartContext.lineCap = 'round';
+          chartContext.shadowColor = 'rgba(15, 23, 42, 0.10)';
+          chartContext.shadowBlur = 8;
+          chartContext.shadowOffsetY = 2;
           chartContext.stroke();
+          chartContext.shadowColor = 'transparent';
+          chartContext.shadowBlur = 0;
+          chartContext.shadowOffsetY = 0;
         });
       }
 
       withPlotClip(region, () => {
-        mappedPoints.forEach((point) => {
-          chartContext.beginPath();
-          chartContext.arc(point.x, point.y, CHART_POINT_RADIUS, 0, Math.PI * 2);
-          chartContext.fillStyle = '#111111';
-          chartContext.fill();
-          chartContext.lineWidth = 1.5;
-          chartContext.strokeStyle = '#ffffff';
-          chartContext.stroke();
+        mappedPoints.forEach((point, index) => {
+          const isCurrent = index === mappedPoints.length - 1;
+          drawHistoryPoint(
+            point,
+            isCurrent ? CHART_POINT_RADIUS + 1.5 : CHART_POINT_RADIUS - 1.5,
+            isCurrent ? CHART_SERIES_COLOR : CHART_SERIES_MUTED,
+            CHART_POINT_RING,
+            isCurrent ? CHART_POINT_SOFT : null
+          );
         });
       });
 
@@ -3255,14 +3327,22 @@
         const frame = document.createElement('div');
         frame.className = 'preview-frame';
 
+        const head = document.createElement('div');
+        head.className = 'preview-frame-head';
+
         const title = document.createElement('strong');
         title.textContent = preview.label;
+
+        const note = document.createElement('span');
+        note.className = 'preview-frame-note';
+        note.textContent = 'Preview • PDF ready';
 
         const image = document.createElement('img');
         image.src = preview.dataUrl;
         image.alt = `${preview.label} preview`;
 
-        frame.append(title, image);
+        head.append(title, note);
+        frame.append(head, image);
         previewGallery.appendChild(frame);
       });
     }
