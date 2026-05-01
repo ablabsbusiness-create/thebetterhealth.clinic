@@ -2088,14 +2088,14 @@
     let generatedTemplates = [];
     let generatedPreviewPages = [];
     let generatedPdfBase64 = '';
-    const CHART_RENDER_MAX_WIDTH = 720;
-    const CHART_POINT_RADIUS = 5.6;
-    const CHART_SERIES_COLOR = '#171717';
-    const CHART_SERIES_MUTED = 'rgba(82, 82, 82, 0.72)';
-    const CHART_HISTORY_LINE_COLOR = 'rgba(64, 64, 64, 0.72)';
-    const CHART_HISTORY_LINE_WIDTH = 2.15;
-    const CHART_POINT_RING = '#ffffff';
-    const CHART_POINT_SOFT = '#f5f5f5';
+    const CHART_RENDER_MAX_WIDTH = 700;
+    const CHART_POINT_RADIUS = 4.4;
+    const CHART_SERIES_COLOR = '#111111';
+    const CHART_SERIES_MUTED = '#111111';
+    const CHART_HISTORY_LINE_COLOR = 'rgba(110, 110, 110, 0.82)';
+    const CHART_HISTORY_LINE_WIDTH = 1.7;
+    const CHART_POINT_RING = '#111111';
+    const CHART_POINT_SOFT = '#111111';
     const CAN_USE_PYTHON_CHART_SERVICE = ['localhost', '127.0.0.1'].includes(window.location.hostname);
     const LOCAL_RECORD_KEY = 'growthChartRecentRecords';
 
@@ -2929,7 +2929,7 @@
       const maxAge = ageValues[ageValues.length - 1];
       const span = Math.max(maxAge - minAge, 0);
       const step = getCustomAxisStep(region.x.source, span);
-      const minimumWindow = region.x.source === 'ageMonths' ? 5 : 0.9;
+      const minimumWindow = region.x.source === 'ageMonths' ? 5 : 0.85;
       const padding = step * 0.9;
       let viewportMin = roundDownToStep(minAge - padding, step);
       let viewportMax = roundUpToStep(maxAge + padding, step);
@@ -2977,19 +2977,19 @@
       }
 
       chartContext.save();
-      chartContext.fillStyle = 'rgba(255, 255, 255, 0.985)';
+      chartContext.fillStyle = '#ffffff';
       chartContext.fillRect(0, bandTop, chartCanvas.width, bandHeight);
 
       const axisY = bandTop + 10;
       chartContext.beginPath();
       chartContext.moveTo(plotBounds.left, axisY);
       chartContext.lineTo(plotBounds.right, axisY);
-      chartContext.strokeStyle = '#c9c9c9';
+      chartContext.strokeStyle = '#c4c4c4';
       chartContext.lineWidth = 1;
       chartContext.stroke();
 
-      chartContext.font = '500 10px IBM Plex Mono, monospace';
-      chartContext.fillStyle = '#525252';
+      chartContext.font = '400 10px Arial, sans-serif';
+      chartContext.fillStyle = '#595959';
       chartContext.textAlign = 'center';
       chartContext.textBaseline = 'top';
 
@@ -3001,7 +3001,7 @@
         chartContext.beginPath();
         chartContext.moveTo(tickX, axisY);
         chartContext.lineTo(tickX, axisY + 6);
-        chartContext.strokeStyle = '#d2d2d2';
+        chartContext.strokeStyle = '#cfcfcf';
         chartContext.lineWidth = 1;
         chartContext.stroke();
 
@@ -3016,20 +3016,16 @@
       chartContext.beginPath();
       chartContext.arc(point.x, point.y, radius, 0, Math.PI * 2);
       chartContext.fillStyle = fillStyle;
-      chartContext.shadowColor = 'rgba(0, 0, 0, 0.10)';
-      chartContext.shadowBlur = 5;
-      chartContext.shadowOffsetY = 1.5;
       chartContext.fill();
-      chartContext.shadowColor = 'transparent';
-      chartContext.shadowBlur = 0;
-      chartContext.shadowOffsetY = 0;
-      chartContext.lineWidth = 1.6;
-      chartContext.strokeStyle = strokeStyle;
-      chartContext.stroke();
+      if (strokeStyle && strokeStyle !== fillStyle) {
+        chartContext.lineWidth = 1;
+        chartContext.strokeStyle = strokeStyle;
+        chartContext.stroke();
+      }
 
       if (innerFill) {
         chartContext.beginPath();
-        chartContext.arc(point.x, point.y, Math.max(2.6, radius * 0.28), 0, Math.PI * 2);
+        chartContext.arc(point.x, point.y, Math.max(1.2, radius * 0.18), 0, Math.PI * 2);
         chartContext.fillStyle = innerFill;
         chartContext.fill();
       }
@@ -3063,26 +3059,14 @@
         withPlotClip(region, () => {
           chartContext.beginPath();
           chartContext.moveTo(mappedPoints[0].x, mappedPoints[0].y);
-          for (let index = 1; index < mappedPoints.length; index += 1) {
-            const previous = mappedPoints[index - 1];
-            const current = mappedPoints[index];
-            const midX = (previous.x + current.x) / 2;
-            const midY = (previous.y + current.y) / 2;
-            chartContext.quadraticCurveTo(previous.x, previous.y, midX, midY);
-          }
-          const lastPoint = mappedPoints[mappedPoints.length - 1];
-          chartContext.lineTo(lastPoint.x, lastPoint.y);
+          mappedPoints.slice(1).forEach((point) => {
+            chartContext.lineTo(point.x, point.y);
+          });
           chartContext.lineWidth = CHART_HISTORY_LINE_WIDTH;
           chartContext.strokeStyle = CHART_HISTORY_LINE_COLOR;
           chartContext.lineJoin = 'round';
           chartContext.lineCap = 'round';
-          chartContext.shadowColor = 'rgba(0, 0, 0, 0.06)';
-          chartContext.shadowBlur = 4;
-          chartContext.shadowOffsetY = 1;
           chartContext.stroke();
-          chartContext.shadowColor = 'transparent';
-          chartContext.shadowBlur = 0;
-          chartContext.shadowOffsetY = 0;
         });
       }
 
@@ -3091,10 +3075,10 @@
           const isCurrent = index === mappedPoints.length - 1;
           drawHistoryPoint(
             point,
-            isCurrent ? CHART_POINT_RADIUS + 0.8 : CHART_POINT_RADIUS - 0.6,
-            isCurrent ? CHART_SERIES_COLOR : CHART_SERIES_MUTED,
-            CHART_POINT_RING,
-            isCurrent ? CHART_POINT_SOFT : null
+            isCurrent ? CHART_POINT_RADIUS + 0.4 : CHART_POINT_RADIUS,
+            CHART_SERIES_COLOR,
+            CHART_SERIES_COLOR,
+            null
           );
         });
       });
