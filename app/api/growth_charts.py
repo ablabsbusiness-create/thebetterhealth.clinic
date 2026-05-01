@@ -288,6 +288,159 @@ def sort_entries(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return sorted(entries, key=lambda entry: parse_datetime(entry.get("measuredAt")) or datetime.min)
 
 
+def get_metric_axis_age_values(region: dict[str, Any], entries: list[dict[str, Any]], dob_value: str) -> list[float]:
+    values: list[float] = []
+    for entry in entries:
+        patient_data = build_patient_data(dob_value, entry)
+        value = patient_data.get(region["x"]["source"], float("nan"))
+        if value == value:
+            values.append(value)
+    return sorted(values)
+
+
+def get_custom_axis_step(source: str, span: float) -> float:
+    if source == "ageMonths":
+        if span <= 4:
+            return 1
+        if span <= 10:
+            return 2
+        return 3
+    if span <= 1.2:
+        return 0.2
+    if span <= 2.5:
+        return 0.5
+    if span <= 5:
+        return 1
+    return 2
+
+
+def round_down_to_step(value: float, step: float) -> float:
+    return int(value / step) * step if step else value
+
+
+def round_up_to_step(value: float, step: float) -> float:
+    if not step:
+        return value
+    quotient = value / step
+    whole = int(quotient)
+    return whole * step if quotient == whole else (whole + 1) * step
+
+
+def get_focused_x_axis_viewport(region: dict[str, Any], entries: list[dict[str, Any]], dob_value: str) -> dict[str, float] | None:
+    age_values = get_metric_axis_age_values(region, entries, dob_value)
+    if not age_values:
+        return None
+
+    min_age = age_values[0]
+    max_age = age_values[-1]
+    span = max(max_age - min_age, 0)
+    step = get_custom_axis_step(region["x"]["source"], span)
+    minimum_window = 6 if region["x"]["source"] == "ageMonths" else 1.2
+    padding = step * 1.5
+    viewport_min = round_down_to_step(min_age - padding, step)
+    viewport_max = round_up_to_step(max_age + padding, step)
+
+    if viewport_max - viewport_min < minimum_window:
+        center = (min_age + max_age) / 2
+        viewport_min = round_down_to_step(center - minimum_window / 2, step)
+        viewport_max = round_up_to_step(center + minimum_window / 2, step)
+
+    viewport_min = max(region["x"]["min"], viewport_min)
+    viewport_max = min(region["x"]["max"], viewport_max)
+
+    if not (viewport_max > viewport_min):
+        return None
+
+    return {"min": viewport_min, "max": viewport_max, "step": step}
+
+
+def render_focused_template(
+    image: Image.Image,
+    region: dict[str, Any],
+    viewport: dict[str, float] | None,
+) -> Image.Image:
+    if not viewport:
+        return image.copy()
+
+    source_width, source_height = image.size
+    full_span = region["x"]["max"] - region["x"]["min"]
+    if full_span <= 0:
+        return image.copy()
+
+    source_plot_left = region["x"]["start"] * source_width
+    source_plot_right = region["x"]["end"] * source_width
+    source_plot_width = source_plot_right - source_plot_left
+    dest_plot_left = region["x"]["start"] * source_width
+    dest_plot_right = region["x"]["end"] * source_width
+    dest_plot_width = dest_plot_right - dest_plot_left
+    viewport_left_ratio = clamp_ratio((viewport["min"] - region["x"]["min"]) / full_span)
+    viewport_right_ratio = clamp_ratio((viewport["max"] - region["x"]["min"]) / full_span)
+    viewport_source_left = source_plot_left + source_plot_width * viewport_left_ratio
+    viewport_source_right = source_plot_left + source_plot_width * viewport_right_ratio
+    viewport_source_width = max(1, int(round(viewport_source_right - viewport_source_left)))
+
+    focused = Image.new("RGBA", image.size, (255, 255, 255, 255))
+
+    if dest_plot_left > 0:
+        left_slice = image.crop((0, 0, int(round(source_plot_left)), source_height))
+        focused.paste(left_slice, (0, 0))
+
+    viewport_slice = image.crop(
+        (
+            int(round(viewport_source_left)),
+            0,
+            int(round(viewport_source_left)) + viewport_source_width,
+            source_height,
+        )
+    )
+    viewport_slice = viewport_slice.resize((max(1, int(round(dest_plot_width))), source_height), Image.Resampling.LANCZOS)
+    focused.paste(viewport_slice, (int(round(dest_plot_left)), 0))
+
+    if source_width - dest_plot_right > 0:
+        right_slice = image.crop((int(round(source_plot_right)), 0, source_width, source_height))
+        focused.paste(right_slice, (int(round(dest_plot_right)), 0))
+
+    return focused
+
+
+def format_custom_axis_label(source: str, value: float, step: float) -> str:
+    if source == "ageMonths":
+        return f"{round(value)}m"
+    decimals = 1 if step < 1 else 0
+    return f"{value:.{decimals}f}y"
+
+
+def draw_custom_x_axis_labels(
+    image: Image.Image,
+    region: dict[str, Any],
+    viewport: dict[str, float] | None,
+    marker_radius: int,
+) -> None:
+    if not viewport:
+        return
+
+    draw = ImageDraw.Draw(image)
+    bounds = get_plot_bounds(region, image.width, image.height, marker_radius)
+    band_top = max(0, int(round(bounds[3] - 10)))
+    band_bottom = image.height
+    band_height = band_bottom - band_top
+    if band_height < 24:
+        return
+
+    draw.rectangle((0, band_top, image.width, band_bottom), fill=(255, 255, 255, 245))
+    axis_y = band_top + 10
+    draw.line((bounds[0], axis_y, bounds[1], axis_y), fill="#c9d6cc", width=1)
+
+    value = viewport["min"]
+    while value <= viewport["max"] + viewport["step"] / 2:
+        tick_value = round(value, 4)
+        tick_ratio = clamp_ratio((tick_value - viewport["min"]) / (viewport["max"] - viewport["min"]))
+        tick_x = (region["x"]["start"] + (region["x"]["end"] - region["x"]["start"]) * tick_ratio) * image.width
+        draw.line((tick_x, axis_y, tick_x, axis_y + 5), fill="#c9d6cc", width=1)
+        draw.text((tick_x, axis_y + 10), format_custom_axis_label(region["x"]["source"], tick_value, viewport["step"]), fill="#415146", anchor="ma")
+        value += viewport["step"]
+
+
 def get_marker_metrics(image_width: int) -> tuple[int, int]:
     radius = max(7, round(image_width * 0.0045))
     outline_width = max(2, round(radius * 0.22))
@@ -324,27 +477,34 @@ def render_template_page(template_request: dict[str, Any], plot_series: dict[str
         if not region:
             continue
 
-        plot_bounds = get_plot_bounds(region, image.width, image.height, max(marker_radius, line_width / 2))
-        clip_bounds = get_plot_bounds(region, image.width, image.height, 0)
         entries = sort_entries(list(plot_series.get(metric_key, [])))
+        viewport = get_focused_x_axis_viewport(region, entries, dob_value)
+        focused_image = render_focused_template(image, region, viewport)
+        plot_bounds = get_plot_bounds(region, focused_image.width, focused_image.height, max(marker_radius, line_width / 2))
+        clip_bounds = get_plot_bounds(region, focused_image.width, focused_image.height, 0)
         mapped_points = []
         for entry in entries:
             patient_data = build_patient_data(dob_value, entry)
             if patient_data.get(metric_key) != patient_data.get(metric_key):
                 continue
-            point = map_point(region, patient_data, image.width, image.height)
+            point = map_point(region, patient_data, focused_image.width, focused_image.height)
             if point is not None:
                 mapped_points.append(constrain_point_to_bounds(point, plot_bounds))
 
-        overlay = Image.new("RGBA", image.size, (0, 0, 0, 0))
+        overlay = Image.new("RGBA", focused_image.size, (0, 0, 0, 0))
         overlay_draw = ImageDraw.Draw(overlay)
         if len(mapped_points) > 1:
             overlay_draw.line(mapped_points, fill=MARKER_FILL, width=line_width, joint="curve")
 
         for point in mapped_points:
-            draw_marker(overlay_draw, point, image.width)
+            draw_marker(overlay_draw, point, focused_image.width)
 
-        image = Image.alpha_composite(image, clip_overlay_to_bounds(overlay, image.width, image.height, clip_bounds))
+        focused_image = Image.alpha_composite(
+            focused_image,
+            clip_overlay_to_bounds(overlay, focused_image.width, focused_image.height, clip_bounds),
+        )
+        draw_custom_x_axis_labels(focused_image, region, viewport, marker_radius)
+        image = focused_image
 
     return image.convert("RGB")
 
