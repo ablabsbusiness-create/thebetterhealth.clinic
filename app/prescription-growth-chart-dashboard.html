@@ -2088,12 +2088,14 @@
     let generatedTemplates = [];
     let generatedPreviewPages = [];
     let generatedPdfBase64 = '';
-    const CHART_RENDER_MAX_WIDTH = 760;
-    const CHART_POINT_RADIUS = 11;
-    const CHART_SERIES_COLOR = '#1f2937';
-    const CHART_SERIES_MUTED = 'rgba(31, 41, 55, 0.48)';
+    const CHART_RENDER_MAX_WIDTH = 720;
+    const CHART_POINT_RADIUS = 5.6;
+    const CHART_SERIES_COLOR = '#171717';
+    const CHART_SERIES_MUTED = 'rgba(82, 82, 82, 0.72)';
+    const CHART_HISTORY_LINE_COLOR = 'rgba(64, 64, 64, 0.72)';
+    const CHART_HISTORY_LINE_WIDTH = 2.15;
     const CHART_POINT_RING = '#ffffff';
-    const CHART_POINT_SOFT = '#f8fafc';
+    const CHART_POINT_SOFT = '#f5f5f5';
     const CAN_USE_PYTHON_CHART_SERVICE = ['localhost', '127.0.0.1'].includes(window.location.hostname);
     const LOCAL_RECORD_KEY = 'growthChartRecentRecords';
 
@@ -2927,8 +2929,8 @@
       const maxAge = ageValues[ageValues.length - 1];
       const span = Math.max(maxAge - minAge, 0);
       const step = getCustomAxisStep(region.x.source, span);
-      const minimumWindow = region.x.source === 'ageMonths' ? 6 : 1.2;
-      const padding = step * 1.5;
+      const minimumWindow = region.x.source === 'ageMonths' ? 5 : 0.9;
+      const padding = step * 0.9;
       let viewportMin = roundDownToStep(minAge - padding, step);
       let viewportMax = roundUpToStep(maxAge + padding, step);
 
@@ -2967,7 +2969,7 @@
       }
 
       const plotBounds = getPlotBounds(region, CHART_POINT_RADIUS);
-      const bandTop = Math.max(0, plotBounds.bottom - 10);
+      const bandTop = Math.max(0, plotBounds.bottom - 7);
       const bandBottom = chartCanvas.height;
       const bandHeight = bandBottom - bandTop;
       if (bandHeight < 24) {
@@ -2978,16 +2980,16 @@
       chartContext.fillStyle = 'rgba(255, 255, 255, 0.985)';
       chartContext.fillRect(0, bandTop, chartCanvas.width, bandHeight);
 
-      const axisY = bandTop + 12;
+      const axisY = bandTop + 10;
       chartContext.beginPath();
       chartContext.moveTo(plotBounds.left, axisY);
       chartContext.lineTo(plotBounds.right, axisY);
-      chartContext.strokeStyle = '#b7c8bb';
-      chartContext.lineWidth = 1.25;
+      chartContext.strokeStyle = '#c9c9c9';
+      chartContext.lineWidth = 1;
       chartContext.stroke();
 
-      chartContext.font = '600 11px IBM Plex Mono, monospace';
-      chartContext.fillStyle = '#334155';
+      chartContext.font = '500 10px IBM Plex Mono, monospace';
+      chartContext.fillStyle = '#525252';
       chartContext.textAlign = 'center';
       chartContext.textBaseline = 'top';
 
@@ -2998,12 +3000,12 @@
 
         chartContext.beginPath();
         chartContext.moveTo(tickX, axisY);
-        chartContext.lineTo(tickX, axisY + 7);
-        chartContext.strokeStyle = '#bccdc0';
-        chartContext.lineWidth = 1.15;
+        chartContext.lineTo(tickX, axisY + 6);
+        chartContext.strokeStyle = '#d2d2d2';
+        chartContext.lineWidth = 1;
         chartContext.stroke();
 
-        chartContext.fillText(formatCustomAxisLabel(region.x.source, tickValue, viewport.step), tickX, axisY + 12);
+        chartContext.fillText(formatCustomAxisLabel(region.x.source, tickValue, viewport.step), tickX, axisY + 10);
       }
 
       chartContext.restore();
@@ -3014,14 +3016,14 @@
       chartContext.beginPath();
       chartContext.arc(point.x, point.y, radius, 0, Math.PI * 2);
       chartContext.fillStyle = fillStyle;
-      chartContext.shadowColor = 'rgba(15, 23, 42, 0.14)';
-      chartContext.shadowBlur = 12;
-      chartContext.shadowOffsetY = 3;
+      chartContext.shadowColor = 'rgba(0, 0, 0, 0.10)';
+      chartContext.shadowBlur = 5;
+      chartContext.shadowOffsetY = 1.5;
       chartContext.fill();
       chartContext.shadowColor = 'transparent';
       chartContext.shadowBlur = 0;
       chartContext.shadowOffsetY = 0;
-      chartContext.lineWidth = 2.4;
+      chartContext.lineWidth = 1.6;
       chartContext.strokeStyle = strokeStyle;
       chartContext.stroke();
 
@@ -3061,16 +3063,22 @@
         withPlotClip(region, () => {
           chartContext.beginPath();
           chartContext.moveTo(mappedPoints[0].x, mappedPoints[0].y);
-          mappedPoints.slice(1).forEach((point) => {
-            chartContext.lineTo(point.x, point.y);
-          });
-          chartContext.lineWidth = 3.2;
-          chartContext.strokeStyle = CHART_SERIES_COLOR;
+          for (let index = 1; index < mappedPoints.length; index += 1) {
+            const previous = mappedPoints[index - 1];
+            const current = mappedPoints[index];
+            const midX = (previous.x + current.x) / 2;
+            const midY = (previous.y + current.y) / 2;
+            chartContext.quadraticCurveTo(previous.x, previous.y, midX, midY);
+          }
+          const lastPoint = mappedPoints[mappedPoints.length - 1];
+          chartContext.lineTo(lastPoint.x, lastPoint.y);
+          chartContext.lineWidth = CHART_HISTORY_LINE_WIDTH;
+          chartContext.strokeStyle = CHART_HISTORY_LINE_COLOR;
           chartContext.lineJoin = 'round';
           chartContext.lineCap = 'round';
-          chartContext.shadowColor = 'rgba(15, 23, 42, 0.10)';
-          chartContext.shadowBlur = 8;
-          chartContext.shadowOffsetY = 2;
+          chartContext.shadowColor = 'rgba(0, 0, 0, 0.06)';
+          chartContext.shadowBlur = 4;
+          chartContext.shadowOffsetY = 1;
           chartContext.stroke();
           chartContext.shadowColor = 'transparent';
           chartContext.shadowBlur = 0;
@@ -3083,7 +3091,7 @@
           const isCurrent = index === mappedPoints.length - 1;
           drawHistoryPoint(
             point,
-            isCurrent ? CHART_POINT_RADIUS + 1.5 : CHART_POINT_RADIUS - 1.5,
+            isCurrent ? CHART_POINT_RADIUS + 0.8 : CHART_POINT_RADIUS - 0.6,
             isCurrent ? CHART_SERIES_COLOR : CHART_SERIES_MUTED,
             CHART_POINT_RING,
             isCurrent ? CHART_POINT_SOFT : null
