@@ -287,8 +287,8 @@ def sort_entries(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def get_marker_metrics(image_width: int) -> tuple[int, int]:
-    radius = max(210, round(image_width * 0.19))
-    outline_width = max(18, round(radius * 0.18))
+    radius = max(7, round(image_width * 0.0045))
+    outline_width = max(2, round(radius * 0.22))
     return radius, outline_width
 
 
@@ -314,7 +314,7 @@ def render_template_page(template_request: dict[str, Any], plot_series: dict[str
         raise ChartPlotError(f"Missing chart asset: {template['path']}")
 
     image = Image.open(image_path).convert("RGBA")
-    line_width = max(20, round(image.width * 0.012))
+    line_width = max(3, round(image.width * 0.0024))
     marker_radius, _ = get_marker_metrics(image.width)
 
     for metric_key in template_request.get("metrics", []):
