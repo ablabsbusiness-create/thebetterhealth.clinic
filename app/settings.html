@@ -222,6 +222,13 @@
       line-height: 1.05;
     }
 
+    .stats-panel > p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.65;
+    }
+
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -258,32 +265,6 @@
       color: var(--muted);
       font-size: 13px;
       line-height: 1.55;
-    }
-
-    .usage-meter {
-      margin-top: 14px;
-      width: 100%;
-      height: 12px;
-      border-radius: 999px;
-      background: #e7efe9;
-      overflow: hidden;
-      border: 1px solid var(--line);
-    }
-
-    .usage-meter-fill {
-      width: 0%;
-      height: 100%;
-      border-radius: inherit;
-      background: linear-gradient(90deg, #22c55e, #166534);
-      transition: width 0.3s ease;
-    }
-
-    .usage-caption {
-      margin-top: 10px;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.5;
-      font-weight: 600;
     }
 
     .storage-note {
@@ -549,6 +530,7 @@
   <main class="page-shell">
     <section class="stats-panel">
       <h1>PDF Settings</h1>
+      <p>These numbers are loaded from the saved prescription PDF records in Firebase.</p>
 
       <div class="stats-grid">
         <article class="stat-card">
@@ -560,15 +542,13 @@
         <article class="stat-card">
           <strong>Space Used</strong>
           <div id="pdf-size" class="stat-value">0 KB</div>
-          <div class="stat-hint">Firebase Storage used by the saved prescription PDF files.</div>
-          <div class="usage-meter" aria-hidden="true">
-            <div id="usage-fill" class="usage-meter-fill"></div>
-          </div>
-          <div id="usage-caption" class="usage-caption">0% of 5 GB free storage used</div>
+          <div class="stat-hint">Total Firebase Storage size used by the saved prescription PDF files.</div>
         </article>
       </div>
 
-      <div id="storage-note" class="storage-note">Loading Firebase PDF usage...</div>
+      <div id="storage-note" class="storage-note">
+        Loading Firebase PDF usage...
+      </div>
 
       <div class="help-actions">
         <a class="btn-primary" href="index.html">Back to Dashboard</a>
@@ -587,9 +567,6 @@
     const pdfCount = document.getElementById('pdf-count');
     const pdfSize = document.getElementById('pdf-size');
     const storageNote = document.getElementById('storage-note');
-    const usageFill = document.getElementById('usage-fill');
-    const usageCaption = document.getElementById('usage-caption');
-    const FIREBASE_FREE_STORAGE_BYTES = 5 * 1024 * 1024 * 1024;
 
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
@@ -619,18 +596,9 @@
       return `${(byteCount / (1024 * 1024)).toFixed(2)} MB`;
     }
 
-    function updateUsageBar(byteCount) {
-      const safeBytes = Number.isFinite(byteCount) && byteCount > 0 ? byteCount : 0;
-      const rawPercent = (safeBytes / FIREBASE_FREE_STORAGE_BYTES) * 100;
-      const boundedPercent = Math.max(0, Math.min(rawPercent, 100));
-      usageFill.style.width = `${boundedPercent}%`;
-      usageCaption.textContent = `${rawPercent.toFixed(rawPercent >= 10 ? 1 : 2)}% of 5 GB free storage used`;
-    }
-
     async function updatePdfStats() {
       if (!db || !storage) {
         storageNote.textContent = 'Firebase is not configured, so PDF usage could not be loaded.';
-        updateUsageBar(0);
         return;
       }
 
@@ -661,7 +629,6 @@
         }));
 
         pdfSize.textContent = formatBytes(totalBytes);
-        updateUsageBar(totalBytes);
 
         if (pdfRecords.length === 0) {
           storageNote.textContent = 'No saved prescription PDFs were found in Firebase yet.';
@@ -669,7 +636,7 @@
         }
 
         if (resolvedFiles === pdfRecords.length) {
-          storageNote.textContent = 'Loaded from Firebase.';
+          storageNote.textContent = 'Count and size are fully loaded from Firebase history and Firebase Storage.';
           return;
         }
 
@@ -678,7 +645,6 @@
         console.warn(`Unable to load Firebase PDF stats: ${error.message}`);
         pdfCount.textContent = '0';
         pdfSize.textContent = '0 KB';
-        updateUsageBar(0);
         storageNote.textContent = 'Firebase PDF usage could not be loaded right now.';
       }
     }
