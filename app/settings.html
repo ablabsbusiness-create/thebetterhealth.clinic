@@ -3,20 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Settings</title>
+  <title>PDF Settings</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #eef4ef;
-      --panel: #fcfdf8;
       --ink: #1b2a21;
       --muted: #607067;
       --line: #d7e2d9;
       --brand: #166534;
       --brand-soft: #dcfce7;
       --brand-strong: #14532d;
+      --accent-soft: #ffedd5;
       --shadow: 0 18px 45px rgba(22, 38, 29, 0.08);
       --radius-lg: 24px;
     }
@@ -203,13 +203,12 @@
     }
 
     .page-shell {
-      width: min(1080px, calc(100% - 32px));
+      width: min(760px, calc(100% - 32px));
       margin: 32px auto 40px;
     }
 
-    .hero-panel,
-    .settings-panel,
-    .help-panel {
+    .stats-panel {
+      padding: 24px;
       background: rgba(255, 255, 255, 0.86);
       backdrop-filter: blur(12px);
       border: 1px solid rgba(215, 226, 217, 0.95);
@@ -217,141 +216,76 @@
       box-shadow: var(--shadow);
     }
 
-    .hero-panel {
-      display: grid;
-      grid-template-columns: minmax(0, 1.3fr) minmax(260px, 0.7fr);
-      gap: 20px;
-      padding: 28px;
-      margin-bottom: 20px;
-    }
-
-    .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
-      border-radius: 999px;
-      background: var(--brand-soft);
-      color: var(--brand-strong);
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-
     h1 {
-      margin: 12px 0 8px;
-      font-size: clamp(30px, 3.6vw, 44px);
+      margin: 0 0 8px;
+      font-size: clamp(28px, 3.6vw, 40px);
       line-height: 1.05;
     }
 
-    .hero-panel p,
-    .section-head p {
+    .stats-panel > p {
       margin: 0;
       color: var(--muted);
       font-size: 15px;
       line-height: 1.65;
-      max-width: 60ch;
     }
 
-    .hero-meta {
-      display: grid;
-      gap: 12px;
-      align-content: start;
-    }
-
-    .meta-card,
-    .setting-card {
-      padding: 18px;
-      border-radius: 18px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(244,250,245,0.96));
-      border: 1px solid var(--line);
-    }
-
-    .meta-card strong,
-    .setting-card strong {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 15px;
-    }
-
-    .meta-card span,
-    .setting-card p {
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.6;
-    }
-
-    .settings-panel,
-    .help-panel {
-      padding: 24px;
-    }
-
-    .settings-panel {
-      margin-bottom: 20px;
-    }
-
-    .section-head {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 18px;
-      margin-bottom: 18px;
-    }
-
-    .section-head h2 {
-      margin: 0 0 6px;
-      font-size: 24px;
-    }
-
-    .panel-note {
-      padding: 10px 12px;
-      border-radius: 14px;
-      background: #fffbeb;
-      color: #9a3412;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .settings-grid {
+    .stats-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 16px;
+      margin-top: 20px;
     }
 
-    .setting-card p {
-      margin: 0 0 14px;
-    }
-
-    .setting-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .setting-tag {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 34px;
-      padding: 0 12px;
-      border-radius: 999px;
-      background: #f8fbf9;
+    .stat-card {
+      padding: 22px;
+      border-radius: 20px;
       border: 1px solid var(--line);
-      color: var(--brand-strong);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(244,250,245,0.96));
+    }
+
+    .stat-card strong {
+      display: block;
+      margin-bottom: 10px;
+      color: var(--muted);
       font-size: 12px;
       font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .stat-value {
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 700;
+      line-height: 1;
+      color: var(--brand-strong);
+    }
+
+    .stat-hint {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .storage-note {
+      margin-top: 18px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: var(--accent-soft);
+      color: #9a3412;
+      font-size: 12px;
+      line-height: 1.55;
+      font-weight: 600;
     }
 
     .help-actions {
       display: flex;
       flex-wrap: wrap;
       gap: 12px;
-      margin-top: 16px;
+      margin-top: 18px;
     }
 
-    .btn-primary,
-    .btn-secondary {
+    .btn-primary {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -361,29 +295,14 @@
       text-decoration: none;
       font-size: 14px;
       font-weight: 700;
-      transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, color 0.18s ease;
-    }
-
-    .btn-primary {
       background: linear-gradient(135deg, #166534, #22c55e);
       color: #fff;
       box-shadow: 0 14px 28px rgba(22, 101, 52, 0.2);
+      transition: transform 0.18s ease;
     }
 
-    .btn-primary:hover,
-    .btn-secondary:hover {
+    .btn-primary:hover {
       transform: translateY(-2px);
-    }
-
-    .btn-secondary {
-      background: rgba(255,255,255,0.9);
-      color: var(--brand-strong);
-      border: 1px solid var(--line);
-      box-shadow: 0 12px 24px rgba(22, 38, 29, 0.08);
-    }
-
-    .mono {
-      font-family: 'IBM Plex Mono', monospace;
     }
 
     @media (max-width: 1100px) {
@@ -424,11 +343,6 @@
         flex: 1 1 calc(50% - 10px);
         text-align: center;
         padding: 12px 14px;
-      }
-
-      .hero-panel,
-      .settings-grid {
-        grid-template-columns: 1fr;
       }
     }
 
@@ -506,11 +420,13 @@
         margin: 16px auto 24px;
       }
 
-      .hero-panel,
-      .settings-panel,
-      .help-panel {
+      .stats-panel {
         padding: 18px;
         border-radius: 20px;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
       }
 
       h1 {
@@ -576,7 +492,7 @@
         <div class="brand-mark">⚙️</div>
         <div class="brand-copy">
           <strong>The Better Health Clinic</strong>
-          <span>Settings</span>
+          <span>PDF Settings</span>
         </div>
       </div>
 
@@ -605,105 +521,90 @@
         <a class="settings-shortcut" href="settings.html">Settings</a>
         <div class="status-chip">
           <span class="status-dot"></span>
-          Access locked to clinic team
+          Prescription history
         </div>
       </div>
     </div>
   </header>
 
   <main class="page-shell">
-    <section class="hero-panel">
-      <div>
-        <span class="eyebrow">Control Center</span>
-        <h1>Review and manage clinic workspace settings.</h1>
-        <p>
-          This page gives the team a clean place to manage access, workflow handoffs,
-          and app behavior without digging through the main entry dashboard.
-        </p>
-      </div>
+    <section class="stats-panel">
+      <h1>PDF Settings</h1>
+      <p>Only the generated prescription PDF history saved in this browser is counted here.</p>
 
-      <div class="hero-meta">
-        <div class="meta-card">
-          <strong>Session</strong>
-          <span>Protected by the app password gate before entry pages open.</span>
-        </div>
-        <div class="meta-card">
-          <strong>Current workspace</strong>
-          <span class="mono">/app/</span>
-        </div>
-      </div>
-    </section>
-
-    <section class="settings-panel">
-      <div class="section-head">
-        <div>
-          <h2>Available settings areas</h2>
-          <p>
-            The page is ready as a stable home for future clinic configuration. Right now
-            it presents the main settings categories so staff have one obvious place to start.
-          </p>
-        </div>
-        <div class="panel-note">Ready for future live controls</div>
-      </div>
-
-      <div class="settings-grid">
-        <article class="setting-card">
-          <strong>Clinic Access</strong>
-          <p>Use this area for password flow, device access checks, and team entry rules for the dashboard.</p>
-          <div class="setting-tags">
-            <span class="setting-tag">Password Gate</span>
-            <span class="setting-tag">Session Access</span>
-          </div>
+      <div class="stats-grid">
+        <article class="stat-card">
+          <strong>Generated PDFs</strong>
+          <div id="pdf-count" class="stat-value">0</div>
+          <div class="stat-hint">Number of locally tracked prescription PDFs.</div>
         </article>
 
-        <article class="setting-card">
-          <strong>Prescription Workflow</strong>
-          <p>Keep a dedicated place for preview, download, print, and sharing preferences across the prescription pages.</p>
-          <div class="setting-tags">
-            <span class="setting-tag">PDF Actions</span>
-            <span class="setting-tag">WhatsApp Flow</span>
-          </div>
-        </article>
-
-        <article class="setting-card">
-          <strong>Patient Search Tools</strong>
-          <p>Reserve this section for search defaults, saved filters, and fast navigation behavior for patient lookup.</p>
-          <div class="setting-tags">
-            <span class="setting-tag">Search</span>
-            <span class="setting-tag">Saved Views</span>
-          </div>
-        </article>
-
-        <article class="setting-card">
-          <strong>Growth Chart Preferences</strong>
-          <p>Use this area later for chart preview behavior, output options, and future data-visual settings.</p>
-          <div class="setting-tags">
-            <span class="setting-tag">Charts</span>
-            <span class="setting-tag">Export</span>
-          </div>
+        <article class="stat-card">
+          <strong>Space Used</strong>
+          <div id="pdf-size" class="stat-value">0 KB</div>
+          <div class="stat-hint">Estimated browser storage used by the saved PDF history records.</div>
         </article>
       </div>
-    </section>
 
-    <section class="help-panel">
-      <div class="section-head">
-        <div>
-          <h2>Quick actions</h2>
-          <p>Jump back into the main clinic flow or go straight to patient selection from here.</p>
-        </div>
+      <div id="storage-note" class="storage-note">
+        This shows local history data stored in this browser, not the full Firebase file size.
       </div>
 
       <div class="help-actions">
         <a class="btn-primary" href="index.html">Back to Dashboard</a>
-        <a class="btn-secondary" href="choose.html">Enter Clinic</a>
       </div>
     </section>
   </main>
 
   <script>
+    const LOCAL_PRESCRIPTION_HISTORY_KEY = 'savedPrescriptionHistory';
     const menuToggle = document.getElementById('menu-toggle');
     const primaryNav = document.getElementById('primary-nav');
     const navLinks = [...document.querySelectorAll('#primary-nav .nav-link')];
+    const pdfCount = document.getElementById('pdf-count');
+    const pdfSize = document.getElementById('pdf-size');
+    const storageNote = document.getElementById('storage-note');
+
+    function readLocalPrescriptionHistory() {
+      try {
+        const raw = localStorage.getItem(LOCAL_PRESCRIPTION_HISTORY_KEY);
+        if (!raw) {
+          return { records: [], raw: '[]' };
+        }
+        const parsed = JSON.parse(raw);
+        return {
+          records: Array.isArray(parsed) ? parsed.filter((entry) => entry && typeof entry === 'object') : [],
+          raw
+        };
+      } catch (error) {
+        return { records: [], raw: '[]', error };
+      }
+    }
+
+    function formatBytes(byteCount) {
+      if (!Number.isFinite(byteCount) || byteCount <= 0) {
+        return '0 KB';
+      }
+      if (byteCount < 1024) {
+        return `${byteCount} B`;
+      }
+      if (byteCount < 1024 * 1024) {
+        return `${(byteCount / 1024).toFixed(byteCount < 10240 ? 1 : 0)} KB`;
+      }
+      return `${(byteCount / (1024 * 1024)).toFixed(2)} MB`;
+    }
+
+    function updatePdfStats() {
+      const { records, raw, error } = readLocalPrescriptionHistory();
+      const encodedLength = new TextEncoder().encode(raw).length;
+      pdfCount.textContent = String(records.length);
+      pdfSize.textContent = formatBytes(encodedLength);
+      if (error) {
+        storageNote.textContent = 'The local PDF history could not be read cleanly, so this count may be incomplete.';
+        return;
+      }
+      storageNote.textContent = 'This shows local history data stored in this browser, not the full Firebase file size.';
+    }
 
     function closeMobileMenu() {
       if (!menuToggle || !primaryNav) {
@@ -731,6 +632,8 @@
         }
       });
     }
+
+    updatePdfStats();
   </script>
 </body>
 </html>
