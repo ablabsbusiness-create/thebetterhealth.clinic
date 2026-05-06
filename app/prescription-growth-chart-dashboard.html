@@ -1769,6 +1769,7 @@
     const menuToggle = document.getElementById('menu-toggle');
     const primaryNav = document.getElementById('primary-nav');
     const navLinks = [...document.querySelectorAll('#primary-nav .nav-link')];
+    const IS_FILE_PROTOCOL = window.location.protocol === 'file:';
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
       apiKey: firebaseEnv.VITE_FIREBASE_API_KEY || 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
@@ -1779,7 +1780,7 @@
       appId: firebaseEnv.VITE_FIREBASE_APP_ID || '1:1059959825609:web:8201599754706ac4661918',
       measurementId: firebaseEnv.VITE_FIREBASE_MEASUREMENT_ID || 'G-4V5JMVW45E'
     };
-    const firebaseConfigured = Object.values(firebaseConfig).every(Boolean);
+    const firebaseConfigured = !IS_FILE_PROTOCOL && Object.values(firebaseConfig).every(Boolean);
     const firebaseApp = firebaseConfigured ? initializeApp(firebaseConfig) : null;
     const db = firebaseApp ? getFirestore(firebaseApp) : null;
     const storage = firebaseApp ? getStorage(firebaseApp) : null;
@@ -3143,7 +3144,9 @@
         const warnings = buildWarnings(selectedValues, patientData);
         const fallbackNote = CAN_USE_PYTHON_CHART_SERVICE
           ? 'Python chart service is unavailable, so the chart was generated in browser mode.'
-          : 'This deployment is using browser chart rendering.';
+          : (IS_FILE_PROTOCOL
+              ? 'This local file preview is using browser-only rendering and skips Firebase features.'
+              : 'This deployment is using browser chart rendering.');
         setChartPreviewMessage(
           `Generated ${generatedPreviewPages.length} chart${generatedPreviewPages.length === 1 ? '' : 's'} for download. ${fallbackNote}${warnings.length ? ` ${warnings.join(' ')}` : ''}`,
           'warning'
