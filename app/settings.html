@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PDF Settings</title>
+  <title>Setting</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -208,8 +208,8 @@
     }
 
     .stats-panel {
-      padding: 24px;
-      background: rgba(255, 255, 255, 0.86);
+      padding: 26px;
+      background: rgba(255, 255, 255, 0.9);
       backdrop-filter: blur(12px);
       border: 1px solid rgba(215, 226, 217, 0.95);
       border-radius: var(--radius-lg);
@@ -217,23 +217,16 @@
     }
 
     h1 {
-      margin: 0 0 8px;
+      margin: 14px 0 4px;
       font-size: clamp(28px, 3.6vw, 40px);
       line-height: 1.05;
-    }
-
-    .stats-panel > p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 15px;
-      line-height: 1.65;
     }
 
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px;
-      margin-top: 20px;
+      gap: 18px;
+      margin-top: 22px;
     }
 
     .stat-card {
@@ -241,6 +234,7 @@
       border-radius: 20px;
       border: 1px solid var(--line);
       background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(244,250,245,0.96));
+      box-shadow: 0 12px 24px rgba(22, 38, 29, 0.05);
     }
 
     .stat-card strong {
@@ -267,14 +261,29 @@
       line-height: 1.55;
     }
 
-    .storage-note {
-      margin-top: 18px;
-      padding: 12px 14px;
-      border-radius: 16px;
-      background: var(--accent-soft);
-      color: #9a3412;
+    .usage-meter {
+      margin-top: 14px;
+      width: 100%;
+      height: 12px;
+      border-radius: 999px;
+      background: #e7efe9;
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .usage-meter-fill {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #22c55e, #166534);
+      transition: width 0.3s ease;
+    }
+
+    .usage-caption {
+      margin-top: 10px;
+      color: var(--muted);
       font-size: 12px;
-      line-height: 1.55;
+      line-height: 1.5;
       font-weight: 600;
     }
 
@@ -282,7 +291,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 12px;
-      margin-top: 18px;
+      margin-top: 22px;
     }
 
     .btn-primary {
@@ -492,7 +501,7 @@
         <div class="brand-mark">⚙️</div>
         <div class="brand-copy">
           <strong>The Better Health Clinic</strong>
-          <span>PDF Settings</span>
+          <span>Setting</span>
         </div>
       </div>
 
@@ -529,25 +538,22 @@
 
   <main class="page-shell">
     <section class="stats-panel">
-      <h1>PDF Settings</h1>
-      <p>These numbers are loaded from the saved prescription PDF records in Firebase.</p>
+      <h1>Setting</h1>
 
       <div class="stats-grid">
         <article class="stat-card">
           <strong>Generated PDFs</strong>
           <div id="pdf-count" class="stat-value">0</div>
-          <div class="stat-hint">Number of saved prescription PDFs found in Firebase.</div>
         </article>
 
         <article class="stat-card">
           <strong>Space Used</strong>
           <div id="pdf-size" class="stat-value">0 KB</div>
-          <div class="stat-hint">Total Firebase Storage size used by the saved prescription PDF files.</div>
+          <div class="usage-meter" aria-hidden="true">
+            <div id="usage-fill" class="usage-meter-fill"></div>
+          </div>
+          <div id="usage-caption" class="usage-caption">0% of 5 GB free storage used</div>
         </article>
-      </div>
-
-      <div id="storage-note" class="storage-note">
-        Loading Firebase PDF usage...
       </div>
 
       <div class="help-actions">
@@ -566,7 +572,9 @@
     const navLinks = [...document.querySelectorAll('#primary-nav .nav-link')];
     const pdfCount = document.getElementById('pdf-count');
     const pdfSize = document.getElementById('pdf-size');
-    const storageNote = document.getElementById('storage-note');
+    const usageFill = document.getElementById('usage-fill');
+    const usageCaption = document.getElementById('usage-caption');
+    const FIREBASE_FREE_STORAGE_BYTES = 5 * 1024 * 1024 * 1024;
 
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
@@ -596,9 +604,20 @@
       return `${(byteCount / (1024 * 1024)).toFixed(2)} MB`;
     }
 
+    function updateUsageBar(byteCount) {
+      const safeBytes = Number.isFinite(byteCount) && byteCount > 0 ? byteCount : 0;
+      const rawPercent = (safeBytes / FIREBASE_FREE_STORAGE_BYTES) * 100;
+      const boundedPercent = Math.max(0, Math.min(rawPercent, 100));
+      usageFill.style.width = `${boundedPercent}%`;
+      usageCaption.textContent = `${rawPercent.toFixed(rawPercent >= 10 ? 1 : 2)}% of 5 GB free storage used`;
+    }
+
     async function updatePdfStats() {
       if (!db || !storage) {
-        storageNote.textContent = 'Firebase is not configured, so PDF usage could not be loaded.';
+        pdfCount.textContent = '0';
+        pdfSize.textContent = '0 KB';
+        usageCaption.textContent = 'Firebase is not configured';
+        updateUsageBar(0);
         return;
       }
 
@@ -629,23 +648,23 @@
         }));
 
         pdfSize.textContent = formatBytes(totalBytes);
+        updateUsageBar(totalBytes);
 
         if (pdfRecords.length === 0) {
-          storageNote.textContent = 'No saved prescription PDFs were found in Firebase yet.';
+          usageCaption.textContent = '0% of 5 GB free storage used';
           return;
         }
 
         if (resolvedFiles === pdfRecords.length) {
-          storageNote.textContent = 'Count and size are fully loaded from Firebase history and Firebase Storage.';
           return;
         }
-
-        storageNote.textContent = `Loaded ${resolvedFiles} of ${pdfRecords.length} Firebase PDF file sizes. Some older records may not have a storage path.`;
+        usageCaption.textContent = `${(totalBytes / FIREBASE_FREE_STORAGE_BYTES * 100).toFixed(totalBytes >= FIREBASE_FREE_STORAGE_BYTES * 0.1 ? 1 : 2)}% of 5 GB free storage used`;
       } catch (error) {
         console.warn(`Unable to load Firebase PDF stats: ${error.message}`);
         pdfCount.textContent = '0';
         pdfSize.textContent = '0 KB';
-        storageNote.textContent = 'Firebase PDF usage could not be loaded right now.';
+        usageCaption.textContent = 'Firebase PDF usage could not be loaded';
+        updateUsageBar(0);
       }
     }
 
