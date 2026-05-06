@@ -266,6 +266,12 @@
       text-decoration: none;
     }
 
+    .print-group {
+      display: inline-flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
     .btn-primary:disabled,
     .btn-secondary:disabled,
     .btn-whatsapp:disabled {
@@ -644,9 +650,27 @@
         background: #fff;
       }
 
-      .site-header,
       .preview-workbar {
         display: none !important;
+      }
+
+      body:not(.print-with-header) .site-header {
+        display: none !important;
+      }
+
+      body.print-with-header .site-header {
+        position: static;
+        display: block !important;
+        background: #fff;
+        border-bottom: 0;
+        box-shadow: none;
+        backdrop-filter: none;
+      }
+
+      body.print-with-header .topbar {
+        width: 100%;
+        min-height: auto;
+        padding: 0 12mm 4mm;
       }
 
       .page-shell,
@@ -696,7 +720,10 @@
           <a class="nav-link nav-enter-clinic" href="choose.html">Enter Clinic</a>
           <button id="download-pdf-btn" class="btn-primary" type="button">Download PDF</button>
           <button id="whatsapp-btn" class="btn-whatsapp" type="button">WhatsApp</button>
-          <button id="print-btn" class="btn-secondary" type="button">Print</button>
+          <div class="print-group">
+            <button id="print-with-header-btn" class="btn-secondary" type="button">Print With Header</button>
+            <button id="print-without-header-btn" class="btn-secondary" type="button">Print Without Header</button>
+          </div>
         </div>
       </div>
       <div class="document-stage">
@@ -716,7 +743,8 @@
     const rxSheet = document.getElementById('rx-sheet');
     const downloadPdfBtn = document.getElementById('download-pdf-btn');
     const whatsappBtn = document.getElementById('whatsapp-btn');
-    const printBtn = document.getElementById('print-btn');
+    const printWithHeaderBtn = document.getElementById('print-with-header-btn');
+    const printWithoutHeaderBtn = document.getElementById('print-without-header-btn');
     const PRESCRIPTION_DRAFT_STORAGE_KEY = 'prescriptionDraft';
     const CHART_RECORD_STORAGE_KEY = 'growthChartRecentRecords';
     const LOCAL_PRESCRIPTION_HISTORY_KEY = 'savedPrescriptionHistory';
@@ -1813,7 +1841,17 @@
       });
     }
 
-    printBtn.addEventListener('click', () => window.print());
+    function printPreview(includeHeader) {
+      document.body.classList.toggle('print-with-header', includeHeader);
+      window.print();
+    }
+
+    window.addEventListener('afterprint', () => {
+      document.body.classList.remove('print-with-header');
+    });
+
+    printWithHeaderBtn.addEventListener('click', () => printPreview(true));
+    printWithoutHeaderBtn.addEventListener('click', () => printPreview(false));
     initializePreview().catch((error) => {
       console.warn(`Unable to initialize prescription preview: ${error.message}`);
       buildPreviewHtml();
