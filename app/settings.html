@@ -530,24 +530,24 @@
   <main class="page-shell">
     <section class="stats-panel">
       <h1>PDF Settings</h1>
-      <p>Only the generated prescription PDF history saved in this browser is counted here.</p>
+      <p>These numbers are loaded from the saved prescription PDF records in Firebase.</p>
 
       <div class="stats-grid">
         <article class="stat-card">
           <strong>Generated PDFs</strong>
           <div id="pdf-count" class="stat-value">0</div>
-          <div class="stat-hint">Number of locally tracked prescription PDFs.</div>
+          <div class="stat-hint">Number of saved prescription PDFs found in Firebase.</div>
         </article>
 
         <article class="stat-card">
           <strong>Space Used</strong>
           <div id="pdf-size" class="stat-value">0 KB</div>
-          <div class="stat-hint">Estimated browser storage used by the saved PDF history records.</div>
+          <div class="stat-hint">Total Firebase Storage size used by the saved prescription PDF files.</div>
         </article>
       </div>
 
       <div id="storage-note" class="storage-note">
-        This shows local history data stored in this browser, not the full Firebase file size.
+        Loading Firebase PDF usage...
       </div>
 
       <div class="help-actions">
@@ -556,8 +556,11 @@
     </section>
   </main>
 
-  <script>
-    const LOCAL_PRESCRIPTION_HISTORY_KEY = 'savedPrescriptionHistory';
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
+    import { collection, getDocs, getFirestore } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { getMetadata, getStorage, ref } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
+
     const menuToggle = document.getElementById('menu-toggle');
     const primaryNav = document.getElementById('primary-nav');
     const navLinks = [...document.querySelectorAll('#primary-nav .nav-link')];
@@ -565,21 +568,20 @@
     const pdfSize = document.getElementById('pdf-size');
     const storageNote = document.getElementById('storage-note');
 
-    function readLocalPrescriptionHistory() {
-      try {
-        const raw = localStorage.getItem(LOCAL_PRESCRIPTION_HISTORY_KEY);
-        if (!raw) {
-          return { records: [], raw: '[]' };
-        }
-        const parsed = JSON.parse(raw);
-        return {
-          records: Array.isArray(parsed) ? parsed.filter((entry) => entry && typeof entry === 'object') : [],
-          raw
-        };
-      } catch (error) {
-        return { records: [], raw: '[]', error };
-      }
-    }
+    const firebaseEnv = import.meta.env || {};
+    const firebaseConfig = {
+      apiKey: firebaseEnv.VITE_FIREBASE_API_KEY || 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
+      authDomain: firebaseEnv.VITE_FIREBASE_AUTH_DOMAIN || 'clinci-dr-gunda.firebaseapp.com',
+      projectId: firebaseEnv.VITE_FIREBASE_PROJECT_ID || 'clinci-dr-gunda',
+      storageBucket: firebaseEnv.VITE_FIREBASE_STORAGE_BUCKET || 'clinci-dr-gunda.firebasestorage.app',
+      messagingSenderId: firebaseEnv.VITE_FIREBASE_MESSAGING_SENDER_ID || '1059959825609',
+      appId: firebaseEnv.VITE_FIREBASE_APP_ID || '1:1059959825609:web:8201599754706ac4661918',
+      measurementId: firebaseEnv.VITE_FIREBASE_MEASUREMENT_ID || 'G-4V5JMVW45E'
+    };
+    const firebaseConfigured = Object.values(firebaseConfig).every(Boolean);
+    const firebaseApp = firebaseConfigured ? initializeApp(firebaseConfig) : null;
+    const db = firebaseApp ? getFirestore(firebaseApp) : null;
+    const storage = firebaseApp ? getStorage(firebaseApp) : null;
 
     function formatBytes(byteCount) {
       if (!Number.isFinite(byteCount) || byteCount <= 0) {
@@ -594,16 +596,57 @@
       return `${(byteCount / (1024 * 1024)).toFixed(2)} MB`;
     }
 
-    function updatePdfStats() {
-      const { records, raw, error } = readLocalPrescriptionHistory();
-      const encodedLength = new TextEncoder().encode(raw).length;
-      pdfCount.textContent = String(records.length);
-      pdfSize.textContent = formatBytes(encodedLength);
-      if (error) {
-        storageNote.textContent = 'The local PDF history could not be read cleanly, so this count may be incomplete.';
+    async function updatePdfStats() {
+      if (!db || !storage) {
+        storageNote.textContent = 'Firebase is not configured, so PDF usage could not be loaded.';
         return;
       }
-      storageNote.textContent = 'This shows local history data stored in this browser, not the full Firebase file size.';
+
+      try {
+        const snapshot = await getDocs(collection(db, 'history'));
+        const pdfRecords = snapshot.docs
+          .map((docSnapshot) => ({ id: docSnapshot.id, ...docSnapshot.data() }))
+          .filter((entry) => entry && (entry.source === 'prescription-pdf' || entry.type === 'prescription'));
+
+        pdfCount.textContent = String(pdfRecords.length);
+
+        let totalBytes = 0;
+        let resolvedFiles = 0;
+
+        await Promise.all(pdfRecords.map(async (entry) => {
+          const storagePath = String(entry.storagePath || '').trim();
+          if (!storagePath) {
+            return;
+          }
+
+          try {
+            const metadata = await getMetadata(ref(storage, storagePath));
+            totalBytes += Number(metadata.size || 0);
+            resolvedFiles += 1;
+          } catch (error) {
+            console.warn(`Unable to read PDF metadata for ${storagePath}: ${error.message}`);
+          }
+        }));
+
+        pdfSize.textContent = formatBytes(totalBytes);
+
+        if (pdfRecords.length === 0) {
+          storageNote.textContent = 'No saved prescription PDFs were found in Firebase yet.';
+          return;
+        }
+
+        if (resolvedFiles === pdfRecords.length) {
+          storageNote.textContent = 'Count and size are fully loaded from Firebase history and Firebase Storage.';
+          return;
+        }
+
+        storageNote.textContent = `Loaded ${resolvedFiles} of ${pdfRecords.length} Firebase PDF file sizes. Some older records may not have a storage path.`;
+      } catch (error) {
+        console.warn(`Unable to load Firebase PDF stats: ${error.message}`);
+        pdfCount.textContent = '0';
+        pdfSize.textContent = '0 KB';
+        storageNote.textContent = 'Firebase PDF usage could not be loaded right now.';
+      }
     }
 
     function closeMobileMenu() {
