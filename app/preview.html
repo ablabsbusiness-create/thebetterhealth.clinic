@@ -306,31 +306,6 @@
       box-shadow: 0 8px 18px rgba(22, 38, 29, 0.08);
     }
 
-    .print-gap-control {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 4px 6px 4px 12px;
-      min-height: 44px;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: #fff;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    .print-gap-control input {
-      width: 72px;
-      min-height: 34px;
-      padding: 0 10px;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      font: inherit;
-      color: var(--brand-strong);
-      background: #f8fbf9;
-    }
-
     .btn-primary:disabled,
     .btn-secondary:disabled,
     .btn-whatsapp:disabled {
@@ -782,10 +757,6 @@
               <button id="print-mode-with-header" class="print-switch-option is-active" type="button" aria-pressed="true">With Header</button>
               <button id="print-mode-without-header" class="print-switch-option" type="button" aria-pressed="false">Without Header</button>
             </div>
-            <label class="print-gap-control" for="print-gap-input">
-              Gap (cm)
-              <input id="print-gap-input" type="number" min="0" max="10" step="0.1" value="0">
-            </label>
             <button id="print-btn" class="btn-secondary" type="button">Print</button>
           </div>
         </div>
@@ -810,10 +781,10 @@
     const printBtn = document.getElementById('print-btn');
     const printModeWithHeaderBtn = document.getElementById('print-mode-with-header');
     const printModeWithoutHeaderBtn = document.getElementById('print-mode-without-header');
-    const printGapInput = document.getElementById('print-gap-input');
     const PRESCRIPTION_DRAFT_STORAGE_KEY = 'prescriptionDraft';
     const CHART_RECORD_STORAGE_KEY = 'growthChartRecentRecords';
     const LOCAL_PRESCRIPTION_HISTORY_KEY = 'savedPrescriptionHistory';
+    const PRINT_HEADER_GAP_STORAGE_KEY = 'previewPrintHeaderGapCm';
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
       apiKey: firebaseEnv.VITE_FIREBASE_API_KEY || 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
@@ -1909,17 +1880,24 @@
 
     let printWithHeaderEnabled = true;
 
+    function getSavedPrintGapCm() {
+      const rawValue = localStorage.getItem(PRINT_HEADER_GAP_STORAGE_KEY);
+      const parsedValue = Number.parseFloat(rawValue || '');
+      if (!Number.isFinite(parsedValue) || parsedValue < 0) {
+        return 0;
+      }
+      return Math.min(parsedValue, 10);
+    }
+
     function updatePrintModeButtons() {
       printModeWithHeaderBtn.classList.toggle('is-active', printWithHeaderEnabled);
       printModeWithHeaderBtn.setAttribute('aria-pressed', String(printWithHeaderEnabled));
       printModeWithoutHeaderBtn.classList.toggle('is-active', !printWithHeaderEnabled);
       printModeWithoutHeaderBtn.setAttribute('aria-pressed', String(!printWithHeaderEnabled));
-      printGapInput.disabled = printWithHeaderEnabled;
     }
 
     function printPreview() {
-      const parsedGap = Number.parseFloat(printGapInput.value);
-      const safeGap = Number.isFinite(parsedGap) && parsedGap >= 0 ? Math.min(parsedGap, 10) : 0;
+      const safeGap = getSavedPrintGapCm();
       document.documentElement.style.setProperty('--print-header-gap', `${safeGap}cm`);
       document.body.classList.toggle('print-with-header', printWithHeaderEnabled);
       window.print();

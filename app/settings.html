@@ -287,6 +287,77 @@
       font-weight: 600;
     }
 
+    .setting-card {
+      grid-column: 1 / -1;
+    }
+
+    .setting-copy {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .setting-control {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    .setting-input-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 52px;
+      padding: 8px 10px 8px 14px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #f8fbf9;
+      box-shadow: inset 0 1px 2px rgba(22, 38, 29, 0.04);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .setting-input-wrap input {
+      width: 92px;
+      min-height: 36px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      color: var(--brand-strong);
+      font: inherit;
+      font-weight: 700;
+    }
+
+    .setting-save {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 18px;
+      border: 0;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #166534, #22c55e);
+      color: #fff;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 12px 24px rgba(22, 101, 52, 0.18);
+    }
+
+    .setting-status {
+      min-height: 20px;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
     .help-actions {
       display: flex;
       flex-wrap: wrap;
@@ -554,6 +625,20 @@
           </div>
           <div id="usage-caption" class="usage-caption">0% of 5 GB free storage used</div>
         </article>
+
+        <article class="stat-card setting-card">
+          <strong>Print Without Header</strong>
+          <div class="stat-value">Top Gap</div>
+          <div class="setting-copy">Choose how much blank top space to leave when you print without the prescription header.</div>
+          <div class="setting-control">
+            <label class="setting-input-wrap" for="print-gap-setting-input">
+              Gap (cm)
+              <input id="print-gap-setting-input" type="number" min="0" max="10" step="0.1" value="0">
+            </label>
+            <button id="save-print-gap-btn" class="setting-save" type="button">Save Setting</button>
+          </div>
+          <div id="print-gap-setting-status" class="setting-status">Current saved gap: 0.0 cm</div>
+        </article>
       </div>
 
       <div class="help-actions">
@@ -574,7 +659,11 @@
     const pdfSize = document.getElementById('pdf-size');
     const usageFill = document.getElementById('usage-fill');
     const usageCaption = document.getElementById('usage-caption');
+    const printGapSettingInput = document.getElementById('print-gap-setting-input');
+    const savePrintGapBtn = document.getElementById('save-print-gap-btn');
+    const printGapSettingStatus = document.getElementById('print-gap-setting-status');
     const FIREBASE_FREE_STORAGE_BYTES = 5 * 1024 * 1024 * 1024;
+    const PRINT_HEADER_GAP_STORAGE_KEY = 'previewPrintHeaderGapCm';
 
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
@@ -610,6 +699,32 @@
       const boundedPercent = Math.max(0, Math.min(rawPercent, 100));
       usageFill.style.width = `${boundedPercent}%`;
       usageCaption.textContent = `${rawPercent.toFixed(rawPercent >= 10 ? 1 : 2)}% of 5 GB free storage used`;
+    }
+
+    function getSavedPrintGapCm() {
+      const rawValue = localStorage.getItem(PRINT_HEADER_GAP_STORAGE_KEY);
+      const parsedValue = Number.parseFloat(rawValue || '');
+      if (!Number.isFinite(parsedValue) || parsedValue < 0) {
+        return 0;
+      }
+      return Math.min(parsedValue, 10);
+    }
+
+    function updatePrintGapSettingStatus(value, message) {
+      const safeValue = Number.isFinite(value) ? value : 0;
+      if (printGapSettingInput) {
+        printGapSettingInput.value = safeValue.toFixed(1);
+      }
+      if (printGapSettingStatus) {
+        printGapSettingStatus.textContent = message || `Current saved gap: ${safeValue.toFixed(1)} cm`;
+      }
+    }
+
+    function savePrintGapSetting() {
+      const parsedValue = Number.parseFloat(printGapSettingInput.value);
+      const safeValue = Number.isFinite(parsedValue) && parsedValue >= 0 ? Math.min(parsedValue, 10) : 0;
+      localStorage.setItem(PRINT_HEADER_GAP_STORAGE_KEY, String(safeValue));
+      updatePrintGapSettingStatus(safeValue, `Saved gap: ${safeValue.toFixed(1)} cm`);
     }
 
     async function updatePdfStats() {
@@ -691,6 +806,17 @@
       window.addEventListener('resize', () => {
         if (window.innerWidth > 640) {
           closeMobileMenu();
+        }
+      });
+    }
+
+    if (savePrintGapBtn && printGapSettingInput) {
+      updatePrintGapSettingStatus(getSavedPrintGapCm());
+      savePrintGapBtn.addEventListener('click', savePrintGapSetting);
+      printGapSettingInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          savePrintGapSetting();
         }
       });
     }
