@@ -19,6 +19,7 @@
       --brand-strong: #14532d;
       --shadow: 0 18px 45px rgba(22, 38, 29, 0.08);
       --radius-lg: 24px;
+      --preview-header-gap: 0cm;
     }
 
     * { box-sizing: border-box; }
@@ -357,6 +358,14 @@
       color: #111827;
       box-shadow: 0 20px 45px rgba(22, 38, 29, 0.14);
       font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body.preview-without-header .rx-sheet-header {
+      display: none;
+    }
+
+    body.preview-without-header .rx-sheet {
+      padding-top: calc(48px + var(--preview-header-gap));
     }
 
     .rx-sheet-header {
@@ -718,7 +727,7 @@
 
       .rx-sheet {
         width: 100%;
-        min-height: auto;
+        min-height: calc(297mm - 24mm);
         padding: 12mm;
         border: 0;
         box-shadow: none;
@@ -738,6 +747,10 @@
       </div>
 
       <nav id="primary-nav" class="nav-links" aria-label="Primary"></nav>
+
+      <div class="topbar-actions">
+        <a class="nav-link" href="settings.html">Settings</a>
+      </div>
 
     </div>
   </header>
@@ -784,6 +797,7 @@
     const PRESCRIPTION_DRAFT_STORAGE_KEY = 'prescriptionDraft';
     const CHART_RECORD_STORAGE_KEY = 'growthChartRecentRecords';
     const LOCAL_PRESCRIPTION_HISTORY_KEY = 'savedPrescriptionHistory';
+    const PRINT_HEADER_MODE_STORAGE_KEY = 'previewPrintWithHeader';
     const PRINT_HEADER_GAP_STORAGE_KEY = 'previewPrintHeaderGapCm';
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
@@ -1488,36 +1502,41 @@
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
       const patientId = draft?.patientId || chartRecord?.patientId || getPatientIdFromUrl() || '-';
       const now = new Date().toISOString();
+      const showHeader = getSavedHeaderMode();
+      const headerGapMm = getSavedPrintGapCm() * 10;
+      const patientBandTop = showHeader ? 40 : 15 + headerGapMm;
 
-      pdf.setTextColor(17, 24, 39);
-      pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(12);
-      pdf.text('The Better Health Clinic', 15, 16);
+      if (showHeader) {
+        pdf.setTextColor(17, 24, 39);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(12);
+        pdf.text('The Better Health Clinic', 15, 16);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(8.5);
+        pdf.text('Dr. Gunda Srinivas', 170, 16, { align: 'right' });
+        pdf.setFont('helvetica', 'normal');
+        pdf.text('MBBS, DCH, DNB - Paediatrics, PGDDN, FPEM', 170, 23, { align: 'right' });
+        pdf.line(15, 32, 195, 32);
+      }
+
+      pdf.rect(15, patientBandTop, 180, 18);
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(8.5);
-      pdf.text('Dr. Gunda Srinivas', 170, 16, { align: 'right' });
+      pdf.text('Name:', 18, patientBandTop + 7);
+      pdf.text('Age/Sex:', 18, patientBandTop + 13);
+      pdf.text('Office ID:', 18, patientBandTop + 17);
+      pdf.text('Date:', 87, patientBandTop + 7);
+      pdf.text('Mobile:', 87, patientBandTop + 13);
+      pdf.text('Weight:', 165, patientBandTop + 7);
       pdf.setFont('helvetica', 'normal');
-      pdf.text('MBBS, DCH, DNB - Paediatrics, PGDDN, FPEM', 170, 23, { align: 'right' });
-      pdf.line(15, 32, 195, 32);
+      pdf.text(chartRecord?.childName || '-', 31, patientBandTop + 7);
+      pdf.text(`${formatCompactAge(chartRecord?.age || '-')} / ${chartRecord?.gender || '-'}`, 35, patientBandTop + 13);
+      pdf.text(patientId, 36, patientBandTop + 17);
+      pdf.text(formatShortDate(now), 98, patientBandTop + 7);
+      pdf.text(chartRecord?.phone || '-', 102, patientBandTop + 13);
+      pdf.text(`${chartRecord?.weight || '-'} kg`, 181, patientBandTop + 7);
 
-      pdf.rect(15, 40, 180, 18);
-      pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(8.5);
-      pdf.text('Name:', 18, 47);
-      pdf.text('Age/Sex:', 18, 53);
-      pdf.text('Office ID:', 18, 57);
-      pdf.text('Date:', 87, 47);
-      pdf.text('Mobile:', 87, 53);
-      pdf.text('Weight:', 165, 47);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text(chartRecord?.childName || '-', 31, 47);
-      pdf.text(`${formatCompactAge(chartRecord?.age || '-')} / ${chartRecord?.gender || '-'}`, 35, 53);
-      pdf.text(patientId, 36, 57);
-      pdf.text(formatShortDate(now), 98, 47);
-      pdf.text(chartRecord?.phone || '-', 102, 53);
-      pdf.text(`${chartRecord?.weight || '-'} kg`, 181, 47);
-
-      let y = 68;
+      let y = patientBandTop + 28;
       pdf.setFontSize(8.8);
       y = addWrappedSection(pdf, 'Symptoms', formatDetailedSelections(sections.Symptoms, sectionDetails.Symptoms, 'Symptoms'), y);
       y = addWrappedSection(pdf, 'Finding', formatDetailedSelections(sections.Finding, sectionDetails.Finding, 'Finding'), y);
@@ -1889,6 +1908,30 @@
       return Math.min(parsedValue, 10);
     }
 
+    function getSavedHeaderMode() {
+      const rawValue = localStorage.getItem(PRINT_HEADER_MODE_STORAGE_KEY);
+      return rawValue !== 'false';
+    }
+
+    function invalidateSavedPrescriptionCache() {
+      prescriptionSavePromise = null;
+      savedPrescriptionRecord = null;
+    }
+
+    function applySavedPreviewSettings(refreshSavedPdf = false) {
+      printWithHeaderEnabled = getSavedHeaderMode();
+      const safeGap = getSavedPrintGapCm();
+      document.documentElement.style.setProperty('--preview-header-gap', `${safeGap}cm`);
+      document.body.classList.toggle('preview-without-header', !printWithHeaderEnabled);
+      updatePrintModeButtons();
+      if (refreshSavedPdf) {
+        invalidateSavedPrescriptionCache();
+        ensurePrescriptionSaved().catch((error) => {
+          console.warn(`Unable to refresh prescription after settings change: ${error.message}`);
+        });
+      }
+    }
+
     function updatePrintModeButtons() {
       printModeWithHeaderBtn.classList.toggle('is-active', printWithHeaderEnabled);
       printModeWithHeaderBtn.setAttribute('aria-pressed', String(printWithHeaderEnabled));
@@ -1909,17 +1952,22 @@
     });
 
     printModeWithHeaderBtn.addEventListener('click', () => {
-      printWithHeaderEnabled = true;
-      updatePrintModeButtons();
+      localStorage.setItem(PRINT_HEADER_MODE_STORAGE_KEY, 'true');
+      applySavedPreviewSettings(true);
     });
 
     printModeWithoutHeaderBtn.addEventListener('click', () => {
-      printWithHeaderEnabled = false;
-      updatePrintModeButtons();
+      localStorage.setItem(PRINT_HEADER_MODE_STORAGE_KEY, 'false');
+      applySavedPreviewSettings(true);
     });
 
     printBtn.addEventListener('click', printPreview);
-    updatePrintModeButtons();
+    applySavedPreviewSettings(false);
+    window.addEventListener('storage', (event) => {
+      if (event.key === PRINT_HEADER_MODE_STORAGE_KEY || event.key === PRINT_HEADER_GAP_STORAGE_KEY) {
+        applySavedPreviewSettings(true);
+      }
+    });
     initializePreview().catch((error) => {
       console.warn(`Unable to initialize prescription preview: ${error.message}`);
       buildPreviewHtml();

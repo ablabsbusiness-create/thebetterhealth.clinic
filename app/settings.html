@@ -298,6 +298,39 @@
       line-height: 1.55;
     }
 
+    .setting-switch {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: #f8fbf9;
+      box-shadow: inset 0 1px 2px rgba(22, 38, 29, 0.04);
+    }
+
+    .setting-switch-option {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 0 16px;
+      border: 0;
+      border-radius: 12px;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .setting-switch-option.is-active {
+      background: #fff;
+      color: var(--brand-strong);
+      box-shadow: 0 8px 18px rgba(22, 38, 29, 0.08);
+    }
+
     .setting-control {
       display: flex;
       align-items: center;
@@ -627,9 +660,16 @@
         </article>
 
         <article class="stat-card setting-card">
-          <strong>Print Without Header</strong>
-          <div class="stat-value">Top Gap</div>
-          <div class="setting-copy">Choose how much blank top space to leave when you print without the prescription header.</div>
+          <strong>Preview and PDF</strong>
+          <div class="stat-value">Header Setting</div>
+          <div class="setting-copy">Choose whether preview, print, and saved PDF should include the prescription header.</div>
+          <div class="setting-control">
+            <div class="setting-switch" role="group" aria-label="Header mode">
+              <button id="setting-mode-with-header" class="setting-switch-option is-active" type="button" aria-pressed="true">With Header</button>
+              <button id="setting-mode-without-header" class="setting-switch-option" type="button" aria-pressed="false">Without Header</button>
+            </div>
+          </div>
+          <div class="setting-copy">Choose how much blank top space to leave when you print or save without the prescription header.</div>
           <div class="setting-control">
             <label class="setting-input-wrap" for="print-gap-setting-input">
               Gap (cm)
@@ -637,7 +677,7 @@
             </label>
             <button id="save-print-gap-btn" class="setting-save" type="button">Save Setting</button>
           </div>
-          <div id="print-gap-setting-status" class="setting-status">Current saved gap: 0.0 cm</div>
+          <div id="print-gap-setting-status" class="setting-status">Current mode: With Header • gap: 0.0 cm</div>
         </article>
       </div>
 
@@ -659,10 +699,13 @@
     const pdfSize = document.getElementById('pdf-size');
     const usageFill = document.getElementById('usage-fill');
     const usageCaption = document.getElementById('usage-caption');
+    const settingModeWithHeaderBtn = document.getElementById('setting-mode-with-header');
+    const settingModeWithoutHeaderBtn = document.getElementById('setting-mode-without-header');
     const printGapSettingInput = document.getElementById('print-gap-setting-input');
     const savePrintGapBtn = document.getElementById('save-print-gap-btn');
     const printGapSettingStatus = document.getElementById('print-gap-setting-status');
     const FIREBASE_FREE_STORAGE_BYTES = 5 * 1024 * 1024 * 1024;
+    const PRINT_HEADER_MODE_STORAGE_KEY = 'previewPrintWithHeader';
     const PRINT_HEADER_GAP_STORAGE_KEY = 'previewPrintHeaderGapCm';
 
     const firebaseEnv = import.meta.env || {};
@@ -710,21 +753,40 @@
       return Math.min(parsedValue, 10);
     }
 
-    function updatePrintGapSettingStatus(value, message) {
+    function getSavedHeaderMode() {
+      const rawValue = localStorage.getItem(PRINT_HEADER_MODE_STORAGE_KEY);
+      return rawValue !== 'false';
+    }
+
+    function updateSettingModeButtons(showHeader) {
+      settingModeWithHeaderBtn.classList.toggle('is-active', showHeader);
+      settingModeWithHeaderBtn.setAttribute('aria-pressed', String(showHeader));
+      settingModeWithoutHeaderBtn.classList.toggle('is-active', !showHeader);
+      settingModeWithoutHeaderBtn.setAttribute('aria-pressed', String(!showHeader));
+    }
+
+    function updatePrintGapSettingStatus(showHeader, value, message) {
       const safeValue = Number.isFinite(value) ? value : 0;
+      updateSettingModeButtons(showHeader);
       if (printGapSettingInput) {
         printGapSettingInput.value = safeValue.toFixed(1);
       }
       if (printGapSettingStatus) {
-        printGapSettingStatus.textContent = message || `Current saved gap: ${safeValue.toFixed(1)} cm`;
+        printGapSettingStatus.textContent = message || `Current mode: ${showHeader ? 'With Header' : 'Without Header'} • gap: ${safeValue.toFixed(1)} cm`;
       }
     }
 
     function savePrintGapSetting() {
       const parsedValue = Number.parseFloat(printGapSettingInput.value);
       const safeValue = Number.isFinite(parsedValue) && parsedValue >= 0 ? Math.min(parsedValue, 10) : 0;
+      const showHeader = getSavedHeaderMode();
       localStorage.setItem(PRINT_HEADER_GAP_STORAGE_KEY, String(safeValue));
-      updatePrintGapSettingStatus(safeValue, `Saved gap: ${safeValue.toFixed(1)} cm`);
+      updatePrintGapSettingStatus(showHeader, safeValue, `Saved mode: ${showHeader ? 'With Header' : 'Without Header'} • gap: ${safeValue.toFixed(1)} cm`);
+    }
+
+    function saveHeaderModeSetting(showHeader) {
+      localStorage.setItem(PRINT_HEADER_MODE_STORAGE_KEY, String(showHeader));
+      updatePrintGapSettingStatus(showHeader, getSavedPrintGapCm(), `Saved mode: ${showHeader ? 'With Header' : 'Without Header'} • gap: ${getSavedPrintGapCm().toFixed(1)} cm`);
     }
 
     async function updatePdfStats() {
@@ -811,7 +873,9 @@
     }
 
     if (savePrintGapBtn && printGapSettingInput) {
-      updatePrintGapSettingStatus(getSavedPrintGapCm());
+      updatePrintGapSettingStatus(getSavedHeaderMode(), getSavedPrintGapCm());
+      settingModeWithHeaderBtn.addEventListener('click', () => saveHeaderModeSetting(true));
+      settingModeWithoutHeaderBtn.addEventListener('click', () => saveHeaderModeSetting(false));
       savePrintGapBtn.addEventListener('click', savePrintGapSetting);
       printGapSettingInput.addEventListener('keydown', (event) => {
         if (event.key === 'Enter') {
