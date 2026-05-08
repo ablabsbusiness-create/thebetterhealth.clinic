@@ -1093,9 +1093,9 @@
     }
 
     .record-modal {
-      width: min(1120px, 100%);
+      width: min(1040px, calc(100vw - 36px));
       max-height: min(82vh, 860px);
-      padding: 18px;
+      padding: 16px;
       border-radius: 28px;
       background:
         linear-gradient(180deg, rgba(255, 255, 255, 0.985), rgba(248, 252, 249, 0.975));
@@ -1128,14 +1128,13 @@
     .record-modal-body {
       margin-top: 0;
       display: grid;
-      gap: 8px;
+      gap: 10px;
       min-height: 0;
-      overflow-x: auto;
-      overflow-y: hidden;
+      overflow: hidden;
       border-radius: 22px;
       background: linear-gradient(180deg, rgba(251, 253, 251, 0.92), rgba(244, 249, 245, 0.9));
       border: 1px solid rgba(220, 232, 223, 0.9);
-      padding: 10px;
+      padding: 12px;
     }
 
     .record-modal-actions {
@@ -1177,13 +1176,67 @@
       overflow-x: auto;
       overflow-y: hidden;
       border: 1px solid var(--line);
-      border-radius: 20px;
+      border-radius: 18px;
       background: #ffffff;
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.82),
         0 8px 18px rgba(22, 38, 29, 0.04);
       scrollbar-width: thin;
       scrollbar-color: rgba(20, 83, 45, 0.35) transparent;
+      scroll-behavior: smooth;
+    }
+
+    .record-grid-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 4px;
+    }
+
+    .record-grid-toolbar-copy {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    .record-grid-nav {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .record-grid-nav-btn {
+      width: 34px;
+      height: 34px;
+      border: 1px solid #d8e7db;
+      border-radius: 999px;
+      background: #ffffff;
+      color: var(--brand-strong);
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 6px 14px rgba(22, 38, 29, 0.06);
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    }
+
+    .record-grid-nav-btn:hover {
+      transform: translateY(-1px);
+      border-color: #bfd6c5;
+      box-shadow: 0 10px 18px rgba(22, 38, 29, 0.08);
+    }
+
+    .record-grid-nav-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
     }
 
     .record-grid {
@@ -1220,7 +1273,7 @@
     .record-grid thead th:first-child {
       left: 0;
       z-index: 4;
-      min-width: 188px;
+      min-width: 170px;
       text-align: left;
     }
 
@@ -1228,8 +1281,8 @@
       position: sticky;
       left: 0;
       z-index: 2;
-      min-width: 188px;
-      padding: 14px 14px;
+      min-width: 170px;
+      padding: 12px 12px;
       background: linear-gradient(180deg, #f7fbf8, #f1f7f3);
       text-align: left;
       vertical-align: middle;
@@ -1237,8 +1290,8 @@
     }
 
     .record-grid tbody td {
-      min-width: 116px;
-      padding: 10px 8px;
+      min-width: 102px;
+      padding: 8px 6px;
       background: #ffffff;
       vertical-align: middle;
     }
@@ -1260,7 +1313,7 @@
 
     .record-grid-label {
       display: grid;
-      gap: 5px;
+      gap: 4px;
     }
 
     .record-grid-type {
@@ -1277,7 +1330,7 @@
     }
 
     .record-grid-name {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
       color: var(--ink);
       line-height: 1.3;
@@ -1285,14 +1338,14 @@
 
     .record-grid-input {
       width: 100%;
-      min-height: 38px;
+      min-height: 34px;
       border: 1px solid #d6e3d8;
-      border-radius: 14px;
-      padding: 8px 12px;
+      border-radius: 12px;
+      padding: 6px 10px;
       background: linear-gradient(180deg, #ffffff, #fbfdfb);
       color: var(--ink);
       font: inherit;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
       transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
     }
@@ -1315,7 +1368,7 @@
 
     .record-grid-col-date {
       display: block;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 800;
       color: var(--brand-strong);
       text-transform: none;
@@ -1648,6 +1701,11 @@
 
       .record-modal {
         padding: 20px;
+      }
+
+      .record-grid-toolbar {
+        align-items: start;
+        flex-direction: column;
       }
 
       .record-modal-actions {
@@ -2545,6 +2603,13 @@
 
       const bodyMarkup = entries.length
         ? `
+          <div class="record-grid-toolbar">
+            <div class="record-grid-toolbar-copy">Use the arrows to move across older saved dates.</div>
+            <div class="record-grid-nav">
+              <button type="button" class="record-grid-nav-btn" data-record-scroll="left" aria-label="Show newer dates">‹</button>
+              <button type="button" class="record-grid-nav-btn" data-record-scroll="right" aria-label="Show older dates">›</button>
+            </div>
+          </div>
           <div class="record-grid-wrap">
             <table class="record-grid">
               <thead>
@@ -2623,6 +2688,24 @@
       statusNote.classList.add('visible');
     }
 
+    function updateRecordGridNavState() {
+      if (!recordModal) {
+        return;
+      }
+
+      const gridWrap = recordModal.querySelector('.record-grid-wrap');
+      const leftButton = recordModal.querySelector('[data-record-scroll="left"]');
+      const rightButton = recordModal.querySelector('[data-record-scroll="right"]');
+
+      if (!gridWrap || !leftButton || !rightButton) {
+        return;
+      }
+
+      const maxScroll = Math.max(0, gridWrap.scrollWidth - gridWrap.clientWidth);
+      leftButton.disabled = gridWrap.scrollLeft <= 4;
+      rightButton.disabled = gridWrap.scrollLeft >= maxScroll - 4;
+    }
+
     function setSelectedMeasurementDate(dateLike, options = {}) {
       const { refresh = true } = options;
       const parsedDate = dateLike instanceof Date ? new Date(dateLike) : new Date(dateLike);
@@ -2650,6 +2733,7 @@
 
       renderRecordModalContent();
       recordModalBackdrop.hidden = false;
+      updateRecordGridNavState();
     }
 
     function closeRecordDateModal() {
@@ -3972,6 +4056,17 @@
     }
     if (recordModalBackdrop) {
       recordModalBackdrop.addEventListener('click', async (event) => {
+        const scrollButton = event.target.closest('[data-record-scroll]');
+        if (scrollButton) {
+          const gridWrap = recordModal?.querySelector('.record-grid-wrap');
+          if (gridWrap) {
+            const direction = scrollButton.dataset.recordScroll === 'left' ? -1 : 1;
+            gridWrap.scrollBy({ left: direction * Math.max(260, Math.round(gridWrap.clientWidth * 0.38)), behavior: 'smooth' });
+            window.setTimeout(updateRecordGridNavState, 180);
+          }
+          return;
+        }
+
         if (event.target === recordModalBackdrop) {
           closeRecordDateModal();
         }
@@ -3990,6 +4085,12 @@
           statusNote.classList.add('visible');
         }
       });
+
+      recordModalBackdrop.addEventListener('scroll', (event) => {
+        if (event.target.closest && event.target.closest('.record-grid-wrap')) {
+          updateRecordGridNavState();
+        }
+      }, true);
     }
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && recordModalBackdrop && !recordModalBackdrop.hidden) {
