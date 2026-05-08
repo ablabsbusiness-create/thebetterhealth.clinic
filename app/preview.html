@@ -1036,172 +1036,6 @@
       return Math.min(1, Math.max(0, value));
     }
 
-    function getFocusedViewportStep(source, span) {
-      if (source === 'ageMonths') {
-        if (span <= 4) {
-          return 1;
-        }
-        if (span <= 10) {
-          return 2;
-        }
-        return 3;
-      }
-
-      if (span <= 1.2) {
-        return 0.2;
-      }
-      if (span <= 2.5) {
-        return 0.5;
-      }
-      if (span <= 5) {
-        return 1;
-      }
-      return 2;
-    }
-
-    function roundDownToStep(value, step) {
-      return step ? Math.floor(value / step) * step : value;
-    }
-
-    function roundUpToStep(value, step) {
-      return step ? Math.ceil(value / step) * step : value;
-    }
-
-    function getFocusedViewportBounds(request, patientData) {
-      if (!request?.path?.includes('5to18')) {
-        return null;
-      }
-
-      const ageValue = patientData?.[request.x.source];
-      if (!Number.isFinite(ageValue)) {
-        return null;
-      }
-
-      const span = 0;
-      const step = getFocusedViewportStep(request.x.source, span);
-      const minimumWindow = request.x.source === 'ageMonths' ? 6 : 1.2;
-      const padding = step * 1.5;
-      let viewportMin = roundDownToStep(ageValue - padding, step);
-      let viewportMax = roundUpToStep(ageValue + padding, step);
-
-      if (viewportMax - viewportMin < minimumWindow) {
-        viewportMin = roundDownToStep(ageValue - minimumWindow / 2, step);
-        viewportMax = roundUpToStep(ageValue + minimumWindow / 2, step);
-      }
-
-      viewportMin = Math.max(request.x.min, viewportMin);
-      viewportMax = Math.min(request.x.max, viewportMax);
-      if (!(viewportMax > viewportMin)) {
-        return null;
-      }
-
-      return { min: viewportMin, max: viewportMax, step };
-    }
-
-    function drawFocusedMiniChartTemplate(context, image, canvas, viewport) {
-      const sourcePlotLeft = chartTemplateAxis.xStart * canvas.width;
-      const sourcePlotRight = chartTemplateAxis.xEnd * canvas.width;
-      const sourcePlotWidth = sourcePlotRight - sourcePlotLeft;
-      const fullSpan = 18 - 5;
-
-      if (!fullSpan) {
-        context.drawImage(image, 0, 0, canvas.width, canvas.height);
-        return;
-      }
-
-      const viewportLeftRatio = clampRatio((viewport.min - 5) / fullSpan);
-      const viewportRightRatio = clampRatio((viewport.max - 5) / fullSpan);
-      const viewportSourceLeft = sourcePlotLeft + sourcePlotWidth * viewportLeftRatio;
-      const viewportSourceRight = sourcePlotLeft + sourcePlotWidth * viewportRightRatio;
-      const viewportSourceWidth = Math.max(1, viewportSourceRight - viewportSourceLeft);
-
-      if (sourcePlotLeft > 0) {
-        context.drawImage(
-          image,
-          0,
-          0,
-          sourcePlotLeft,
-          canvas.height,
-          0,
-          0,
-          sourcePlotLeft,
-          canvas.height
-        );
-      }
-
-      context.drawImage(
-        image,
-        viewportSourceLeft,
-        0,
-        viewportSourceWidth,
-        canvas.height,
-        sourcePlotLeft,
-        0,
-        sourcePlotWidth,
-        canvas.height
-      );
-
-      if (sourcePlotRight < canvas.width) {
-        context.drawImage(
-          image,
-          sourcePlotRight,
-          0,
-          canvas.width - sourcePlotRight,
-          canvas.height,
-          sourcePlotRight,
-          0,
-          canvas.width - sourcePlotRight,
-          canvas.height
-        );
-      }
-    }
-
-    function formatFocusedViewportLabel(source, value, step) {
-      if (source === 'ageMonths') {
-        return `${Math.round(value)}m`;
-      }
-      const decimals = step < 1 ? 1 : 0;
-      return `${value.toFixed(decimals).replace(/\.0$/, '')}y`;
-    }
-
-    function drawFocusedMiniChartLabels(context, canvas, request, viewport) {
-      const plotBottom = chartTemplateAxis.yStart * canvas.height;
-      const bandTop = Math.max(0, Math.round(plotBottom - Math.max(18, CHART_POINT_RADIUS + 6)));
-      const bandBottom = canvas.height;
-      if (bandBottom - bandTop < 24) {
-        return;
-      }
-
-      context.save();
-      context.fillStyle = 'rgba(255, 255, 255, 0.96)';
-      context.fillRect(0, bandTop, canvas.width, bandBottom - bandTop);
-      context.strokeStyle = '#c9d6cc';
-      context.lineWidth = 1;
-      const axisY = bandTop + 10;
-      const plotLeft = chartTemplateAxis.xStart * canvas.width;
-      const plotRight = chartTemplateAxis.xEnd * canvas.width;
-      context.beginPath();
-      context.moveTo(plotLeft, axisY);
-      context.lineTo(plotRight, axisY);
-      context.stroke();
-      context.fillStyle = '#415146';
-      context.font = `${Math.max(10, Math.round(canvas.height * 0.014))}px "IBM Plex Mono", monospace`;
-      context.textAlign = 'center';
-      context.textBaseline = 'top';
-
-      for (let value = viewport.min; value <= viewport.max + (viewport.step / 2); value += viewport.step) {
-        const tickValue = Number(value.toFixed(4));
-        const tickRatio = clampRatio((tickValue - viewport.min) / (viewport.max - viewport.min));
-        const tickX = (chartTemplateAxis.xStart + (chartTemplateAxis.xEnd - chartTemplateAxis.xStart) * tickRatio) * canvas.width;
-        context.beginPath();
-        context.moveTo(tickX, axisY);
-        context.lineTo(tickX, axisY + 5);
-        context.stroke();
-        context.fillText(formatFocusedViewportLabel(request.x.source, tickValue, viewport.step), tickX, axisY + 9);
-      }
-      context.restore();
-    }
-
     function getMiniChartCropRect(width, height) {
       const left = Math.round(width * chartMiniCrop.left);
       const top = Math.round(height * chartMiniCrop.top);
@@ -1273,18 +1107,11 @@
       context.imageSmoothingQuality = 'high';
       context.fillStyle = '#ffffff';
       context.fillRect(0, 0, canvas.width, canvas.height);
-      const viewport = getFocusedViewportBounds(request, patientData);
-      if (viewport) {
-        drawFocusedMiniChartTemplate(context, image, canvas, viewport);
-      } else {
-        context.drawImage(image, 0, 0, canvas.width, canvas.height);
-      }
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
 
       const xValue = patientData[request.x.source];
       const yValue = patientData[request.metricKey];
-      const xMin = viewport ? viewport.min : request.x.min;
-      const xMax = viewport ? viewport.max : request.x.max;
-      const xRatio = clampRatio((xValue - xMin) / (xMax - xMin));
+      const xRatio = clampRatio((xValue - request.x.min) / (request.x.max - request.x.min));
       const yRatio = clampRatio((yValue - request.y.min) / (request.y.max - request.y.min));
       const x = (chartTemplateAxis.xStart + (chartTemplateAxis.xEnd - chartTemplateAxis.xStart) * xRatio) * canvas.width;
       const y = (chartTemplateAxis.yStart - (chartTemplateAxis.yStart - chartTemplateAxis.yEnd) * yRatio) * canvas.height;
@@ -1296,10 +1123,6 @@
       context.lineWidth = 11 * renderScale;
       context.strokeStyle = '#ffffff';
       context.stroke();
-
-      if (viewport) {
-        drawFocusedMiniChartLabels(context, canvas, request, viewport);
-      }
 
       return {
         label: request.label,
