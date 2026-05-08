@@ -1084,12 +1084,23 @@
     }
 
     .record-modal {
-      width: min(420px, 100%);
+      width: min(1080px, 100%);
+      max-height: min(82vh, 860px);
       padding: 24px;
       border-radius: 24px;
       background: rgba(255, 255, 255, 0.98);
       border: 1px solid rgba(215, 226, 217, 0.95);
       box-shadow: 0 28px 70px rgba(16, 25, 19, 0.24);
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+    }
+
+    .record-modal-head {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 12px;
     }
 
     .record-modal-head h3 {
@@ -1109,6 +1120,8 @@
       margin-top: 18px;
       display: grid;
       gap: 8px;
+      min-height: 0;
+      overflow: auto;
     }
 
     .record-modal-actions {
@@ -1117,6 +1130,31 @@
       justify-content: flex-end;
       gap: 10px;
       flex-wrap: wrap;
+    }
+
+    .record-modal-close {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      border: 1px solid #d8e7db;
+      background: #f8fbf9;
+      color: var(--brand-strong);
+      font-size: 22px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .record-modal-empty {
+      padding: 18px;
+      border: 1px dashed var(--line);
+      border-radius: 18px;
+      background: #f8fbf9;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
     }
 
     .validation-box {
@@ -1503,8 +1541,8 @@
       </div>
       <div class="page-meta">
         <strong id="page-meta-child">Child -</strong>
-        <span id="page-meta-parent"></span>
-        <span id="page-meta-phone"></span>
+        <span id="page-meta-parent">Age (years) -</span>
+        <span id="page-meta-phone">Ph -</span>
       </div>
     </section>
 
@@ -1816,20 +1854,7 @@
   <canvas id="chart-canvas" class="template-canvas" width="1725" height="2367"></canvas>
 
   <div id="record-modal-backdrop" class="record-modal-backdrop" hidden>
-    <div class="record-modal" role="dialog" aria-modal="true" aria-labelledby="record-modal-title">
-      <div class="record-modal-head">
-        <h3 id="record-modal-title">Add Record</h3>
-        <p>Choose the visit date for the vitals and growth values you are about to save. You can use this for older measurements too.</p>
-      </div>
-      <div class="record-modal-body">
-        <label for="record-date-input">Record date</label>
-        <input id="record-date-input" type="date">
-      </div>
-      <div class="record-modal-actions">
-        <button id="record-modal-cancel" class="btn-secondary btn-inline" type="button">Cancel</button>
-        <button id="record-modal-save" class="btn-primary btn-inline" type="button">Use Date</button>
-      </div>
-    </div>
+    <div class="record-modal" role="dialog" aria-modal="true" aria-label="Add record"></div>
   </div>
 
   <script type="module">
@@ -1866,6 +1891,7 @@
     const addRecordBtn = document.getElementById('add-record-btn');
     const recordDateChip = document.getElementById('record-date-chip');
     const recordModalBackdrop = document.getElementById('record-modal-backdrop');
+    const recordModal = recordModalBackdrop?.querySelector('.record-modal') || null;
     const recordDateInput = document.getElementById('record-date-input');
     const recordModalCancel = document.getElementById('record-modal-cancel');
     const recordModalSave = document.getElementById('record-modal-save');
@@ -2246,14 +2272,16 @@
     function updatePageMeta(patientRecord = null) {
       if (!patientRecord) {
         pageMetaChild.textContent = 'Child -';
-        pageMetaParent.textContent = 'parent -';
-        pageMetaPhone.textContent = 'Ph no. -';
+        pageMetaParent.textContent = 'Age (years) -';
+        pageMetaPhone.textContent = 'Ph -';
         return;
       }
 
+      const ageYearsValue = getAgeInYearsAtDate(patientRecord.dob || dobInput.value, getSelectedMeasurementDate());
+      const ageYearsLabel = Number.isFinite(ageYearsValue) ? ageYearsValue.toFixed(2) : '';
       pageMetaChild.textContent = `Child - ${patientRecord.childName || ''}`;
-      pageMetaParent.textContent = `parent - ${patientRecord.parentName || ''}`;
-      pageMetaPhone.textContent = `Ph no. - ${patientRecord.phone || ''}`;
+      pageMetaParent.textContent = `Age (years) - ${ageYearsLabel}`;
+      pageMetaPhone.textContent = `Ph - ${patientRecord.phone || ''}`;
     }
 
     function setChartPreviewMessage(message, tone = '') {
@@ -2329,6 +2357,67 @@
       });
     }
 
+    function renderRecordModalContent() {
+      if (!recordModal) {
+        return;
+      }
+
+      const patientId = patientIdInput.value.trim().toUpperCase();
+      const childName = childNameInput.value.trim();
+      const entries = [...patientGrowthHistory].sort((left, right) => getHistoryTimestamp(right) - getHistoryTimestamp(left));
+
+      const bodyMarkup = entries.length
+        ? `
+          <div class="history-table-wrap">
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th scope="col">Date</th>
+                  <th scope="col">Weight</th>
+                  <th scope="col">Height</th>
+                  <th scope="col">OFC</th>
+                  <th scope="col">SpO2</th>
+                  <th scope="col">Pulse</th>
+                  <th scope="col">BP</th>
+                  <th scope="col">Temp</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${entries.map((entry) => {
+                  const metrics = getHistoryMetricCells(entry);
+                  return `
+                    <tr>
+                      <td class="history-date-cell">${escapeHtml(formatHistoryEntryDate(entry))}</td>
+                      <td>${formatHistoryCell(metrics.weight)}</td>
+                      <td>${formatHistoryCell(metrics.height)}</td>
+                      <td>${formatHistoryCell(metrics.head)}</td>
+                      <td>${formatHistoryCell(metrics.spo2)}</td>
+                      <td>${formatHistoryCell(metrics.pulse)}</td>
+                      <td>${formatHistoryCell(metrics.bp)}</td>
+                      <td>${formatHistoryCell(metrics.temp)}</td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        `
+        : '<div class="record-modal-empty">No past entries found yet for this patient.</div>';
+
+      recordModal.innerHTML = `
+        <div class="record-modal-head">
+          <div>
+            <h3>Past Entries</h3>
+            <p>${escapeHtml(childName || patientId || 'Selected patient')} - date-wise vitals and growth history.</p>
+          </div>
+          <button type="button" class="record-modal-close" data-record-modal-close aria-label="Close">×</button>
+        </div>
+        <div class="record-modal-body">
+          ${bodyMarkup}
+        </div>
+      `;
+    }
+
     function setSelectedMeasurementDate(dateLike, options = {}) {
       const { refresh = true } = options;
       const parsedDate = dateLike instanceof Date ? new Date(dateLike) : new Date(dateLike);
@@ -2350,14 +2439,12 @@
     }
 
     function openRecordDateModal() {
-      if (!recordModalBackdrop) {
+      if (!recordModalBackdrop || !recordModal) {
         return;
       }
 
-      recordDateInput.max = formatDateInputValue(new Date());
-      recordDateInput.value = formatDateInputValue(getSelectedMeasurementDate());
+      renderRecordModalContent();
       recordModalBackdrop.hidden = false;
-      window.requestAnimationFrame(() => recordDateInput.focus());
     }
 
     function closeRecordDateModal() {
@@ -3644,32 +3731,14 @@
     if (addRecordBtn) {
       addRecordBtn.addEventListener('click', openRecordDateModal);
     }
-    if (recordModalCancel) {
-      recordModalCancel.addEventListener('click', closeRecordDateModal);
-    }
-    if (recordModalSave) {
-      recordModalSave.addEventListener('click', () => {
-        const pickedDate = parseRecordDateValue(recordDateInput.value);
-
-        if (!pickedDate) {
-          statusNote.textContent = 'Choose a valid record date before saving it to the vitals card.';
-          statusNote.classList.add('visible');
-          recordDateInput.focus();
+    if (recordModalBackdrop) {
+      recordModalBackdrop.addEventListener('click', (event) => {
+        const closeButton = event.target.closest('[data-record-modal-close]');
+        if (closeButton) {
+          closeRecordDateModal();
           return;
         }
 
-        setSelectedMeasurementDate(pickedDate);
-        closeRecordDateModal();
-        statusNote.textContent = `Record date set to ${pickedDate.toLocaleDateString('en-IN', {
-          day: 'numeric',
-          month: 'short',
-          year: 'numeric'
-        })}. Any new vitals and growth values will be saved for that visit date.`;
-        statusNote.classList.add('visible');
-      });
-    }
-    if (recordModalBackdrop) {
-      recordModalBackdrop.addEventListener('click', (event) => {
         if (event.target === recordModalBackdrop) {
           closeRecordDateModal();
         }
