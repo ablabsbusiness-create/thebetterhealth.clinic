@@ -209,12 +209,15 @@
 
     .content-layout {
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr) 320px;
       gap: 14px;
       align-items: start;
     }
 
     .growth-summary-card {
+      grid-column: 2;
+      position: sticky;
+      top: 94px;
       display: grid;
       gap: 12px;
       padding: 16px 18px;
@@ -290,6 +293,10 @@
       color: var(--muted);
       font-size: 13px;
       line-height: 1.55;
+    }
+
+    .card-grid {
+      grid-column: 1;
     }
 
     .card-grid {
@@ -1088,6 +1095,13 @@
       .content-layout {
         grid-template-columns: 1fr;
         gap: 0;
+      }
+
+      .growth-summary-card {
+        grid-column: auto;
+        position: static;
+        top: auto;
+        margin-bottom: 12px;
       }
 
       .growth-summary-grid {

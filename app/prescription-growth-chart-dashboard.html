@@ -368,6 +368,15 @@
       background: rgba(220, 252, 231, 0.55);
     }
 
+    .history-table tbody tr.is-clickable {
+      cursor: pointer;
+      transition: background 0.18s ease;
+    }
+
+    .history-table tbody tr.is-clickable:hover {
+      background: rgba(220, 252, 231, 0.35);
+    }
+
     .history-date-cell {
       color: var(--brand-strong);
       font-weight: 800;
@@ -2385,8 +2394,9 @@
               <tbody>
                 ${entries.map((entry) => {
                   const metrics = getHistoryMetricCells(entry);
+                  const entryKey = getHistoryEntryKey(entry);
                   return `
-                    <tr>
+                    <tr class="is-clickable ${activeHistoryEditKey === entryKey ? 'is-active' : ''}" data-record-history-entry="${escapeHtml(entryKey)}">
                       <td class="history-date-cell">${escapeHtml(formatHistoryEntryDate(entry))}</td>
                       <td>${formatHistoryCell(metrics.weight)}</td>
                       <td>${formatHistoryCell(metrics.height)}</td>
@@ -3736,6 +3746,21 @@
         const closeButton = event.target.closest('[data-record-modal-close]');
         if (closeButton) {
           closeRecordDateModal();
+          return;
+        }
+
+        const entryRow = event.target.closest('[data-record-history-entry]');
+        if (entryRow) {
+          const targetEntry = patientGrowthHistory.find((entry) => getHistoryEntryKey(entry) === entryRow.dataset.recordHistoryEntry);
+
+          if (!targetEntry) {
+            return;
+          }
+
+          loadHistoryEntryIntoForm(targetEntry);
+          closeRecordDateModal();
+          statusNote.textContent = `Loaded ${formatHistoryEntryDate(targetEntry)} into the vitals card. You can now change the values and save again.`;
+          statusNote.classList.add('visible');
           return;
         }
 
