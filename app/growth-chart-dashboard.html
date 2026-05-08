@@ -1538,8 +1538,28 @@
       drawBaseTemplate(image);
     }
 
+    function getPythonChartEndpoint(payload) {
+      const templateKeys = Array.isArray(payload?.templateRequests)
+        ? payload.templateRequests.map((template) => String(template?.key || '')).filter(Boolean)
+        : [];
+
+      if (templateKeys.length === 0) {
+        return '/api/growth_charts';
+      }
+
+      if (templateKeys.every((key) => key.includes('0to5'))) {
+        return '/api/growth_charts_0to5';
+      }
+
+      if (templateKeys.every((key) => key.includes('5to18'))) {
+        return '/api/growth_charts_5to18';
+      }
+
+      throw new Error('Requested charts span multiple age bands, so a single IAP chart API could not be chosen.');
+    }
+
     async function requestPythonGeneratedCharts(payload) {
-      const response = await fetch('/api/growth_charts', {
+      const response = await fetch(getPythonChartEndpoint(payload), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

@@ -4,7 +4,7 @@ import base64
 import io
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from PIL import Image, ImageDraw
 
@@ -363,7 +363,12 @@ def encode_pdf_base64(images: list[Image.Image]) -> str:
     return base64.b64encode(pdf_buffer.getvalue()).decode("ascii")
 
 
-def generate_chart_package(payload: dict[str, Any]) -> dict[str, Any]:
+def generate_chart_package(
+    payload: dict[str, Any],
+    *,
+    template_filter: Callable[[str], bool] | None = None,
+    filter_label: str = "the requested charts",
+) -> dict[str, Any]:
     dob_value = str(payload.get("dob", "")).strip()
     if not dob_value:
         raise ChartPlotError("DOB is required for chart plotting.")
@@ -380,10 +385,16 @@ def generate_chart_package(payload: dict[str, Any]) -> dict[str, Any]:
     page_images = []
 
     for template_request in template_requests:
+        template_key = str(template_request.get("key", "")).strip()
+        if template_key not in TEMPLATE_LIBRARY:
+            raise ChartPlotError(f"Unknown template key: {template_key or 'missing'}")
+        if template_filter and not template_filter(template_key):
+            raise ChartPlotError(f"This endpoint supports only {filter_label}.")
+
         image = render_template_page(template_request, plot_series, dob_value)
         pages.append(
             {
-                "label": template_request.get("label") or TEMPLATE_LIBRARY[template_request["key"]]["label"],
+                "label": template_request.get("label") or TEMPLATE_LIBRARY[template_key]["label"],
                 "dataUrl": encode_png_data_url(image),
                 "width": image.width,
                 "height": image.height,
