@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import base64
 import io
+import math
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 
 class ChartPlotError(ValueError):
@@ -216,6 +217,35 @@ def clamp_ratio(value: float) -> float:
     return min(1.0, max(0.0, value))
 
 
+def is_focused_template_key(template_key: str) -> bool:
+    return "5to18" in template_key
+
+
+def get_custom_axis_step(source: str, span: float) -> float:
+    if source == "ageMonths":
+        if span <= 4:
+            return 1
+        if span <= 10:
+            return 2
+        return 3
+
+    if span <= 1.2:
+        return 0.2
+    if span <= 2.5:
+        return 0.5
+    if span <= 5:
+        return 1
+    return 2
+
+
+def round_down_to_step(value: float, step: float) -> float:
+    return math.floor(value / step) * step if step else value
+
+
+def round_up_to_step(value: float, step: float) -> float:
+    return math.ceil(value / step) * step if step else value
+
+
 def build_patient_data(dob_value: str, entry: dict[str, Any]) -> dict[str, float]:
     age_years = get_age_years_at_date(dob_value, entry.get("measuredAt"))
     age_months = age_years * 12 if age_years == age_years else float("nan")
@@ -233,12 +263,60 @@ def build_patient_data(dob_value: str, entry: dict[str, Any]) -> dict[str, float
     }
 
 
-def map_point(region: dict[str, Any], patient_data: dict[str, float], width: int, height: int) -> tuple[float, float] | None:
+def get_metric_axis_age_values(region: dict[str, Any], entries: list[dict[str, Any]], dob_value: str) -> list[float]:
+    age_values = []
+    for entry in sort_entries(entries):
+        patient_data = build_patient_data(dob_value, entry)
+        value = patient_data.get(region["x"]["source"], float("nan"))
+        if value == value:
+            age_values.append(value)
+    return sorted(age_values)
+
+
+def get_focused_x_axis_viewport(region: dict[str, Any], entries: list[dict[str, Any]], dob_value: str) -> dict[str, float] | None:
+    age_values = get_metric_axis_age_values(region, entries, dob_value)
+    if not age_values:
+        return None
+
+    min_age = age_values[0]
+    max_age = age_values[-1]
+    span = max(max_age - min_age, 0.0)
+    step = get_custom_axis_step(region["x"]["source"], span)
+    minimum_window = 6 if region["x"]["source"] == "ageMonths" else 1.2
+    padding = step * 1.5
+    viewport_min = round_down_to_step(min_age - padding, step)
+    viewport_max = round_up_to_step(max_age + padding, step)
+
+    if viewport_max - viewport_min < minimum_window:
+        center = (min_age + max_age) / 2
+        viewport_min = round_down_to_step(center - minimum_window / 2, step)
+        viewport_max = round_up_to_step(center + minimum_window / 2, step)
+
+    viewport_min = max(region["x"]["min"], viewport_min)
+    viewport_max = min(region["x"]["max"], viewport_max)
+
+    if not viewport_max > viewport_min:
+        return None
+
+    return {"min": viewport_min, "max": viewport_max, "step": step}
+
+
+def map_point(
+    region: dict[str, Any],
+    patient_data: dict[str, float],
+    width: int,
+    height: int,
+    viewport: dict[str, float] | None = None,
+) -> tuple[float, float] | None:
     x_value = patient_data.get(region["x"]["source"], float("nan"))
     y_value = patient_data.get(region["y"]["source"], float("nan"))
     if x_value != x_value or y_value != y_value:
         return None
-    x_ratio = clamp_ratio((x_value - region["x"]["min"]) / (region["x"]["max"] - region["x"]["min"]))
+    x_min = viewport["min"] if viewport else region["x"]["min"]
+    x_max = viewport["max"] if viewport else region["x"]["max"]
+    if x_max <= x_min:
+        return None
+    x_ratio = clamp_ratio((x_value - x_min) / (x_max - x_min))
     y_ratio = clamp_ratio((y_value - region["y"]["min"]) / (region["y"]["max"] - region["y"]["min"]))
     x = (region["x"]["start"] + (region["x"]["end"] - region["x"]["start"]) * x_ratio) * width
     y = (region["y"]["start"] - (region["y"]["start"] - region["y"]["end"]) * y_ratio) * height
@@ -303,6 +381,109 @@ def draw_marker(draw: ImageDraw.ImageDraw, point: tuple[float, float], image_wid
     )
 
 
+def get_axis_font(size: int) -> ImageFont.ImageFont:
+    for font_name in ("arial.ttf", "Arial.ttf", "DejaVuSansMono.ttf", "DejaVuSans.ttf"):
+        try:
+            return ImageFont.truetype(font_name, size)
+        except OSError:
+            continue
+    return ImageFont.load_default()
+
+
+def draw_focused_template(image: Image.Image, region: dict[str, Any], viewport: dict[str, float]) -> Image.Image:
+    source_width, source_height = image.size
+    full_span = region["x"]["max"] - region["x"]["min"]
+    if not full_span or not source_width or not source_height:
+        return image.copy()
+
+    source_plot_left = region["x"]["start"] * source_width
+    source_plot_right = region["x"]["end"] * source_width
+    source_plot_width = source_plot_right - source_plot_left
+    dest_plot_left = source_plot_left
+    dest_plot_right = source_plot_right
+    dest_plot_width = dest_plot_right - dest_plot_left
+
+    viewport_left_ratio = clamp_ratio((viewport["min"] - region["x"]["min"]) / full_span)
+    viewport_right_ratio = clamp_ratio((viewport["max"] - region["x"]["min"]) / full_span)
+    viewport_source_left = source_plot_left + source_plot_width * viewport_left_ratio
+    viewport_source_right = source_plot_left + source_plot_width * viewport_right_ratio
+    viewport_source_width = max(1, viewport_source_right - viewport_source_left)
+
+    focused = Image.new("RGBA", (source_width, source_height), (255, 255, 255, 255))
+
+    left_margin_width = max(0, int(round(dest_plot_left)))
+    right_margin_width = max(0, source_width - int(round(dest_plot_right)))
+    if left_margin_width:
+      focused.alpha_composite(image.crop((0, 0, left_margin_width, source_height)), (0, 0))
+
+    plot_crop = image.crop(
+        (
+            int(round(viewport_source_left)),
+            0,
+            int(round(viewport_source_left + viewport_source_width)),
+            source_height,
+        )
+    )
+    plot_resized = plot_crop.resize((max(1, int(round(dest_plot_width))), source_height), Image.Resampling.LANCZOS)
+    focused.alpha_composite(plot_resized, (int(round(dest_plot_left)), 0))
+
+    if right_margin_width:
+        focused.alpha_composite(
+            image.crop((int(round(source_plot_right)), 0, source_width, source_height)),
+            (int(round(dest_plot_right)), 0),
+        )
+
+    return focused
+
+
+def format_custom_axis_label(source: str, value: float, step: float) -> str:
+    if source == "ageMonths":
+        return f"{int(round(value))}m"
+
+    decimals = 1 if step < 1 else 0
+    label = f"{value:.{decimals}f}".rstrip("0").rstrip(".")
+    return f"{label}y"
+
+
+def draw_custom_x_axis_labels(
+    image: Image.Image,
+    region: dict[str, Any],
+    viewport: dict[str, float],
+    marker_radius: int,
+) -> Image.Image:
+    width, height = image.size
+    plot_left, plot_right, _, plot_bottom = get_plot_bounds(region, width, height, marker_radius)
+    band_top = max(0, int(round(plot_bottom - max(18, marker_radius + 6))))
+    band_bottom = height
+    if band_bottom - band_top < 24:
+        return image
+
+    label_layer = image.copy()
+    draw = ImageDraw.Draw(label_layer)
+    draw.rectangle((0, band_top, width, band_bottom), fill=(255, 255, 255, 245))
+
+    axis_y = band_top + 10
+    draw.line((plot_left, axis_y, plot_right, axis_y), fill="#c9d6cc", width=1)
+
+    font = get_axis_font(max(10, round(height * 0.014)))
+    value = viewport["min"]
+    epsilon = viewport["step"] / 2
+
+    while value <= viewport["max"] + epsilon:
+        tick_value = round(value, 4)
+        tick_ratio = clamp_ratio((tick_value - viewport["min"]) / (viewport["max"] - viewport["min"]))
+        tick_x = (region["x"]["start"] + (region["x"]["end"] - region["x"]["start"]) * tick_ratio) * width
+        draw.line((tick_x, axis_y, tick_x, axis_y + 5), fill="#c9d6cc", width=1)
+
+        label = format_custom_axis_label(region["x"]["source"], tick_value, viewport["step"])
+        bbox = draw.textbbox((0, 0), label, font=font)
+        label_width = bbox[2] - bbox[0]
+        draw.text((tick_x - label_width / 2, axis_y + 9), label, fill="#415146", font=font)
+        value += viewport["step"]
+
+    return label_layer
+
+
 def render_template_page(template_request: dict[str, Any], plot_series: dict[str, list[dict[str, Any]]], dob_value: str) -> Image.Image:
     template_key = template_request.get("key", "")
     template = TEMPLATE_LIBRARY.get(template_key)
@@ -322,15 +503,20 @@ def render_template_page(template_request: dict[str, Any], plot_series: dict[str
         if not region:
             continue
 
+        entries = sort_entries(list(plot_series.get(metric_key, [])))
+        viewport = get_focused_x_axis_viewport(region, entries, dob_value) if is_focused_template_key(template_key) else None
+        if viewport:
+            image = draw_focused_template(image, region, viewport)
+            image = draw_custom_x_axis_labels(image, region, viewport, marker_radius)
+
         plot_bounds = get_plot_bounds(region, image.width, image.height, max(marker_radius, line_width / 2))
         clip_bounds = get_plot_bounds(region, image.width, image.height, 0)
-        entries = sort_entries(list(plot_series.get(metric_key, [])))
         mapped_points = []
         for entry in entries:
             patient_data = build_patient_data(dob_value, entry)
             if patient_data.get(metric_key) != patient_data.get(metric_key):
                 continue
-            point = map_point(region, patient_data, image.width, image.height)
+            point = map_point(region, patient_data, image.width, image.height, viewport=viewport)
             if point is not None:
                 mapped_points.append(constrain_point_to_bounds(point, plot_bounds))
 
