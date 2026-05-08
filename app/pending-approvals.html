@@ -177,8 +177,20 @@
     function selectPendingItem(itemId) { activePendingId = itemId; const item = getActivePendingItem(); renderQueue(getFilteredPendingItems()); if (!item) { emptyState.hidden = false; reviewForm.hidden = true; reviewStatus.textContent = 'No submission selected'; return; } loadPendingIntoForm(item); }
     async function loadPendingPatients() {
       setStatus('Loading pending intake submissions...');
-      const snapshot = await getDocs(collection(db, 'pendingPatients'));
-      pendingItems = snapshot.docs.map((docSnapshot) => ({ id: docSnapshot.id, ...docSnapshot.data() })).filter((item) => (item.status || 'pending') === 'pending').sort((left, right) => {
+      const pendingSnapshotPromise = getDocs(collection(db, 'pendingPatients')).catch(() => ({ docs: [] }));
+      const patientsSnapshotPromise = getDocs(collection(db, 'patients')).catch(() => ({ docs: [] }));
+      const [pendingSnapshot, patientsSnapshot] = await Promise.all([pendingSnapshotPromise, patientsSnapshotPromise]);
+      const directPendingItems = pendingSnapshot.docs.map((docSnapshot) => ({
+        id: docSnapshot.id,
+        sourceCollection: 'pendingPatients',
+        ...docSnapshot.data()
+      })).filter((item) => (item.status || 'pending') === 'pending');
+      const fallbackPendingPatients = patientsSnapshot.docs.map((docSnapshot) => ({
+        id: docSnapshot.id,
+        sourceCollection: 'patients',
+        ...docSnapshot.data()
+      })).filter((item) => (item.status || '') === 'pending' && (item.submittedBy === 'qr-intake' || item.intakeSource === 'qr-intake'));
+      pendingItems = [...directPendingItems, ...fallbackPendingPatients].sort((left, right) => {
         const leftTime = left.submittedAt?.seconds || new Date(left.submittedAt || 0).getTime() / 1000 || 0;
         const rightTime = right.submittedAt?.seconds || new Date(right.submittedAt || 0).getTime() / 1000 || 0;
         return rightTime - leftTime;
@@ -194,12 +206,53 @@
       if (!activeItem) { setStatus('Choose a pending submission first.', 'error'); return; }
       const normalizedDob = parseDobInput(reviewForm.elements.dobDay.value, reviewForm.elements.dobMonth.value, reviewForm.elements.dobYear.value);
       if (!normalizedDob) { setStatus('Please enter a valid date of birth before approving.', 'error'); return; }
-      const patientId = await buildUniquePatientId();
-      const patientRecord = { patientId, childName: reviewForm.elements.childName.value.trim(), parentName: reviewForm.elements.parentName.value.trim(), gender: reviewForm.elements.gender.value, dob: normalizedDob, phone: reviewForm.elements.mobileNumber.value.trim(), mobileNumber: reviewForm.elements.mobileNumber.value.trim(), email: reviewForm.elements.email.value.trim(), bloodGroup: reviewForm.elements.bloodGroup.value.trim(), createdAt: serverTimestamp(), sourcePendingId: activeItem.id };
+      const patientId = activeItem.sourceCollection === 'patients'
+        ? String(activeItem.patientId || activeItem.id).trim().toUpperCase()
+        : await buildUniquePatientId();
+      const reviewedByValue = reviewForm.elements.reviewedBy.value.trim() || 'doctor-review';
+      const patientRecord = {
+        patientId,
+        childName: reviewForm.elements.childName.value.trim(),
+        parentName: reviewForm.elements.parentName.value.trim(),
+        gender: reviewForm.elements.gender.value,
+        dob: normalizedDob,
+        phone: reviewForm.elements.mobileNumber.value.trim(),
+        mobileNumber: reviewForm.elements.mobileNumber.value.trim(),
+        email: reviewForm.elements.email.value.trim(),
+        bloodGroup: reviewForm.elements.bloodGroup.value.trim(),
+        sourcePendingId: activeItem.sourceCollection === 'pendingPatients' ? activeItem.id : (activeItem.sourcePendingId || activeItem.id),
+        approvedPatientId: patientId,
+        reviewedBy: reviewedByValue,
+        reviewedAt: serverTimestamp(),
+        decision: 'approved',
+        status: 'approved',
+        intakeSource: 'qr-intake',
+        notes: reviewForm.elements.notes.value.trim()
+      };
       approveBtn.disabled = true; rejectBtn.disabled = true; setStatus('Approving and creating patient record...');
       try {
-        await setDoc(doc(db, 'patients', patientId), patientRecord);
-        await setDoc(doc(db, 'pendingPatients', activeItem.id), { childName: patientRecord.childName, parentName: patientRecord.parentName, gender: patientRecord.gender, dob: patientRecord.dob, phone: patientRecord.phone, mobileNumber: patientRecord.mobileNumber, email: patientRecord.email, bloodGroup: patientRecord.bloodGroup, notes: reviewForm.elements.notes.value.trim(), reviewedBy: reviewForm.elements.reviewedBy.value.trim() || 'doctor-review', reviewedAt: serverTimestamp(), decision: 'approved', status: 'approved', approvedPatientId: patientId }, { merge: true });
+        await setDoc(doc(db, 'patients', patientId), {
+          ...patientRecord,
+          ...(activeItem.sourceCollection === 'patients' ? { updatedAt: serverTimestamp() } : { createdAt: serverTimestamp() })
+        }, { merge: true });
+        if (activeItem.sourceCollection === 'pendingPatients') {
+          await setDoc(doc(db, 'pendingPatients', activeItem.id), {
+            childName: patientRecord.childName,
+            parentName: patientRecord.parentName,
+            gender: patientRecord.gender,
+            dob: patientRecord.dob,
+            phone: patientRecord.phone,
+            mobileNumber: patientRecord.mobileNumber,
+            email: patientRecord.email,
+            bloodGroup: patientRecord.bloodGroup,
+            notes: patientRecord.notes,
+            reviewedBy: reviewedByValue,
+            reviewedAt: serverTimestamp(),
+            decision: 'approved',
+            status: 'approved',
+            approvedPatientId: patientId
+          }, { merge: true });
+        }
         activePendingId = '';
         await loadPendingPatients();
         setStatus(`Approved successfully. Patient created as ${patientId}.`, 'success');
@@ -210,7 +263,15 @@
       if (!activeItem) { setStatus('Choose a pending submission first.', 'error'); return; }
       approveBtn.disabled = true; rejectBtn.disabled = true; setStatus('Rejecting submission...');
       try {
-        await setDoc(doc(db, 'pendingPatients', activeItem.id), { reviewedBy: reviewForm.elements.reviewedBy.value.trim() || 'doctor-review', reviewedAt: serverTimestamp(), decision: 'rejected', status: 'rejected', notes: reviewForm.elements.notes.value.trim() }, { merge: true });
+        const reviewedByValue = reviewForm.elements.reviewedBy.value.trim() || 'doctor-review';
+        const rejectPayload = {
+          reviewedBy: reviewedByValue,
+          reviewedAt: serverTimestamp(),
+          decision: 'rejected',
+          status: 'rejected',
+          notes: reviewForm.elements.notes.value.trim()
+        };
+        await setDoc(doc(db, activeItem.sourceCollection === 'patients' ? 'patients' : 'pendingPatients', activeItem.id), rejectPayload, { merge: true });
         activePendingId = '';
         await loadPendingPatients();
         setStatus('Submission rejected and removed from the pending queue.', 'success');

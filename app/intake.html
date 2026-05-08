@@ -126,7 +126,7 @@
   </div>
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
-    import { addDoc, collection, getFirestore, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { addDoc, collection, doc, getDoc, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     const intakeForm = document.getElementById('intake-form');
     const submitBtn = document.getElementById('submit-btn');
     const statusNote = document.getElementById('status-note');
@@ -140,6 +140,24 @@
     const firebaseConfig = { apiKey: firebaseEnv.VITE_FIREBASE_API_KEY || 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo', authDomain: firebaseEnv.VITE_FIREBASE_AUTH_DOMAIN || 'clinci-dr-gunda.firebaseapp.com', projectId: firebaseEnv.VITE_FIREBASE_PROJECT_ID || 'clinci-dr-gunda', storageBucket: firebaseEnv.VITE_FIREBASE_STORAGE_BUCKET || 'clinci-dr-gunda.firebasestorage.app', messagingSenderId: firebaseEnv.VITE_FIREBASE_MESSAGING_SENDER_ID || '1059959825609', appId: firebaseEnv.VITE_FIREBASE_APP_ID || '1:1059959825609:web:8201599754706ac4661918', measurementId: firebaseEnv.VITE_FIREBASE_MEASUREMENT_ID || 'G-4V5JMVW45E' };
     const firebaseConfigured = Object.values(firebaseConfig).every(Boolean);
     const db = firebaseConfigured ? getFirestore(initializeApp(firebaseConfig)) : null;
+    function buildPatientId() {
+      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let suffix = '';
+      for (let index = 0; index < 3; index += 1) {
+        suffix += characters[Math.floor(Math.random() * characters.length)];
+      }
+      return `SX${suffix}`;
+    }
+    async function buildUniquePatientId() {
+      for (let attempts = 0; attempts < 20; attempts += 1) {
+        const candidate = buildPatientId();
+        const snapshot = await getDoc(doc(db, 'patients', candidate));
+        if (!snapshot.exists()) {
+          return candidate;
+        }
+      }
+      throw new Error('Could not create a patient ID right now.');
+    }
     function parseDobInput(dayValue, monthValue, yearValue) {
       const day = Number.parseInt(dayValue.trim(), 10);
       const month = Number.parseInt(monthValue.trim(), 10);
@@ -162,12 +180,43 @@
       setStatus('Sending your details to the clinic review queue...');
       const payload = { childName: intakeForm.elements.childName.value.trim(), parentName: intakeForm.elements.parentName.value.trim(), gender: intakeForm.elements.gender.value, dob: normalizedDob, phone: intakeForm.elements.mobileNumber.value.trim(), mobileNumber: intakeForm.elements.mobileNumber.value.trim(), email: intakeForm.elements.email.value.trim(), bloodGroup: intakeForm.elements.bloodGroup.value.trim(), status: 'pending', decision: 'pending', submittedBy: 'qr-intake', submittedAt: serverTimestamp(), reviewedAt: null, reviewedBy: '', approvedPatientId: '', notes: '' };
       try {
-        const docRef = await addDoc(collection(db, 'pendingPatients'), payload);
+        let queueId = '';
+        try {
+          const docRef = await addDoc(collection(db, 'pendingPatients'), payload);
+          queueId = docRef.id;
+        } catch (error) {
+          if (!String(error?.message || '').toLowerCase().includes('insufficient permissions')) {
+            throw error;
+          }
+          const fallbackPatientId = await buildUniquePatientId();
+          await setDoc(doc(db, 'patients', fallbackPatientId), {
+            patientId: fallbackPatientId,
+            childName: payload.childName,
+            parentName: payload.parentName,
+            gender: payload.gender,
+            dob: payload.dob,
+            phone: payload.phone,
+            mobileNumber: payload.mobileNumber,
+            email: payload.email,
+            bloodGroup: payload.bloodGroup,
+            status: 'pending',
+            decision: 'pending',
+            submittedBy: 'qr-intake',
+            intakeSource: 'qr-intake',
+            submittedAt: serverTimestamp(),
+            reviewedAt: null,
+            reviewedBy: '',
+            approvedPatientId: '',
+            notes: '',
+            createdAt: serverTimestamp()
+          }, { merge: true });
+          queueId = fallbackPatientId;
+        }
         intakeForm.reset();
         resetConfirmation();
         intakeForm.hidden = true;
         confirmation.classList.add('visible');
-        confirmationCode.textContent = `Queue ID: ${docRef.id}`;
+        confirmationCode.textContent = `Queue ID: ${queueId}`;
         setStatus('Submitted successfully.', 'success');
       } catch (error) {
         setStatus(`Unable to submit right now: ${error.message}`, 'error');

@@ -1904,6 +1904,9 @@
         const seenPatientIds = new Set();
 
         patientRecords.forEach((patient) => {
+          if (patient.status === 'pending' || patient.status === 'rejected') {
+            return;
+          }
           const patientId = String(patient.patientId || '').trim().toUpperCase();
           const historyEntries = patientId ? historyByPatientId.get(patientId) || [] : [];
 
