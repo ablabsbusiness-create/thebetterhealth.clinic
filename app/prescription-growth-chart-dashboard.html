@@ -1034,8 +1034,89 @@
       border: 1px solid var(--line);
     }
 
+    .btn-inline {
+      width: auto;
+      min-height: 40px;
+      padding: 10px 14px;
+      border-radius: 14px;
+      font-size: 13px;
+      line-height: 1.1;
+      box-shadow: none;
+    }
+
     .btn-secondary[hidden] {
       display: none;
+    }
+
+    .record-date-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 40px;
+      padding: 8px 13px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid #dce9de;
+      color: var(--brand-strong);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .record-date-chip span {
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .record-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(18, 30, 22, 0.48);
+      backdrop-filter: blur(6px);
+    }
+
+    .record-modal-backdrop[hidden] {
+      display: none;
+    }
+
+    .record-modal {
+      width: min(420px, 100%);
+      padding: 24px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.98);
+      border: 1px solid rgba(215, 226, 217, 0.95);
+      box-shadow: 0 28px 70px rgba(16, 25, 19, 0.24);
+    }
+
+    .record-modal-head h3 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.15;
+    }
+
+    .record-modal-head p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .record-modal-body {
+      margin-top: 18px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .record-modal-actions {
+      margin-top: 20px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
     }
 
     .validation-box {
@@ -1349,6 +1430,18 @@
       .btn-row button {
         padding: 13px 14px;
       }
+
+      .record-modal {
+        padding: 20px;
+      }
+
+      .record-modal-actions {
+        justify-content: stretch;
+      }
+
+      .record-modal-actions .btn-inline {
+        width: 100%;
+      }
     }
 
     @media (max-width: 420px) {
@@ -1425,6 +1518,8 @@
                 <h2 class="section-title">Vitals</h2>
               </div>
               <div class="section-head-actions">
+                <div id="record-date-chip" class="record-date-chip">Record date <span>Today</span></div>
+                <button id="add-record-btn" class="btn-secondary btn-inline" type="button">Add Record</button>
                 <label class="metric-master-toggle" for="toggle-all-past-history">
                   <input id="toggle-all-past-history" type="checkbox" checked>
                   <span class="metric-toggle-ui" aria-hidden="true"></span>
@@ -1720,6 +1815,23 @@
 
   <canvas id="chart-canvas" class="template-canvas" width="1725" height="2367"></canvas>
 
+  <div id="record-modal-backdrop" class="record-modal-backdrop" hidden>
+    <div class="record-modal" role="dialog" aria-modal="true" aria-labelledby="record-modal-title">
+      <div class="record-modal-head">
+        <h3 id="record-modal-title">Add Record</h3>
+        <p>Choose the visit date for the vitals and growth values you are about to save. You can use this for older measurements too.</p>
+      </div>
+      <div class="record-modal-body">
+        <label for="record-date-input">Record date</label>
+        <input id="record-date-input" type="date">
+      </div>
+      <div class="record-modal-actions">
+        <button id="record-modal-cancel" class="btn-secondary btn-inline" type="button">Cancel</button>
+        <button id="record-modal-save" class="btn-primary btn-inline" type="button">Use Date</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     import { jsPDF } from 'https://cdn.jsdelivr.net/npm/jspdf@3.0.3/+esm';
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
@@ -1751,6 +1863,12 @@
     chartContext.imageSmoothingQuality = 'high';
     const chartPreviewStatus = document.getElementById('chart-preview-status');
     const form = document.getElementById('chart-form');
+    const addRecordBtn = document.getElementById('add-record-btn');
+    const recordDateChip = document.getElementById('record-date-chip');
+    const recordModalBackdrop = document.getElementById('record-modal-backdrop');
+    const recordDateInput = document.getElementById('record-date-input');
+    const recordModalCancel = document.getElementById('record-modal-cancel');
+    const recordModalSave = document.getElementById('record-modal-save');
     const patientIdInput = document.getElementById('patient-id');
     const childNameInput = document.getElementById('child-name');
     const parentNameInput = document.getElementById('parent-name');
@@ -1790,6 +1908,7 @@
     let patientGrowthHistory = [];
     let activeHistoryEditKey = '';
     let historyPageIndex = 0;
+    let selectedMeasurementDateIso = '';
     const CHART_ASSET_VERSION = '2026-04-25-age-years-axis';
     const TEST_PAST_CHARTS_PATIENT_ID = 'TESTPAST001';
 
@@ -2058,12 +2177,16 @@
     const LOCAL_RECORD_KEY = 'growthChartRecentRecords';
 
     function calculateAgeLabel(dobValue) {
+      return calculateAgeLabelAtDate(dobValue, new Date());
+    }
+
+    function calculateAgeLabelAtDate(dobValue, referenceDate = new Date()) {
       if (!dobValue) return '';
 
-      const today = new Date();
+      const today = referenceDate instanceof Date ? new Date(referenceDate) : new Date(referenceDate);
       const dob = new Date(dobValue);
 
-      if (Number.isNaN(dob.getTime()) || dob > today) {
+      if (Number.isNaN(dob.getTime()) || Number.isNaN(today.getTime()) || dob > today) {
         return '';
       }
 
@@ -2086,7 +2209,7 @@
     }
 
     function updateAge() {
-      ageInput.value = calculateAgeLabel(dobInput.value);
+      ageInput.value = calculateAgeLabelAtDate(dobInput.value, getSelectedMeasurementDate());
     }
 
     function getAgeInYearsAtDate(dobValue, referenceDate = new Date()) {
@@ -2154,6 +2277,93 @@
       const rawDate = entry.measuredAt || entry.createdAtIso || entry.savedAt || entry.createdAtDisplay || '';
       const timestamp = Date.parse(rawDate);
       return Number.isFinite(timestamp) ? timestamp : 0;
+    }
+
+    function formatDateInputValue(date = new Date()) {
+      const targetDate = date instanceof Date ? new Date(date) : new Date(date);
+
+      if (Number.isNaN(targetDate.getTime())) {
+        return '';
+      }
+
+      const year = targetDate.getFullYear();
+      const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+      const day = String(targetDate.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function parseRecordDateValue(rawValue) {
+      const value = (rawValue || '').trim();
+      if (!value) {
+        return null;
+      }
+
+      const [year, month, day] = value.split('-').map((segment) => Number.parseInt(segment, 10));
+      if (!year || !month || !day) {
+        return null;
+      }
+
+      const parsed = new Date(year, month - 1, day, 12, 0, 0, 0);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    function getSelectedMeasurementDate() {
+      const selectedDate = selectedMeasurementDateIso ? new Date(selectedMeasurementDateIso) : new Date();
+      return Number.isNaN(selectedDate.getTime()) ? new Date() : selectedDate;
+    }
+
+    function updateMeasurementDateChip() {
+      if (!recordDateChip) {
+        return;
+      }
+
+      const chipValue = recordDateChip.querySelector('span');
+      if (!chipValue) {
+        return;
+      }
+
+      chipValue.textContent = getSelectedMeasurementDate().toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      });
+    }
+
+    function setSelectedMeasurementDate(dateLike, options = {}) {
+      const { refresh = true } = options;
+      const parsedDate = dateLike instanceof Date ? new Date(dateLike) : new Date(dateLike);
+      const nextDate = Number.isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
+      nextDate.setHours(12, 0, 0, 0);
+      selectedMeasurementDateIso = nextDate.toISOString();
+
+      if (recordDateInput) {
+        recordDateInput.value = formatDateInputValue(nextDate);
+      }
+
+      updateMeasurementDateChip();
+      updateAge();
+
+      if (refresh) {
+        updatePreview();
+        refreshGeneratedChartsIfPresent();
+      }
+    }
+
+    function openRecordDateModal() {
+      if (!recordModalBackdrop) {
+        return;
+      }
+
+      recordDateInput.max = formatDateInputValue(new Date());
+      recordDateInput.value = formatDateInputValue(getSelectedMeasurementDate());
+      recordModalBackdrop.hidden = false;
+      window.requestAnimationFrame(() => recordDateInput.focus());
+    }
+
+    function closeRecordDateModal() {
+      if (recordModalBackdrop) {
+        recordModalBackdrop.hidden = true;
+      }
     }
 
     function getHistoryEntryKey(entry = {}) {
@@ -2327,6 +2537,7 @@
       metricInputs.systolic.value = entry.systolic || '';
       metricInputs.diastolic.value = entry.diastolic || '';
       metricInputs.temp.value = entry.temp || '';
+      setSelectedMeasurementDate(getHistoryTimestamp(entry) ? new Date(getHistoryTimestamp(entry)) : new Date(), { refresh: false });
       activeHistoryEditKey = getHistoryEntryKey(entry);
       updatePreview();
       renderHistoryDrawer();
@@ -2340,6 +2551,7 @@
       Object.values(metricInputs).forEach((input) => {
         input.value = '';
       });
+      setSelectedMeasurementDate(new Date(), { refresh: false });
       activeHistoryEditKey = '';
       generatedTemplates = [];
       generatedPreviewPages = [];
@@ -2449,10 +2661,13 @@
     function saveLocalRecord() {
       const existingRecords = cleanupExpiredLocalRecords();
       const patientId = patientIdInput.value.trim().toUpperCase();
+      const measuredAt = getSelectedMeasurementDate();
       const nextRecord = {
         source: 'prescription-growth-chart',
         chartFormatVersion: 'compact-2026-04',
         savedAt: new Date().toISOString(),
+        measuredAt: measuredAt.toISOString(),
+        measuredAtDisplay: measuredAt.toLocaleString('en-IN'),
         keepUntilPrescription: true,
         patientId,
         childName: childNameInput.value.trim(),
@@ -2500,6 +2715,7 @@
       }
 
       const now = new Date();
+      const measuredAt = getSelectedMeasurementDate();
       const historyRecord = {
         patientId: patientIdInput.value.trim().toUpperCase(),
         childName: childNameInput.value.trim(),
@@ -2518,6 +2734,8 @@
         diastolic: metricInputs.diastolic.value,
         temp: metricInputs.temp.value,
         source: 'prescription-growth-chart',
+        measuredAt: measuredAt.toISOString(),
+        measuredAtDisplay: measuredAt.toLocaleString('en-IN'),
         createdAt: serverTimestamp(),
         createdAtIso: now.toISOString(),
         createdAtDisplay: now.toLocaleString('en-IN')
@@ -2535,7 +2753,10 @@
       }
 
       const now = new Date();
+      const measuredAt = getSelectedMeasurementDate();
       const measurementEntry = {
+        measuredAt: measuredAt.toISOString(),
+        measuredAtDisplay: measuredAt.toLocaleString('en-IN'),
         createdAtIso: now.toISOString(),
         createdAtDisplay: now.toLocaleString('en-IN'),
         charts: getSelectedCharts().map((option) => option.value),
@@ -2705,11 +2926,14 @@
         weight: metricInputs.weight.value,
         height: metricInputs.height.value,
         head: metricInputs.head.value
-      }, new Date());
+      }, getSelectedMeasurementDate());
     }
 
     function getCurrentMeasurementEntry() {
+      const measuredAt = getSelectedMeasurementDate();
       return {
+        measuredAt: measuredAt.toISOString(),
+        measuredAtDisplay: measuredAt.toLocaleString('en-IN'),
         createdAtIso: new Date().toISOString(),
         weight: metricInputs.weight.value || '',
         height: metricInputs.height.value || '',
@@ -3407,6 +3631,7 @@
       input.required = false;
     });
     updatePreview();
+    setSelectedMeasurementDate(new Date(), { refresh: false });
     updateAge();
     drawBaseTemplate(null);
     renderPreviewGallery();
@@ -3415,6 +3640,46 @@
     renderMetricHistoryPanels();
     loadPatientIdFromUrl();
     cleanupExpiredLocalRecords();
+
+    if (addRecordBtn) {
+      addRecordBtn.addEventListener('click', openRecordDateModal);
+    }
+    if (recordModalCancel) {
+      recordModalCancel.addEventListener('click', closeRecordDateModal);
+    }
+    if (recordModalSave) {
+      recordModalSave.addEventListener('click', () => {
+        const pickedDate = parseRecordDateValue(recordDateInput.value);
+
+        if (!pickedDate) {
+          statusNote.textContent = 'Choose a valid record date before saving it to the vitals card.';
+          statusNote.classList.add('visible');
+          recordDateInput.focus();
+          return;
+        }
+
+        setSelectedMeasurementDate(pickedDate);
+        closeRecordDateModal();
+        statusNote.textContent = `Record date set to ${pickedDate.toLocaleDateString('en-IN', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric'
+        })}. Any new vitals and growth values will be saved for that visit date.`;
+        statusNote.classList.add('visible');
+      });
+    }
+    if (recordModalBackdrop) {
+      recordModalBackdrop.addEventListener('click', (event) => {
+        if (event.target === recordModalBackdrop) {
+          closeRecordDateModal();
+        }
+      });
+    }
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && recordModalBackdrop && !recordModalBackdrop.hidden) {
+        closeRecordDateModal();
+      }
+    });
 
       generateBtn.addEventListener('click', async () => {
       if (generateBtn.textContent.trim() === 'Continue') {
