@@ -1166,6 +1166,156 @@
       line-height: 1.55;
     }
 
+    .record-grid-wrap {
+      max-width: 100%;
+      max-height: min(58vh, 540px);
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #ffffff;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+    }
+
+    .record-grid {
+      width: max-content;
+      min-width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 12px;
+    }
+
+    .record-grid thead th,
+    .record-grid tbody th,
+    .record-grid tbody td {
+      border-bottom: 1px solid #dde9e0;
+      border-right: 1px solid #eef4ef;
+    }
+
+    .record-grid thead th {
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      padding: 12px 10px;
+      background: #eef7f0;
+      color: var(--brand-strong);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    .record-grid thead th:first-child {
+      left: 0;
+      z-index: 4;
+      min-width: 180px;
+      text-align: left;
+    }
+
+    .record-grid tbody th {
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      min-width: 180px;
+      padding: 12px 14px;
+      background: #f7fbf8;
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    .record-grid tbody td {
+      min-width: 122px;
+      padding: 10px;
+      background: #ffffff;
+      vertical-align: middle;
+    }
+
+    .record-grid tbody tr:last-child th,
+    .record-grid tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .record-grid tbody th:last-child,
+    .record-grid tbody td:last-child,
+    .record-grid thead th:last-child {
+      border-right: none;
+    }
+
+    .record-grid-label {
+      display: grid;
+      gap: 4px;
+    }
+
+    .record-grid-type {
+      display: inline-flex;
+      width: fit-content;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: var(--brand-soft);
+      color: var(--brand-strong);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .record-grid-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .record-grid-input {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid #d6e3d8;
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: #fbfdfb;
+      color: var(--ink);
+      font: inherit;
+      font-size: 13px;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    }
+
+    .record-grid-input:focus {
+      outline: none;
+      background: #ffffff;
+      border-color: rgba(22, 101, 52, 0.38);
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.10);
+    }
+
+    .record-grid-input::placeholder {
+      color: #91a396;
+    }
+
+    .record-grid-col-date {
+      display: block;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--brand-strong);
+      text-transform: none;
+      letter-spacing: normal;
+    }
+
+    .record-grid-col-sub {
+      display: block;
+      margin-top: 3px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: none;
+      letter-spacing: normal;
+    }
+
+    .record-inline-status {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      align-self: center;
+    }
+
     .validation-box {
       background: #fffdf8;
     }
@@ -2373,41 +2523,35 @@
 
       const patientId = patientIdInput.value.trim().toUpperCase();
       const childName = childNameInput.value.trim();
-      const entries = [...patientGrowthHistory].sort((left, right) => getHistoryTimestamp(right) - getHistoryTimestamp(left));
+      const entries = getEditableHistoryEntries();
 
       const bodyMarkup = entries.length
         ? `
-          <div class="history-table-wrap">
-            <table class="history-table">
+          <div class="record-grid-wrap">
+            <table class="record-grid">
               <thead>
                 <tr>
-                  <th scope="col">Date</th>
-                  <th scope="col">Weight</th>
-                  <th scope="col">Height</th>
-                  <th scope="col">OFC</th>
-                  <th scope="col">SpO2</th>
-                  <th scope="col">Pulse</th>
-                  <th scope="col">BP</th>
-                  <th scope="col">Temp</th>
+                  <th scope="col">Metric</th>
+                  ${entries.map((entry) => `
+                    <th scope="col">
+                      <span class="record-grid-col-date">${escapeHtml(formatHistoryEntryDate(entry))}</span>
+                      <span class="record-grid-col-sub">Tap to edit</span>
+                    </th>
+                  `).join('')}
                 </tr>
               </thead>
               <tbody>
-                ${entries.map((entry) => {
-                  const metrics = getHistoryMetricCells(entry);
-                  const entryKey = getHistoryEntryKey(entry);
-                  return `
-                    <tr class="is-clickable ${activeHistoryEditKey === entryKey ? 'is-active' : ''}" data-record-history-entry="${escapeHtml(entryKey)}">
-                      <td class="history-date-cell">${escapeHtml(formatHistoryEntryDate(entry))}</td>
-                      <td>${formatHistoryCell(metrics.weight)}</td>
-                      <td>${formatHistoryCell(metrics.height)}</td>
-                      <td>${formatHistoryCell(metrics.head)}</td>
-                      <td>${formatHistoryCell(metrics.spo2)}</td>
-                      <td>${formatHistoryCell(metrics.pulse)}</td>
-                      <td>${formatHistoryCell(metrics.bp)}</td>
-                      <td>${formatHistoryCell(metrics.temp)}</td>
-                    </tr>
-                  `;
-                }).join('')}
+                ${RECORD_MODAL_METRICS.map((metric) => `
+                  <tr>
+                    <th scope="row">
+                      <div class="record-grid-label">
+                        <span class="record-grid-type">${escapeHtml(metric.type)}</span>
+                        <span class="record-grid-name">${escapeHtml(metric.label)}</span>
+                      </div>
+                    </th>
+                    ${entries.map((entry) => buildRecordGridCell(entry, metric)).join('')}
+                  </tr>
+                `).join('')}
               </tbody>
             </table>
           </div>
@@ -2418,14 +2562,62 @@
         <div class="record-modal-head">
           <div>
             <h3>Past Entries</h3>
-            <p>${escapeHtml(childName || patientId || 'Selected patient')} - date-wise vitals and growth history.</p>
+            <p>${escapeHtml(childName || patientId || 'Selected patient')} - date-wise vitals and growth history. Edit values directly in the grid below.</p>
           </div>
           <button type="button" class="record-modal-close" data-record-modal-close aria-label="Close">×</button>
         </div>
         <div class="record-modal-body">
           ${bodyMarkup}
         </div>
+        <div class="record-modal-actions">
+          <div id="record-inline-status" class="record-inline-status"></div>
+          <button type="button" class="btn-inline" data-record-modal-close>Close</button>
+          <button type="button" class="btn-primary btn-compact" data-record-modal-save>Save Changes</button>
+        </div>
       `;
+    }
+
+    async function saveRecordModalEdits() {
+      if (!recordModal || !db) {
+        return;
+      }
+
+      const patientId = patientIdInput.value.trim().toUpperCase();
+      if (!patientId) {
+        return;
+      }
+
+      const entriesByKey = new Map(
+        getEditableHistoryEntries().map((entry) => [getHistoryEntryKey(entry), { ...entry }])
+      );
+
+      recordModal.querySelectorAll('[data-record-inline-edit]').forEach((input) => {
+        const entryKey = input.dataset.historyEntry || '';
+        const metricKey = input.dataset.historyMetric || '';
+        const entry = entriesByKey.get(entryKey);
+
+        if (!entry || !metricKey) {
+          return;
+        }
+
+        entry[metricKey] = String(input.value ?? '').trim();
+      });
+
+      const nextEntries = normalizeGrowthHistory([...entriesByKey.values()]);
+      const latestEntry = nextEntries[0] || null;
+
+      await setDoc(doc(db, 'patients', patientId), {
+        measurementHistory: nextEntries,
+        ...(latestEntry ? { lastMeasurementRecord: latestEntry } : {}),
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      setPatientGrowthHistory(nextEntries);
+
+      const inlineStatus = recordModal.querySelector('#record-inline-status');
+      if (inlineStatus) {
+        inlineStatus.textContent = 'Past vitals updated.';
+      }
     }
 
     function setSelectedMeasurementDate(dateLike, options = {}) {
@@ -2503,6 +2695,40 @@
         diastolic: 'mmHg',
         temp: 'C'
       }[metricKey] || '';
+    }
+
+    const RECORD_MODAL_METRICS = [
+      { key: 'weight', type: 'Growth', label: 'Weight (kg)', placeholder: 'kg' },
+      { key: 'height', type: 'Growth', label: 'Height (cm)', placeholder: 'cm' },
+      { key: 'head', type: 'Growth', label: 'OFC (cm)', placeholder: 'cm' },
+      { key: 'spo2', type: 'Vitals', label: 'SpO2 (%)', placeholder: '%' },
+      { key: 'pulse', type: 'Vitals', label: 'Pulse (bpm)', placeholder: 'bpm' },
+      { key: 'systolic', type: 'Vitals', label: 'BP Systolic (mmHg)', placeholder: 'mmHg' },
+      { key: 'diastolic', type: 'Vitals', label: 'BP Diastolic (mmHg)', placeholder: 'mmHg' },
+      { key: 'temp', type: 'Vitals', label: 'Temp (C)', placeholder: 'C' }
+    ];
+
+    function getEditableHistoryEntries() {
+      return [...patientGrowthHistory]
+        .sort((left, right) => getHistoryTimestamp(right) - getHistoryTimestamp(left));
+    }
+
+    function buildRecordGridCell(entry, metric) {
+      const rawValue = String(entry?.[metric.key] ?? '').trim();
+      return `
+        <td>
+          <input
+            class="record-grid-input"
+            type="text"
+            inputmode="decimal"
+            placeholder="${escapeHtml(metric.placeholder)}"
+            value="${escapeHtml(rawValue)}"
+            data-record-inline-edit
+            data-history-entry="${escapeHtml(getHistoryEntryKey(entry))}"
+            data-history-metric="${escapeHtml(metric.key)}"
+          >
+        </td>
+      `;
     }
 
     function renderMetricHistoryPanels() {
@@ -3742,25 +3968,23 @@
       addRecordBtn.addEventListener('click', openRecordDateModal);
     }
     if (recordModalBackdrop) {
-      recordModalBackdrop.addEventListener('click', (event) => {
+      recordModalBackdrop.addEventListener('click', async (event) => {
         const closeButton = event.target.closest('[data-record-modal-close]');
         if (closeButton) {
           closeRecordDateModal();
           return;
         }
 
-        const entryRow = event.target.closest('[data-record-history-entry]');
-        if (entryRow) {
-          const targetEntry = patientGrowthHistory.find((entry) => getHistoryEntryKey(entry) === entryRow.dataset.recordHistoryEntry);
-
-          if (!targetEntry) {
-            return;
+        const saveButton = event.target.closest('[data-record-modal-save]');
+        if (saveButton) {
+          try {
+            await saveRecordModalEdits();
+            statusNote.textContent = 'Past vitals updated successfully.';
+            statusNote.classList.add('visible');
+          } catch (error) {
+            statusNote.textContent = `Unable to save past vitals: ${error.message}`;
+            statusNote.classList.add('visible');
           }
-
-          loadHistoryEntryIntoForm(targetEntry);
-          closeRecordDateModal();
-          statusNote.textContent = `Loaded ${formatHistoryEntryDate(targetEntry)} into the vitals card. You can now change the values and save again.`;
-          statusNote.classList.add('visible');
           return;
         }
 
