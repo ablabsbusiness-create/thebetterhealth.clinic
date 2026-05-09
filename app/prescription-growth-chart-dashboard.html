@@ -2765,9 +2765,55 @@
         lastMeasurementRecord: getEditableHistoryEntries()[0] || null
       };
       const entries = getMeasurementEntries(modalPatient);
+      const visibleEntries = getRecordModalVisibleEntries(entries, recordModalSelectedDate);
 
-      const bodyMarkup = entries.length
-        ? renderMeasurementTableHtml(modalPatient, recordModalSelectedDate)
+      const bodyMarkup = (entries.length || recordModalSelectedDate)
+        ? `
+          <div class="record-grid-toolbar">
+            <div class="record-grid-toolbar-copy">
+              <label for="record-history-date">Change date</label>
+              <input id="record-history-date" class="record-grid-date-input" type="date" value="${escapeHtml(recordModalSelectedDate)}">
+              <button type="button" class="record-grid-clear-btn" data-clear-record-date>Show all</button>
+            </div>
+            <div class="record-grid-nav">
+              <button type="button" class="record-grid-nav-btn" data-record-scroll="left" aria-label="Show newer dates">‹</button>
+              <button type="button" class="record-grid-nav-btn" data-record-scroll="right" aria-label="Show older dates">›</button>
+            </div>
+          </div>
+          <div class="record-grid-wrap">
+            <table class="record-grid">
+              <thead>
+                <tr>
+                  <th scope="col"></th>
+                  <th scope="col"></th>
+                  ${visibleEntries.map((entry) => `
+                    <th scope="col">
+                      <span class="record-grid-col-date">${escapeHtml(formatHistoryDateHeader(entry))}</span>
+                    </th>
+                  `).join('')}
+                </tr>
+              </thead>
+              <tbody>
+                ${visibleEntries.length === 0 ? `
+                  <tr>
+                    <td colspan="8" class="record-modal-empty">No chart measurements were found for the selected date.</td>
+                  </tr>
+                ` : RECORD_MODAL_METRICS.map((metric) => `
+                  <tr>
+                    <th scope="row">
+                      <div class="record-grid-label">
+                        <span class="record-grid-type">${escapeHtml(metric.type)}</span>
+                        <span class="record-grid-name">${escapeHtml(metric.label)}</span>
+                      </div>
+                    </th>
+                    <td class="metric-unit">${escapeHtml(metric.unit)}</td>
+                    ${visibleEntries.map((entry) => buildRecordGridCell(entry, metric)).join('')}
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `
         : `
           <div class="record-modal-empty">
             <div>No past entries found yet for this patient.</div>
@@ -2795,11 +2841,20 @@
       const entriesByKey = new Map(
         getEditableHistoryEntries().map((entry) => [getHistoryEntryKey(entry), { ...entry }])
       );
+      const draftEntriesByKey = new Map();
 
       recordModal.querySelectorAll('[data-record-inline-edit]').forEach((input) => {
         const entryKey = input.dataset.historyEntry || '';
         const metricKey = input.dataset.historyMetric || '';
-        const entry = entriesByKey.get(entryKey);
+        let entry = entriesByKey.get(entryKey);
+
+        if (!entry && entryKey.startsWith('draft:')) {
+          entry = draftEntriesByKey.get(entryKey);
+          if (!entry) {
+            entry = createDraftMeasurementEntry(entryKey.replace(/^draft:/, ''));
+            draftEntriesByKey.set(entryKey, entry);
+          }
+        }
 
         if (!entry || !metricKey) {
           return;
@@ -2808,7 +2863,7 @@
         entry[metricKey] = String(input.value ?? '').trim();
       });
 
-      const nextEntries = normalizeGrowthHistory([...entriesByKey.values()]);
+      const nextEntries = normalizeGrowthHistory([...entriesByKey.values(), ...draftEntriesByKey.values()]);
       const latestEntry = nextEntries[0] || null;
 
       await setDoc(doc(db, 'patients', patientId), {
@@ -2818,6 +2873,10 @@
       }, { merge: true });
 
       setPatientGrowthHistory(nextEntries);
+      if (recordModalSelectedDate) {
+        renderRecordModalContent();
+        updateRecordGridNavState();
+      }
 
       statusNote.textContent = 'Past vitals updated successfully.';
       statusNote.classList.add('visible');
@@ -2879,6 +2938,10 @@
     }
 
     function getHistoryEntryKey(entry = {}) {
+      if (entry._draftKey) {
+        return entry._draftKey;
+      }
+
       return `${entry.createdAtIso || entry.savedAt || entry.createdAtDisplay || ''}-${entry.weight || ''}-${entry.height || ''}-${entry.head || ''}`;
     }
 
@@ -2999,6 +3062,11 @@
     function normalizeGrowthHistory(entries = []) {
       return (Array.isArray(entries) ? entries : [])
         .filter((entry) => entry && typeof entry === 'object')
+        .map((entry) => {
+          const normalized = { ...entry };
+          delete normalized._draftKey;
+          return normalized;
+        })
         .sort((left, right) => getHistoryTimestamp(right) - getHistoryTimestamp(left));
     }
 
@@ -3175,10 +3243,42 @@
         .sort((left, right) => getHistoryTimestamp(right) - getHistoryTimestamp(left));
     }
 
+    function createDraftMeasurementEntry(selectedDate = '') {
+      const parsedDate = parseRecordDateValue(selectedDate);
+      const fallbackDate = parsedDate || getSelectedMeasurementDate();
+      const measuredAt = new Date(fallbackDate);
+      measuredAt.setHours(12, 0, 0, 0);
+
+      return {
+        _draftKey: `draft:${selectedDate || formatDateInputValue(measuredAt)}`,
+        measuredAt: measuredAt.toISOString(),
+        measuredAtDisplay: measuredAt.toLocaleString('en-IN'),
+        createdAtIso: measuredAt.toISOString(),
+        createdAtDisplay: measuredAt.toLocaleString('en-IN'),
+        charts: [],
+        weight: '',
+        height: '',
+        head: '',
+        spo2: '',
+        pulse: '',
+        systolic: '',
+        diastolic: '',
+        temp: '',
+        age: calculateAgeLabelAtDate(dobInput.value, measuredAt),
+        source: 'prescription-growth-chart'
+      };
+    }
+
     function getRecordModalVisibleEntries(entries = [], selectedDate = '') {
-      return (selectedDate
+      const filteredEntries = (selectedDate
         ? entries.filter((entry) => getIsoDatePart(entry.createdAtIso || entry.measuredAt || entry.savedAt || '') === selectedDate)
         : entries).slice(0, 6);
+
+      if (selectedDate && filteredEntries.length === 0) {
+        return [createDraftMeasurementEntry(selectedDate)];
+      }
+
+      return filteredEntries;
     }
 
     function buildRecordGridCell(entry, metric) {
@@ -4518,6 +4618,9 @@
         const historyDateInput = event.target.closest('#record-history-date, .history-date-input');
         if (historyDateInput) {
           recordModalSelectedDate = String(historyDateInput.value || '').trim();
+          if (recordModalSelectedDate) {
+            setSelectedMeasurementDate(recordModalSelectedDate, { refresh: false });
+          }
           renderRecordModalContent();
           updateRecordGridNavState();
           return;
