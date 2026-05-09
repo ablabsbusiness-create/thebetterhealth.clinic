@@ -1128,13 +1128,13 @@
     .record-modal-body {
       margin-top: 0;
       display: grid;
-      gap: 10px;
+      gap: 8px;
       min-height: 0;
       overflow: hidden;
       border-radius: 22px;
       background: linear-gradient(180deg, rgba(251, 253, 251, 0.92), rgba(244, 249, 245, 0.9));
       border: 1px solid rgba(220, 232, 223, 0.9);
-      padding: 12px;
+      padding: 10px;
     }
 
     .record-modal-actions {
@@ -1176,7 +1176,7 @@
       overflow-x: auto;
       overflow-y: hidden;
       border: 1px solid var(--line);
-      border-radius: 18px;
+      border-radius: 16px;
       background: #ffffff;
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.82),
@@ -1190,8 +1190,8 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      padding: 0 4px;
+      gap: 10px;
+      padding: 0 2px;
     }
 
     .record-grid-toolbar-copy {
@@ -1212,9 +1212,9 @@
     }
 
     .record-grid-date-input {
-      min-height: 36px;
-      width: 160px;
-      padding: 0 12px;
+      min-height: 34px;
+      width: 148px;
+      padding: 0 10px;
       border: 1px solid #d6e3d8;
       border-radius: 12px;
       background: #ffffff;
@@ -1225,8 +1225,8 @@
     }
 
     .record-grid-clear-btn {
-      min-height: 36px;
-      padding: 0 14px;
+      min-height: 34px;
+      padding: 0 12px;
       border: 1px solid #d8e7db;
       border-radius: 12px;
       background: #ffffff;
@@ -1384,7 +1384,7 @@
       min-width: 100%;
       border-collapse: collapse;
       table-layout: fixed;
-      font-size: 12px;
+      font-size: 11px;
     }
 
     .record-grid thead th,
@@ -1398,7 +1398,7 @@
       position: sticky;
       top: 0;
       z-index: 3;
-      padding: 14px 10px 12px;
+      padding: 10px 8px;
       background: linear-gradient(180deg, #eff8f1, #e8f4eb);
       color: var(--brand-strong);
       font-size: 11px;
@@ -1413,20 +1413,16 @@
     .record-grid thead th:first-child {
       left: 0;
       z-index: 4;
-      min-width: 120px;
+      min-width: 136px;
       text-align: left;
-    }
-
-    .record-grid thead th:nth-child(2) {
-      min-width: 72px;
     }
 
     .record-grid tbody th {
       position: sticky;
       left: 0;
       z-index: 2;
-      min-width: 120px;
-      padding: 12px 12px;
+      min-width: 136px;
+      padding: 10px 10px;
       background: linear-gradient(180deg, #f7fbf8, #f1f7f3);
       text-align: left;
       vertical-align: middle;
@@ -1434,8 +1430,8 @@
     }
 
     .record-grid tbody td {
-      min-width: 102px;
-      padding: 8px 6px;
+      min-width: 86px;
+      padding: 5px 4px;
       background: #ffffff;
       vertical-align: middle;
     }
@@ -1453,16 +1449,6 @@
       color: var(--ink);
       font-size: 13px;
       font-weight: 700;
-    }
-
-    .record-grid .metric-unit {
-      min-width: 72px;
-      color: var(--muted);
-      font-size: 11px;
-      font-weight: 700;
-      text-align: center;
-      white-space: nowrap;
-      background: #fbfdfb;
     }
 
     .record-grid tbody th:last-child,
@@ -1498,14 +1484,14 @@
 
     .record-grid-input {
       width: 100%;
-      min-height: 34px;
+      min-height: 24px;
       border: 1px solid #d6e3d8;
-      border-radius: 12px;
-      padding: 6px 10px;
+      border-radius: 9px;
+      padding: 2px 7px;
       background: linear-gradient(180deg, #ffffff, #fbfdfb);
       color: var(--ink);
       font: inherit;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 600;
       transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
     }
@@ -1528,7 +1514,7 @@
 
     .record-grid-col-date {
       display: block;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 800;
       color: var(--brand-strong);
       text-transform: none;
@@ -2785,7 +2771,6 @@
               <thead>
                 <tr>
                   <th scope="col"></th>
-                  <th scope="col"></th>
                   ${visibleEntries.map((entry) => `
                     <th scope="col">
                       <span class="record-grid-col-date">${escapeHtml(formatHistoryDateHeader(entry))}</span>
@@ -2796,7 +2781,7 @@
               <tbody>
                 ${visibleEntries.length === 0 ? `
                   <tr>
-                    <td colspan="8" class="record-modal-empty">No chart measurements were found for the selected date.</td>
+                    <td colspan="7" class="record-modal-empty">No chart measurements were found for the selected date.</td>
                   </tr>
                 ` : RECORD_MODAL_METRICS.map((metric) => `
                   <tr>
@@ -2806,7 +2791,6 @@
                         <span class="record-grid-name">${escapeHtml(metric.label)}</span>
                       </div>
                     </th>
-                    <td class="metric-unit">${escapeHtml(metric.unit)}</td>
                     ${visibleEntries.map((entry) => buildRecordGridCell(entry, metric)).join('')}
                   </tr>
                 `).join('')}
