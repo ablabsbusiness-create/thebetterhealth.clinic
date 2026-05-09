@@ -2890,6 +2890,118 @@
       `;
     }
 
+    async function loadMergedPatientsForDashboard() {
+      if (!db) {
+        return { patients: [], history: [] };
+      }
+
+      const patientsSnapshot = await getDocs(collection(db, 'patients')).catch((error) => {
+        console.warn(`Unable to load patient records: ${error.message}`);
+        if (lastHistoryDebug) {
+          lastHistoryDebug.errorMessage = `patients load failed: ${error.message}`;
+        }
+        return { docs: [] };
+      });
+
+      const historySnapshot = await getDocs(collection(db, 'history')).catch((error) => {
+        console.warn(`Unable to load history records: ${error.message}`);
+        if (lastHistoryDebug) {
+          lastHistoryDebug.errorMessage = lastHistoryDebug.errorMessage
+            ? `${lastHistoryDebug.errorMessage}; history load failed: ${error.message}`
+            : `history load failed: ${error.message}`;
+        }
+        return { docs: [] };
+      });
+
+      const remoteHistory = historySnapshot.docs.map((docSnapshot) => ({
+        id: docSnapshot.id,
+        ...docSnapshot.data()
+      }));
+
+      const patientRecords = patientsSnapshot.docs.map((docSnapshot) => ({
+        id: docSnapshot.id,
+        ...docSnapshot.data()
+      }));
+
+      if (lastHistoryDebug) {
+        lastHistoryDebug.patientRecordsCount = patientRecords.length;
+      }
+
+      const allHistory = remoteHistory;
+      const historyByPatientId = new Map();
+      const filteredHistory = allHistory
+        .filter((entry) => entry.type !== 'prescription' && entry.source !== 'prescription-pdf')
+        .sort((left, right) => getHistoryTimestamp(right) - getHistoryTimestamp(left));
+
+      if (lastHistoryDebug) {
+        lastHistoryDebug.historyEntriesCount = filteredHistory.length;
+      }
+
+      filteredHistory.forEach((entry) => {
+        const entryPatientId = String(entry.patientId || '').trim().toUpperCase();
+        if (!entryPatientId) {
+          return;
+        }
+
+        const entries = historyByPatientId.get(entryPatientId) || [];
+        entries.push(entry);
+        historyByPatientId.set(entryPatientId, entries);
+      });
+
+      historyByPatientId.forEach((entries) => {
+        entries.sort((left, right) => getHistoryTimestamp(right) - getHistoryTimestamp(left));
+      });
+
+      const mergedPatients = [];
+      const seenPatientIds = new Set();
+
+      patientRecords.forEach((patient) => {
+        if (patient.status === 'pending' || patient.status === 'rejected') {
+          return;
+        }
+
+        const entryPatientId = String(patient.patientId || '').trim().toUpperCase();
+        const patientHistoryEntries = entryPatientId ? historyByPatientId.get(entryPatientId) || [] : [];
+
+        mergedPatients.push({
+          ...patient,
+          measurementHistory: Array.isArray(patient.measurementHistory)
+            ? patient.measurementHistory
+            : patientHistoryEntries,
+          lastMeasurementRecord: patient.lastMeasurementRecord || patientHistoryEntries[0] || null
+        });
+
+        if (entryPatientId) {
+          seenPatientIds.add(entryPatientId);
+        }
+      });
+
+      historyByPatientId.forEach((entries, entryPatientId) => {
+        if (seenPatientIds.has(entryPatientId)) {
+          return;
+        }
+
+        const latest = entries[0] || {};
+        mergedPatients.push({
+          id: `history-${entryPatientId}`,
+          patientId: latest.patientId || entryPatientId,
+          childName: latest.childName || latest.patientName || '',
+          firstName: latest.firstName || '',
+          middleName: latest.middleName || '',
+          lastName: latest.lastName || '',
+          parentName: latest.parentName || '',
+          phone: latest.phone || '',
+          gender: latest.gender || '',
+          dob: latest.dob || '',
+          measurementHistory: entries,
+          lastMeasurementRecord: entries[0] || latest,
+          fromHistoryOnly: true
+        });
+      });
+
+      return { patients: mergedPatients, historyByPatientId };
+    }
+
     function formatMetricValue(value, unit = '') {
       const cleanValue = String(value ?? '').trim();
       return cleanValue ? `${cleanValue}${unit ? ` ${unit}` : ''}` : '';
@@ -3142,92 +3254,8 @@
 
       const patientSnapshot = await getDoc(doc(db, 'patients', patientId)).catch(() => null);
       lastHistoryDebug.patientDocFound = !!(patientSnapshot && patientSnapshot.exists && patientSnapshot.exists());
-      const patientsSnapshot = await getDocs(collection(db, 'patients')).catch((error) => {
-        console.warn(`Unable to load patient records: ${error.message}`);
-        lastHistoryDebug.errorMessage = `patients load failed: ${error.message}`;
-        return { docs: [] };
-      });
-      const historySnapshot = await getDocs(collection(db, 'history')).catch((error) => {
-        console.warn(`Unable to load history records: ${error.message}`);
-        lastHistoryDebug.errorMessage = lastHistoryDebug.errorMessage
-          ? `${lastHistoryDebug.errorMessage}; history load failed: ${error.message}`
-          : `history load failed: ${error.message}`;
-        return { docs: [] };
-      });
-
-      const patientRecords = patientsSnapshot.docs.map((docSnapshot) => ({
-        id: docSnapshot.id,
-        ...docSnapshot.data()
-      }));
-      lastHistoryDebug.patientRecordsCount = patientRecords.length;
-      const historyEntries = historySnapshot.docs
-        .map((docSnapshot) => ({
-          id: docSnapshot.id,
-          ...docSnapshot.data()
-        }))
-        .filter((entry) => entry.type !== 'prescription' && entry.source !== 'prescription-pdf')
-        .sort((left, right) => getHistoryTimestamp(right) - getHistoryTimestamp(left));
-      lastHistoryDebug.historyEntriesCount = historyEntries.length;
-
-      const historyByPatientId = new Map();
-      historyEntries.forEach((entry) => {
-        const entryPatientId = String(entry.patientId || '').trim().toUpperCase();
-        if (!entryPatientId) {
-          return;
-        }
-
-        const entries = historyByPatientId.get(entryPatientId) || [];
-        entries.push(entry);
-        historyByPatientId.set(entryPatientId, entries);
-      });
-
-      historyByPatientId.forEach((entries) => {
-        entries.sort((left, right) => getHistoryTimestamp(right) - getHistoryTimestamp(left));
-      });
+      const { patients: mergedPatients, historyByPatientId } = await loadMergedPatientsForDashboard();
       lastHistoryDebug.historyMatchCount = (historyByPatientId.get(patientId) || []).length;
-
-      const mergedPatients = [];
-      const seenPatientIds = new Set();
-
-      patientRecords.forEach((patient) => {
-        const entryPatientId = String(patient.patientId || '').trim().toUpperCase();
-        const patientHistoryEntries = entryPatientId ? historyByPatientId.get(entryPatientId) || [] : [];
-
-        mergedPatients.push({
-          ...patient,
-          measurementHistory: Array.isArray(patient.measurementHistory) && patient.measurementHistory.length
-            ? patient.measurementHistory
-            : patientHistoryEntries,
-          lastMeasurementRecord: patient.lastMeasurementRecord || patientHistoryEntries[0] || null
-        });
-
-        if (entryPatientId) {
-          seenPatientIds.add(entryPatientId);
-        }
-      });
-
-      historyByPatientId.forEach((entries, entryPatientId) => {
-        if (seenPatientIds.has(entryPatientId)) {
-          return;
-        }
-
-        const latest = entries[0] || {};
-        mergedPatients.push({
-          id: `history-${entryPatientId}`,
-          patientId: latest.patientId || entryPatientId,
-          childName: latest.childName || latest.patientName || '',
-          firstName: latest.firstName || '',
-          middleName: latest.middleName || '',
-          lastName: latest.lastName || '',
-          parentName: latest.parentName || '',
-          phone: latest.phone || '',
-          gender: latest.gender || '',
-          dob: latest.dob || '',
-          measurementHistory: entries,
-          lastMeasurementRecord: entries[0] || latest,
-          fromHistoryOnly: true
-        });
-      });
 
       const patientRecord = mergedPatients.find((entry) => String(entry.patientId || '').trim().toUpperCase() === patientId) || null;
       lastHistoryDebug.mergedPatientFound = !!patientRecord;
