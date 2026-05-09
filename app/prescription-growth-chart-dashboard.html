@@ -2227,6 +2227,7 @@
     let activeHistoryEditKey = '';
     let historyPageIndex = 0;
     let selectedMeasurementDateIso = '';
+    let lastHistoryDebug = null;
     const CHART_ASSET_VERSION = '2026-04-25-age-years-axis';
     const TEST_PAST_CHARTS_PATIENT_ID = 'TESTPAST001';
 
@@ -2699,7 +2700,12 @@
             </table>
           </div>
         `
-        : '<div class="record-modal-empty">No past entries found yet for this patient.</div>';
+        : `
+          <div class="record-modal-empty">
+            <div>No past entries found yet for this patient.</div>
+            ${renderHistoryDebugMessage()}
+          </div>
+        `;
 
       recordModal.innerHTML = `
         <div class="record-modal-body">
@@ -2855,6 +2861,33 @@
       return (Array.isArray(entries) ? entries : [])
         .filter((entry) => entry && typeof entry === 'object')
         .sort((left, right) => getHistoryTimestamp(right) - getHistoryTimestamp(left));
+    }
+
+    function renderHistoryDebugMessage() {
+      if (!lastHistoryDebug) {
+        return '<div style="margin-top:8px;font-size:12px;color:#607067;">Debug: history loader has not run yet.</div>';
+      }
+
+      const debugLines = [
+        `Patient ID: ${lastHistoryDebug.patientId || '-'}`,
+        `patients doc found by patientId key: ${lastHistoryDebug.patientDocFound ? 'yes' : 'no'}`,
+        `patients collection docs loaded: ${lastHistoryDebug.patientRecordsCount ?? 0}`,
+        `history collection rows loaded: ${lastHistoryDebug.historyEntriesCount ?? 0}`,
+        `history rows matched to this patientId: ${lastHistoryDebug.historyMatchCount ?? 0}`,
+        `merged patient match found: ${lastHistoryDebug.mergedPatientFound ? 'yes' : 'no'}`,
+        `final measurement entries: ${lastHistoryDebug.finalMeasurementHistoryCount ?? 0}`
+      ];
+
+      if (lastHistoryDebug.errorMessage) {
+        debugLines.push(`loader error: ${lastHistoryDebug.errorMessage}`);
+      }
+
+      return `
+        <div style="margin-top:10px;padding-top:10px;border-top:1px dashed #d7e2d9;font-size:12px;line-height:1.55;color:#607067;">
+          <strong style="display:block;margin-bottom:6px;color:#1b2a21;">Debug info</strong>
+          ${debugLines.map((line) => `<div>${escapeHtml(line)}</div>`).join('')}
+        </div>
+      `;
     }
 
     function formatMetricValue(value, unit = '') {
@@ -3082,6 +3115,17 @@
     }
 
     async function fetchPatientRecord(patientId) {
+      lastHistoryDebug = {
+        patientId,
+        patientDocFound: false,
+        patientRecordsCount: 0,
+        historyEntriesCount: 0,
+        historyMatchCount: 0,
+        mergedPatientFound: false,
+        finalMeasurementHistoryCount: 0,
+        errorMessage: ''
+      };
+
       const draftRecordRaw = sessionStorage.getItem('newPatientDraft');
 
       if (draftRecordRaw) {
@@ -3092,16 +3136,22 @@
       }
 
       if (!db) {
+        lastHistoryDebug.errorMessage = 'Firestore is not configured on this page.';
         return null;
       }
 
       const patientSnapshot = await getDoc(doc(db, 'patients', patientId)).catch(() => null);
+      lastHistoryDebug.patientDocFound = !!(patientSnapshot && patientSnapshot.exists && patientSnapshot.exists());
       const patientsSnapshot = await getDocs(collection(db, 'patients')).catch((error) => {
         console.warn(`Unable to load patient records: ${error.message}`);
+        lastHistoryDebug.errorMessage = `patients load failed: ${error.message}`;
         return { docs: [] };
       });
       const historySnapshot = await getDocs(collection(db, 'history')).catch((error) => {
         console.warn(`Unable to load history records: ${error.message}`);
+        lastHistoryDebug.errorMessage = lastHistoryDebug.errorMessage
+          ? `${lastHistoryDebug.errorMessage}; history load failed: ${error.message}`
+          : `history load failed: ${error.message}`;
         return { docs: [] };
       });
 
@@ -3109,6 +3159,7 @@
         id: docSnapshot.id,
         ...docSnapshot.data()
       }));
+      lastHistoryDebug.patientRecordsCount = patientRecords.length;
       const historyEntries = historySnapshot.docs
         .map((docSnapshot) => ({
           id: docSnapshot.id,
@@ -3116,6 +3167,7 @@
         }))
         .filter((entry) => entry.type !== 'prescription' && entry.source !== 'prescription-pdf')
         .sort((left, right) => getHistoryTimestamp(right) - getHistoryTimestamp(left));
+      lastHistoryDebug.historyEntriesCount = historyEntries.length;
 
       const historyByPatientId = new Map();
       historyEntries.forEach((entry) => {
@@ -3132,6 +3184,7 @@
       historyByPatientId.forEach((entries) => {
         entries.sort((left, right) => getHistoryTimestamp(right) - getHistoryTimestamp(left));
       });
+      lastHistoryDebug.historyMatchCount = (historyByPatientId.get(patientId) || []).length;
 
       const mergedPatients = [];
       const seenPatientIds = new Set();
@@ -3177,6 +3230,7 @@
       });
 
       const patientRecord = mergedPatients.find((entry) => String(entry.patientId || '').trim().toUpperCase() === patientId) || null;
+      lastHistoryDebug.mergedPatientFound = !!patientRecord;
 
       if (!patientRecord) {
         return null;
@@ -3201,6 +3255,10 @@
         });
       }
 
+      lastHistoryDebug.finalMeasurementHistoryCount = Array.isArray(mergedPatientRecord.measurementHistory)
+        ? mergedPatientRecord.measurementHistory.length
+        : 0;
+
       return mergedPatientRecord;
     }
 
@@ -3208,6 +3266,7 @@
       const patientId = patientIdInput.value.trim().toUpperCase();
 
       if (!patientId) {
+        lastHistoryDebug = null;
         clearMeasurementInputs();
         childNameInput.value = '';
         parentNameInput.value = '';
@@ -3244,6 +3303,16 @@
         applyPatientRecord(patientRecord);
         setPatientHint('');
       } catch (error) {
+        lastHistoryDebug = {
+          patientId,
+          patientDocFound: false,
+          patientRecordsCount: 0,
+          historyEntriesCount: 0,
+          historyMatchCount: 0,
+          mergedPatientFound: false,
+          finalMeasurementHistoryCount: 0,
+          errorMessage: error.message
+        };
         setPatientHint(`Unable to load patient details: ${error.message}`);
         updatePageMeta();
         setPatientGrowthHistory([]);
