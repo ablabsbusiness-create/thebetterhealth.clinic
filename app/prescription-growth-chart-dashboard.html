@@ -1195,10 +1195,46 @@
     }
 
     .record-grid-toolbar-copy {
+      display: flex;
+      align-items: center;
+      gap: 10px;
       color: var(--muted);
       font-size: 12px;
       font-weight: 600;
       line-height: 1.4;
+      flex-wrap: wrap;
+    }
+
+    .record-grid-toolbar-copy label {
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .record-grid-date-input {
+      min-height: 36px;
+      width: 160px;
+      padding: 0 12px;
+      border: 1px solid #d6e3d8;
+      border-radius: 12px;
+      background: #ffffff;
+      color: var(--ink);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .record-grid-clear-btn {
+      min-height: 36px;
+      padding: 0 14px;
+      border: 1px solid #d8e7db;
+      border-radius: 12px;
+      background: #ffffff;
+      color: var(--brand-strong);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
     }
 
     .record-grid-nav {
@@ -1273,15 +1309,19 @@
     .record-grid thead th:first-child {
       left: 0;
       z-index: 4;
-      min-width: 170px;
+      min-width: 120px;
       text-align: left;
+    }
+
+    .record-grid thead th:nth-child(2) {
+      min-width: 72px;
     }
 
     .record-grid tbody th {
       position: sticky;
       left: 0;
       z-index: 2;
-      min-width: 170px;
+      min-width: 120px;
       padding: 12px 12px;
       background: linear-gradient(180deg, #f7fbf8, #f1f7f3);
       text-align: left;
@@ -1303,6 +1343,22 @@
     .record-grid tbody tr:last-child th,
     .record-grid tbody tr:last-child td {
       border-bottom: none;
+    }
+
+    .record-grid .metric-name {
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .record-grid .metric-unit {
+      min-width: 72px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      text-align: center;
+      white-space: nowrap;
+      background: #fbfdfb;
     }
 
     .record-grid tbody th:last-child,
@@ -2167,6 +2223,7 @@
     const HISTORY_PAGE_SIZE = 6;
     const metricHistoryCountState = Object.fromEntries(Object.keys(metricInputs).map((key) => [key, 11]));
     let patientGrowthHistory = [];
+    let recordModalSelectedDate = '';
     let activeHistoryEditKey = '';
     let historyPageIndex = 0;
     let selectedMeasurementDateIso = '';
@@ -2597,14 +2654,17 @@
         return;
       }
 
-      const patientId = patientIdInput.value.trim().toUpperCase();
-      const childName = childNameInput.value.trim();
       const entries = getEditableHistoryEntries();
+      const visibleEntries = getRecordModalVisibleEntries(entries, recordModalSelectedDate);
 
       const bodyMarkup = entries.length
         ? `
           <div class="record-grid-toolbar">
-            <div class="record-grid-toolbar-copy">Use the arrows to move across older saved dates.</div>
+            <div class="record-grid-toolbar-copy">
+              <label for="record-history-date">Change date</label>
+              <input id="record-history-date" class="record-grid-date-input" type="date" value="${escapeHtml(recordModalSelectedDate)}">
+              <button type="button" class="record-grid-clear-btn" data-clear-record-date>Show all</button>
+            </div>
             <div class="record-grid-nav">
               <button type="button" class="record-grid-nav-btn" data-record-scroll="left" aria-label="Show newer dates">‹</button>
               <button type="button" class="record-grid-nav-btn" data-record-scroll="right" aria-label="Show older dates">›</button>
@@ -2614,24 +2674,25 @@
             <table class="record-grid">
               <thead>
                 <tr>
-                  <th scope="col">Metric</th>
-                  ${entries.map((entry) => `
+                  <th scope="col"></th>
+                  <th scope="col"></th>
+                  ${visibleEntries.map((entry) => `
                     <th scope="col">
-                      <span class="record-grid-col-date">${escapeHtml(formatHistoryEntryDate(entry))}</span>
+                      <span class="record-grid-col-date">${escapeHtml(formatHistoryDateHeader(entry))}</span>
                     </th>
                   `).join('')}
                 </tr>
               </thead>
               <tbody>
-                ${RECORD_MODAL_METRICS.map((metric) => `
+                ${visibleEntries.length === 0 ? `
                   <tr>
-                    <th scope="row">
-                      <div class="record-grid-label">
-                        <span class="record-grid-type">${escapeHtml(metric.type)}</span>
-                        <span class="record-grid-name">${escapeHtml(metric.label)}</span>
-                      </div>
-                    </th>
-                    ${entries.map((entry) => buildRecordGridCell(entry, metric)).join('')}
+                    <td colspan="8" class="record-modal-empty">No chart measurements were found for the selected date.</td>
+                  </tr>
+                ` : RECORD_MODAL_METRICS.map((metric) => `
+                  <tr>
+                    <th scope="row" class="metric-name">${escapeHtml(metric.shortLabel)}</th>
+                    <td class="metric-unit">${escapeHtml(metric.unit)}</td>
+                    ${visibleEntries.map((entry) => buildRecordGridCell(entry, metric)).join('')}
                   </tr>
                 `).join('')}
               </tbody>
@@ -2731,6 +2792,7 @@
         return;
       }
 
+      recordModalSelectedDate = '';
       renderRecordModalContent();
       recordModalBackdrop.hidden = false;
       updateRecordGridNavState();
@@ -2746,6 +2808,22 @@
       return `${entry.createdAtIso || entry.savedAt || entry.createdAtDisplay || ''}-${entry.weight || ''}-${entry.height || ''}-${entry.head || ''}`;
     }
 
+    function getIsoDatePart(dateValue) {
+      if (!dateValue) {
+        return '';
+      }
+
+      const parsed = new Date(dateValue);
+      if (Number.isNaN(parsed.getTime())) {
+        return '';
+      }
+
+      const year = parsed.getFullYear();
+      const month = String(parsed.getMonth() + 1).padStart(2, '0');
+      const day = String(parsed.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
     function formatHistoryEntryDate(entry = {}) {
       const timestamp = getHistoryTimestamp(entry);
 
@@ -2757,6 +2835,19 @@
         day: 'numeric',
         month: 'short',
         year: 'numeric'
+      });
+    }
+
+    function formatHistoryDateHeader(entry = {}) {
+      const timestamp = getHistoryTimestamp(entry);
+      if (!timestamp) {
+        return 'Saved';
+      }
+
+      return new Date(timestamp).toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: '2-digit'
       });
     }
 
@@ -2785,19 +2876,25 @@
     }
 
     const RECORD_MODAL_METRICS = [
-      { key: 'weight', type: 'Growth', label: 'Weight (kg)', placeholder: 'kg' },
-      { key: 'height', type: 'Growth', label: 'Height (cm)', placeholder: 'cm' },
-      { key: 'head', type: 'Growth', label: 'OFC (cm)', placeholder: 'cm' },
-      { key: 'spo2', type: 'Vitals', label: 'SpO2 (%)', placeholder: '%' },
-      { key: 'pulse', type: 'Vitals', label: 'Pulse (bpm)', placeholder: 'bpm' },
-      { key: 'systolic', type: 'Vitals', label: 'BP Systolic (mmHg)', placeholder: 'mmHg' },
-      { key: 'diastolic', type: 'Vitals', label: 'BP Diastolic (mmHg)', placeholder: 'mmHg' },
-      { key: 'temp', type: 'Vitals', label: 'Temp (C)', placeholder: 'C' }
+      { key: 'weight', shortLabel: 'Weight', unit: 'kg', type: 'Growth', label: 'Weight (kg)', placeholder: 'kg' },
+      { key: 'height', shortLabel: 'Height', unit: 'cm', type: 'Growth', label: 'Height (cm)', placeholder: 'cm' },
+      { key: 'head', shortLabel: 'Ofc', unit: 'cm', type: 'Growth', label: 'OFC (cm)', placeholder: 'cm' },
+      { key: 'spo2', shortLabel: 'SPO2', unit: '%', type: 'Vitals', label: 'SpO2 (%)', placeholder: '%' },
+      { key: 'pulse', shortLabel: 'Pulse', unit: '/min', type: 'Vitals', label: 'Pulse (bpm)', placeholder: 'bpm' },
+      { key: 'systolic', shortLabel: 'Systolic', unit: 'mmHg', type: 'Vitals', label: 'BP Systolic (mmHg)', placeholder: 'mmHg' },
+      { key: 'diastolic', shortLabel: 'Diastolic', unit: 'mmHg', type: 'Vitals', label: 'BP Diastolic (mmHg)', placeholder: 'mmHg' },
+      { key: 'temp', shortLabel: 'Temperature', unit: '°C', type: 'Vitals', label: 'Temp (C)', placeholder: 'C' }
     ];
 
     function getEditableHistoryEntries() {
       return [...patientGrowthHistory]
         .sort((left, right) => getHistoryTimestamp(right) - getHistoryTimestamp(left));
+    }
+
+    function getRecordModalVisibleEntries(entries = [], selectedDate = '') {
+      return (selectedDate
+        ? entries.filter((entry) => getIsoDatePart(entry.createdAtIso || entry.measuredAt || entry.savedAt || '') === selectedDate)
+        : entries).slice(0, 6);
     }
 
     function buildRecordGridCell(entry, metric) {
@@ -3045,7 +3142,7 @@
 
         mergedPatients.push({
           ...patient,
-          measurementHistory: Array.isArray(patient.measurementHistory)
+          measurementHistory: Array.isArray(patient.measurementHistory) && patient.measurementHistory.length
             ? patient.measurementHistory
             : patientHistoryEntries,
           lastMeasurementRecord: patient.lastMeasurementRecord || patientHistoryEntries[0] || null
@@ -4168,12 +4265,28 @@
           return;
         }
 
+        const clearDateButton = event.target.closest('[data-clear-record-date]');
+        if (clearDateButton) {
+          recordModalSelectedDate = '';
+          renderRecordModalContent();
+          updateRecordGridNavState();
+          return;
+        }
+
         if (event.target === recordModalBackdrop) {
           closeRecordDateModal();
         }
       });
 
       recordModalBackdrop.addEventListener('change', async (event) => {
+        const historyDateInput = event.target.closest('#record-history-date');
+        if (historyDateInput) {
+          recordModalSelectedDate = String(historyDateInput.value || '').trim();
+          renderRecordModalContent();
+          updateRecordGridNavState();
+          return;
+        }
+
         const input = event.target.closest('[data-record-inline-edit]');
         if (!input) {
           return;
