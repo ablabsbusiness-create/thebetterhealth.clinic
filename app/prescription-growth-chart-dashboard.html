@@ -1237,6 +1237,110 @@
       cursor: pointer;
     }
 
+    .history-filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-top: 2px;
+      padding: 0 4px;
+    }
+
+    .history-filter-row label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .history-filter-row input[type="date"] {
+      width: auto;
+      min-width: 180px;
+      min-height: 42px;
+      padding: 0 12px;
+      border-radius: 12px;
+      border: 1px solid #d6e3d8;
+      background: #ffffff;
+      color: var(--ink);
+      font: inherit;
+      font-size: 13px;
+    }
+
+    .filter-clear-btn {
+      width: auto;
+      min-height: 42px;
+      padding: 0 14px;
+      border-radius: 12px;
+      background: #ffffff;
+      border: 1px solid #d8e7db;
+      color: var(--brand-strong);
+      box-shadow: none;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .record-table-wrap {
+      overflow-x: auto;
+      margin-top: 2px;
+    }
+
+    .record-table {
+      width: 100%;
+      min-width: 100%;
+      border-collapse: separate;
+      border-spacing: 4px;
+    }
+
+    .record-table th,
+    .record-table td {
+      padding: 8px 8px;
+      text-align: center;
+      vertical-align: middle;
+      font-size: 12px;
+      line-height: 1.4;
+      color: var(--ink);
+    }
+
+    .record-table thead th {
+      padding-bottom: 4px;
+      color: var(--brand-strong);
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .record-table .metric-name {
+      min-width: 70px;
+      padding-left: 0;
+      text-align: left;
+      color: var(--ink);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .record-table .metric-unit {
+      min-width: 34px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .record-table .metric-value {
+      min-width: 52px;
+      border-radius: 10px;
+      background: rgba(22, 101, 52, 0.08);
+      border: 1px solid rgba(22, 101, 52, 0.12);
+      font-weight: 600;
+    }
+
+    .record-table .table-empty {
+      text-align: left;
+      border-radius: 12px;
+      background: rgba(22, 101, 52, 0.06);
+      border: 1px solid rgba(22, 101, 52, 0.12);
+    }
+
     .record-grid-nav {
       display: inline-flex;
       align-items: center;
@@ -2655,51 +2759,15 @@
         return;
       }
 
-      const entries = getEditableHistoryEntries();
-      const visibleEntries = getRecordModalVisibleEntries(entries, recordModalSelectedDate);
+      const modalPatient = {
+        patientId: patientIdInput.value.trim().toUpperCase(),
+        measurementHistory: getEditableHistoryEntries(),
+        lastMeasurementRecord: getEditableHistoryEntries()[0] || null
+      };
+      const entries = getMeasurementEntries(modalPatient);
 
       const bodyMarkup = entries.length
-        ? `
-          <div class="record-grid-toolbar">
-            <div class="record-grid-toolbar-copy">
-              <label for="record-history-date">Change date</label>
-              <input id="record-history-date" class="record-grid-date-input" type="date" value="${escapeHtml(recordModalSelectedDate)}">
-              <button type="button" class="record-grid-clear-btn" data-clear-record-date>Show all</button>
-            </div>
-            <div class="record-grid-nav">
-              <button type="button" class="record-grid-nav-btn" data-record-scroll="left" aria-label="Show newer dates">‹</button>
-              <button type="button" class="record-grid-nav-btn" data-record-scroll="right" aria-label="Show older dates">›</button>
-            </div>
-          </div>
-          <div class="record-grid-wrap">
-            <table class="record-grid">
-              <thead>
-                <tr>
-                  <th scope="col"></th>
-                  <th scope="col"></th>
-                  ${visibleEntries.map((entry) => `
-                    <th scope="col">
-                      <span class="record-grid-col-date">${escapeHtml(formatHistoryDateHeader(entry))}</span>
-                    </th>
-                  `).join('')}
-                </tr>
-              </thead>
-              <tbody>
-                ${visibleEntries.length === 0 ? `
-                  <tr>
-                    <td colspan="8" class="record-modal-empty">No chart measurements were found for the selected date.</td>
-                  </tr>
-                ` : RECORD_MODAL_METRICS.map((metric) => `
-                  <tr>
-                    <th scope="row" class="metric-name">${escapeHtml(metric.shortLabel)}</th>
-                    <td class="metric-unit">${escapeHtml(metric.unit)}</td>
-                    ${visibleEntries.map((entry) => buildRecordGridCell(entry, metric)).join('')}
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          </div>
-        `
+        ? renderMeasurementTableHtml(modalPatient, recordModalSelectedDate)
         : `
           <div class="record-modal-empty">
             <div>No past entries found yet for this patient.</div>
@@ -2855,6 +2923,77 @@
         month: 'short',
         year: '2-digit'
       });
+    }
+
+    function formatMetricCellValue(value, suffix = '') {
+      return value && String(value).trim() ? `${value}${suffix}` : '';
+    }
+
+    function getMeasurementEntries(patient) {
+      const entries = Array.isArray(patient.measurementHistory) ? [...patient.measurementHistory] : [];
+      if (patient.lastMeasurementRecord && entries.length === 0) {
+        entries.push(patient.lastMeasurementRecord);
+      }
+
+      return entries.sort((a, b) => {
+        const aTime = Date.parse(a?.createdAtIso || '') || 0;
+        const bTime = Date.parse(b?.createdAtIso || '') || 0;
+        return bTime - aTime;
+      });
+    }
+
+    function renderMeasurementTableHtml(patient, selectedDate = '') {
+      const entries = getMeasurementEntries(patient);
+      if (entries.length === 0) {
+        return '';
+      }
+
+      const filteredEntries = (selectedDate
+        ? entries.filter((entry) => getIsoDatePart(entry.createdAtIso || entry.measuredAt || entry.savedAt || '') === selectedDate)
+        : entries).slice(0, 6);
+
+      const rows = [
+        { label: 'Weight', unit: 'kg', getValue: (entry) => formatMetricCellValue(entry.weight) },
+        { label: 'Height', unit: 'cm', getValue: (entry) => formatMetricCellValue(entry.height) },
+        { label: 'Ofc', unit: 'cm', getValue: (entry) => formatMetricCellValue(entry.head) },
+        { label: 'SPO2', unit: '%', getValue: (entry) => formatMetricCellValue(entry.spo2) },
+        { label: 'Pulse', unit: '/min', getValue: (entry) => formatMetricCellValue(entry.pulse) },
+        { label: 'Systolic', unit: 'mmHg', getValue: (entry) => formatMetricCellValue(entry.systolic) },
+        { label: 'Diastolic', unit: 'mmHg', getValue: (entry) => formatMetricCellValue(entry.diastolic) },
+        { label: 'Temperature', unit: '°C', getValue: (entry) => formatMetricCellValue(entry.temp) }
+      ];
+
+      return `
+        <div class="history-filter-row">
+          <label for="history-date-${patient.patientId}">Change date</label>
+          <input id="history-date-${patient.patientId}" class="history-date-input" data-patient-id="${escapeHtml(patient.patientId || '')}" type="date" value="${escapeHtml(selectedDate)}">
+          <button class="filter-clear-btn" type="button" data-clear-history-date="${escapeHtml(patient.patientId || '')}">Show all</button>
+        </div>
+        <div class="record-table-wrap">
+          <table class="record-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th></th>
+                ${filteredEntries.map((entry) => `<th>${formatHistoryDateHeader(entry)}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              ${filteredEntries.length === 0 ? `
+                <tr>
+                  <td colspan="6" class="table-empty">No chart measurements were found for the selected date.</td>
+                </tr>
+              ` : rows.map((row) => `
+                <tr>
+                  <th scope="row" class="metric-name">${row.label}</th>
+                  <td class="metric-unit">${row.unit}</td>
+                  ${filteredEntries.map((entry) => `<td class="metric-value">${row.getValue(entry)}</td>`).join('')}
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
     }
 
     function normalizeGrowthHistory(entries = []) {
@@ -4362,7 +4501,7 @@
           return;
         }
 
-        const clearDateButton = event.target.closest('[data-clear-record-date]');
+        const clearDateButton = event.target.closest('[data-clear-record-date], [data-clear-history-date]');
         if (clearDateButton) {
           recordModalSelectedDate = '';
           renderRecordModalContent();
@@ -4376,7 +4515,7 @@
       });
 
       recordModalBackdrop.addEventListener('change', async (event) => {
-        const historyDateInput = event.target.closest('#record-history-date');
+        const historyDateInput = event.target.closest('#record-history-date, .history-date-input');
         if (historyDateInput) {
           recordModalSelectedDate = String(historyDateInput.value || '').trim();
           renderRecordModalContent();
