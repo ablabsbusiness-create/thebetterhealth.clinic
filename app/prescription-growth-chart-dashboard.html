@@ -2998,12 +2998,113 @@
         return null;
       }
 
-      const patientSnapshot = await getDoc(doc(db, 'patients', patientId));
-      if (!patientSnapshot.exists()) {
+      const patientSnapshot = await getDoc(doc(db, 'patients', patientId)).catch(() => null);
+      const patientsSnapshot = await getDocs(collection(db, 'patients')).catch((error) => {
+        console.warn(`Unable to load patient records: ${error.message}`);
+        return { docs: [] };
+      });
+      const historySnapshot = await getDocs(collection(db, 'history')).catch((error) => {
+        console.warn(`Unable to load history records: ${error.message}`);
+        return { docs: [] };
+      });
+
+      const patientRecords = patientsSnapshot.docs.map((docSnapshot) => ({
+        id: docSnapshot.id,
+        ...docSnapshot.data()
+      }));
+      const historyEntries = historySnapshot.docs
+        .map((docSnapshot) => ({
+          id: docSnapshot.id,
+          ...docSnapshot.data()
+        }))
+        .filter((entry) => entry.type !== 'prescription' && entry.source !== 'prescription-pdf')
+        .sort((left, right) => getHistoryTimestamp(right) - getHistoryTimestamp(left));
+
+      const historyByPatientId = new Map();
+      historyEntries.forEach((entry) => {
+        const entryPatientId = String(entry.patientId || '').trim().toUpperCase();
+        if (!entryPatientId) {
+          return;
+        }
+
+        const entries = historyByPatientId.get(entryPatientId) || [];
+        entries.push(entry);
+        historyByPatientId.set(entryPatientId, entries);
+      });
+
+      historyByPatientId.forEach((entries) => {
+        entries.sort((left, right) => getHistoryTimestamp(right) - getHistoryTimestamp(left));
+      });
+
+      const mergedPatients = [];
+      const seenPatientIds = new Set();
+
+      patientRecords.forEach((patient) => {
+        const entryPatientId = String(patient.patientId || '').trim().toUpperCase();
+        const patientHistoryEntries = entryPatientId ? historyByPatientId.get(entryPatientId) || [] : [];
+
+        mergedPatients.push({
+          ...patient,
+          measurementHistory: Array.isArray(patient.measurementHistory)
+            ? patient.measurementHistory
+            : patientHistoryEntries,
+          lastMeasurementRecord: patient.lastMeasurementRecord || patientHistoryEntries[0] || null
+        });
+
+        if (entryPatientId) {
+          seenPatientIds.add(entryPatientId);
+        }
+      });
+
+      historyByPatientId.forEach((entries, entryPatientId) => {
+        if (seenPatientIds.has(entryPatientId)) {
+          return;
+        }
+
+        const latest = entries[0] || {};
+        mergedPatients.push({
+          id: `history-${entryPatientId}`,
+          patientId: latest.patientId || entryPatientId,
+          childName: latest.childName || latest.patientName || '',
+          firstName: latest.firstName || '',
+          middleName: latest.middleName || '',
+          lastName: latest.lastName || '',
+          parentName: latest.parentName || '',
+          phone: latest.phone || '',
+          gender: latest.gender || '',
+          dob: latest.dob || '',
+          measurementHistory: entries,
+          lastMeasurementRecord: entries[0] || latest,
+          fromHistoryOnly: true
+        });
+      });
+
+      const patientRecord = mergedPatients.find((entry) => String(entry.patientId || '').trim().toUpperCase() === patientId) || null;
+
+      if (!patientRecord) {
         return null;
       }
 
-      return patientSnapshot.data();
+      const mergedPatientRecord = {
+        ...patientRecord,
+        patientId,
+        measurementHistory: Array.isArray(patientRecord.measurementHistory) && patientRecord.measurementHistory.length
+          ? patientRecord.measurementHistory
+          : historyByPatientId.get(patientId) || [],
+        lastMeasurementRecord: patientRecord.lastMeasurementRecord || (historyByPatientId.get(patientId) || [])[0] || null
+      };
+
+      if ((!patientSnapshot || !patientSnapshot.exists()) && patientRecord) {
+        await setDoc(doc(db, 'patients', patientId), {
+          ...mergedPatientRecord,
+          patientId,
+          updatedAt: serverTimestamp()
+        }, { merge: true }).catch((error) => {
+          console.warn(`Unable to normalize patient record to patientId doc: ${error.message}`);
+        });
+      }
+
+      return mergedPatientRecord;
     }
 
     async function autoFillPatientDetails() {
