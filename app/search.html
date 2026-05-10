@@ -564,45 +564,27 @@
 
     .worklist-item-head {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
       gap: 10px;
     }
 
     .worklist-item-ident {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-width: 0;
-    }
-
-    .worklist-item-avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
       display: grid;
-      place-items: center;
-      background: linear-gradient(135deg, #166534, #22c55e);
-      color: #fff;
-      font-size: 15px;
-      font-weight: 800;
-      flex-shrink: 0;
-      box-shadow: 0 8px 18px rgba(22, 101, 52, 0.18);
+      gap: 3px;
+      min-width: 0;
     }
 
     .worklist-item-title {
       min-width: 0;
       display: grid;
-      gap: 3px;
+      gap: 4px;
     }
 
     .worklist-item-name {
       margin: 0;
-      font-size: 17px;
+      font-size: 16px;
       line-height: 1.1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
 
     .worklist-item-meta,
@@ -633,25 +615,18 @@
       display: inline-block;
     }
 
-    .worklist-item-badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 76px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: #eef4ef;
-      color: #3e5146;
-      font-size: 11px;
+    .worklist-item-phone {
+      color: var(--ink);
+      font-size: 14px;
       font-weight: 700;
+      line-height: 1.1;
+      text-align: right;
       white-space: nowrap;
-      border: 1px solid #dce6dd;
-      flex-shrink: 0;
     }
 
     .worklist-item-actions {
-      display: inline-flex;
-      align-items: center;
+      display: grid;
+      justify-items: end;
       gap: 8px;
       flex-shrink: 0;
     }
@@ -687,52 +662,10 @@
       cursor: default;
     }
 
-    .worklist-item-badge.is-seen {
-      background: #e9f7ef;
-      color: #166534;
-      border-color: #cdebd7;
-    }
-
-    .worklist-item-badge.is-queue {
-      background: #fff7e7;
-      color: #9a5800;
-      border-color: #f7d79c;
-    }
-
-    .worklist-item-badge.is-appointment {
-      background: #eef5ff;
-      color: #1a56b3;
-      border-color: #cfe0ff;
-    }
-
-    .worklist-item-metrics {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
-    }
-
-    .worklist-item-metric {
-      padding: 8px 9px;
-      border-radius: 10px;
-      border: 1px solid #e3ebe5;
-      background: #f9fbf9;
-    }
-
-    .worklist-item-metric label {
-      display: block;
+    .worklist-item-note {
       color: var(--muted);
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-    }
-
-    .worklist-item-metric strong {
-      display: block;
-      color: var(--ink);
-      font-size: 14px;
-      line-height: 1;
+      font-size: 12px;
+      line-height: 1.4;
     }
 
     .worklist-main {
@@ -1218,6 +1151,38 @@
       background: rgba(255, 255, 255, 0.12);
       border: 1px solid rgba(255, 255, 255, 0.14);
       font-weight: 600;
+    }
+
+    .record-table-input {
+      width: 100%;
+      min-height: 34px;
+      padding: 6px 10px;
+      border: 1px solid #d6e3d8;
+      border-radius: 10px;
+      background: #fcfefc;
+      color: var(--ink);
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: left;
+      transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+    }
+
+    .record-table-input:hover {
+      border-color: #c8d9cc;
+      background: #ffffff;
+    }
+
+    .record-table-input:focus {
+      outline: none;
+      border-color: rgba(22, 101, 52, 0.38);
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.10);
+    }
+
+    .record-table-input::placeholder {
+      color: #91a396;
+      font-weight: 500;
     }
 
     .record-table .table-empty {
@@ -1735,7 +1700,7 @@
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
-    import { collection, getDocs, getFirestore } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { collection, doc, getDocs, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
 
     const searchInput = document.getElementById('search-input');
     const clearBtn = document.getElementById('clear-btn');
@@ -2287,53 +2252,67 @@
 
     function renderMeasurementTableHtml(patient, selectedDate = '') {
       const entries = getMeasurementEntries(patient);
-      if (entries.length === 0) {
+      if (entries.length === 0 && !selectedDate) {
         return '';
       }
 
-      const filteredEntries = (selectedDate
-        ? entries.filter((entry) => getIsoDatePart(entry.createdAtIso) === selectedDate)
-        : entries).slice(0, 6);
+      const filteredEntries = getEditableMeasurementEntries(patient, selectedDate);
 
       const rows = [
         {
           label: 'Weight',
           unit: 'kg',
+          key: 'weight',
+          placeholder: 'kg',
           getValue: (entry) => formatMetricCellValue(entry.weight)
         },
         {
           label: 'Height',
           unit: 'cm',
+          key: 'height',
+          placeholder: 'cm',
           getValue: (entry) => formatMetricCellValue(entry.height)
         },
         {
           label: 'Ofc',
           unit: 'cm',
+          key: 'head',
+          placeholder: 'cm',
           getValue: (entry) => formatMetricCellValue(entry.head)
         },
         {
           label: 'SPO2',
           unit: '%',
+          key: 'spo2',
+          placeholder: '%',
           getValue: (entry) => formatMetricCellValue(entry.spo2)
         },
         {
           label: 'Pulse',
           unit: '/min',
+          key: 'pulse',
+          placeholder: 'bpm',
           getValue: (entry) => formatMetricCellValue(entry.pulse)
         },
         {
           label: 'Systolic',
           unit: 'mmHg',
+          key: 'systolic',
+          placeholder: 'mmHg',
           getValue: (entry) => formatMetricCellValue(entry.systolic)
         },
         {
           label: 'Diastolic',
           unit: 'mmHg',
+          key: 'diastolic',
+          placeholder: 'mmHg',
           getValue: (entry) => formatMetricCellValue(entry.diastolic)
         },
         {
           label: 'Temperature',
           unit: '°C',
+          key: 'temp',
+          placeholder: 'C',
           getValue: (entry) => formatMetricCellValue(entry.temp)
         }
       ];
@@ -2362,7 +2341,24 @@
                 <tr>
                   <th scope="row" class="metric-name">${row.label}</th>
                   <td class="metric-unit">${row.unit}</td>
-                  ${filteredEntries.map((entry) => `<td class="metric-value">${row.getValue(entry)}</td>`).join('')}
+                  ${filteredEntries.map((entry) => {
+                    const rawValue = row.getValue(entry) === '-' ? '' : row.getValue(entry);
+                    return `
+                      <td class="metric-value">
+                        <input
+                          class="record-table-input"
+                          type="text"
+                          inputmode="decimal"
+                          placeholder="${row.placeholder}"
+                          value="${escapeHtml(rawValue)}"
+                          data-history-inline-edit
+                          data-patient-id="${escapeHtml(patient.patientId || '')}"
+                          data-history-entry="${escapeHtml(createMeasurementEntryKey(entry))}"
+                          data-history-metric="${escapeHtml(row.key)}"
+                        >
+                      </td>
+                    `;
+                  }).join('')}
                 </tr>
               `).join('')}
             </tbody>
@@ -2391,6 +2387,79 @@
         .filter((entry) => entry.type === 'prescription' || entry.source === 'prescription-pdf')
         .filter((entry) => (entry.patientId || '').toUpperCase() === String(patientId || '').toUpperCase())
         .sort((a, b) => new Date(b.createdAtIso || 0) - new Date(a.createdAtIso || 0));
+    }
+
+    function createMeasurementEntryKey(entry) {
+      return String(entry?.createdAtIso || '').trim()
+        || `${entry?.weight || ''}-${entry?.height || ''}-${entry?.head || ''}-${entry?.spo2 || ''}-${entry?.pulse || ''}`;
+    }
+
+    function buildBlankMeasurementEntry(dateValue) {
+      const isoSeed = dateValue || getTodayIsoDate();
+      return {
+        createdAtIso: `${isoSeed}T12:00:00.000Z`,
+        weight: '',
+        height: '',
+        head: '',
+        spo2: '',
+        pulse: '',
+        systolic: '',
+        diastolic: '',
+        temp: ''
+      };
+    }
+
+    function getEditableMeasurementEntries(patient, selectedDate = '') {
+      const entries = getMeasurementEntries(patient);
+      if (selectedDate) {
+        const matches = entries.filter((entry) => getIsoDatePart(entry.createdAtIso) === selectedDate);
+        return matches.length ? matches.slice(0, 6) : [buildBlankMeasurementEntry(selectedDate)];
+      }
+
+      return entries.slice(0, 6);
+    }
+
+    async function saveMeasurementEntryEdit(patientId, entryKey, metricKey, nextValue) {
+      if (!db || !patientId || !entryKey || !metricKey) {
+        return;
+      }
+
+      const patientIndex = allPatients.findIndex((entry) => String(entry?.patientId || '').trim().toUpperCase() === String(patientId).trim().toUpperCase());
+      if (patientIndex < 0) {
+        throw new Error('Patient not found for this edit');
+      }
+
+      const patient = allPatients[patientIndex];
+      const entries = getMeasurementEntries(patient).map((entry) => ({ ...entry }));
+      const existingIndex = entries.findIndex((entry) => createMeasurementEntryKey(entry) === entryKey);
+      const targetEntry = existingIndex >= 0 ? { ...entries[existingIndex] } : { ...buildBlankMeasurementEntry(getIsoDatePart(entryKey)), createdAtIso: entryKey };
+      targetEntry[metricKey] = String(nextValue || '').trim();
+
+      const nextEntries = existingIndex >= 0
+        ? entries.map((entry, index) => index === existingIndex ? targetEntry : entry)
+        : [targetEntry, ...entries];
+
+      nextEntries.sort((a, b) => new Date(b.createdAtIso || 0) - new Date(a.createdAtIso || 0));
+      const latestEntry = nextEntries[0] || null;
+
+      await setDoc(doc(db, 'patients', patientId), {
+        patientId,
+        measurementHistory: nextEntries,
+        ...(latestEntry ? { lastMeasurementRecord: latestEntry } : {}),
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      allPatients = allPatients.map((entry) => {
+        if (String(entry?.patientId || '').trim().toUpperCase() !== String(patientId).trim().toUpperCase()) {
+          return entry;
+        }
+
+        return {
+          ...entry,
+          measurementHistory: nextEntries,
+          lastMeasurementRecord: latestEntry
+        };
+      });
     }
 
     function getPrescriptionEntriesForDate(patientId, dateValue) {
@@ -2499,69 +2568,37 @@
       const hasAppointment = patientHasAppointmentOnDate(patient, dateValue);
       const wasSeen = visits.length > 0 || prescriptions.length > 0;
       const isQueued = patientIsQueuedOnDate(patient, dateValue);
-      const latest = visits[0] || getMeasurementEntries(patient)[0] || null;
       const isActive = selectedPatientId === patientId;
-      const badgeLabel = wasSeen
-        ? visits.length
-          ? `${visits.length} visit${visits.length === 1 ? '' : 's'}`
-          : 'Seen'
-        : hasAppointment
-          ? 'Appt'
-          : 'Queue';
-      const badgeClass = wasSeen
-        ? 'is-seen'
-        : hasAppointment
-          ? 'is-appointment'
-          : 'is-queue';
-      const weightValue = latest?.weight ? `${latest.weight} kg` : '-';
-      const heightValue = latest?.height ? `${latest.height} cm` : '-';
-      const ofcValue = latest?.head ? `${latest.head} cm` : '-';
+      const parentNameValue = formatMissing(patient.parentName, '').trim();
       const subtitleParts = [patientId];
-      if (phone && phone !== 'Phone not saved') subtitleParts.push(phone);
-      if (formatMissing(patient.parentName, '')?.trim()) subtitleParts.push(formatMissing(patient.parentName, ''));
+      if (parentNameValue) subtitleParts.push(parentNameValue);
       const queueButtonLabel = wasSeen ? 'Seen' : isQueued ? 'Queued' : 'Queue';
       const queueButtonClass = wasSeen ? 'is-seen' : isQueued ? 'is-added' : '';
+      const phoneHtml = phone && phone !== 'Phone not saved'
+        ? `<div class="worklist-item-phone">${phone}</div>`
+        : '';
+      const idLineHtml = subtitleParts.length
+        ? `<div class="worklist-item-sub">${subtitleParts.map((part) => `<span>${part}</span>`).join('')}</div>`
+        : '';
 
       return `
         <article class="worklist-item ${isActive ? 'is-active' : ''}" data-patient-card="${patientId}">
           <div class="worklist-item-main" data-select-worklist-patient="${patientId}" role="button" tabindex="0" aria-label="Open ${escapeHtml(childName)} details">
             <div class="worklist-item-head">
               <div class="worklist-item-ident">
-                <div class="worklist-item-avatar">${childName.charAt(0).toUpperCase()}</div>
                 <div class="worklist-item-title">
                   <h3 class="worklist-item-name">${childName}</h3>
                   <div class="worklist-item-meta">${gender} | ${dob}</div>
                 </div>
               </div>
               <div class="worklist-item-actions">
-                <span class="worklist-item-badge ${badgeClass}">${badgeLabel}</span>
+                ${phoneHtml}
                 <button class="worklist-item-queue-btn ${queueButtonClass}" type="button" data-queue-patient="${patientId}" ${wasSeen ? 'disabled' : ''}>${queueButtonLabel}</button>
               </div>
             </div>
-            <div class="worklist-item-sub">
-              ${subtitleParts.map((part) => `<span>${part}</span>`).join('')}
-            </div>
-            <div class="worklist-item-metrics">
-              <div class="worklist-item-metric">
-                <label>Weight</label>
-                <strong>${weightValue}</strong>
-              </div>
-              <div class="worklist-item-metric">
-                <label>Height</label>
-                <strong>${heightValue}</strong>
-              </div>
-              <div class="worklist-item-metric">
-                <label>OFC</label>
-                <strong>${ofcValue}</strong>
-              </div>
-            </div>
-            ${!visits.length && wasSeen ? '<div class="worklist-item-sub"><span>Prescription saved on this date</span></div>' : ''}
+            ${idLineHtml}
+            ${!visits.length && wasSeen ? '<div class="worklist-item-note">Prescription saved on this date</div>' : ''}
           </div>
-          ${isQueued && !wasSeen ? `
-            <div class="worklist-item-sub">
-              <span>Added to queue for ${getDateLabel(dateValue)}</span>
-            </div>
-          ` : ''}
         </article>
       `;
     }
@@ -2798,6 +2835,29 @@
         selectedWorklistDate = target.value || getTodayIsoDate();
         selectedPatientId = '';
         filterPatients();
+      }
+    });
+
+    resultsPanel.addEventListener('change', async (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLInputElement) || !target.matches('[data-history-inline-edit]')) {
+        return;
+      }
+
+      try {
+        target.disabled = true;
+        await saveMeasurementEntryEdit(
+          target.dataset.patientId || '',
+          target.dataset.historyEntry || '',
+          target.dataset.historyMetric || '',
+          target.value
+        );
+        filterPatients();
+        setStatus('Vitals saved.', 'success');
+      } catch (error) {
+        setStatus(`Unable to save vitals: ${error.message}`, 'warning');
+      } finally {
+        target.disabled = false;
       }
     });
 
