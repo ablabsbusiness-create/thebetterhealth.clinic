@@ -2572,8 +2572,6 @@
       const parentNameValue = formatMissing(patient.parentName, '').trim();
       const subtitleParts = [patientId];
       if (parentNameValue) subtitleParts.push(parentNameValue);
-      const queueButtonLabel = wasSeen ? 'Seen' : isQueued ? 'Queued' : 'Queue';
-      const queueButtonClass = wasSeen ? 'is-seen' : isQueued ? 'is-added' : '';
       const phoneHtml = phone && phone !== 'Phone not saved'
         ? `<div class="worklist-item-phone">${phone}</div>`
         : '';
@@ -2593,7 +2591,6 @@
               </div>
               <div class="worklist-item-actions">
                 ${phoneHtml}
-                <button class="worklist-item-queue-btn ${queueButtonClass}" type="button" data-queue-patient="${patientId}" ${wasSeen ? 'disabled' : ''}>${queueButtonLabel}</button>
               </div>
             </div>
             ${idLineHtml}
@@ -2746,16 +2743,6 @@
 
               <div class="doctor-detail-grid">
                 <div class="doctor-detail-stack">
-                  <section class="doctor-card">
-                    <div class="doctor-card-head">
-                      <h3>Today's Visit</h3>
-                      <span class="doctor-meta-chip">${getDateLabel(selectedWorklistDate)}</span>
-                    </div>
-                    <div class="doctor-card-body">
-                      ${renderVisitSummaryHtml(selectedPatient, selectedWorklistDate)}
-                    </div>
-                  </section>
-
                   <section class="doctor-card">
                     <div class="doctor-card-head">
                       <h3>Vitals Trend</h3>
