@@ -1463,29 +1463,100 @@
       `;
     }
 
-    function addTextLine(pdf, text, x, y, options = {}) {
-      const lines = pdf.splitTextToSize(String(text || '-'), options.maxWidth || 175);
-      pdf.text(lines, x, y);
-      return y + lines.length * (options.lineHeight || 6);
+    function waitForAnimationFrame() {
+      return new Promise((resolve) => window.requestAnimationFrame(() => resolve()));
     }
 
-    function addWrappedSection(pdf, title, values, y) {
-      if (y > 250) {
-        pdf.addPage();
-        y = 16;
+    async function waitForPrescriptionSheetAssets() {
+      if (document.fonts?.ready) {
+        try {
+          await document.fonts.ready;
+        } catch (error) {
+          console.warn(`Unable to wait for prescription fonts: ${error.message}`);
+        }
       }
 
-      const sectionText = Array.isArray(values)
-        ? (values.length ? values.join(', ') : 'No items selected.')
-        : (String(values || '').trim() || 'No items selected.');
-      const labelText = `${title}:`;
-      pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(8.6);
-      pdf.text(labelText, 14, y);
-      const labelWidth = pdf.getTextWidth(labelText) + 2;
-      pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(8.2);
-      return addTextLine(pdf, sectionText, 14 + labelWidth, y, { maxWidth: 181 - labelWidth, lineHeight: 4.1 }) + 1.5;
+      const images = [...rxSheet.querySelectorAll('img')];
+      await Promise.all(images.map((image) => new Promise((resolve) => {
+        if (image.complete) {
+          resolve();
+          return;
+        }
+
+        image.addEventListener('load', resolve, { once: true });
+        image.addEventListener('error', resolve, { once: true });
+      })));
+
+      await waitForAnimationFrame();
+      await waitForAnimationFrame();
+    }
+
+    async function renderPrescriptionSheetCanvas() {
+      await waitForPrescriptionSheetAssets();
+      return html2canvas(rxSheet, {
+        backgroundColor: '#ffffff',
+        scale: Math.max(2, Math.min(window.devicePixelRatio || 1, 3)),
+        useCORS: true,
+        logging: false
+      });
+    }
+
+    function canvasToBlob(canvas, type = 'image/jpeg', quality = 0.92) {
+      return new Promise((resolve, reject) => {
+        canvas.toBlob((blob) => {
+          if (blob) {
+            resolve(blob);
+            return;
+          }
+
+          reject(new Error('Unable to create preview image.'));
+        }, type, quality);
+      });
+    }
+
+    function buildPdfFromCanvas(canvas) {
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 8;
+      const contentWidth = pageWidth - margin * 2;
+      const contentHeight = pageHeight - margin * 2;
+      const mmPerPx = contentWidth / canvas.width;
+      const pageSliceHeightPx = Math.max(1, Math.floor(contentHeight / mmPerPx));
+      let offsetY = 0;
+      let pageIndex = 0;
+
+      while (offsetY < canvas.height) {
+        const sliceHeightPx = Math.min(pageSliceHeightPx, canvas.height - offsetY);
+        const pageCanvas = document.createElement('canvas');
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sliceHeightPx;
+        const pageContext = pageCanvas.getContext('2d');
+        pageContext.fillStyle = '#ffffff';
+        pageContext.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+        pageContext.drawImage(
+          canvas,
+          0,
+          offsetY,
+          canvas.width,
+          sliceHeightPx,
+          0,
+          0,
+          pageCanvas.width,
+          pageCanvas.height
+        );
+
+        if (pageIndex > 0) {
+          pdf.addPage();
+        }
+
+        const imageHeightMm = sliceHeightPx * mmPerPx;
+        pdf.addImage(pageCanvas.toDataURL('image/png'), 'PNG', margin, margin, contentWidth, imageHeightMm, undefined, 'FAST');
+        offsetY += sliceHeightPx;
+        pageIndex += 1;
+      }
+
+      return pdf;
     }
 
     async function buildPdf() {
@@ -1496,150 +1567,15 @@
         preparedChartRecord = chartRecord;
         persistPreparedChartRecord(chartRecord);
       }
-      const sections = draft?.sections || {};
-      const sectionDetails = draft?.sectionDetails || {};
-      const medicineRows = getMedicineRows(draft);
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
       const patientId = draft?.patientId || chartRecord?.patientId || getPatientIdFromUrl() || '-';
-      const now = new Date().toISOString();
-      const showHeader = getSavedHeaderMode();
-      const headerGapMm = getSavedPrintGapCm() * 10;
-      const patientBandTop = showHeader ? 40 : 15 + headerGapMm;
-
-      if (showHeader) {
-        pdf.setTextColor(17, 24, 39);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(12);
-        pdf.text('The Better Health Clinic', 15, 16);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(8.5);
-        pdf.text('Dr. Gunda Srinivas', 170, 16, { align: 'right' });
-        pdf.setFont('helvetica', 'normal');
-        pdf.text('MBBS, DCH, DNB - Paediatrics, PGDDN, FPEM', 170, 23, { align: 'right' });
-        pdf.line(15, 32, 195, 32);
-      }
-
-      pdf.rect(15, patientBandTop, 180, 18);
-      pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(8.5);
-      pdf.text('Name:', 18, patientBandTop + 7);
-      pdf.text('Age/Sex:', 18, patientBandTop + 13);
-      pdf.text('Office ID:', 18, patientBandTop + 17);
-      pdf.text('Date:', 87, patientBandTop + 7);
-      pdf.text('Mobile:', 87, patientBandTop + 13);
-      pdf.text('Weight:', 165, patientBandTop + 7);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text(chartRecord?.childName || '-', 31, patientBandTop + 7);
-      pdf.text(`${formatCompactAge(chartRecord?.age || '-')} / ${chartRecord?.gender || '-'}`, 35, patientBandTop + 13);
-      pdf.text(patientId, 36, patientBandTop + 17);
-      pdf.text(formatShortDate(now), 98, patientBandTop + 7);
-      pdf.text(chartRecord?.phone || '-', 102, patientBandTop + 13);
-      pdf.text(`${chartRecord?.weight || '-'} kg`, 181, patientBandTop + 7);
-
-      let y = patientBandTop + 28;
-      pdf.setFontSize(8.8);
-      y = addWrappedSection(pdf, 'Symptoms', formatDetailedSelections(sections.Symptoms, sectionDetails.Symptoms, 'Symptoms'), y);
-      y = addWrappedSection(pdf, 'Finding', formatDetailedSelections(sections.Finding, sectionDetails.Finding, 'Finding'), y);
-      y = addWrappedSection(pdf, 'Notes', sections.Notes, y);
-      y = addWrappedSection(pdf, 'Diagnosis', sections.Diagnosis, y);
-      y = addWrappedSection(pdf, 'Investigation', sections.Investigation, y);
-      y = addWrappedSection(pdf, 'Past Medical History', sections['Past Medical History'], y);
-
-      pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(8.5);
-      const tableTop = y + 3;
-      pdf.rect(15, tableTop, 180, 7);
-      pdf.setFillColor(229, 231, 235);
-      pdf.rect(15, tableTop, 180, 7, 'F');
-      pdf.setDrawColor(75, 85, 99);
-      pdf.rect(15, tableTop, 180, 7);
-      pdf.text('', 18, tableTop + 5);
-      pdf.text('Medication', 52, tableTop + 5);
-      pdf.text('Quantity', 105, tableTop + 5);
-      pdf.text('Frequency', 136, tableTop + 5);
-      pdf.text('Duration', 169, tableTop + 5);
-      y = tableTop + 7;
-      pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(8);
-      if (medicineRows.length) {
-        medicineRows.forEach((row, index) => {
-          const rowHeight = 16;
-          pdf.rect(15, y, 180, rowHeight);
-          pdf.line(26, y, 26, y + rowHeight);
-          pdf.line(94, y, 94, y + rowHeight);
-          pdf.line(125, y, 125, y + rowHeight);
-          pdf.line(158, y, 158, y + rowHeight);
-          pdf.setFont('helvetica', 'bold');
-          pdf.text(String(index + 1), 19, y + 8.5);
-          pdf.text(pdf.splitTextToSize(row.medicineName || row.medicine || '-', 62).slice(0, 2), 28, y + 5);
-          pdf.text(row.dose || '-', 108, y + 8.5);
-          pdf.text(pdf.splitTextToSize(row.timing || '-', 28).slice(0, 2), 128, y + 6);
-          pdf.text(row.duration || '-', 170, y + 8.5);
-          pdf.setFont('helvetica', 'italic');
-          pdf.setFontSize(6.5);
-          const medicineMeta = [
-            row.composition ? `(${row.composition})` : '',
-            row.note || row.food || ''
-          ].filter(Boolean).join(' | ');
-          if (medicineMeta) {
-            pdf.text(pdf.splitTextToSize(medicineMeta, 62).slice(0, 2), 28, y + 11);
-          }
-          pdf.setFont('helvetica', 'normal');
-          pdf.setFontSize(8);
-          y += rowHeight;
-        });
-      } else {
-        pdf.rect(15, y, 180, 9);
-        pdf.text('No medication selected.', 18, y + 6);
-        y += 9;
-      }
-
-      y += 10;
-      pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(9);
-      pdf.text('Instruction:', 15, y);
-      y += 5.5;
-      pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(8);
-      const instructionLines = formatInstructionLines(sections.Instruction || []);
-      if (instructionLines.length) {
-        instructionLines.forEach((line) => {
-          y = addTextLine(pdf, line, 20, y, { maxWidth: 168, lineHeight: 4.8 });
-        });
-      } else {
-        pdf.text('No instructions selected.', 20, y);
-        y += 4.5;
-      }
-
-      const chartPages = (chartRecord?.chartPages || []).slice(0, 4);
-      const footerTop = 250;
-      if (chartPages.length) {
-        const chartBlockTop = Math.min(Math.max(y + 4, 184), footerTop - 39);
-        const chartWidth = 42;
-        const chartGap = 4;
-        const chartHeight = 31;
-        chartPages.forEach((page, index) => {
-          const x = 15 + index * (chartWidth + chartGap);
-          pdf.setFont('helvetica', 'bold');
-          pdf.setFontSize(8.5);
-          pdf.text(chartTitle(page.label, index), x, chartBlockTop);
-          pdf.addImage(page.miniDataUrl || page.dataUrl, 'PNG', x, chartBlockTop + 3, chartWidth, chartHeight, undefined, 'NONE');
-        });
-      }
-
-      pdf.line(15, footerTop, 38, footerTop);
-      pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(8.5);
-      pdf.text('Dr. Gunda Srinivas', 15, footerTop + 8);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text('MBBS, DCH, DNB - Paediatrics, PGDDN, FPEM', 15, footerTop + 14);
-      pdf.setFontSize(7);
-      pdf.text('71826', 15, footerTop + 19);
-      pdf.setFontSize(7.5);
-      pdf.text(['The Better Health Clinic - Paediatrician #118, 5th Cross, Omkar Nagar Akere,', 'Bannerghatta road 560076 Bengaluru Karnataka'], 195, footerTop + 12, { align: 'right' });
+      buildPreviewHtml();
+      const sheetCanvas = await renderPrescriptionSheetCanvas();
+      const pdf = buildPdfFromCanvas(sheetCanvas);
+      const previewBlob = await canvasToBlob(sheetCanvas, 'image/jpeg', 0.95);
 
       return {
         pdf,
+        previewBlob,
         draftId: draft?.draftId || '',
         patientId,
         childName: chartRecord?.childName || '',
@@ -1658,26 +1594,6 @@
         diastolic: chartRecord?.diastolic || '',
         temp: chartRecord?.temp || ''
       };
-    }
-
-    async function buildPrescriptionPreviewBlob() {
-      const canvas = await html2canvas(rxSheet, {
-        backgroundColor: '#ffffff',
-        scale: Math.min(window.devicePixelRatio || 1, 2),
-        useCORS: true,
-        logging: false
-      });
-
-      return await new Promise((resolve, reject) => {
-        canvas.toBlob((blob) => {
-          if (blob) {
-            resolve(blob);
-            return;
-          }
-
-          reject(new Error('Unable to create preview image.'));
-        }, 'image/jpeg', 0.92);
-      });
     }
 
     async function savePrescriptionPdfToFirebase(pdfBlob, fileName, details, saveId) {
@@ -1770,11 +1686,10 @@
       prescriptionSavePromise = (async () => {
         setPreviewStatus('Saving prescription...');
         const details = await buildPdf();
-        const { pdf, patientId, childName, phone } = details;
+        const { pdf, patientId, childName, phone, previewBlob } = details;
         const saveId = details.draftId || `rx-${patientId || 'UNKNOWN'}-${new Date().toISOString().slice(0, 10)}`;
         const fileName = `${saveId}.pdf`;
         const pdfBlob = pdf.output('blob');
-        const previewBlob = await buildPrescriptionPreviewBlob();
         const saveResult = await savePrescriptionPdfToFirebase(pdfBlob, fileName, {
           ...details,
           patientId,

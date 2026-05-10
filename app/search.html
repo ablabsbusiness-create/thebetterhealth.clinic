@@ -2002,6 +2002,76 @@
       ).trim();
     }
 
+    function getNormalizedPatientId(value) {
+      return String(value || '').trim().toUpperCase();
+    }
+
+    function isPrescriptionHistoryEntry(entry) {
+      if (!entry || typeof entry !== 'object') {
+        return false;
+      }
+
+      return entry.type === 'prescription'
+        || entry.source === 'prescription-pdf'
+        || Boolean(getPrescriptionDownloadUrl(entry))
+        || Boolean(getPrescriptionPreviewImageUrl(entry));
+    }
+
+    function normalizePrescriptionEntry(entry, fallbackPatient = null, fallbackId = '') {
+      if (!entry || typeof entry !== 'object') {
+        return null;
+      }
+
+      const normalizedPatientId = getNormalizedPatientId(
+        entry.patientId
+        || entry.officeId
+        || fallbackPatient?.patientId
+        || fallbackId
+      );
+
+      if (!normalizedPatientId) {
+        return null;
+      }
+
+      return {
+        ...entry,
+        patientId: normalizedPatientId,
+        type: isPrescriptionHistoryEntry(entry) ? 'prescription' : entry.type || '',
+        source: entry.source || (getPrescriptionDownloadUrl(entry) ? 'prescription-pdf' : ''),
+        createdAtIso: entry.createdAtIso || entry.createdAt || entry.savedAt || entry.updatedAt || '',
+        createdAtDisplay: entry.createdAtDisplay || entry.savedAtDisplay || entry.dateDisplay || ''
+      };
+    }
+
+    function getPatientPrescriptionHistoryEntries(patient) {
+      if (!patient || typeof patient !== 'object') {
+        return [];
+      }
+
+      const candidateLists = [
+        patient.prescriptionHistory,
+        patient.prescriptions,
+        patient.savedPrescriptions,
+        patient.prescriptionRecords
+      ];
+
+      return candidateLists
+        .filter(Array.isArray)
+        .flatMap((entries) => entries)
+        .map((entry, index) => {
+          const normalized = normalizePrescriptionEntry(entry, patient, patient.patientId || '');
+          if (!normalized) {
+            return null;
+          }
+
+          return {
+            id: normalized.prescriptionSaveId || normalized.id || `${getNormalizedPatientId(patient.patientId)}-patient-rx-${index}`,
+            ...normalized
+          };
+        })
+        .filter(Boolean);
+    }
+
     function renderPrescriptionPreviewImage(imageElement) {
       if (!(imageElement instanceof HTMLImageElement)) {
         return;
@@ -2481,8 +2551,8 @@
 
     function getPrescriptionEntries(patientId) {
       return allHistory
-        .filter((entry) => entry.type === 'prescription' || entry.source === 'prescription-pdf')
-        .filter((entry) => (entry.patientId || '').toUpperCase() === String(patientId || '').toUpperCase())
+        .filter((entry) => isPrescriptionHistoryEntry(entry))
+        .filter((entry) => getNormalizedPatientId(entry.patientId) === getNormalizedPatientId(patientId))
         .sort((a, b) => new Date(b.createdAtIso || 0) - new Date(a.createdAtIso || 0));
     }
 
@@ -3082,26 +3152,44 @@
           console.warn(`Unable to load history records: ${error.message}`);
           return { docs: [] };
         });
-        const remoteHistory = historySnapshot.docs.map((docSnapshot) => ({
-          id: docSnapshot.id,
-          ...docSnapshot.data()
-        }));
+        const remoteHistory = historySnapshot.docs
+          .map((docSnapshot) => normalizePrescriptionEntry({
+            id: docSnapshot.id,
+            ...docSnapshot.data()
+          }))
+          .filter(Boolean);
         if (snapshot.empty && remoteHistory.length === 0) {
           clearLocalPrescriptionEntries();
         }
 
-        const localHistory = [];
+        const localHistory = getLocalPrescriptionEntries()
+          .map((entry) => normalizePrescriptionEntry(entry))
+          .filter(Boolean);
         const mergedHistoryById = new Map();
         [...remoteHistory, ...localHistory].forEach((entry, index) => {
-          const key = entry.prescriptionSaveId || entry.id || `history-${index}`;
+          const key = entry.prescriptionSaveId
+            || entry.id
+            || getPrescriptionDownloadUrl(entry)
+            || `${entry.patientId || 'history'}-${entry.createdAtIso || index}`;
           mergedHistoryById.set(key, entry);
         });
-        allHistory = [...mergedHistoryById.values()];
 
         const patientRecords = snapshot.docs.map((docSnapshot) => ({
           id: docSnapshot.id,
           ...docSnapshot.data()
         }));
+        patientRecords.forEach((patient) => {
+          getPatientPrescriptionHistoryEntries(patient).forEach((entry, index) => {
+            const key = entry.prescriptionSaveId
+              || entry.id
+              || getPrescriptionDownloadUrl(entry)
+              || `${entry.patientId || 'patient'}-embedded-${index}`;
+            if (!mergedHistoryById.has(key)) {
+              mergedHistoryById.set(key, entry);
+            }
+          });
+        });
+        allHistory = [...mergedHistoryById.values()];
         const historyByPatientId = new Map();
 
         allHistory.forEach((entry) => {
