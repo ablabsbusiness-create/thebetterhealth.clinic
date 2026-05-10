@@ -1955,12 +1955,35 @@
       }
     }
 
+    function setPrescriptionPreviewLoading(previewElement, message = 'Loading prescription preview...') {
+      if (!previewElement) {
+        return;
+      }
+
+      previewElement.dataset.rendered = 'false';
+      previewElement.dataset.pdfLoading = 'true';
+      previewElement.dataset.pdfError = 'false';
+      const placeholder = previewElement.parentElement?.querySelector('.prescription-preview-placeholder');
+      if (placeholder) {
+        placeholder.hidden = false;
+        placeholder.classList.remove('is-error');
+        placeholder.textContent = message;
+      }
+    }
+
     function markPrescriptionPreviewReady(previewElement) {
       if (!previewElement) {
         return;
       }
 
+      if (previewElement._previewReadyTimer) {
+        window.clearTimeout(previewElement._previewReadyTimer);
+        previewElement._previewReadyTimer = null;
+      }
+
       previewElement.dataset.rendered = 'true';
+      previewElement.dataset.pdfLoading = 'false';
+      previewElement.dataset.pdfError = 'false';
       previewElement.classList.add('is-ready');
       const placeholder = previewElement.parentElement?.querySelector('.prescription-preview-placeholder');
       if (placeholder) {
@@ -1969,6 +1992,17 @@
     }
 
     function markPrescriptionPreviewError(previewElement, message) {
+      if (previewElement?._previewReadyTimer) {
+        window.clearTimeout(previewElement._previewReadyTimer);
+        previewElement._previewReadyTimer = null;
+      }
+
+      if (previewElement) {
+        previewElement.dataset.rendered = 'false';
+        previewElement.dataset.pdfLoading = 'false';
+        previewElement.dataset.pdfError = 'true';
+      }
+
       const placeholder = previewElement?.parentElement?.querySelector('.prescription-preview-placeholder');
       if (placeholder) {
         placeholder.hidden = false;
@@ -2109,6 +2143,8 @@
         return;
       }
 
+      setPrescriptionPreviewLoading(frameElement);
+
       if (frameElement._previewReadyTimer) {
         window.clearTimeout(frameElement._previewReadyTimer);
       }
@@ -2117,15 +2153,16 @@
         markPrescriptionPreviewReady(frameElement);
       };
       frameElement.onerror = () => {
-        markPrescriptionPreviewError(frameElement, 'Prescription PDF could not be previewed here. Use open prescription instead.');
+        markPrescriptionPreviewError(frameElement, 'Failed to load prescription preview.');
       };
 
       frameElement._previewReadyTimer = window.setTimeout(() => {
         if (frameElement.dataset.rendered !== 'true') {
-          markPrescriptionPreviewReady(frameElement);
+          markPrescriptionPreviewError(frameElement, 'Failed to load prescription preview.');
         }
-      }, 1800);
+      }, 8000);
 
+      frameElement.src = '';
       frameElement.src = pdfUrl.includes('#')
         ? pdfUrl
         : `${pdfUrl}#page=1&toolbar=0&navpanes=0&scrollbar=0&view=FitH`;
