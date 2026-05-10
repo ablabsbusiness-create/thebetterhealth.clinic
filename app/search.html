@@ -554,6 +554,12 @@
       box-shadow: none;
       display: grid;
       gap: 10px;
+      cursor: pointer;
+    }
+
+    .worklist-item-main:focus-visible {
+      outline: 2px solid rgba(26, 115, 232, 0.28);
+      outline-offset: -2px;
     }
 
     .worklist-item-head {
@@ -2518,7 +2524,7 @@
 
       return `
         <article class="worklist-item ${isActive ? 'is-active' : ''}" data-patient-card="${patientId}">
-          <button class="worklist-item-main" type="button" data-select-worklist-patient="${patientId}">
+          <div class="worklist-item-main" data-select-worklist-patient="${patientId}" role="button" tabindex="0" aria-label="Open ${escapeHtml(childName)} details">
             <div class="worklist-item-head">
               <div class="worklist-item-ident">
                 <div class="worklist-item-avatar">${childName.charAt(0).toUpperCase()}</div>
@@ -2550,7 +2556,7 @@
               </div>
             </div>
             ${!visits.length && wasSeen ? '<div class="worklist-item-sub"><span>Prescription saved on this date</span></div>' : ''}
-          </button>
+          </div>
           ${isQueued && !wasSeen ? `
             <div class="worklist-item-sub">
               <span>Added to queue for ${getDateLabel(dateValue)}</span>
@@ -2791,6 +2797,24 @@
       if (target.matches('[data-worklist-date-picker]')) {
         selectedWorklistDate = target.value || getTodayIsoDate();
         selectedPatientId = '';
+        filterPatients();
+      }
+    });
+
+    resultsPanel.addEventListener('keydown', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) {
+        return;
+      }
+
+      const selectedWorklistPatientId = target.closest('[data-select-worklist-patient]')?.getAttribute('data-select-worklist-patient');
+      if (!selectedWorklistPatientId) {
+        return;
+      }
+
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        selectedPatientId = selectedWorklistPatientId;
         filterPatients();
       }
     });
