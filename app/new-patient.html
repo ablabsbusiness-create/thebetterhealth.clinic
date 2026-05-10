@@ -680,6 +680,7 @@
     const dobDayInput = document.getElementById('dob-day');
     const dobMonthInput = document.getElementById('dob-month');
     const dobYearInput = document.getElementById('dob-year');
+    const searchParams = new URLSearchParams(window.location.search);
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
       apiKey: firebaseEnv.VITE_FIREBASE_API_KEY || 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
@@ -772,6 +773,11 @@
     const autoPatientId = buildPatientId();
     patientIdOutput.textContent = autoPatientId;
     sessionStorage.setItem('newPatientId', autoPatientId);
+
+    const prefilledChildName = searchParams.get('childName') || '';
+    if (prefilledChildName && !newPatientForm.elements.childName.value.trim()) {
+      newPatientForm.elements.childName.value = prefilledChildName.trim();
+    }
 
     newPatientForm.addEventListener('submit', async (event) => {
       event.preventDefault();
