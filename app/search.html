@@ -1916,6 +1916,31 @@
       }
     }
 
+    function getPrescriptionDownloadUrl(entry) {
+      return String(
+        entry?.downloadURL
+        || entry?.downloadUrl
+        || entry?.pdfURL
+        || entry?.pdfUrl
+        || entry?.fileURL
+        || entry?.fileUrl
+        || entry?.url
+        || ''
+      ).trim();
+    }
+
+    function getPrescriptionPreviewImageUrl(entry) {
+      return String(
+        entry?.previewImageURL
+        || entry?.previewImageUrl
+        || entry?.previewURL
+        || entry?.previewUrl
+        || entry?.imagePreviewURL
+        || entry?.imagePreviewUrl
+        || ''
+      ).trim();
+    }
+
     function renderPrescriptionPreviewImage(imageElement) {
       if (!(imageElement instanceof HTMLImageElement)) {
         return;
@@ -1953,12 +1978,23 @@
         return;
       }
 
+      if (frameElement._previewReadyTimer) {
+        window.clearTimeout(frameElement._previewReadyTimer);
+      }
+
       frameElement.onload = () => {
         markPrescriptionPreviewReady(frameElement);
       };
       frameElement.onerror = () => {
         markPrescriptionPreviewError(frameElement, 'Prescription PDF could not be previewed here. Use open prescription instead.');
       };
+
+      frameElement._previewReadyTimer = window.setTimeout(() => {
+        if (frameElement.dataset.rendered !== 'true') {
+          markPrescriptionPreviewReady(frameElement);
+        }
+      }, 1800);
+
       frameElement.src = pdfUrl.includes('#')
         ? pdfUrl
         : `${pdfUrl}#page=1&toolbar=0&navpanes=0&scrollbar=0&view=FitH`;
@@ -2493,8 +2529,8 @@
           ${entries.length > 1 ? '<button class="carousel-arrow carousel-arrow-left" type="button" data-carousel-direction="-1" aria-label="Previous prescription">‹</button>' : ''}
           <div class="prescription-list">
             ${entries.slice(0, 5).map((entry, index) => {
-              const downloadUrl = entry.downloadURL || '';
-              const previewImageUrl = entry.previewImageURL || '';
+              const downloadUrl = getPrescriptionDownloadUrl(entry);
+              const previewImageUrl = getPrescriptionPreviewImageUrl(entry);
               const cardUrl = escapeHtml(downloadUrl);
               const cardPreviewUrl = escapeHtml(previewImageUrl);
 
