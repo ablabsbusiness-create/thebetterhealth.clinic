@@ -7,7 +7,7 @@ import {
   shouldUseAppBase
 } from './lib/auth.js';
 
-export async function middleware(request) {
+export default async function middleware(request) {
   const { pathname, search } = request.nextUrl;
   const normalizedPath = normalizeAppPath(pathname);
   const authenticated = await isAuthenticatedCookieHeader(request.headers.get('cookie') || '');
