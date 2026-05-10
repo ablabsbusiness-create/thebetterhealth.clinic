@@ -661,6 +661,7 @@
     const printGapSettingStatus = document.getElementById('print-gap-setting-status');
     const FIREBASE_FREE_STORAGE_BYTES = 5 * 1024 * 1024 * 1024;
     const PRINT_HEADER_GAP_STORAGE_KEY = 'previewPrintHeaderGapCm';
+    const ACCESS_COOKIE_NAME = 'clinic_session';
 
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
@@ -827,6 +828,8 @@
         } catch (error) {
           console.warn('Unable to call logout endpoint:', error);
         }
+
+        document.cookie = `${ACCESS_COOKIE_NAME}=; Max-Age=0; Path=/; SameSite=Strict`;
 
         const passwordPath = window.location.pathname.includes('/app/') || window.location.pathname === '/app/settings'
           ? '/app/password'
