@@ -39,7 +39,7 @@ function getAuthSecret() {
 }
 
 export function getAccessPassword() {
-  return String(process.env.CLINIC_ACCESS_PASSWORD || '').trim();
+  return String(process.env.CLINIC_ACCESS_PASSWORD || '3301').trim();
 }
 
 export function isAuthConfigured() {
