@@ -526,22 +526,34 @@
 
     .worklist-item {
       width: 100%;
-      padding: 14px 16px 15px;
       border: 0;
       border-bottom: 1px solid #e4e9e5;
       border-radius: 0;
       background: #ffffff;
-      text-align: left;
       color: var(--ink);
       box-shadow: none;
       display: grid;
-      gap: 10px;
+      gap: 0;
     }
 
     .worklist-item.is-active {
       border-color: #1a73e8;
       background: linear-gradient(180deg, #f4f8ff 0%, #eef5ff 100%);
       box-shadow: inset 4px 0 0 #1a73e8;
+    }
+
+    .worklist-item-main {
+      width: 100%;
+      min-height: 0;
+      padding: 14px 16px 15px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: inherit;
+      text-align: left;
+      box-shadow: none;
+      display: grid;
+      gap: 10px;
     }
 
     .worklist-item-head {
@@ -629,6 +641,44 @@
       white-space: nowrap;
       border: 1px solid #dce6dd;
       flex-shrink: 0;
+    }
+
+    .worklist-item-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .worklist-item-queue-btn {
+      width: auto;
+      min-height: 30px;
+      padding: 0 10px;
+      border-radius: 999px;
+      border: 1px solid #cfe0ff;
+      background: #eef5ff;
+      color: #1a56b3;
+      box-shadow: none;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .worklist-item-queue-btn:hover {
+      transform: none;
+      background: #e5f0ff;
+    }
+
+    .worklist-item-queue-btn.is-added {
+      border-color: #cdebd7;
+      background: #e9f7ef;
+      color: #166534;
+    }
+
+    .worklist-item-queue-btn.is-seen {
+      border-color: #dfe6e1;
+      background: #f4f7f5;
+      color: #607067;
+      cursor: default;
     }
 
     .worklist-item-badge.is-seen {
@@ -1695,6 +1745,7 @@
     const pdfPreviewClose = document.getElementById('pdf-preview-close');
     let prescriptionPreviewObserver = null;
     const LOCAL_PRESCRIPTION_HISTORY_KEY = 'savedPrescriptionHistory';
+    const LOCAL_WORKLIST_QUEUE_KEY = 'patientWorklistQueueByDate';
 
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
@@ -1804,6 +1855,54 @@
       } catch (error) {
         return fallback;
       }
+    }
+
+    function getQueueState() {
+      const raw = readLocalJson(LOCAL_WORKLIST_QUEUE_KEY, {});
+      return raw && typeof raw === 'object' ? raw : {};
+    }
+
+    function saveQueueState(queueState) {
+      try {
+        localStorage.setItem(LOCAL_WORKLIST_QUEUE_KEY, JSON.stringify(queueState));
+      } catch (error) {
+        console.warn(`Unable to save patient queue: ${error.message}`);
+      }
+    }
+
+    function getExplicitQueueIdsForDate(dateValue) {
+      const queueState = getQueueState();
+      const entries = Array.isArray(queueState[dateValue]) ? queueState[dateValue] : [];
+      return [...new Set(entries.map((value) => String(value || '').trim()).filter(Boolean))];
+    }
+
+    function addPatientToQueue(dateValue, patientId) {
+      const normalizedPatientId = String(patientId || '').trim();
+      if (!dateValue || !normalizedPatientId) {
+        return;
+      }
+
+      const queueState = getQueueState();
+      const nextEntries = new Set(getExplicitQueueIdsForDate(dateValue));
+      nextEntries.add(normalizedPatientId);
+      queueState[dateValue] = [...nextEntries];
+      saveQueueState(queueState);
+    }
+
+    function removePatientFromQueue(dateValue, patientId) {
+      const normalizedPatientId = String(patientId || '').trim();
+      if (!dateValue || !normalizedPatientId) {
+        return;
+      }
+
+      const queueState = getQueueState();
+      const nextEntries = getExplicitQueueIdsForDate(dateValue).filter((entry) => entry !== normalizedPatientId);
+      if (nextEntries.length) {
+        queueState[dateValue] = nextEntries;
+      } else {
+        delete queueState[dateValue];
+      }
+      saveQueueState(queueState);
     }
 
     function getLocalPrescriptionEntries() {
@@ -2299,7 +2398,12 @@
     }
 
     function patientIsQueuedOnDate(patient, dateValue) {
-      return !patientHasSeenActivityOnDate(patient, dateValue);
+      const patientId = String(patient?.patientId || '').trim();
+      if (!patientId) {
+        return false;
+      }
+
+      return getExplicitQueueIdsForDate(dateValue).includes(patientId) && !patientHasSeenActivityOnDate(patient, dateValue);
     }
 
     function renderPrescriptionListHtml(patientId) {
@@ -2388,6 +2492,7 @@
       const prescriptions = getPrescriptionEntriesForDate(patientId, dateValue);
       const hasAppointment = patientHasAppointmentOnDate(patient, dateValue);
       const wasSeen = visits.length > 0 || prescriptions.length > 0;
+      const isQueued = patientIsQueuedOnDate(patient, dateValue);
       const latest = visits[0] || getMeasurementEntries(patient)[0] || null;
       const isActive = selectedPatientId === patientId;
       const badgeLabel = wasSeen
@@ -2408,38 +2513,50 @@
       const subtitleParts = [patientId];
       if (phone && phone !== 'Phone not saved') subtitleParts.push(phone);
       if (formatMissing(patient.parentName, '')?.trim()) subtitleParts.push(formatMissing(patient.parentName, ''));
+      const queueButtonLabel = wasSeen ? 'Seen' : isQueued ? 'Queued' : 'Queue';
+      const queueButtonClass = wasSeen ? 'is-seen' : isQueued ? 'is-added' : '';
 
       return `
-        <button class="worklist-item ${isActive ? 'is-active' : ''}" type="button" data-select-worklist-patient="${patientId}">
-          <div class="worklist-item-head">
-            <div class="worklist-item-ident">
-              <div class="worklist-item-avatar">${childName.charAt(0).toUpperCase()}</div>
-              <div class="worklist-item-title">
-                <h3 class="worklist-item-name">${childName}</h3>
-                <div class="worklist-item-meta">${gender} | ${dob}</div>
+        <article class="worklist-item ${isActive ? 'is-active' : ''}" data-patient-card="${patientId}">
+          <button class="worklist-item-main" type="button" data-select-worklist-patient="${patientId}">
+            <div class="worklist-item-head">
+              <div class="worklist-item-ident">
+                <div class="worklist-item-avatar">${childName.charAt(0).toUpperCase()}</div>
+                <div class="worklist-item-title">
+                  <h3 class="worklist-item-name">${childName}</h3>
+                  <div class="worklist-item-meta">${gender} | ${dob}</div>
+                </div>
+              </div>
+              <div class="worklist-item-actions">
+                <span class="worklist-item-badge ${badgeClass}">${badgeLabel}</span>
+                <button class="worklist-item-queue-btn ${queueButtonClass}" type="button" data-queue-patient="${patientId}" ${wasSeen ? 'disabled' : ''}>${queueButtonLabel}</button>
               </div>
             </div>
-            <span class="worklist-item-badge ${badgeClass}">${badgeLabel}</span>
-          </div>
-          <div class="worklist-item-sub">
-            ${subtitleParts.map((part) => `<span>${part}</span>`).join('')}
-          </div>
-          <div class="worklist-item-metrics">
-            <div class="worklist-item-metric">
-              <label>Weight</label>
-              <strong>${weightValue}</strong>
+            <div class="worklist-item-sub">
+              ${subtitleParts.map((part) => `<span>${part}</span>`).join('')}
             </div>
-            <div class="worklist-item-metric">
-              <label>Height</label>
-              <strong>${heightValue}</strong>
+            <div class="worklist-item-metrics">
+              <div class="worklist-item-metric">
+                <label>Weight</label>
+                <strong>${weightValue}</strong>
+              </div>
+              <div class="worklist-item-metric">
+                <label>Height</label>
+                <strong>${heightValue}</strong>
+              </div>
+              <div class="worklist-item-metric">
+                <label>OFC</label>
+                <strong>${ofcValue}</strong>
+              </div>
             </div>
-            <div class="worklist-item-metric">
-              <label>OFC</label>
-              <strong>${ofcValue}</strong>
+            ${!visits.length && wasSeen ? '<div class="worklist-item-sub"><span>Prescription saved on this date</span></div>' : ''}
+          </button>
+          ${isQueued && !wasSeen ? `
+            <div class="worklist-item-sub">
+              <span>Added to queue for ${getDateLabel(dateValue)}</span>
             </div>
-          </div>
-          ${!visits.length && wasSeen ? '<div class="worklist-item-sub"><span>Prescription saved on this date</span></div>' : ''}
-        </button>
+          ` : ''}
+        </article>
       `;
     }
 
@@ -2566,7 +2683,7 @@
             <div class="worklist-list">
               ${worklistPatients.length
                 ? worklistPatients.map((patient) => renderWorklistItemHtml(patient, selectedWorklistDate)).join('')
-                : `<div class="worklist-empty">${searchValue ? 'No matching patients were found.' : selectedWorklistMode === 'queue' ? 'No appointments are lined up for this date yet.' : 'No patients have been seen on this date yet.'}</div>`}
+                : `<div class="worklist-empty">${searchValue ? 'No matching patients were found.' : selectedWorklistMode === 'queue' ? 'No patients were added to queue for this date yet.' : 'No patients have been seen on this date yet.'}</div>`}
             </div>
           </aside>
 
@@ -2687,6 +2804,7 @@
       const patientId = target.getAttribute('data-clear-history-date');
       const openProfilePatientId = target.closest('[data-open-profile]')?.getAttribute('data-open-profile');
       const selectedWorklistPatientId = target.closest('[data-select-worklist-patient]')?.getAttribute('data-select-worklist-patient');
+      const queuedPatientId = target.closest('[data-queue-patient]')?.getAttribute('data-queue-patient');
       const selectedMode = target.getAttribute('data-worklist-mode');
       const dateStep = target.getAttribute('data-worklist-date-step');
       const dateTrigger = target.closest('[data-worklist-date-trigger]');
@@ -2711,6 +2829,15 @@
 
       if (selectedWorklistPatientId) {
         selectedPatientId = selectedWorklistPatientId;
+        filterPatients();
+        return;
+      }
+
+      if (queuedPatientId) {
+        const patient = allPatients.find((entry) => formatMissing(entry.patientId, 'ID not saved') === queuedPatientId);
+        if (patient && !patientHasSeenActivityOnDate(patient, selectedWorklistDate) && !patientIsQueuedOnDate(patient, selectedWorklistDate)) {
+          addPatientToQueue(selectedWorklistDate, queuedPatientId);
+        }
         filterPatients();
         return;
       }
