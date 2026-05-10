@@ -1487,6 +1487,37 @@
       text-align: center;
     }
 
+    .placeholder strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink);
+      font-size: 18px;
+    }
+
+    .placeholder p {
+      margin: 0;
+    }
+
+    .placeholder-actions {
+      margin-top: 16px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .placeholder-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 0 16px;
+      border-radius: 12px;
+      background: var(--brand);
+      color: #fff;
+      text-decoration: none;
+      font-weight: 700;
+      box-shadow: 0 10px 20px rgba(21, 128, 61, 0.16);
+    }
+
     .mono {
       font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
     }
@@ -1803,8 +1834,23 @@
       resultsCount.textContent = `${count} patient${count === 1 ? '' : 's'}`;
     }
 
-    function renderPlaceholder(message) {
-      resultsPanel.innerHTML = `<div class="placeholder">${message}</div>`;
+    function renderPlaceholder(message, options = {}) {
+      const title = options.title ? `<strong>${escapeHtml(options.title)}</strong>` : '';
+      const actionHtml = options.actionHref && options.actionLabel
+        ? `
+          <div class="placeholder-actions">
+            <a class="placeholder-link" href="${escapeHtml(options.actionHref)}">${escapeHtml(options.actionLabel)}</a>
+          </div>
+        `
+        : '';
+
+      resultsPanel.innerHTML = `
+        <div class="placeholder">
+          ${title}
+          <p>${escapeHtml(message)}</p>
+          ${actionHtml}
+        </div>
+      `;
     }
 
     function formatMissing(value, fallback = 'Not saved') {
@@ -1818,6 +1864,17 @@
         .replaceAll("'", '&#39;')
         .replaceAll('<', '&lt;')
         .replaceAll('>', '&gt;');
+    }
+
+    function getNewPatientUrl(searchValue = '') {
+      const params = new URLSearchParams();
+      if (searchValue) {
+        params.set('childName', searchValue);
+        params.set('fromSearch', '1');
+      }
+
+      const query = params.toString();
+      return query ? `new-patient.html?${query}` : 'new-patient.html';
     }
 
     function readLocalJson(key, fallback) {
@@ -2638,9 +2695,14 @@
 
     function renderPatients(patients) {
       updateCount(patients.length);
+      const searchValue = searchInput.value.trim();
 
       if (patients.length === 0) {
-        renderPlaceholder('No patients matched that search.');
+        renderPlaceholder('No patients matched that search.', {
+          title: searchValue ? `"${searchValue}" was not found.` : 'No patients found.',
+          actionHref: searchValue ? getNewPatientUrl(searchValue) : 'new-patient.html',
+          actionLabel: 'Add New Patient'
+        });
         return;
       }
 
@@ -2707,7 +2769,11 @@
       updateCount(patients.length);
 
       if (patients.length === 0) {
-        renderPlaceholder('No patients matched that search.');
+        renderPlaceholder('No patients matched that search.', {
+          title: searchValue ? `"${searchValue}" was not found.` : 'No patients found.',
+          actionHref: searchValue ? getNewPatientUrl(searchValue) : 'new-patient.html',
+          actionLabel: 'Add New Patient'
+        });
         return;
       }
 
