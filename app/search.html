@@ -420,23 +420,26 @@
       font-size: 15px;
       font-weight: 700;
       text-align: center;
+      cursor: pointer;
+      box-shadow: none;
+      width: 100%;
+    }
+
+    .worklist-date-pill:hover {
+      background: #f0f6f2;
+    }
+
+    .worklist-date-pill:focus-visible {
+      outline: 3px solid rgba(34, 197, 94, 0.16);
+      outline-offset: 2px;
     }
 
     .worklist-date-picker {
-      width: 100%;
-      min-height: 38px;
-      padding: 0 10px;
-      border-radius: 4px;
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.96);
-      color: var(--ink);
-      font: inherit;
-      outline: none;
-    }
-
-    .worklist-date-picker:focus {
-      border-color: rgba(22, 101, 52, 0.5);
-      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12);
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+      width: 1px;
+      height: 1px;
     }
 
     .worklist-tabs {
@@ -1990,6 +1993,21 @@
       return formatIsoDateFromDate(parsed);
     }
 
+    function openWorklistDatePicker(triggerElement) {
+      const scope = triggerElement?.closest('.worklist-datebar') || resultsPanel;
+      const dateInput = scope?.querySelector('[data-worklist-date-picker]');
+      if (!(dateInput instanceof HTMLInputElement)) {
+        return;
+      }
+
+      dateInput.focus({ preventScroll: true });
+      if (typeof dateInput.showPicker === 'function') {
+        dateInput.showPicker();
+        return;
+      }
+      dateInput.click();
+    }
+
     function getPatientVisitEntriesForDate(patient, dateValue) {
       return getMeasurementEntries(patient).filter((entry) => getIsoDatePart(entry.createdAtIso) === dateValue);
     }
@@ -2016,22 +2034,27 @@
     }
 
     function getWorklistCounts(patients, dateValue) {
-      const seen = patients.filter((patient) => getPatientVisitEntriesForDate(patient, dateValue).length > 0).length;
+      const seen = patients.filter((patient) => patientHasSeenActivityOnDate(patient, dateValue)).length;
       const queue = patients.filter((patient) => patientHasAppointmentOnDate(patient, dateValue)).length;
       return { seen, queue };
     }
 
-    function getWorklistPatients(patients, dateValue, mode) {
-      const filtered = mode === 'queue'
-        ? patients.filter((patient) => patientHasAppointmentOnDate(patient, dateValue))
-        : patients.filter((patient) => getPatientVisitEntriesForDate(patient, dateValue).length > 0);
+    function getWorklistPatients(patients, dateValue, mode, searchValue = '') {
+      const hasSearch = Boolean(String(searchValue || '').trim());
+      const filtered = hasSearch
+        ? [...patients]
+        : mode === 'queue'
+          ? patients.filter((patient) => patientHasAppointmentOnDate(patient, dateValue))
+          : patients.filter((patient) => patientHasSeenActivityOnDate(patient, dateValue));
 
       return filtered.sort((left, right) => {
         const leftVisit = getLatestMeasurementForDate(left, dateValue);
         const rightVisit = getLatestMeasurementForDate(right, dateValue);
+        const leftSeenScore = patientHasSeenActivityOnDate(left, dateValue) ? 1 : 0;
+        const rightSeenScore = patientHasSeenActivityOnDate(right, dateValue) ? 1 : 0;
         const leftTime = Date.parse(leftVisit?.createdAtIso || '') || 0;
         const rightTime = Date.parse(rightVisit?.createdAtIso || '') || 0;
-        return rightTime - leftTime || sortByPatientName(left, right);
+        return rightSeenScore - leftSeenScore || rightTime - leftTime || sortByPatientName(left, right);
       });
     }
 
@@ -2164,6 +2187,16 @@
         .sort((a, b) => new Date(b.createdAtIso || 0) - new Date(a.createdAtIso || 0));
     }
 
+    function getPrescriptionEntriesForDate(patientId, dateValue) {
+      return getPrescriptionEntries(patientId).filter((entry) => getIsoDatePart(entry.createdAtIso) === dateValue);
+    }
+
+    function patientHasSeenActivityOnDate(patient, dateValue) {
+      const patientId = String(patient?.patientId || '').trim();
+      return getPatientVisitEntriesForDate(patient, dateValue).length > 0
+        || (patientId && getPrescriptionEntriesForDate(patientId, dateValue).length > 0);
+    }
+
     function renderPrescriptionListHtml(patientId) {
       const entries = getPrescriptionEntries(patientId);
 
@@ -2247,8 +2280,15 @@
       const dob = formatDateDisplay(patient.dob);
       const phone = formatMissing(patient.phone, 'Phone not saved');
       const visits = getPatientVisitEntriesForDate(patient, dateValue);
+      const prescriptions = getPrescriptionEntriesForDate(patientId, dateValue);
+      const wasSeen = visits.length > 0 || prescriptions.length > 0;
       const latest = visits[0] || getMeasurementEntries(patient)[0] || null;
       const isActive = selectedPatientId === patientId;
+      const badgeLabel = visits.length
+        ? `${visits.length} visit${visits.length === 1 ? '' : 's'}`
+        : prescriptions.length
+          ? 'Seen'
+          : 'Queue';
 
       return `
         <button class="worklist-item ${isActive ? 'is-active' : ''}" type="button" data-select-worklist-patient="${patientId}">
@@ -2257,10 +2297,11 @@
               <h3 class="worklist-item-name">${childName}</h3>
               <div class="worklist-item-meta">${gender} | ${dob}</div>
             </div>
-            <span class="worklist-item-badge">${visits.length ? `${visits.length} visit${visits.length === 1 ? '' : 's'}` : 'Queue'}</span>
+            <span class="worklist-item-badge">${badgeLabel}</span>
           </div>
           <div class="worklist-item-sub">${patientId} | ${phone}</div>
           ${latest ? `<div class="worklist-item-sub">Wt ${latest.weight || '-'} kg | Ht ${latest.height || '-'} cm | OFC ${latest.head || '-'} cm</div>` : ''}
+          ${!visits.length && wasSeen ? '<div class="worklist-item-sub">Prescription saved on this date.</div>' : ''}
         </button>
       `;
     }
@@ -2332,7 +2373,7 @@
       attachPrescriptionPreviewRendering();
     }
 
-    function renderDoctorWorklist(patients) {
+    function renderDoctorWorklist(patients, searchValue = '') {
       updateCount(patients.length);
 
       if (patients.length === 0) {
@@ -2341,7 +2382,7 @@
       }
 
       const counts = getWorklistCounts(patients, selectedWorklistDate);
-      const worklistPatients = getWorklistPatients(patients, selectedWorklistDate, selectedWorklistMode);
+      const worklistPatients = getWorklistPatients(patients, selectedWorklistDate, selectedWorklistMode, searchValue);
       if ((!selectedPatientId || !patients.some((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId)) && worklistPatients[0]) {
         selectedPatientId = formatMissing(worklistPatients[0].patientId, 'ID not saved');
       }
@@ -2361,7 +2402,7 @@
             <div class="worklist-datebar">
               <div class="worklist-date-top">
                 <button class="worklist-date-nav" type="button" data-worklist-date-step="-1" aria-label="Previous date">&lsaquo;</button>
-                <div class="worklist-date-pill">${getDateLabel(selectedWorklistDate)}</div>
+                <button class="worklist-date-pill" type="button" data-worklist-date-trigger aria-label="Select worklist date">${getDateLabel(selectedWorklistDate)}</button>
                 <button class="worklist-date-nav" type="button" data-worklist-date-step="1" aria-label="Next date">&rsaquo;</button>
               </div>
               <input class="worklist-date-picker" type="date" value="${selectedWorklistDate}" data-worklist-date-picker>
@@ -2388,7 +2429,7 @@
             <div class="worklist-list">
               ${worklistPatients.length
                 ? worklistPatients.map((patient) => renderWorklistItemHtml(patient, selectedWorklistDate)).join('')
-                : `<div class="worklist-empty">${selectedWorklistMode === 'queue' ? 'No appointments are lined up for this date yet.' : 'No patients have been seen on this date yet.'}</div>`}
+                : `<div class="worklist-empty">${searchValue ? 'No matching patients were found.' : selectedWorklistMode === 'queue' ? 'No appointments are lined up for this date yet.' : 'No patients have been seen on this date yet.'}</div>`}
             </div>
           </aside>
 
@@ -2457,7 +2498,7 @@
         selectedPatientId = '';
       }
 
-      renderDoctorWorklist(filteredPatients);
+      renderDoctorWorklist(filteredPatients, searchValue);
       setStatus(searchValue ? `Showing matches for "${searchValue}".` : 'Showing all patients.');
     }
 
@@ -2511,6 +2552,7 @@
       const selectedWorklistPatientId = target.closest('[data-select-worklist-patient]')?.getAttribute('data-select-worklist-patient');
       const selectedMode = target.getAttribute('data-worklist-mode');
       const dateStep = target.getAttribute('data-worklist-date-step');
+      const dateTrigger = target.closest('[data-worklist-date-trigger]');
       if (selectedMode) {
         selectedWorklistMode = selectedMode;
         selectedPatientId = '';
@@ -2522,6 +2564,11 @@
         selectedWorklistDate = shiftIsoDate(selectedWorklistDate, Number(dateStep));
         selectedPatientId = '';
         filterPatients();
+        return;
+      }
+
+      if (dateTrigger) {
+        openWorklistDatePicker(dateTrigger);
         return;
       }
 
