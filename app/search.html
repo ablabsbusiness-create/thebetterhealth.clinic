@@ -33,9 +33,7 @@
       min-height: 100vh;
       font-family: 'Outfit', system-ui, sans-serif;
       color: var(--ink);
-      background:
-        radial-gradient(circle at top left, rgba(34, 197, 94, 0.14), transparent 28%),
-        linear-gradient(180deg, #f5faf3 0%, #edf5ef 100%);
+      background: #f4f7f5;
     }
 
     .site-header {
@@ -193,8 +191,8 @@
     }
 
     .page-shell {
-      width: min(1180px, calc(100% - 32px));
-      margin: 34px auto;
+      width: 100%;
+      margin: 0;
     }
 
     .page-intro {
@@ -240,16 +238,16 @@
     }
 
     .search-shell {
-      background: rgba(255, 255, 255, 0.84);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(215, 226, 217, 0.95);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow);
-      padding: 24px;
+      min-height: calc(100vh - 72px);
+      background: #f4f7f5;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+      padding: 0;
     }
 
     .search-head {
-      display: flex;
+      display: none;
       align-items: end;
       justify-content: space-between;
       gap: 16px;
@@ -283,16 +281,19 @@
 
     .search-row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 180px;
-      gap: 12px;
-      margin-bottom: 16px;
+      grid-template-columns: minmax(0, 320px) 140px;
+      gap: 10px;
+      padding: 8px;
+      margin: 0;
+      background: #ffffff;
+      border-bottom: 1px solid #dfe6e1;
     }
 
     .search-row input {
       width: 100%;
-      min-height: 54px;
-      padding: 0 16px;
-      border-radius: 16px;
+      min-height: 40px;
+      padding: 0 12px;
+      border-radius: 4px;
       border: 1px solid var(--line);
       background: rgba(255, 255, 255, 0.94);
       color: var(--ink);
@@ -309,9 +310,9 @@
 
     button {
       width: 100%;
-      min-height: 54px;
+      min-height: 40px;
       border: none;
-      border-radius: 16px;
+      border-radius: 4px;
       font: inherit;
       font-weight: 700;
       cursor: pointer;
@@ -324,16 +325,17 @@
 
     .btn-primary {
       color: #fff;
-      background: linear-gradient(135deg, #166534, #15803d);
-      box-shadow: 0 14px 30px rgba(21, 128, 61, 0.2);
+      background: #15803d;
+      box-shadow: none;
     }
 
     .status-note {
       display: none;
-      margin-bottom: 16px;
+      margin: 0;
       padding: 12px 14px;
-      border-radius: 14px;
-      border: 1px solid var(--line);
+      border-radius: 0;
+      border: 0;
+      border-bottom: 1px solid var(--line);
       background: #f8fbf9;
       color: var(--muted);
       font-size: 13px;
@@ -348,6 +350,421 @@
       background: #fff7ed;
       border-color: #fed7aa;
       color: #9a3412;
+    }
+
+    .results-dashboard {
+      display: grid;
+      grid-template-columns: 340px minmax(0, 1fr);
+      gap: 0;
+      align-items: stretch;
+      min-height: calc(100vh - 121px);
+    }
+
+    .worklist-sidebar,
+    .worklist-main {
+      border-radius: 0;
+      border: 0;
+      background: #ffffff;
+      box-shadow: none;
+    }
+
+    .worklist-sidebar {
+      padding: 0;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 0;
+      max-height: calc(100vh - 121px);
+      position: sticky;
+      top: 72px;
+      overflow: hidden;
+      border-right: 1px solid #dfe6e1;
+    }
+
+    .worklist-datebar {
+      display: grid;
+      gap: 8px;
+      padding: 10px;
+      border-bottom: 1px solid #dfe6e1;
+    }
+
+    .worklist-date-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .worklist-date-nav {
+      width: 36px;
+      min-width: 36px;
+      min-height: 36px;
+      border-radius: 4px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--brand-strong);
+      font-size: 22px;
+      line-height: 1;
+      box-shadow: none;
+    }
+
+    .worklist-date-pill {
+      flex: 1;
+      min-height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 14px;
+      border-radius: 4px;
+      border: 1px solid #dfe6e1;
+      background: #f8fbf9;
+      color: var(--brand-strong);
+      font-size: 15px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .worklist-date-picker {
+      width: 100%;
+      min-height: 38px;
+      padding: 0 10px;
+      border-radius: 4px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.96);
+      color: var(--ink);
+      font: inherit;
+      outline: none;
+    }
+
+    .worklist-date-picker:focus {
+      border-color: rgba(22, 101, 52, 0.5);
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12);
+    }
+
+    .worklist-tabs {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0;
+      border-bottom: 1px solid #dfe6e1;
+    }
+
+    .worklist-tab {
+      min-height: 44px;
+      border-radius: 0;
+      border: 0;
+      border-right: 1px solid #dfe6e1;
+      background: #ffffff;
+      color: var(--muted);
+      box-shadow: none;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .worklist-tab.is-active {
+      background: #eef6ff;
+      border-bottom: 2px solid #1a73e8;
+      color: var(--brand-strong);
+    }
+
+    .worklist-summary {
+      display: none;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .worklist-summary-card {
+      padding: 12px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: #fbfdfb;
+    }
+
+    .worklist-summary-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .worklist-summary-card strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 24px;
+      line-height: 1;
+      color: var(--brand-strong);
+    }
+
+    .worklist-summary-card small {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .worklist-list {
+      min-height: 0;
+      overflow: auto;
+      display: grid;
+      align-content: start;
+      gap: 0;
+      padding-right: 0;
+    }
+
+    .worklist-empty {
+      padding: 16px;
+      border-radius: 0;
+      border: 0;
+      background: #f8fbf9;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .worklist-item {
+      width: 100%;
+      padding: 16px;
+      border: 0;
+      border-bottom: 1px solid #e4e9e5;
+      border-radius: 0;
+      background: #ffffff;
+      text-align: left;
+      color: var(--ink);
+      box-shadow: none;
+      display: grid;
+      gap: 8px;
+    }
+
+    .worklist-item.is-active {
+      border-color: #1a73e8;
+      background: #eff6ff;
+      box-shadow: inset 3px 0 0 #1a73e8;
+    }
+
+    .worklist-item-head {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .worklist-item-name {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.05;
+    }
+
+    .worklist-item-meta,
+    .worklist-item-sub {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .worklist-item-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 72px;
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: var(--brand-soft);
+      color: var(--brand-strong);
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .worklist-main {
+      padding: 16px;
+      display: grid;
+      gap: 16px;
+      min-height: calc(100vh - 121px);
+      background: #f4f7f5;
+    }
+
+    .doctor-main-head {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 4px;
+    }
+
+    .doctor-main-head h2 {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .doctor-main-head p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .doctor-patient-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .doctor-meta-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #f8fbf9;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .doctor-patient-meta .continue-link {
+      min-height: 42px;
+      border-radius: 12px;
+      padding: 0 16px;
+      font-size: 14px;
+      box-shadow: 0 10px 20px rgba(21, 128, 61, 0.16);
+    }
+
+    .doctor-detail-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .doctor-detail-stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .doctor-card {
+      border-radius: 0;
+      border: 1px solid #dfe6e1;
+      background: #ffffff;
+      box-shadow: none;
+      overflow: hidden;
+    }
+
+    .doctor-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px 18px 14px;
+      border-bottom: 1px solid #e9f0ea;
+    }
+
+    .doctor-card-head h3 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .doctor-card-body {
+      padding: 16px 18px 18px;
+    }
+
+    .doctor-visit-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .doctor-visit-metric {
+      padding: 12px;
+      border-radius: 4px;
+      background: #f8fbf9;
+      border: 1px solid #e3ece5;
+    }
+
+    .doctor-visit-metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .doctor-visit-metric strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 22px;
+      line-height: 1;
+      color: var(--ink);
+    }
+
+    .doctor-card-note {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .doctor-card .history-filter-row label,
+    .doctor-card .record-table .metric-name,
+    .doctor-card .record-table th,
+    .doctor-card .record-table td,
+    .doctor-card .table-empty {
+      color: var(--ink);
+    }
+
+    .doctor-card .history-filter-row input[type="date"] {
+      border: 1px solid var(--line);
+      background: #ffffff;
+      color: var(--ink);
+    }
+
+    .doctor-card .filter-clear-btn {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      color: var(--brand-strong);
+    }
+
+    .doctor-card .record-table thead th {
+      color: var(--brand-strong);
+    }
+
+    .doctor-card .record-table .metric-unit {
+      color: var(--muted);
+    }
+
+    .doctor-card .record-table .metric-value,
+    .doctor-card .record-table .table-empty {
+      background: rgba(22, 101, 52, 0.06);
+      border: 1px solid rgba(22, 101, 52, 0.1);
+    }
+
+    .doctor-card .prescription-list {
+      max-height: 560px;
+    }
+
+    .doctor-card .prescription-preview-surface {
+      min-height: 520px;
+      border-radius: 12px;
+    }
+
+    .doctor-card .prescription-preview-frame,
+    .doctor-card .prescription-preview-embed {
+      min-height: 520px;
+      height: 520px;
+    }
+
+    .doctor-empty-state {
+      min-height: 420px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 28px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.7;
     }
 
     .results-list {
@@ -950,14 +1367,29 @@
     }
 
     @media (max-width: 960px) {
+      .results-dashboard,
+      .doctor-detail-grid,
       .result-top,
       .result-layout,
       .search-row {
         grid-template-columns: 1fr;
       }
 
+      .worklist-sidebar {
+        position: static;
+        max-height: none;
+      }
+
+      .worklist-list {
+        max-height: 380px;
+      }
+
       .continue-link {
         min-height: 72px;
+      }
+
+      .doctor-patient-meta .continue-link {
+        min-height: 42px;
       }
     }
 
@@ -1013,12 +1445,35 @@
 
     @media (max-width: 640px) {
       .page-shell {
-        width: min(100% - 20px, 1180px);
-        margin: 20px auto 28px;
+        width: 100%;
+        margin: 0;
       }
 
       .search-shell {
-        padding: 16px;
+        padding: 0;
+      }
+
+      .worklist-sidebar,
+      .worklist-main {
+        padding: 0;
+        border-radius: 0;
+      }
+
+      .worklist-main {
+        padding: 12px;
+      }
+
+      .worklist-summary,
+      .doctor-visit-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .doctor-main-head {
+        flex-direction: column;
+      }
+
+      .doctor-patient-meta {
+        justify-content: flex-start;
       }
 
       .result-card {
@@ -1154,6 +1609,8 @@
     let allHistory = [];
     const historyDateFilters = {};
     let selectedPatientId = '';
+    let selectedWorklistDate = getTodayIsoDate();
+    let selectedWorklistMode = 'seen';
     const TEST_PAST_CHARTS_PATIENT_ID = 'TESTPAST001';
 
     function buildDemoMeasurementEntry(daysAgo, values) {
@@ -1412,6 +1869,17 @@
       return `${year}-${month}-${day}`;
     }
 
+    function formatIsoDateFromDate(dateValue) {
+      const year = dateValue.getFullYear();
+      const month = String(dateValue.getMonth() + 1).padStart(2, '0');
+      const day = String(dateValue.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function getTodayIsoDate() {
+      return formatIsoDateFromDate(new Date());
+    }
+
     function formatHistoryDateTime(entry) {
       if (entry.createdAtIso) {
         const parsed = new Date(entry.createdAtIso);
@@ -1497,6 +1965,73 @@
         const aTime = Date.parse(a?.createdAtIso || '') || 0;
         const bTime = Date.parse(b?.createdAtIso || '') || 0;
         return bTime - aTime;
+      });
+    }
+
+    function getDateLabel(dateValue) {
+      const parsed = new Date(`${dateValue}T12:00:00`);
+      if (Number.isNaN(parsed.getTime())) {
+        return 'Select date';
+      }
+
+      return parsed.toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
+    }
+
+    function shiftIsoDate(dateValue, dayDelta) {
+      const parsed = new Date(`${dateValue}T12:00:00`);
+      if (Number.isNaN(parsed.getTime())) {
+        return getTodayIsoDate();
+      }
+      parsed.setDate(parsed.getDate() + dayDelta);
+      return formatIsoDateFromDate(parsed);
+    }
+
+    function getPatientVisitEntriesForDate(patient, dateValue) {
+      return getMeasurementEntries(patient).filter((entry) => getIsoDatePart(entry.createdAtIso) === dateValue);
+    }
+
+    function getPatientAppointmentDates(patient) {
+      return [
+        patient.appointmentDate,
+        patient.appointmentAt,
+        patient.nextAppointmentDate,
+        patient.nextVisitDate,
+        patient.visitDate,
+        patient.followUpDate
+      ]
+        .map(getIsoDatePart)
+        .filter(Boolean);
+    }
+
+    function patientHasAppointmentOnDate(patient, dateValue) {
+      return getPatientAppointmentDates(patient).includes(dateValue);
+    }
+
+    function getLatestMeasurementForDate(patient, dateValue) {
+      return getPatientVisitEntriesForDate(patient, dateValue)[0] || getMeasurementEntries(patient)[0] || null;
+    }
+
+    function getWorklistCounts(patients, dateValue) {
+      const seen = patients.filter((patient) => getPatientVisitEntriesForDate(patient, dateValue).length > 0).length;
+      const queue = patients.filter((patient) => patientHasAppointmentOnDate(patient, dateValue)).length;
+      return { seen, queue };
+    }
+
+    function getWorklistPatients(patients, dateValue, mode) {
+      const filtered = mode === 'queue'
+        ? patients.filter((patient) => patientHasAppointmentOnDate(patient, dateValue))
+        : patients.filter((patient) => getPatientVisitEntriesForDate(patient, dateValue).length > 0);
+
+      return filtered.sort((left, right) => {
+        const leftVisit = getLatestMeasurementForDate(left, dateValue);
+        const rightVisit = getLatestMeasurementForDate(right, dateValue);
+        const leftTime = Date.parse(leftVisit?.createdAtIso || '') || 0;
+        const rightTime = Date.parse(rightVisit?.createdAtIso || '') || 0;
+        return rightTime - leftTime || sortByPatientName(left, right);
       });
     }
 
@@ -1676,6 +2211,60 @@
       `;
     }
 
+    function renderVisitSummaryHtml(patient, dateValue) {
+      const entry = getLatestMeasurementForDate(patient, dateValue);
+      if (!entry) {
+        return '<p class="doctor-card-note">No vitals were saved for this patient on the selected date.</p>';
+      }
+
+      const metrics = [
+        ['Weight', entry.weight ? `${entry.weight} kg` : '-'],
+        ['Height', entry.height ? `${entry.height} cm` : '-'],
+        ['OFC', entry.head ? `${entry.head} cm` : '-'],
+        ['SpO2', entry.spo2 ? `${entry.spo2}%` : '-'],
+        ['Pulse', entry.pulse ? `${entry.pulse} bpm` : '-'],
+        ['BP', entry.systolic || entry.diastolic ? `${entry.systolic || '-'}/${entry.diastolic || '-'} mmHg` : '-'],
+        ['Temp', entry.temp ? `${entry.temp} C` : '-'],
+        ['Time', formatHistoryDateTime(entry)]
+      ];
+
+      return `
+        <div class="doctor-visit-grid">
+          ${metrics.map(([label, value]) => `
+            <div class="doctor-visit-metric">
+              <span>${label}</span>
+              <strong>${value}</strong>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function renderWorklistItemHtml(patient, dateValue) {
+      const childName = getPatientDisplayName(patient);
+      const patientId = formatMissing(patient.patientId, 'ID not saved');
+      const gender = formatMissing(patient.gender, 'Gender not saved');
+      const dob = formatDateDisplay(patient.dob);
+      const phone = formatMissing(patient.phone, 'Phone not saved');
+      const visits = getPatientVisitEntriesForDate(patient, dateValue);
+      const latest = visits[0] || getMeasurementEntries(patient)[0] || null;
+      const isActive = selectedPatientId === patientId;
+
+      return `
+        <button class="worklist-item ${isActive ? 'is-active' : ''}" type="button" data-select-worklist-patient="${patientId}">
+          <div class="worklist-item-head">
+            <div>
+              <h3 class="worklist-item-name">${childName}</h3>
+              <div class="worklist-item-meta">${gender} | ${dob}</div>
+            </div>
+            <span class="worklist-item-badge">${visits.length ? `${visits.length} visit${visits.length === 1 ? '' : 's'}` : 'Queue'}</span>
+          </div>
+          <div class="worklist-item-sub">${patientId} | ${phone}</div>
+          ${latest ? `<div class="worklist-item-sub">Wt ${latest.weight || '-'} kg | Ht ${latest.height || '-'} cm | OFC ${latest.head || '-'} cm</div>` : ''}
+        </button>
+      `;
+    }
+
     function renderPatients(patients) {
       updateCount(patients.length);
 
@@ -1743,6 +2332,121 @@
       attachPrescriptionPreviewRendering();
     }
 
+    function renderDoctorWorklist(patients) {
+      updateCount(patients.length);
+
+      if (patients.length === 0) {
+        renderPlaceholder('No patients matched that search.');
+        return;
+      }
+
+      const counts = getWorklistCounts(patients, selectedWorklistDate);
+      const worklistPatients = getWorklistPatients(patients, selectedWorklistDate, selectedWorklistMode);
+      if ((!selectedPatientId || !patients.some((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId)) && worklistPatients[0]) {
+        selectedPatientId = formatMissing(worklistPatients[0].patientId, 'ID not saved');
+      }
+
+      const selectedPatient = worklistPatients.find((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId) || worklistPatients[0] || null;
+      const selectedPatientIdValue = selectedPatient ? formatMissing(selectedPatient.patientId, 'ID not saved') : '';
+      const selectedHistoryDate = selectedPatientIdValue ? historyDateFilters[selectedPatientIdValue] || selectedWorklistDate : '';
+      const childName = selectedPatient ? getPatientDisplayName(selectedPatient) : 'Select a patient';
+      const parentName = selectedPatient ? formatMissing(selectedPatient.parentName, 'Parent not saved') : '';
+      const phone = selectedPatient ? formatMissing(selectedPatient.phone, 'Phone not saved') : '';
+      const gender = selectedPatient ? formatMissing(selectedPatient.gender, 'Gender not saved') : '';
+      const dob = selectedPatient ? formatDateDisplay(selectedPatient.dob) : '';
+
+      resultsPanel.innerHTML = `
+        <div class="results-dashboard">
+          <aside class="worklist-sidebar">
+            <div class="worklist-datebar">
+              <div class="worklist-date-top">
+                <button class="worklist-date-nav" type="button" data-worklist-date-step="-1" aria-label="Previous date">&lsaquo;</button>
+                <div class="worklist-date-pill">${getDateLabel(selectedWorklistDate)}</div>
+                <button class="worklist-date-nav" type="button" data-worklist-date-step="1" aria-label="Next date">&rsaquo;</button>
+              </div>
+              <input class="worklist-date-picker" type="date" value="${selectedWorklistDate}" data-worklist-date-picker>
+            </div>
+
+            <div class="worklist-tabs">
+              <button class="worklist-tab ${selectedWorklistMode === 'queue' ? 'is-active' : ''}" type="button" data-worklist-mode="queue">Queue (${counts.queue})</button>
+              <button class="worklist-tab ${selectedWorklistMode === 'seen' ? 'is-active' : ''}" type="button" data-worklist-mode="seen">Seen (${String(counts.seen).padStart(2, '0')})</button>
+            </div>
+
+            <div class="worklist-summary">
+              <div class="worklist-summary-card">
+                <span>Seen</span>
+                <strong>${counts.seen}</strong>
+                <small>${getDateLabel(selectedWorklistDate)}</small>
+              </div>
+              <div class="worklist-summary-card">
+                <span>Queue</span>
+                <strong>${counts.queue}</strong>
+                <small>Appointments</small>
+              </div>
+            </div>
+
+            <div class="worklist-list">
+              ${worklistPatients.length
+                ? worklistPatients.map((patient) => renderWorklistItemHtml(patient, selectedWorklistDate)).join('')
+                : `<div class="worklist-empty">${selectedWorklistMode === 'queue' ? 'No appointments are lined up for this date yet.' : 'No patients have been seen on this date yet.'}</div>`}
+            </div>
+          </aside>
+
+          <main class="worklist-main">
+            ${selectedPatient ? `
+              <div class="doctor-main-head">
+                <div>
+                  <h2>${childName}</h2>
+                  <p>${gender} | ${dob} | ${selectedPatientIdValue}</p>
+                </div>
+                <div class="doctor-patient-meta">
+                  <span class="doctor-meta-chip">${parentName}</span>
+                  <span class="doctor-meta-chip">${phone}</span>
+                  <a class="continue-link" href="prescription-growth-chart-dashboard.html?patientId=${encodeURIComponent(selectedPatientIdValue)}">Start Consult</a>
+                </div>
+              </div>
+
+              <div class="doctor-detail-grid">
+                <div class="doctor-detail-stack">
+                  <section class="doctor-card">
+                    <div class="doctor-card-head">
+                      <h3>Today's Visit</h3>
+                      <span class="doctor-meta-chip">${getDateLabel(selectedWorklistDate)}</span>
+                    </div>
+                    <div class="doctor-card-body">
+                      ${renderVisitSummaryHtml(selectedPatient, selectedWorklistDate)}
+                    </div>
+                  </section>
+
+                  <section class="doctor-card">
+                    <div class="doctor-card-head">
+                      <h3>Vitals Trend</h3>
+                    </div>
+                    <div class="doctor-card-body">
+                      ${renderMeasurementTableHtml(selectedPatient, selectedHistoryDate) || '<p class="doctor-card-note">No vitals trend has been saved yet.</p>'}
+                    </div>
+                  </section>
+                </div>
+
+                <section class="doctor-card">
+                  <div class="doctor-card-head">
+                    <h3>Past Prescriptions</h3>
+                  </div>
+                  <div class="doctor-card-body">
+                    ${renderPrescriptionListHtml(selectedPatientIdValue)}
+                  </div>
+                </section>
+              </div>
+            ` : `
+              <div class="doctor-empty-state">Select a patient from the left list.</div>
+            `}
+          </main>
+        </div>
+      `;
+
+      attachPrescriptionPreviewRendering();
+    }
+
     function filterPatients() {
       const searchValue = searchInput.value.trim();
       const filteredPatients = searchValue
@@ -1753,7 +2457,7 @@
         selectedPatientId = '';
       }
 
-      renderPatients(filteredPatients);
+      renderDoctorWorklist(filteredPatients);
       setStatus(searchValue ? `Showing matches for "${searchValue}".` : 'Showing all patients.');
     }
 
@@ -1780,12 +2484,20 @@
 
     resultsPanel.addEventListener('input', (event) => {
       const target = event.target;
-      if (!(target instanceof HTMLInputElement) || !target.classList.contains('history-date-input')) {
+      if (!(target instanceof HTMLInputElement)) {
         return;
       }
 
-      historyDateFilters[target.dataset.patientId] = target.value;
-      filterPatients();
+      if (target.classList.contains('history-date-input')) {
+        historyDateFilters[target.dataset.patientId] = target.value;
+        filterPatients();
+      }
+
+      if (target.matches('[data-worklist-date-picker]')) {
+        selectedWorklistDate = target.value || getTodayIsoDate();
+        selectedPatientId = '';
+        filterPatients();
+      }
     });
 
     resultsPanel.addEventListener('click', (event) => {
@@ -1796,6 +2508,29 @@
 
       const patientId = target.getAttribute('data-clear-history-date');
       const openProfilePatientId = target.closest('[data-open-profile]')?.getAttribute('data-open-profile');
+      const selectedWorklistPatientId = target.closest('[data-select-worklist-patient]')?.getAttribute('data-select-worklist-patient');
+      const selectedMode = target.getAttribute('data-worklist-mode');
+      const dateStep = target.getAttribute('data-worklist-date-step');
+      if (selectedMode) {
+        selectedWorklistMode = selectedMode;
+        selectedPatientId = '';
+        filterPatients();
+        return;
+      }
+
+      if (dateStep) {
+        selectedWorklistDate = shiftIsoDate(selectedWorklistDate, Number(dateStep));
+        selectedPatientId = '';
+        filterPatients();
+        return;
+      }
+
+      if (selectedWorklistPatientId) {
+        selectedPatientId = selectedWorklistPatientId;
+        filterPatients();
+        return;
+      }
+
       if (target.matches('[data-carousel-direction]')) {
         const carousel = target.closest('.prescription-carousel');
         const list = carousel?.querySelector('.prescription-list');
