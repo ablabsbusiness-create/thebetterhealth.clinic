@@ -37,6 +37,10 @@ Set these environment variables in the Vercel project settings before deploying:
 - `VITE_FIREBASE_MESSAGING_SENDER_ID`
 - `VITE_FIREBASE_APP_ID`
 - `VITE_FIREBASE_MEASUREMENT_ID`
+- `CLINIC_ACCESS_PASSWORD`
+- `CLINIC_SESSION_SECRET`
+
+`CLINIC_ACCESS_PASSWORD` is the actual clinic login password. `CLINIC_SESSION_SECRET` should be a long random secret used to sign the secure session cookie.
 
 You can copy them from:
 

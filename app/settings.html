@@ -561,11 +561,6 @@
   </style>
 </head>
 <body>
-  <script>
-    if (sessionStorage.getItem('clinic-access-ok') !== 'true') {
-      window.location.replace('password');
-    }
-  </script>
   <header class="site-header">
     <div class="topbar">
       <div class="brand">
@@ -642,6 +637,7 @@
 
       <div class="help-actions">
         <a class="btn-primary" href="index">Back to Dashboard</a>
+        <button id="sign-out-btn" class="setting-save" type="button">Sign Out</button>
       </div>
     </section>
   </main>
@@ -660,6 +656,7 @@
     const usageCaption = document.getElementById('usage-caption');
     const printGapSettingInput = document.getElementById('print-gap-setting-input');
     const savePrintGapBtn = document.getElementById('save-print-gap-btn');
+    const signOutBtn = document.getElementById('sign-out-btn');
     const printGapSettingStatus = document.getElementById('print-gap-setting-status');
     const FIREBASE_FREE_STORAGE_BYTES = 5 * 1024 * 1024 * 1024;
     const PRINT_HEADER_GAP_STORAGE_KEY = 'previewPrintHeaderGapCm';
@@ -817,6 +814,24 @@
           event.preventDefault();
           savePrintGapSetting();
         }
+      });
+    }
+
+    if (signOutBtn) {
+      signOutBtn.addEventListener('click', async () => {
+        signOutBtn.disabled = true;
+
+        try {
+          await fetch('/api/auth/logout', { method: 'POST' });
+        } catch (error) {
+          console.warn('Unable to call logout endpoint:', error);
+        }
+
+        const passwordPath = window.location.pathname.includes('/app/') || window.location.pathname === '/app/settings'
+          ? '/app/password'
+          : '/password';
+
+        window.location.replace(passwordPath);
       });
     }
 
