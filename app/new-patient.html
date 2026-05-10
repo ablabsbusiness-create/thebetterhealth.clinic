@@ -585,8 +585,8 @@
       </div>
 
       <div class="topbar-actions">
-        <a class="nav-link" href="pending-approvals.html">Approvals</a>
-        <a class="nav-link" href="settings.html">Settings</a>
+        <a class="nav-link" href="pending-approvals">Approvals</a>
+        <a class="nav-link" href="settings">Settings</a>
       </div>
 
     </div>
@@ -775,8 +775,12 @@
     sessionStorage.setItem('newPatientId', autoPatientId);
 
     const prefilledChildName = searchParams.get('childName') || '';
+    const prefilledMobileNumber = searchParams.get('mobileNumber') || '';
     if (prefilledChildName && !newPatientForm.elements.childName.value.trim()) {
       newPatientForm.elements.childName.value = prefilledChildName.trim();
+    }
+    if (prefilledMobileNumber && !newPatientForm.elements.mobileNumber.value.trim()) {
+      newPatientForm.elements.mobileNumber.value = prefilledMobileNumber.trim();
     }
 
     newPatientForm.addEventListener('submit', async (event) => {
@@ -801,7 +805,7 @@
         console.log(savedToFirebase
           ? `Saved to Firebase with Patient ID ${autoPatientId}.`
           : `Patient ID ${autoPatientId} generated locally. Add Firebase config to store this in Firestore.`);
-        window.location.href = `prescription-growth-chart-dashboard.html?patientId=${encodeURIComponent(autoPatientId)}`;
+        window.location.href = `prescription-growth-chart-dashboard?patientId=${encodeURIComponent(autoPatientId)}`;
       } catch (error) {
         console.error(`Firebase save failed: ${error.message}`);
       } finally {

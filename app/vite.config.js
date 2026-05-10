@@ -106,11 +106,15 @@ export default defineConfig({
         password: resolve(__dirname, 'password.html'),
         entryDashboard: resolve(__dirname, 'index.html'),
         dashboard: resolve(__dirname, 'clinci.html'),
-        choose: resolve(__dirname, 'choose.html'),
         newPatient: resolve(__dirname, 'new-patient.html'),
         growthChart: resolve(__dirname, 'growth-chart-dashboard.html'),
         prescription: resolve(__dirname, 'prescription.html'),
         preview: resolve(__dirname, 'preview.html'),
+        pendingApprovals: resolve(__dirname, 'pending-approvals.html'),
+        receptionQr: resolve(__dirname, 'reception-qr.html'),
+        intake: resolve(__dirname, 'intake.html'),
+        rx: resolve(__dirname, 'rx.html'),
+        settings: resolve(__dirname, 'settings.html'),
         prescriptionGrowthChart: resolve(__dirname, 'prescription-growth-chart-dashboard.html'),
         search: resolve(__dirname, 'search.html')
       }

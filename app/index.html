@@ -459,7 +459,7 @@
 <body>
   <script>
     if (sessionStorage.getItem('clinic-access-ok') !== 'true') {
-      window.location.replace('password.html');
+      window.location.replace('password');
     }
   </script>
   <header class="site-header">
@@ -488,14 +488,14 @@
       </button>
 
       <nav id="primary-nav" class="nav-links" aria-label="Primary">
-        <a class="nav-link active" href="index.html">Dashboard</a>
-        <a class="nav-link" href="choose.html">Enter Clinic</a>
-        <a class="nav-link" href="pending-approvals.html">Approvals</a>
-        <a class="nav-link" href="settings.html">Settings</a>
+        <a class="nav-link active" href="index">Dashboard</a>
+        <a class="nav-link" href="search">Enter Clinic</a>
+        <a class="nav-link" href="pending-approvals">Approvals</a>
+        <a class="nav-link" href="settings">Settings</a>
       </nav>
 
       <div class="topbar-actions">
-        <a class="settings-shortcut" href="settings.html">Settings</a>
+        <a class="settings-shortcut" href="settings">Settings</a>
         <div class="status-chip">
           <span class="status-dot"></span>
           Clinic access active
@@ -507,26 +507,26 @@
   <div class="page-shell">
     <section class="dashboard-panel">
       <div class="action-grid">
-        <a class="action-card" href="choose.html">
+        <a class="action-card" href="search">
           <div class="action-icon">CL</div>
           <h3>Enter Clinic</h3>
           <p>Open the main clinic dashboard to start patient, prescription, and preview work.</p>
           <div class="action-footer">Open dashboard <span>&rarr;</span></div>
         </a>
 
-        <a class="action-card" href="growth-chart-dashboard.html">
+        <a class="action-card" href="growth-chart-dashboard">
           <div class="action-icon">GC</div>
           <h3>Enter Camp</h3>
           <p>Jump into the growth chart camp flow with the same lightweight workspace styling.</p>
           <div class="action-footer">Open chart page <span>&rarr;</span></div>
         </a>
-        <a class="action-card" href="pending-approvals.html">
+        <a class="action-card" href="pending-approvals">
           <div class="action-icon">PA</div>
           <h3>Pending Approvals</h3>
           <p>Review QR self-check-ins, correct details, and approve them into the live patient database.</p>
           <div class="action-footer">Open approvals <span>&rarr;</span></div>
         </a>
-        <a class="action-card" href="reception-qr.html">
+        <a class="action-card" href="reception-qr">
           <div class="action-icon">QR</div>
           <h3>Reception QR</h3>
           <p>Show a scannable check-in QR at reception so new patients can register themselves before consultation.</p>

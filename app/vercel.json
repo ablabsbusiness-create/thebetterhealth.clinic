@@ -1,8 +1,9 @@
 {
+  "cleanUrls": true,
   "rewrites": [
     {
       "source": "/app",
-      "destination": "/index.html"
+      "destination": "/index"
     },
     {
       "source": "/app/:path*",

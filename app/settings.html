@@ -563,7 +563,7 @@
 <body>
   <script>
     if (sessionStorage.getItem('clinic-access-ok') !== 'true') {
-      window.location.replace('password.html');
+      window.location.replace('password');
     }
   </script>
   <header class="site-header">
@@ -592,13 +592,13 @@
       </button>
 
       <nav id="primary-nav" class="nav-links" aria-label="Primary">
-        <a class="nav-link" href="index.html">Dashboard</a>
-        <a class="nav-link" href="choose.html">Enter Clinic</a>
-        <a class="nav-link active" href="settings.html">Settings</a>
+        <a class="nav-link" href="index">Dashboard</a>
+        <a class="nav-link" href="search">Enter Clinic</a>
+        <a class="nav-link active" href="settings">Settings</a>
       </nav>
 
       <div class="topbar-actions">
-        <a class="settings-shortcut" href="settings.html">Settings</a>
+        <a class="settings-shortcut" href="settings">Settings</a>
         <div class="status-chip">
           <span class="status-dot"></span>
           Prescription history
@@ -641,7 +641,7 @@
       </div>
 
       <div class="help-actions">
-        <a class="btn-primary" href="index.html">Back to Dashboard</a>
+        <a class="btn-primary" href="index">Back to Dashboard</a>
       </div>
     </section>
   </main>

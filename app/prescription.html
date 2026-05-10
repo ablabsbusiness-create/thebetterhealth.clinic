@@ -1280,7 +1280,7 @@
       </div>
 
       <div class="topbar-actions">
-        <a class="nav-link" href="settings.html">Settings</a>
+        <a class="nav-link" href="settings">Settings</a>
         <div class="status-chip">
           <span class="status-dot"></span>
           Prescription page ready
@@ -1450,7 +1450,7 @@
       </div>
 
       <div class="page-action-row">
-        <a id="continue-preview-btn" class="btn-primary" href="preview.html">Continue</a>
+        <a id="continue-preview-btn" class="btn-primary" href="preview">Continue</a>
       </div>
     </section>
   </div>
@@ -2292,8 +2292,8 @@
     function getPreviewTargetUrl() {
       const patientId = getCurrentPatientId() || getActiveChartRecord()?.patientId || '';
       return patientId
-        ? `preview.html?patientId=${encodeURIComponent(patientId)}`
-        : 'preview.html';
+        ? `preview?patientId=${encodeURIComponent(patientId)}`
+        : 'preview';
     }
 
     function readLocalJson(key, fallback = null) {

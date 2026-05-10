@@ -73,17 +73,17 @@
   </style>
 </head>
 <body>
-  <script>if (sessionStorage.getItem('clinic-access-ok') !== 'true') { window.location.replace('password.html'); }</script>
+  <script>if (sessionStorage.getItem('clinic-access-ok') !== 'true') { window.location.replace('password'); }</script>
   <header class="site-header">
     <div class="topbar">
       <div class="brand"><div class="brand-mark">PA</div><div class="brand-copy"><strong>The Better Health Clinic</strong><span>Pending Intake Approvals</span></div></div>
       <nav id="primary-nav" class="nav-links" aria-label="Primary">
-        <a class="nav-link" href="index.html">Dashboard</a>
-        <a class="nav-link" href="choose.html">Enter Clinic</a>
-        <a class="nav-link active" href="pending-approvals.html">Approvals</a>
-        <a class="nav-link" href="settings.html">Settings</a>
+        <a class="nav-link" href="index">Dashboard</a>
+        <a class="nav-link" href="search">Search Patients</a>
+        <a class="nav-link active" href="pending-approvals">Approvals</a>
+        <a class="nav-link" href="settings">Settings</a>
       </nav>
-      <div class="topbar-actions"><div class="status-chip"><span class="status-dot"></span>Doctor review queue</div></div>
+      <div class="topbar-actions"><a class="btn-secondary" href="search">Search Patients</a><div class="status-chip"><span class="status-dot"></span>Doctor review queue</div></div>
     </div>
   </header>
   <div class="page-shell">

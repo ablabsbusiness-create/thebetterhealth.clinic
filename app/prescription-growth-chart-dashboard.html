@@ -1906,7 +1906,7 @@
       </div>
 
       <div class="topbar-actions">
-        <a class="nav-link" href="settings.html">Settings</a>
+        <a class="nav-link" href="settings">Settings</a>
         <div class="status-chip">
           <span class="status-dot"></span>
           IAP templates ready
@@ -4640,8 +4640,8 @@
       if (generateBtn.textContent.trim() === 'Continue') {
         const patientId = patientIdInput.value.trim().toUpperCase();
         const targetUrl = patientId
-          ? `prescription.html?patientId=${encodeURIComponent(patientId)}`
-          : 'prescription.html';
+          ? `prescription?patientId=${encodeURIComponent(patientId)}`
+          : 'prescription';
         window.location.href = targetUrl;
         return;
       }

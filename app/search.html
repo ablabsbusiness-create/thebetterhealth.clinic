@@ -1691,8 +1691,8 @@
       </div>
 
       <div class="topbar-actions">
-        <a class="nav-link" href="pending-approvals.html">Approvals</a>
-        <a class="nav-link" href="settings.html">Settings</a>
+        <a class="nav-link" href="pending-approvals">Approvals</a>
+        <a class="nav-link" href="settings">Settings</a>
       </div>
 
     </div>
@@ -1869,12 +1869,16 @@
     function getNewPatientUrl(searchValue = '') {
       const params = new URLSearchParams();
       if (searchValue) {
-        params.set('childName', searchValue);
+        if (/^\d+$/.test(searchValue)) {
+          params.set('mobileNumber', searchValue);
+        } else {
+          params.set('childName', searchValue);
+        }
         params.set('fromSearch', '1');
       }
 
       const query = params.toString();
-      return query ? `new-patient.html?${query}` : 'new-patient.html';
+      return query ? `new-patient?${query}` : 'new-patient';
     }
 
     function readLocalJson(key, fallback) {
@@ -2700,7 +2704,7 @@
       if (patients.length === 0) {
         renderPlaceholder('No patients matched that search.', {
           title: searchValue ? `"${searchValue}" was not found.` : 'No patients found.',
-          actionHref: searchValue ? getNewPatientUrl(searchValue) : 'new-patient.html',
+          actionHref: searchValue ? getNewPatientUrl(searchValue) : 'new-patient',
           actionLabel: 'Add New Patient'
         });
         return;
@@ -2738,7 +2742,7 @@
                 <strong>${phone}</strong>
                 <small>${parentName}</small>
               </div>
-              <a class="continue-link" href="prescription-growth-chart-dashboard.html?patientId=${encodeURIComponent(patientId)}">Continue</a>
+              <a class="continue-link" href="prescription-growth-chart-dashboard?patientId=${encodeURIComponent(patientId)}">Continue</a>
             </div>
 
             ${isExpanded ? `
@@ -2771,7 +2775,7 @@
       if (patients.length === 0) {
         renderPlaceholder('No patients matched that search.', {
           title: searchValue ? `"${searchValue}" was not found.` : 'No patients found.',
-          actionHref: searchValue ? getNewPatientUrl(searchValue) : 'new-patient.html',
+          actionHref: searchValue ? getNewPatientUrl(searchValue) : 'new-patient',
           actionLabel: 'Add New Patient'
         });
         return;
@@ -2839,7 +2843,7 @@
                 <div class="doctor-patient-meta">
                   <span class="doctor-meta-chip">${parentName}</span>
                   <span class="doctor-meta-chip">${phone}</span>
-                  <a class="continue-link" href="prescription-growth-chart-dashboard.html?patientId=${encodeURIComponent(selectedPatientIdValue)}">Start Consult</a>
+                  <a class="continue-link" href="prescription-growth-chart-dashboard?patientId=${encodeURIComponent(selectedPatientIdValue)}">Start Consult</a>
                 </div>
               </div>
 

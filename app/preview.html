@@ -749,7 +749,7 @@
       <nav id="primary-nav" class="nav-links" aria-label="Primary"></nav>
 
       <div class="topbar-actions">
-        <a class="nav-link" href="settings.html">Settings</a>
+        <a class="nav-link" href="settings">Settings</a>
       </div>
 
     </div>
@@ -762,7 +762,7 @@
           <span class="status-dot"></span>Preparing preview...
         </div>
         <div class="preview-actions">
-          <a class="nav-link nav-enter-clinic" href="choose.html">Enter Clinic</a>
+          <a class="nav-link nav-enter-clinic" href="search">Enter Clinic</a>
           <button id="download-pdf-btn" class="btn-primary" type="button">Download PDF</button>
           <button id="whatsapp-btn" class="btn-whatsapp" type="button">WhatsApp</button>
           <div class="print-group">
@@ -1836,7 +1836,7 @@
         return '';
       }
 
-      const url = new URL('rx.html', window.location.href);
+      const url = new URL('rx', window.location.href);
       url.searchParams.set('i', saveId);
       return url.toString();
     }
