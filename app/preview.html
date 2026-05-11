@@ -1160,7 +1160,11 @@
         return null;
       }
 
-      if (Array.isArray(record.chartPages) && record.chartPages.some((page) => page?.dataUrl)) {
+      const hasChartPages = Array.isArray(record.chartPages) && record.chartPages.some((page) => page?.dataUrl);
+      const isCurrentChartFormat = record.chartFormatVersion === CHART_PREVIEW_VERSION
+        && record.chartPages?.every((page) => !page?.dataUrl || page.chartFormatVersion === CHART_PREVIEW_VERSION);
+
+      if (hasChartPages && isCurrentChartFormat) {
         try {
           const chartPages = [];
           for (const page of record.chartPages.slice(0, 4)) {
@@ -1180,6 +1184,11 @@
 
       const patientData = getChartPatientData(record);
       const requests = buildFreshChartRequests(record);
+      if (!requests.length && hasChartPages) {
+        console.warn('Unable to rebuild chart previews because no matching chart requests could be inferred; using stored chart pages.');
+        return record;
+      }
+
       if (!requests.length) {
         return record;
       }
@@ -1625,8 +1634,6 @@
 
       const patientId = details.patientId || 'UNKNOWN';
       const storagePath = `prescriptions/${patientId}/${fileName}`;
-      const previewFileName = fileName.replace(/\.pdf$/i, '.jpg');
-      const previewStoragePath = `prescriptions/${patientId}/previews/${previewFileName}`;
       let persistedStoragePath = '';
       let previewImageURL = '';
       let previewImagePath = '';
@@ -1641,19 +1648,6 @@
           });
           downloadURL = await getDownloadURL(storageRef);
           persistedStoragePath = storagePath;
-
-          if (details.previewBlob) {
-            const previewStorageRef = ref(storage, previewStoragePath);
-            try {
-              await uploadBytes(previewStorageRef, details.previewBlob, {
-                contentType: 'image/jpeg'
-              });
-              previewImageURL = await getDownloadURL(previewStorageRef);
-              previewImagePath = previewStoragePath;
-            } catch (error) {
-              console.warn(`Prescription preview image upload skipped: ${error.message}`);
-            }
-          }
         } catch (error) {
           warning = error.message;
           console.warn(`Prescription PDF upload skipped: ${error.message}`);
