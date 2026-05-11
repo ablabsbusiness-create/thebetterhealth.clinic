@@ -29,14 +29,5 @@
 <text class="ylabel" x="39" y="119">65</text>
 <path class="tick" d="M45 162 H51"/>
 <text class="ylabel" x="39" y="166">50</text>
-<g clip-path="url(#clip-boys-waist-circumference-minimal-svg-0)">
-<path class="curve" d="M45 126 C93 74, 167 50, 215 44"/>
-<path class="curve" d="M45 138 C93 92, 167 70, 215 64"/>
-<path class="median" d="M45 150 C93 110, 167 90, 215 84"/>
-<path class="curve" d="M45 160 C93 124, 167 106, 215 102"/>
-</g>
-<text class="percentile" x="223" y="36">P95</text>
-<text class="percentile" x="223" y="54">P75</text>
-<text class="percentile" x="223" y="72">P50</text>
-<text class="percentile" x="223" y="90">P10</text>
+
 </svg>

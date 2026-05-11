@@ -818,11 +818,11 @@
     let prescriptionSavePromise = null;
     let savedPrescriptionRecord = null;
     let preparedChartRecord = null;
-    const CHART_ASSET_VERSION = '2026-04-25-age-years-axis-hires';
-    const CHART_PREVIEW_VERSION = 'preview-rebuilt-2026-04-hires-mini-crop';
+    const CHART_ASSET_VERSION = '2026-05-11-iap-2015-data';
+    const CHART_PREVIEW_VERSION = 'preview-rebuilt-2026-05-iap-2015-data';
     const CHART_RENDER_MAX_WIDTH = 1600;
     const CHART_RENDER_SCALE = 6;
-    const CHART_POINT_RADIUS = 120;
+    const CHART_POINT_RADIUS = 5;
     const chartMiniCrop = {
       left: 0.05,
       top: 0.055,
@@ -965,9 +965,9 @@
 
     function getChartYRange(metricKey, sexPrefix, ageBand) {
       if (metricKey === 'height' && ageBand === '0to5') return { min: 45, max: 130 };
-      if (metricKey === 'height') return sexPrefix === 'boys' ? { min: 85, max: 185 } : { min: 80, max: 180 };
+      if (metricKey === 'height') return sexPrefix === 'boys' ? { min: 85, max: 190 } : { min: 80, max: 180 };
       if (metricKey === 'weight' && ageBand === '0to5') return { min: 0, max: 25 };
-      if (metricKey === 'weight') return { min: 5, max: 75 };
+      if (metricKey === 'weight') return sexPrefix === 'boys' ? { min: 0, max: 90 } : { min: 0, max: 75 };
       if (metricKey === 'head' && ageBand === '0to5') return { min: 35, max: 55 };
       if (metricKey === 'head') return { min: 45, max: 57 };
       if (metricKey === 'bmi' && ageBand === '0to5') return { min: 10, max: 22 };
@@ -1112,18 +1112,39 @@
 
       const xValue = patientData[request.x.source];
       const yValue = patientData[request.metricKey];
-      const xRatio = clampRatio((xValue - request.x.min) / (request.x.max - request.x.min));
-      const yRatio = clampRatio((yValue - request.y.min) / (request.y.max - request.y.min));
+      const rawXRatio = (xValue - request.x.min) / (request.x.max - request.x.min);
+      const rawYRatio = (yValue - request.y.min) / (request.y.max - request.y.min);
+      const xRatio = clampRatio(rawXRatio);
+      const yRatio = clampRatio(rawYRatio);
       const x = (chartTemplateAxis.xStart + (chartTemplateAxis.xEnd - chartTemplateAxis.xStart) * xRatio) * canvas.width;
       const y = (chartTemplateAxis.yStart - (chartTemplateAxis.yStart - chartTemplateAxis.yEnd) * yRatio) * canvas.height;
 
+      if (rawXRatio < 0 || rawXRatio > 1 || rawYRatio < 0 || rawYRatio > 1) {
+        console.warn('Growth chart measurement outside chart range; plotting at nearest chart edge.', {
+          metric: request.metricKey,
+          xValue,
+          yValue,
+          xMin: request.x.min,
+          xMax: request.x.max,
+          yMin: request.y.min,
+          yMax: request.y.max
+        });
+      }
+
+      console.log({
+        ageYears: patientData.ageYears,
+        heightCm: patientData.height,
+        weightKg: patientData.weight,
+        ofcCm: patientData.head,
+        bmi: patientData.bmi,
+        plottedX: x,
+        plottedY: y
+      });
+
       context.beginPath();
       context.arc(x, y, CHART_POINT_RADIUS * renderScale, 0, Math.PI * 2);
-      context.fillStyle = '#b91c1c';
+      context.fillStyle = '#111111';
       context.fill();
-      context.lineWidth = 11 * renderScale;
-      context.strokeStyle = '#ffffff';
-      context.stroke();
 
       return {
         label: request.label,

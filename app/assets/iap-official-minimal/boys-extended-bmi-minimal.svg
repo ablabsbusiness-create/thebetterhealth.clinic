@@ -29,14 +29,5 @@
 <text class="ylabel" x="39" y="119">25</text>
 <path class="tick" d="M45 162 H51"/>
 <text class="ylabel" x="39" y="166">15</text>
-<g clip-path="url(#clip-boys-extended-bmi-minimal-svg-0)">
-<path class="curve" d="M45 84 C101 72, 171 48, 215 32"/>
-<path class="curve" d="M45 108 C101 96, 171 72, 215 56"/>
-<path class="median" d="M45 132 C101 120, 171 102, 215 80"/>
-<path class="curve" d="M45 154 C101 146, 171 128, 215 106"/>
-</g>
-<text class="percentile" x="223" y="36">P99</text>
-<text class="percentile" x="223" y="54">P97</text>
-<text class="percentile" x="223" y="72">P85</text>
-<text class="percentile" x="223" y="90">P50</text>
+
 </svg>

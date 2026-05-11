@@ -1098,7 +1098,7 @@
     const firebaseConfigured = Object.values(firebaseConfig).every(Boolean);
     const firebaseApp = firebaseConfigured ? initializeApp(firebaseConfig) : null;
     const db = firebaseApp ? getFirestore(firebaseApp) : null;
-    const CHART_ASSET_VERSION = '2026-04-25-age-years-axis';
+    const CHART_ASSET_VERSION = '2026-05-11-iap-2015-data';
 
     function versionedChartAssetPath(path) {
       return `${path}${path.includes('?') ? '&' : '?'}v=${CHART_ASSET_VERSION}`;
@@ -1231,7 +1231,7 @@
             shortLabel: 'Ht',
             color: '#dc2626',
             x: { source: 'ageYears', min: 5, max: 18, start: 0.1731, end: 0.8269 },
-            y: { source: 'height', min: 85, max: 185, start: 0.8617, end: 0.117 }
+            y: { source: 'height', min: 85, max: 190, start: 0.8617, end: 0.117 }
           }
         }
       },
@@ -1244,7 +1244,7 @@
             shortLabel: 'Wt',
             color: '#2563eb',
             x: { source: 'ageYears', min: 5, max: 18, start: 0.1731, end: 0.8269 },
-            y: { source: 'weight', min: 5, max: 75, start: 0.8617, end: 0.117 }
+            y: { source: 'weight', min: 0, max: 75, start: 0.8617, end: 0.117 }
           }
         }
       },
@@ -1257,7 +1257,7 @@
             shortLabel: 'Wt',
             color: '#2563eb',
             x: { source: 'ageYears', min: 5, max: 18, start: 0.1731, end: 0.8269 },
-            y: { source: 'weight', min: 5, max: 75, start: 0.8617, end: 0.117 }
+            y: { source: 'weight', min: 0, max: 90, start: 0.8617, end: 0.117 }
           }
         }
       },
@@ -1319,7 +1319,7 @@
     let generatedPreviewPages = [];
     let generatedPdfBase64 = '';
     const CHART_RENDER_MAX_WIDTH = 760;
-    const CHART_POINT_RADIUS = 12;
+    const CHART_POINT_RADIUS = 5;
     const CAN_USE_PYTHON_CHART_SERVICE = ['localhost', '127.0.0.1'].includes(window.location.hostname);
     const LOCAL_RECORD_KEY = 'growthChartRecentRecords';
     const LOCAL_RECORD_TTL_MS = 10 * 60 * 1000;
@@ -1409,13 +1409,21 @@
         return null;
       }
 
-      const xRatio = clampRatio((xValue - region.x.min) / (region.x.max - region.x.min));
-      const yRatio = clampRatio((yValue - region.y.min) / (region.y.max - region.y.min));
+      const rawXRatio = (xValue - region.x.min) / (region.x.max - region.x.min);
+      const rawYRatio = (yValue - region.y.min) / (region.y.max - region.y.min);
+      const xRatio = clampRatio(rawXRatio);
+      const yRatio = clampRatio(rawYRatio);
 
       const x = (region.x.start + (region.x.end - region.x.start) * xRatio) * chartCanvas.width;
       const y = (region.y.start - (region.y.start - region.y.end) * yRatio) * chartCanvas.height;
 
-      return { x, y };
+      return {
+        x,
+        y,
+        xValue,
+        yValue,
+        outOfRange: rawXRatio < 0 || rawXRatio > 1 || rawYRatio < 0 || rawYRatio > 1
+      };
     }
 
     function getPlotBounds(region, inset = 0) {
@@ -1456,7 +1464,7 @@
       }
     }
 
-    function drawMarker(region, patientData) {
+    function drawMarker(region, patientData, metricKey) {
       const mappedPoint = mapPoint(region, patientData);
 
       if (!mappedPoint) {
@@ -1465,17 +1473,31 @@
 
       const point = constrainPointToBounds(mappedPoint, getPlotBounds(region, CHART_POINT_RADIUS));
 
+      if (mappedPoint.outOfRange) {
+        console.warn('Growth chart measurement outside chart range; plotting at nearest chart edge.', {
+          metric: metricKey,
+          xValue: mappedPoint.xValue,
+          yValue: mappedPoint.yValue,
+          xMin: region.x.min,
+          xMax: region.x.max,
+          yMin: region.y.min,
+          yMax: region.y.max
+        });
+      }
+
+      console.log({
+        ageYears: patientData.ageYears,
+        heightCm: patientData.height,
+        weightKg: patientData.weight,
+        ofcCm: patientData.head,
+        bmi: patientData.bmi,
+        plottedX: point.x,
+        plottedY: point.y
+      });
+
       withPlotClip(region, () => {
         chartContext.beginPath();
         chartContext.arc(point.x, point.y, CHART_POINT_RADIUS, 0, Math.PI * 2);
-        chartContext.fillStyle = '#111111';
-        chartContext.fill();
-        chartContext.lineWidth = 1.5;
-        chartContext.strokeStyle = '#ffffff';
-        chartContext.stroke();
-
-        chartContext.beginPath();
-        chartContext.arc(point.x, point.y, 3, 0, Math.PI * 2);
         chartContext.fillStyle = '#111111';
         chartContext.fill();
       });
@@ -1797,7 +1819,7 @@
       templateRequest.metrics.forEach((metricKey) => {
         const region = template.regions[metricKey];
         if (region) {
-          drawMarker(region, patientData);
+          drawMarker(region, patientData, metricKey);
         }
       });
 

@@ -33,14 +33,5 @@
 <text class="ylabel" x="39" y="131">40</text>
 <path class="tick" d="M45 162 H51"/>
 <text class="ylabel" x="39" y="166">35</text>
-<g clip-path="url(#clip-girls-head-0-5-minimal-svg-0)">
-<path class="curve" d="M45 126 C77 100, 135 86, 215 46"/>
-<path class="curve" d="M45 134 C77 110, 135 97, 215 59"/>
-<path class="median" d="M45 142 C77 120, 135 108, 215 72"/>
-<path class="curve" d="M45 150 C77 128, 135 118, 215 85"/>
-</g>
-<text class="percentile" x="223" y="36">P97</text>
-<text class="percentile" x="223" y="54">P75</text>
-<text class="percentile" x="223" y="72">P50</text>
-<text class="percentile" x="223" y="90">P25</text>
+
 </svg>

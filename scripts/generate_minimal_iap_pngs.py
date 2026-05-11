@@ -9,7 +9,14 @@ except ImportError as exc:  # pragma: no cover - environment-specific dependency
         "Pillow is required to generate PNG chart assets. Install it with `pip install pillow`."
     ) from exc
 
-from generate_minimal_iap_svgs import CHARTS, PERCENTILES, X_AXIS, get_y_labels
+from generate_minimal_iap_svgs import (
+    CHARTS,
+    IAP_2015_PERCENTILES,
+    IAP_DISPLAY_COLUMNS,
+    X_AXIS,
+    get_percentile_labels,
+    get_y_labels,
+)
 
 
 SCALE = 4
@@ -51,75 +58,35 @@ LABEL_FONT = load_font(9, bold=True)
 PERCENTILE_FONT = load_font(8, bold=True)
 
 
-def cubic_points(p0, p1, p2, p3, steps: int = 48):
-    points = []
-    for index in range(steps + 1):
-        t = index / steps
-        mt = 1 - t
-        x = (
-            (mt ** 3) * p0[0]
-            + 3 * (mt ** 2) * t * p1[0]
-            + 3 * mt * (t ** 2) * p2[0]
-            + (t ** 3) * p3[0]
-        )
-        y = (
-            (mt ** 3) * p0[1]
-            + 3 * (mt ** 2) * t * p1[1]
-            + 3 * mt * (t ** 2) * p2[1]
-            + (t ** 3) * p3[1]
-        )
-        points.append((sx(x), sx(y)))
-    return points
+def map_reference_point(age: float, value: float, axis: dict, x: int, y: int, width: int, height: int):
+    x_ratio = (age - axis["x_min"]) / (axis["x_max"] - axis["x_min"])
+    y_ratio = (value - axis["y_min"]) / (axis["y_max"] - axis["y_min"])
+    return sx(x + width * x_ratio), sx(y + height - height * y_ratio)
 
 
-def build_curves(kind: str, x: int, y: int, width: int, height: int):
-    right = x + width
-    bottom = y + height
+def build_reference_curves(panel: dict, x: int, y: int, width: int, height: int):
+    if panel.get("age_mode") != "years":
+        return []
+
+    reference = IAP_2015_PERCENTILES.get((panel.get("sex", ""), panel["kind"]))
+    if not reference:
+        return []
+
     curves = []
-
-    def add(start, c1, c2, end, color, width_px):
-        curves.append((cubic_points(start, c1, c2, end), color, sx(width_px)))
-
-    if kind == "height":
-        add((x, bottom - 22), (x + 28, bottom - 92), (x + 88, bottom - 136), (right, y + 10), CURVE, 1.5)
-        add((x, bottom - 16), (x + 28, bottom - 74), (x + 88, bottom - 116), (right, y + 28), CURVE, 1.5)
-        add((x, bottom - 9), (x + 28, bottom - 58), (x + 88, bottom - 96), (right, y + 44), MEDIAN, 2.1)
-        add((x, bottom - 2), (x + 28, bottom - 42), (x + 88, bottom - 78), (right, y + 58), CURVE, 1.5)
-    elif kind == "weight":
-        add((x, bottom - 26), (x + 34, bottom - 104), (x + 92, bottom - 132), (right, y + 16), CURVE, 1.5)
-        add((x, bottom - 18), (x + 34, bottom - 88), (x + 92, bottom - 114), (right, y + 34), CURVE, 1.5)
-        add((x, bottom - 10), (x + 34, bottom - 72), (x + 92, bottom - 98), (right, y + 52), MEDIAN, 2.1)
-        add((x, bottom - 1), (x + 34, bottom - 58), (x + 92, bottom - 82), (right, y + 68), CURVE, 1.5)
-    elif kind == "head":
-        add((x, bottom - 36), (x + 32, bottom - 62), (x + 90, bottom - 76), (right, y + 24), CURVE, 1.5)
-        add((x, bottom - 28), (x + 32, bottom - 52), (x + 90, bottom - 65), (right, y + 37), CURVE, 1.5)
-        add((x, bottom - 20), (x + 32, bottom - 42), (x + 90, bottom - 54), (right, y + 50), MEDIAN, 2.1)
-        add((x, bottom - 12), (x + 32, bottom - 34), (x + 90, bottom - 44), (right, y + 63), CURVE, 1.5)
-    elif kind == "head_teen":
-        add((x, bottom - 44), (x + 32, bottom - 62), (x + 90, bottom - 76), (right, y + 22), CURVE, 1.5)
-        add((x, bottom - 34), (x + 32, bottom - 50), (x + 90, bottom - 62), (right, y + 34), CURVE, 1.5)
-        add((x, bottom - 24), (x + 32, bottom - 40), (x + 90, bottom - 50), (right, y + 46), MEDIAN, 2.1)
-        add((x, bottom - 14), (x + 32, bottom - 30), (x + 90, bottom - 40), (right, y + 58), CURVE, 1.5)
-        add((x, bottom - 6), (x + 32, bottom - 22), (x + 90, bottom - 31), (right, y + 70), CURVE, 1.5)
-    elif kind == "weight_for_height":
-        add((x, bottom - 28), (x + 48, bottom - 122), (x + 132, bottom - 128), (right, y + 22), CURVE, 1.5)
-        add((x, bottom - 18), (x + 48, bottom - 104), (x + 132, bottom - 108), (right, y + 38), CURVE, 1.5)
-        add((x, bottom - 9), (x + 48, bottom - 86), (x + 132, bottom - 90), (right, y + 56), MEDIAN, 2.1)
-        add((x, bottom - 1), (x + 48, bottom - 68), (x + 132, bottom - 72), (right, y + 72), CURVE, 1.5)
-    elif kind in {"bmi", "extended_bmi", "bmi_small"}:
-        add((x, y + 62), (x + 56, y + 50), (x + 126, y + 26), (right, y + 10), CURVE, 1.5)
-        add((x, y + 86), (x + 56, y + 74), (x + 126, y + 50), (right, y + 34), CURVE, 1.5)
-        add((x, y + 110), (x + 56, y + 98), (x + 126, y + 80), (right, y + 58), MEDIAN, 2.1)
-        add((x, y + 132), (x + 56, y + 124), (x + 126, y + 106), (right, y + 84), CURVE, 1.5)
-        if kind in {"bmi", "bmi_small"}:
-            add((x, y + 148), (x + 56, y + 142), (x + 126, y + 128), (right, y + 106), CURVE, 1.5)
-    elif kind == "waist":
-        add((x, bottom - 36), (x + 48, bottom - 88), (x + 122, bottom - 112), (right, y + 22), CURVE, 1.5)
-        add((x, bottom - 24), (x + 48, bottom - 70), (x + 122, bottom - 92), (right, y + 42), CURVE, 1.5)
-        add((x, bottom - 12), (x + 48, bottom - 52), (x + 122, bottom - 72), (right, y + 62), MEDIAN, 2.1)
-        add((x, bottom - 2), (x + 48, bottom - 38), (x + 122, bottom - 56), (right, y + 80), CURVE, 1.5)
-
+    for column in IAP_DISPLAY_COLUMNS[panel["kind"]]:
+        column_index = reference["columns"].index(column) + 1
+        points = [
+            map_reference_point(row[0], row[column_index], reference["axis"], x, y, width, height)
+            for row in reference["rows"]
+        ]
+        color = MEDIAN if column == "P50" else CURVE
+        width_px = sx(2.1 if column == "P50" else 1.5)
+        curves.append((points, color, width_px))
     return curves
+
+
+def build_curves(panel: dict, x: int, y: int, width: int, height: int):
+    return build_reference_curves(panel, x, y, width, height)
 
 
 def text_center(draw: ImageDraw.ImageDraw, xy, text: str, font, fill):
@@ -160,8 +127,8 @@ def draw_axes(draw: ImageDraw.ImageDraw, x: int, y: int, width: int, height: int
         text_right(draw, (sx(x - 6), sx(tick_y)), label, LABEL_FONT, LABEL)
 
 
-def draw_percentiles(draw: ImageDraw.ImageDraw, kind: str, x: int, y: int, width: int, height: int):
-    labels = PERCENTILES.get(kind, PERCENTILES["default"])
+def draw_percentiles(draw: ImageDraw.ImageDraw, panel: dict, x: int, y: int, width: int, height: int):
+    labels = get_percentile_labels(panel)
     top = y + 14
     step = max(14, min(18, (height - 24) // max(1, len(labels) - 1)))
     for index, label in enumerate(labels):
@@ -182,9 +149,9 @@ def render_chart(chart: dict) -> Image.Image:
     for index, panel in enumerate(chart["panels"]):
         x = start_x + index * (PANEL_WIDTH + PANEL_GAP)
         draw_axes(draw, x, PANEL_Y, PANEL_WIDTH, PANEL_HEIGHT, panel)
-        for points, color, width_px in build_curves(panel["kind"], x, PANEL_Y, PANEL_WIDTH, PANEL_HEIGHT):
+        for points, color, width_px in build_curves(panel, x, PANEL_Y, PANEL_WIDTH, PANEL_HEIGHT):
           draw.line(points, fill=color, width=width_px, joint="curve")
-        draw_percentiles(draw, panel["kind"], x, PANEL_Y, PANEL_WIDTH, PANEL_HEIGHT)
+        draw_percentiles(draw, panel, x, PANEL_Y, PANEL_WIDTH, PANEL_HEIGHT)
 
     return image
 

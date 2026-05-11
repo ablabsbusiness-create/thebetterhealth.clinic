@@ -110,7 +110,7 @@ TEMPLATE_LIBRARY: dict[str, dict[str, Any]] = {
         "regions": {
             "height": {
                 "x": {"source": "ageYears", "min": 5, "max": 18, "start": 0.1731, "end": 0.8269},
-                "y": {"source": "height", "min": 85, "max": 185, "start": 0.8617, "end": 0.117},
+                "y": {"source": "height", "min": 85, "max": 190, "start": 0.8617, "end": 0.117},
             }
         },
     },
@@ -120,7 +120,7 @@ TEMPLATE_LIBRARY: dict[str, dict[str, Any]] = {
         "regions": {
             "weight": {
                 "x": {"source": "ageYears", "min": 5, "max": 18, "start": 0.1731, "end": 0.8269},
-                "y": {"source": "weight", "min": 5, "max": 75, "start": 0.8617, "end": 0.117},
+                "y": {"source": "weight", "min": 0, "max": 75, "start": 0.8617, "end": 0.117},
             }
         },
     },
@@ -130,7 +130,7 @@ TEMPLATE_LIBRARY: dict[str, dict[str, Any]] = {
         "regions": {
             "weight": {
                 "x": {"source": "ageYears", "min": 5, "max": 18, "start": 0.1731, "end": 0.8269},
-                "y": {"source": "weight", "min": 5, "max": 75, "start": 0.8617, "end": 0.117},
+                "y": {"source": "weight", "min": 0, "max": 90, "start": 0.8617, "end": 0.117},
             }
         },
     },
@@ -176,8 +176,8 @@ TEMPLATE_LIBRARY: dict[str, dict[str, Any]] = {
     },
 }
 
-MARKER_FILL = "#b91c1c"
-MARKER_OUTLINE = "#ffffff"
+MARKER_FILL = "#111111"
+MARKER_OUTLINE = "#111111"
 BASE_DIR = Path(__file__).resolve().parent
 
 
@@ -287,8 +287,8 @@ def sort_entries(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def get_marker_metrics(image_width: int) -> tuple[int, int]:
-    radius = max(210, round(image_width * 0.19))
-    outline_width = max(18, round(radius * 0.18))
+    radius = max(5, round(image_width * 0.01))
+    outline_width = 0
     return radius, outline_width
 
 
@@ -298,7 +298,7 @@ def draw_marker(draw: ImageDraw.ImageDraw, point: tuple[float, float], image_wid
     draw.ellipse(
         (x - radius, y - radius, x + radius, y + radius),
         fill=MARKER_FILL,
-        outline=MARKER_OUTLINE,
+        outline=MARKER_OUTLINE if outline_width else None,
         width=outline_width,
     )
 
