@@ -2320,8 +2320,8 @@
     let historyPageIndex = 0;
     let selectedMeasurementDateIso = '';
     let lastHistoryDebug = null;
-    const CHART_ASSET_VERSION = '2026-05-11-iap-who-official';
-    const CHART_PREVIEW_VERSION = 'preview-rebuilt-2026-05-iap-2015-data-v3';
+    const CHART_ASSET_VERSION = '2026-05-11-iap-who-nellhaus-official';
+    const CHART_PREVIEW_VERSION = 'preview-rebuilt-2026-05-iap-2015-data-v4';
     const TEST_PAST_CHARTS_PATIENT_ID = 'TESTPAST001';
 
     function buildDemoMeasurementEntry(daysAgo, values) {
@@ -2579,13 +2579,29 @@
 
     function applySharedGrowthChartConfigs(library, sharedConfig) {
       (sharedConfig?.charts || []).forEach((chart) => {
-        const template = library[chart.templateKey];
+        const dataKey = chart.dataKey || chart.metric;
+        const template = library[chart.templateKey] || {
+          label: chart.label,
+          path: chart.backgroundImage,
+          regions: {
+            [dataKey]: {
+              label: chart.metric === 'ofc' ? 'Head Circumference' : chart.metric,
+              shortLabel: chart.metric === 'ofc' ? 'HC' : chart.metric,
+              color: '#111111'
+            }
+          }
+        };
+        library[chart.templateKey] = template;
         if (!template) {
           return;
         }
 
-        const dataKey = chart.dataKey || chart.metric;
-        const region = template.regions[dataKey];
+        const region = template.regions[dataKey] || {
+          label: chart.metric === 'ofc' ? 'Head Circumference' : chart.metric,
+          shortLabel: chart.metric === 'ofc' ? 'HC' : chart.metric,
+          color: '#111111'
+        };
+        template.regions[dataKey] = region;
         if (!region) {
           return;
         }
@@ -3872,6 +3888,9 @@
       if (GROWTH_CHART_DEBUG) {
         console.log({
           chartId: region.chartId,
+          patientId: getPatientIdFromUrl(),
+          pastGrowthEnabled: isMetricHistoryEnabled(metricKey),
+          totalEntries: 1,
           referenceSource: region.referenceSource,
           sex: region.chartId?.startsWith('boys') ? 'male' : region.chartId?.startsWith('girls') ? 'female' : '',
           ageGroup: region.chartId?.includes('0-5') ? '0-5' : region.chartId?.includes('5-18') ? '5-18' : '',
@@ -3890,6 +3909,7 @@
           plotBottom: getPlotBounds(region, 0).bottom,
           xPixel: point.x,
           yPixel: point.y,
+          visitDate: patientData.visitDate,
           backgroundImage: region.backgroundImage
         });
       }
@@ -3913,7 +3933,8 @@
         weight,
         height,
         head: Number.parseFloat(values.head),
-        bmi: Number.isFinite(weight) && Number.isFinite(height) && height > 0 ? weight / ((height / 100) ** 2) : NaN
+        bmi: Number.isFinite(weight) && Number.isFinite(height) && height > 0 ? weight / ((height / 100) ** 2) : NaN,
+        visitDate: measuredAt instanceof Date ? measuredAt.toISOString() : new Date(measuredAt).toISOString()
       };
     }
 
@@ -3954,6 +3975,10 @@
     function getMetricPlotHistory(metricKey, options = {}) {
       const { includeCurrent = true } = options;
       const currentEntry = includeCurrent ? getCurrentMeasurementEntry() : null;
+      if (!isMetricHistoryEnabled(metricKey)) {
+        return currentEntry && String(currentEntry?.[metricKey] ?? '').trim() ? [currentEntry] : [];
+      }
+
       const combinedEntries = [];
 
       if (currentEntry) {
@@ -3977,11 +4002,7 @@
         .filter((entry) => String(entry?.[metricKey] ?? '').trim())
         .sort((left, right) => getHistoryTimestamp(right) - getHistoryTimestamp(left));
 
-      if (!isMetricHistoryEnabled(metricKey)) {
-        return entries.slice(0, 1).reverse();
-      }
-
-      return entries.slice(0, getMetricHistoryLimit(metricKey)).reverse();
+      return entries.reverse();
     }
 
     function getChartPlotEntries(metricKey) {
@@ -4061,7 +4082,7 @@
           mappedPoints.slice(1).forEach((point) => {
             chartContext.lineTo(point.x, point.y);
           });
-          chartContext.lineWidth = 2.8;
+          chartContext.lineWidth = 1;
           chartContext.strokeStyle = '#111111';
           chartContext.lineJoin = 'round';
           chartContext.lineCap = 'round';
@@ -4074,6 +4095,9 @@
           if (GROWTH_CHART_DEBUG) {
             console.log({
               chartId: region.chartId,
+              patientId: getPatientIdFromUrl(),
+              pastGrowthEnabled: isMetricHistoryEnabled(metricKey),
+              totalEntries: mappedPoints.length,
               referenceSource: region.referenceSource,
               sex: region.chartId?.startsWith('boys') ? 'male' : region.chartId?.startsWith('girls') ? 'female' : '',
               ageGroup: region.chartId?.includes('0-5') ? '0-5' : region.chartId?.includes('5-18') ? '5-18' : '',
@@ -4092,6 +4116,7 @@
               plotBottom: getPlotBounds(region, 0).bottom,
               xPixel: point.x,
               yPixel: point.y,
+              visitDate: point.patientData.visitDate || point.patientData.measuredAt,
               backgroundImage: region.backgroundImage
             });
           }
@@ -4273,7 +4298,7 @@
         addMetricRequest(`${sexPrefix}Weight${ageBand}`, 'weight');
       }
 
-      if (selectedValues.includes('Head Circumference-for-Age') && ageBand === '0to5') {
+      if (selectedValues.includes('Head Circumference-for-Age')) {
         addMetricRequest(`${sexPrefix}Head${ageBand}`, 'head');
       }
 
@@ -4289,9 +4314,6 @@
 
       if ((selectedValues.includes('Head Circumference-for-Age') || selectedValues.includes('BMI')) && patientData.ageYears > 18) {
         warnings.push('The available age-based chart templates are supported here up to 18 years.');
-      }
-      if (selectedValues.includes('Head Circumference-for-Age') && patientData.ageYears >= 5 && patientData.ageYears <= 18) {
-        warnings.push('OFC reference chart not available for 5-18 years.');
       }
       generatedTemplates.forEach((templateRequest) => {
         const template = templateLibrary[templateRequest.key];

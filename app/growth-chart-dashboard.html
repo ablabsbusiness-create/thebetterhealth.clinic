@@ -1098,7 +1098,7 @@
     const firebaseConfigured = Object.values(firebaseConfig).every(Boolean);
     const firebaseApp = firebaseConfigured ? initializeApp(firebaseConfig) : null;
     const db = firebaseApp ? getFirestore(firebaseApp) : null;
-    const CHART_ASSET_VERSION = '2026-05-11-iap-who-official';
+    const CHART_ASSET_VERSION = '2026-05-11-iap-who-nellhaus-official';
 
     function versionedChartAssetPath(path) {
       return `${path}${path.includes('?') ? '&' : '?'}v=${CHART_ASSET_VERSION}`;
@@ -1315,13 +1315,29 @@
 
     function applySharedGrowthChartConfigs(library, sharedConfig) {
       (sharedConfig?.charts || []).forEach((chart) => {
-        const template = library[chart.templateKey];
+        const dataKey = chart.dataKey || chart.metric;
+        const template = library[chart.templateKey] || {
+          label: chart.label,
+          path: chart.backgroundImage,
+          regions: {
+            [dataKey]: {
+              label: chart.metric === 'ofc' ? 'Head Circumference' : chart.metric,
+              shortLabel: chart.metric === 'ofc' ? 'HC' : chart.metric,
+              color: '#111111'
+            }
+          }
+        };
+        library[chart.templateKey] = template;
         if (!template) {
           return;
         }
 
-        const dataKey = chart.dataKey || chart.metric;
-        const region = template.regions[dataKey];
+        const region = template.regions[dataKey] || {
+          label: chart.metric === 'ofc' ? 'Head Circumference' : chart.metric,
+          shortLabel: chart.metric === 'ofc' ? 'HC' : chart.metric,
+          color: '#111111'
+        };
+        template.regions[dataKey] = region;
         if (!region) {
           return;
         }
@@ -1806,7 +1822,7 @@
         addMetricRequest(`${sexPrefix}Weight${ageBand}`, 'weight');
       }
 
-      if (selectedValues.includes('Head Circumference-for-Age') && ageBand === '0to5') {
+      if (selectedValues.includes('Head Circumference-for-Age')) {
         addMetricRequest(`${sexPrefix}Head${ageBand}`, 'head');
       }
 
@@ -1822,9 +1838,6 @@
 
       if ((selectedValues.includes('Head Circumference-for-Age') || selectedValues.includes('BMI')) && patientData.ageYears > 18) {
         warnings.push('The available age-based chart templates are supported here up to 18 years.');
-      }
-      if (selectedValues.includes('Head Circumference-for-Age') && patientData.ageYears >= 5 && patientData.ageYears <= 18) {
-        warnings.push('OFC reference chart not available for 5-18 years.');
       }
       generatedTemplates.forEach((templateRequest) => {
         const template = templateLibrary[templateRequest.key];

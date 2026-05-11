@@ -818,8 +818,8 @@
     let prescriptionSavePromise = null;
     let savedPrescriptionRecord = null;
     let preparedChartRecord = null;
-    const CHART_ASSET_VERSION = '2026-05-11-iap-who-official';
-    const CHART_PREVIEW_VERSION = 'preview-rebuilt-2026-05-iap-2015-data-v3';
+    const CHART_ASSET_VERSION = '2026-05-11-iap-who-nellhaus-official';
+    const CHART_PREVIEW_VERSION = 'preview-rebuilt-2026-05-iap-2015-data-v4';
     const CHART_RENDER_MAX_WIDTH = 1600;
     const CHART_RENDER_SCALE = 6;
     const CHART_POINT_RADIUS = 5;
@@ -850,6 +850,8 @@
       boysHeight5to18: 'assets/iap-official-png/boys-height-5-18-minimal.png',
       girlsWeight5to18: 'assets/iap-official-png/girls-weight-5-18-minimal.png',
       boysWeight5to18: 'assets/iap-official-png/boys-weight-5-18-minimal.png',
+      girlsHead5to18: 'assets/nellhaus-official-png/girls-ofc-5-18-nellhaus.png',
+      boysHead5to18: 'assets/nellhaus-official-png/boys-ofc-5-18-nellhaus.png',
       girlsBmi5to18: 'assets/iap-official-png/girls-bmi-5-18-minimal.png',
       boysBmi5to18: 'assets/iap-official-png/boys-bmi-5-18-minimal.png'
     };
@@ -1022,7 +1024,9 @@
           return hasSelected(config.selectedName) && Number.isFinite(config.value);
         })
         .map((config) => {
-          if (ageBand === '5to18' && config.metricKey === 'head') {
+          const templateKey = `${sexPrefix}${config.metricKey.charAt(0).toUpperCase()}${config.metricKey.slice(1)}${ageBand}`;
+          const sharedChart = sharedGrowthCharts.find((chart) => chart.templateKey === templateKey);
+          if (ageBand === '5to18' && config.metricKey === 'head' && !sharedChart) {
             return {
               ...config,
               chartId: `${sexPrefix}-ofc-5-18-tracking`,
@@ -1038,8 +1042,6 @@
               }
             };
           }
-          const templateKey = `${sexPrefix}${config.metricKey.charAt(0).toUpperCase()}${config.metricKey.slice(1)}${ageBand}`;
-          const sharedChart = sharedGrowthCharts.find((chart) => chart.templateKey === templateKey);
           const yRange = sharedChart
             ? { min: sharedChart.yMin, max: sharedChart.yMax }
             : getChartYRange(config.metricKey, sexPrefix, ageBand);
