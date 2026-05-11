@@ -547,6 +547,20 @@
       background: transparent;
     }
 
+    .mini-chart-unavailable {
+      display: flex;
+      min-height: 96px;
+      aspect-ratio: 1.38 / 1;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #d6ddd8;
+      color: #27352c;
+      font-size: 10px;
+      line-height: 1.35;
+      padding: 8px;
+      background: #fff;
+    }
+
     .rx-footer {
       display: flex;
       justify-content: space-between;
@@ -819,10 +833,10 @@
     let savedPrescriptionRecord = null;
     let preparedChartRecord = null;
     const CHART_ASSET_VERSION = '2026-05-11-iap-who-official';
-    const CHART_PREVIEW_VERSION = 'preview-rebuilt-2026-05-iap-2015-data';
+    const CHART_PREVIEW_VERSION = 'preview-rebuilt-2026-05-iap-2015-data-v2';
     const CHART_RENDER_MAX_WIDTH = 1600;
     const CHART_RENDER_SCALE = 6;
-    const CHART_POINT_RADIUS = 3;
+    const CHART_POINT_RADIUS = 5;
     const GROWTH_CHART_DEBUG = new URLSearchParams(window.location.search).has('growthDebug')
       || localStorage.getItem('growthChartDebug') === '1';
     const chartMiniCrop = {
@@ -1012,9 +1026,25 @@
       ];
 
       return metricConfigs
-        .filter((config) => !(ageBand === '5to18' && config.metricKey === 'head'))
-        .filter((config) => hasSelected(config.selectedName) && Number.isFinite(config.value))
+        .filter((config) => {
+          if (ageBand === '5to18' && config.metricKey === 'head') {
+            return hasSelected(config.selectedName) && Number.isFinite(config.value);
+          }
+          if (ageBand === '5to18' && config.metricKey === 'bmi') {
+            return Number.isFinite(config.value);
+          }
+          return hasSelected(config.selectedName) && Number.isFinite(config.value);
+        })
         .map((config) => {
+          if (ageBand === '5to18' && config.metricKey === 'head') {
+            return {
+              ...config,
+              chartId: `${sexPrefix}-ofc-5-18-unavailable`,
+              referenceSource: 'IAP',
+              unavailable: true,
+              message: 'OFC reference chart not available for 5-18 years'
+            };
+          }
           const templateKey = `${sexPrefix}${config.metricKey.charAt(0).toUpperCase()}${config.metricKey.slice(1)}${ageBand}`;
           const sharedChart = sharedGrowthCharts.find((chart) => chart.templateKey === templateKey);
           const yRange = sharedChart
@@ -1040,7 +1070,7 @@
             plotArea
           };
         })
-        .filter((request) => request.path);
+        .filter((request) => request.unavailable || request.path);
     }
 
     function loadChartImage(path) {
@@ -1249,7 +1279,16 @@
       try {
         const chartPages = [];
         for (const request of requests.slice(0, 4)) {
-          chartPages.push(await prepareMiniChartPage(await renderFreshChartPage(request, patientData)));
+          if (request.unavailable) {
+            chartPages.push({
+              label: request.label,
+              unavailable: true,
+              message: request.message,
+              chartFormatVersion: CHART_PREVIEW_VERSION
+            });
+          } else {
+            chartPages.push(await prepareMiniChartPage(await renderFreshChartPage(request, patientData)));
+          }
         }
 
         return {
@@ -1453,9 +1492,8 @@
       `;
     }
 
-    function chartTitle(label, index) {
-      const labels = ['Height vs Age', 'Weight vs Age', 'OFC vs Age', 'BMI vs Age'];
-      return labels[index] || label || 'Growth Chart';
+    function chartTitle(label) {
+      return label || 'Growth Chart';
     }
 
     function renderMiniCharts(record) {
@@ -1468,8 +1506,10 @@
         <div class="mini-chart-grid">
           ${pages.slice(0, 4).map((page, index) => `
             <div class="mini-chart-card">
-              <strong>${escapeHtml(chartTitle(page.label, index))}</strong>
-              <img data-chart-index="${index}" src="${escapeHtml(page.miniDataUrl || page.dataUrl)}" alt="${escapeHtml(page.label)} chart">
+              <strong>${escapeHtml(chartTitle(page.label))}</strong>
+              ${page.unavailable
+                ? `<div class="mini-chart-unavailable">${escapeHtml(page.message || 'Reference chart not available')}</div>`
+                : `<img data-chart-index="${index}" src="${escapeHtml(page.miniDataUrl || page.dataUrl)}" alt="${escapeHtml(page.label)} chart">`}
             </div>
           `).join('')}
         </div>

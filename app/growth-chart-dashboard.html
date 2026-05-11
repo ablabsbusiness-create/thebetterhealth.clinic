@@ -1293,7 +1293,7 @@
     let generatedPreviewPages = [];
     let generatedPdfBase64 = '';
     const CHART_RENDER_MAX_WIDTH = 760;
-    const CHART_POINT_RADIUS = 3;
+    const CHART_POINT_RADIUS = 5;
     const GROWTH_CHART_DEBUG = new URLSearchParams(window.location.search).has('growthDebug')
       || localStorage.getItem('growthChartDebug') === '1';
     const CAN_USE_PYTHON_CHART_SERVICE = ['localhost', '127.0.0.1'].includes(window.location.hostname);
