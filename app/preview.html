@@ -547,20 +547,6 @@
       background: transparent;
     }
 
-    .mini-chart-unavailable {
-      display: flex;
-      min-height: 96px;
-      aspect-ratio: 1.38 / 1;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid #d6ddd8;
-      color: #27352c;
-      font-size: 10px;
-      line-height: 1.35;
-      padding: 8px;
-      background: #fff;
-    }
-
     .rx-footer {
       display: flex;
       justify-content: space-between;
@@ -833,7 +819,7 @@
     let savedPrescriptionRecord = null;
     let preparedChartRecord = null;
     const CHART_ASSET_VERSION = '2026-05-11-iap-who-official';
-    const CHART_PREVIEW_VERSION = 'preview-rebuilt-2026-05-iap-2015-data-v2';
+    const CHART_PREVIEW_VERSION = 'preview-rebuilt-2026-05-iap-2015-data-v3';
     const CHART_RENDER_MAX_WIDTH = 1600;
     const CHART_RENDER_SCALE = 6;
     const CHART_POINT_RADIUS = 5;
@@ -1039,10 +1025,17 @@
           if (ageBand === '5to18' && config.metricKey === 'head') {
             return {
               ...config,
-              chartId: `${sexPrefix}-ofc-5-18-unavailable`,
-              referenceSource: 'IAP',
-              unavailable: true,
-              message: 'OFC reference chart not available for 5-18 years'
+              chartId: `${sexPrefix}-ofc-5-18-tracking`,
+              referenceSource: 'Tracking',
+              trackingOnly: true,
+              x: { source: 'ageYears', min: 5, max: 18 },
+              y: { min: 45, max: 57 },
+              plotArea: {
+                left: chartTemplateAxis.xStart,
+                top: chartTemplateAxis.yEnd,
+                right: chartTemplateAxis.xEnd,
+                bottom: chartTemplateAxis.yStart
+              }
             };
           }
           const templateKey = `${sexPrefix}${config.metricKey.charAt(0).toUpperCase()}${config.metricKey.slice(1)}${ageBand}`;
@@ -1070,7 +1063,7 @@
             plotArea
           };
         })
-        .filter((request) => request.unavailable || request.path);
+        .filter((request) => request.trackingOnly || request.path);
     }
 
     function loadChartImage(path) {
@@ -1093,6 +1086,95 @@
 
     function clampRatio(value) {
       return Math.min(1, Math.max(0, value));
+    }
+
+    function drawChartText(context, text, x, y, options = {}) {
+      context.fillStyle = options.fill || '#111111';
+      context.font = options.font || '16px Arial, sans-serif';
+      context.textAlign = options.align || 'center';
+      context.textBaseline = options.baseline || 'middle';
+      context.fillText(text, x, y);
+    }
+
+    async function renderTrackingChartPage(request, patientData) {
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      canvas.width = 1040;
+      canvas.height = 752;
+      context.imageSmoothingEnabled = true;
+      context.imageSmoothingQuality = 'high';
+      context.fillStyle = '#ffffff';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+
+      const plotLeft = request.plotArea.left * canvas.width;
+      const plotTop = request.plotArea.top * canvas.height;
+      const plotRight = request.plotArea.right * canvas.width;
+      const plotBottom = request.plotArea.bottom * canvas.height;
+
+      context.strokeStyle = '#111111';
+      context.lineWidth = 1;
+      context.beginPath();
+      context.moveTo(plotLeft, plotTop);
+      context.lineTo(plotLeft, plotBottom);
+      context.lineTo(plotRight, plotBottom);
+      context.stroke();
+
+      const xLabels = [5, 8, 11, 14, 18];
+      const yLabels = [57, 54, 51, 48, 45];
+      context.strokeStyle = '#666666';
+      xLabels.forEach((value) => {
+        const x = plotLeft + ((value - request.x.min) / (request.x.max - request.x.min)) * (plotRight - plotLeft);
+        context.beginPath();
+        context.moveTo(x, plotBottom);
+        context.lineTo(x, plotBottom - 22);
+        context.stroke();
+        drawChartText(context, `${value}y`, x, plotBottom + 38, { font: '18px Arial, sans-serif' });
+      });
+      yLabels.forEach((value) => {
+        const y = plotBottom - ((value - request.y.min) / (request.y.max - request.y.min)) * (plotBottom - plotTop);
+        context.beginPath();
+        context.moveTo(plotLeft, y);
+        context.lineTo(plotLeft + 22, y);
+        context.stroke();
+        drawChartText(context, String(value), plotLeft - 28, y, { font: '18px Arial, sans-serif', align: 'right' });
+      });
+
+      drawChartText(context, 'OFC vs Age', canvas.width / 2, 36, { font: 'bold 22px Arial, sans-serif' });
+      drawChartText(context, 'tracking only', plotRight - 12, plotTop + 18, { font: '14px Arial, sans-serif', align: 'right', fill: '#555555' });
+
+      const xValue = patientData[request.x.source];
+      const yValue = patientData[request.metricKey];
+      const rawXRatio = (xValue - request.x.min) / (request.x.max - request.x.min);
+      const rawYRatio = (yValue - request.y.min) / (request.y.max - request.y.min);
+      const xRatio = clampRatio(rawXRatio);
+      const yRatio = clampRatio(rawYRatio);
+      const x = plotLeft + xRatio * (plotRight - plotLeft);
+      const y = plotBottom - yRatio * (plotBottom - plotTop);
+
+      if (rawXRatio < 0 || rawXRatio > 1 || rawYRatio < 0 || rawYRatio > 1) {
+        console.warn('Growth chart measurement outside chart range; plotting at nearest chart edge.', {
+          metric: request.metricKey,
+          xValue,
+          yValue,
+          xMin: request.x.min,
+          xMax: request.x.max,
+          yMin: request.y.min,
+          yMax: request.y.max
+        });
+      }
+
+      context.beginPath();
+      context.arc(x, y, CHART_POINT_RADIUS, 0, Math.PI * 2);
+      context.fillStyle = '#111111';
+      context.fill();
+
+      return {
+        label: request.label,
+        dataUrl: canvas.toDataURL('image/png'),
+        width: canvas.width,
+        height: canvas.height,
+        chartFormatVersion: CHART_PREVIEW_VERSION
+      };
     }
 
     function getMiniChartCropRect(width, height) {
@@ -1154,6 +1236,10 @@
     }
 
     async function renderFreshChartPage(request, patientData) {
+      if (request.trackingOnly) {
+        return renderTrackingChartPage(request, patientData);
+      }
+
       const image = await loadChartImage(request.path);
       const sourceWidth = image.naturalWidth || 260;
       const sourceHeight = image.naturalHeight || 188;
@@ -1279,16 +1365,7 @@
       try {
         const chartPages = [];
         for (const request of requests.slice(0, 4)) {
-          if (request.unavailable) {
-            chartPages.push({
-              label: request.label,
-              unavailable: true,
-              message: request.message,
-              chartFormatVersion: CHART_PREVIEW_VERSION
-            });
-          } else {
-            chartPages.push(await prepareMiniChartPage(await renderFreshChartPage(request, patientData)));
-          }
+          chartPages.push(await prepareMiniChartPage(await renderFreshChartPage(request, patientData)));
         }
 
         return {
@@ -1507,9 +1584,7 @@
           ${pages.slice(0, 4).map((page, index) => `
             <div class="mini-chart-card">
               <strong>${escapeHtml(chartTitle(page.label))}</strong>
-              ${page.unavailable
-                ? `<div class="mini-chart-unavailable">${escapeHtml(page.message || 'Reference chart not available')}</div>`
-                : `<img data-chart-index="${index}" src="${escapeHtml(page.miniDataUrl || page.dataUrl)}" alt="${escapeHtml(page.label)} chart">`}
+              <img data-chart-index="${index}" src="${escapeHtml(page.miniDataUrl || page.dataUrl)}" alt="${escapeHtml(page.label)} chart">
             </div>
           `).join('')}
         </div>
