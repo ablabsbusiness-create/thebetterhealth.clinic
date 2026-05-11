@@ -2320,7 +2320,8 @@
     let historyPageIndex = 0;
     let selectedMeasurementDateIso = '';
     let lastHistoryDebug = null;
-    const CHART_ASSET_VERSION = '2026-04-25-age-years-axis';
+    const CHART_ASSET_VERSION = '2026-05-11-iap-2015-data';
+    const CHART_PREVIEW_VERSION = 'preview-rebuilt-2026-05-iap-2015-data';
     const TEST_PAST_CHARTS_PATIENT_ID = 'TESTPAST001';
 
     function buildDemoMeasurementEntry(daysAgo, values) {
@@ -2495,7 +2496,7 @@
             shortLabel: 'Ht',
             color: '#dc2626',
             x: { source: 'ageYears', min: 5, max: 18, start: 0.1731, end: 0.8269 },
-            y: { source: 'height', min: 85, max: 185, start: 0.8617, end: 0.117 }
+            y: { source: 'height', min: 85, max: 190, start: 0.8617, end: 0.117 }
           }
         }
       },
@@ -2508,7 +2509,7 @@
             shortLabel: 'Wt',
             color: '#2563eb',
             x: { source: 'ageYears', min: 5, max: 18, start: 0.1731, end: 0.8269 },
-            y: { source: 'weight', min: 5, max: 75, start: 0.8617, end: 0.117 }
+            y: { source: 'weight', min: 0, max: 75, start: 0.8617, end: 0.117 }
           }
         }
       },
@@ -2521,7 +2522,7 @@
             shortLabel: 'Wt',
             color: '#2563eb',
             x: { source: 'ageYears', min: 5, max: 18, start: 0.1731, end: 0.8269 },
-            y: { source: 'weight', min: 5, max: 75, start: 0.8617, end: 0.117 }
+            y: { source: 'weight', min: 0, max: 90, start: 0.8617, end: 0.117 }
           }
         }
       },
@@ -2583,7 +2584,7 @@
     let generatedPreviewPages = [];
     let generatedPdfBase64 = '';
     const CHART_RENDER_MAX_WIDTH = 760;
-    const CHART_POINT_RADIUS = 12;
+    const CHART_POINT_RADIUS = 5;
     const CAN_USE_PYTHON_CHART_SERVICE = ['localhost', '127.0.0.1'].includes(window.location.hostname);
     const LOCAL_RECORD_KEY = 'growthChartRecentRecords';
 
@@ -3594,7 +3595,7 @@
       const measuredAt = getSelectedMeasurementDate();
       const nextRecord = {
         source: 'prescription-growth-chart',
-        chartFormatVersion: 'compact-2026-04',
+        chartFormatVersion: CHART_PREVIEW_VERSION,
         savedAt: new Date().toISOString(),
         measuredAt: measuredAt.toISOString(),
         measuredAtDisplay: measuredAt.toLocaleString('en-IN'),
@@ -3611,7 +3612,8 @@
           label: page.label,
           dataUrl: page.dataUrl,
           width: page.width,
-          height: page.height
+          height: page.height,
+          chartFormatVersion: CHART_PREVIEW_VERSION
         })),
         weight: metricInputs.weight.value,
         height: metricInputs.height.value,
@@ -3764,13 +3766,21 @@
         return null;
       }
 
-      const xRatio = clampRatio((xValue - region.x.min) / (region.x.max - region.x.min));
-      const yRatio = clampRatio((yValue - region.y.min) / (region.y.max - region.y.min));
+      const rawXRatio = (xValue - region.x.min) / (region.x.max - region.x.min);
+      const rawYRatio = (yValue - region.y.min) / (region.y.max - region.y.min);
+      const xRatio = clampRatio(rawXRatio);
+      const yRatio = clampRatio(rawYRatio);
 
       const x = (region.x.start + (region.x.end - region.x.start) * xRatio) * chartCanvas.width;
       const y = (region.y.start - (region.y.start - region.y.end) * yRatio) * chartCanvas.height;
 
-      return { x, y };
+      return {
+        x,
+        y,
+        xValue,
+        yValue,
+        outOfRange: rawXRatio < 0 || rawXRatio > 1 || rawYRatio < 0 || rawYRatio > 1
+      };
     }
 
     function getPlotBounds(region, inset = 0) {
@@ -3811,7 +3821,7 @@
       }
     }
 
-    function drawMarker(region, patientData) {
+    function drawMarker(region, patientData, metricKey) {
       const mappedPoint = mapPoint(region, patientData);
 
       if (!mappedPoint) {
@@ -3820,17 +3830,31 @@
 
       const point = constrainPointToBounds(mappedPoint, getPlotBounds(region, CHART_POINT_RADIUS));
 
+      if (mappedPoint.outOfRange) {
+        console.warn('Growth chart measurement outside chart range; plotting at nearest chart edge.', {
+          metric: metricKey,
+          xValue: mappedPoint.xValue,
+          yValue: mappedPoint.yValue,
+          xMin: region.x.min,
+          xMax: region.x.max,
+          yMin: region.y.min,
+          yMax: region.y.max
+        });
+      }
+
+      console.log({
+        ageYears: patientData.ageYears,
+        heightCm: patientData.height,
+        weightKg: patientData.weight,
+        ofcCm: patientData.head,
+        bmi: patientData.bmi,
+        plottedX: point.x,
+        plottedY: point.y
+      });
+
       withPlotClip(region, () => {
         chartContext.beginPath();
         chartContext.arc(point.x, point.y, CHART_POINT_RADIUS, 0, Math.PI * 2);
-        chartContext.fillStyle = '#111111';
-        chartContext.fill();
-        chartContext.lineWidth = 1.5;
-        chartContext.strokeStyle = '#ffffff';
-        chartContext.stroke();
-
-        chartContext.beginPath();
-        chartContext.arc(point.x, point.y, 3, 0, Math.PI * 2);
         chartContext.fillStyle = '#111111';
         chartContext.fill();
       });
@@ -3954,9 +3978,34 @@
 
       const plotBounds = getPlotBounds(region, CHART_POINT_RADIUS);
       const mappedPoints = historyEntries
-        .map((entry) => mapPoint(region, entry))
+        .map((entry) => {
+          const mappedPoint = mapPoint(region, entry);
+          if (!mappedPoint) {
+            return null;
+          }
+
+          if (mappedPoint.outOfRange) {
+            console.warn('Growth chart measurement outside chart range; plotting at nearest chart edge.', {
+              metric: metricKey,
+              xValue: mappedPoint.xValue,
+              yValue: mappedPoint.yValue,
+              xMin: region.x.min,
+              xMax: region.x.max,
+              yMin: region.y.min,
+              yMax: region.y.max
+            });
+          }
+
+          return {
+            ...mappedPoint,
+            patientData: entry
+          };
+        })
         .filter(Boolean)
-        .map((point) => constrainPointToBounds(point, plotBounds))
+        .map((point) => ({
+          ...constrainPointToBounds(point, plotBounds),
+          patientData: point.patientData
+        }))
         .filter(Boolean);
 
       if (!mappedPoints.length) {
@@ -3980,13 +4029,20 @@
 
       withPlotClip(region, () => {
         mappedPoints.forEach((point) => {
+          console.log({
+            ageYears: point.patientData.ageYears,
+            heightCm: point.patientData.height,
+            weightKg: point.patientData.weight,
+            ofcCm: point.patientData.head,
+            bmi: point.patientData.bmi,
+            plottedX: point.x,
+            plottedY: point.y
+          });
+
           chartContext.beginPath();
           chartContext.arc(point.x, point.y, CHART_POINT_RADIUS, 0, Math.PI * 2);
           chartContext.fillStyle = '#111111';
           chartContext.fill();
-          chartContext.lineWidth = 1.5;
-          chartContext.strokeStyle = '#ffffff';
-          chartContext.stroke();
         });
       });
 
@@ -4201,7 +4257,8 @@
       return {
         dataUrl: chartCanvas.toDataURL('image/png'),
         width: chartCanvas.width,
-        height: chartCanvas.height
+        height: chartCanvas.height,
+        chartFormatVersion: CHART_PREVIEW_VERSION
       };
     }
 
@@ -4215,7 +4272,8 @@
             label: templateRequest.label,
             dataUrl: rendered.dataUrl,
             width: rendered.width,
-            height: rendered.height
+            height: rendered.height,
+            chartFormatVersion: CHART_PREVIEW_VERSION
           });
         } catch (error) {
           previews.push({
