@@ -1,6 +1,6 @@
 {
   "version": "preview-rebuilt-2026-05-iap-nellhaus-data",
-  "assetVersion": "2026-05-11-iap-who-nellhaus-official",
+  "assetVersion": "2026-05-11-iap-who-nellhaus-minimal",
   "charts": [
     {
       "chartId": "boys-height-0-5",
@@ -309,16 +309,16 @@
       "dataKey": "head",
       "xMin": 5,
       "xMax": 18,
-      "yMin": 30,
-      "yMax": 64,
+      "yMin": 45,
+      "yMax": 60,
       "xUnit": "years",
       "yUnit": "cm",
       "backgroundImage": "assets/nellhaus-official-png/boys-ofc-5-18-nellhaus.png",
       "plotArea": {
-        "left": 0.6516,
-        "top": 0.0531,
-        "right": 0.9413,
-        "bottom": 0.913
+        "left": 0.1731,
+        "top": 0.117,
+        "right": 0.8269,
+        "bottom": 0.8617
       },
       "percentileLabels": [
         "+2SD",
@@ -342,16 +342,16 @@
       "dataKey": "head",
       "xMin": 5,
       "xMax": 18,
-      "yMin": 30,
-      "yMax": 64,
+      "yMin": 45,
+      "yMax": 60,
       "xUnit": "years",
       "yUnit": "cm",
       "backgroundImage": "assets/nellhaus-official-png/girls-ofc-5-18-nellhaus.png",
       "plotArea": {
-        "left": 0.6512,
-        "top": 0.0473,
-        "right": 0.9387,
-        "bottom": 0.883
+        "left": 0.1731,
+        "top": 0.117,
+        "right": 0.8269,
+        "bottom": 0.8617
       },
       "percentileLabels": [
         "+2SD",

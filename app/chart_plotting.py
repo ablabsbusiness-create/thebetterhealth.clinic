@@ -166,7 +166,7 @@ def sort_entries(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def get_marker_metrics(image_width: int) -> tuple[int, int]:
-    radius = max(5, round(image_width * 0.0035))
+    radius = max(7, round(image_width * 0.0045))
     outline_width = 0
     return radius, outline_width
 
