@@ -5,12 +5,12 @@ from pathlib import Path
 
 STYLE = """
   <style>
-    .axis { stroke: #111; stroke-width: 1.8; fill: none; }
+    .axis { stroke: #111; stroke-width: 1; fill: none; }
     .tick { stroke: #666; stroke-width: 1; }
     .label { fill: #222; font: 9.5px Arial, sans-serif; text-anchor: middle; }
     .ylabel { fill: #222; font: 9.5px Arial, sans-serif; text-anchor: end; }
-    .curve { fill: none; stroke: #8a8f96; stroke-width: 1.5; stroke-linecap: round; }
-    .median { fill: none; stroke: #222; stroke-width: 2.1; stroke-linecap: round; }
+    .curve { fill: none; stroke: #8a8f96; stroke-width: 1; stroke-linecap: round; }
+    .median { fill: none; stroke: #222; stroke-width: 1; stroke-linecap: round; }
     .percentile { fill: #444; font: 700 8px Arial, sans-serif; }
   </style>
 """.strip()
@@ -51,11 +51,6 @@ CHARTS = [
         "filename": "boys-weight-5-18-minimal.svg",
         "title": "IAP Boys Weight 5-18 years",
         "panels": [{"kind": "weight", "age_mode": "years", "sex": "Boys"}],
-    },
-    {
-        "filename": "boys-head-5-18-minimal.svg",
-        "title": "IAP Boys OFC 5-18 years",
-        "panels": [{"kind": "head_teen", "age_mode": "years", "sex": "Boys"}],
     },
     {
         "filename": "boys-waist-circumference-minimal.svg",
@@ -103,11 +98,6 @@ CHARTS = [
         "panels": [{"kind": "weight", "age_mode": "years", "sex": "Girls"}],
     },
     {
-        "filename": "girls-head-5-18-minimal.svg",
-        "title": "IAP Girls OFC 5-18 years",
-        "panels": [{"kind": "head_teen", "age_mode": "years", "sex": "Girls"}],
-    },
-    {
         "filename": "girls-waist-circumference-minimal.svg",
         "title": "Indian Girls Waist Circumference",
         "panels": [{"kind": "waist", "age_mode": "years", "sex": "Girls"}],
@@ -148,7 +138,6 @@ PERCENTILES = {
     "default": ["P97", "P75", "P50", "P25"],
     "bmi": ["27 AE", "23 AE", "P50", "P25", "P10", "P5", "P3"],
     "bmi_small": ["P97", "P75", "P50", "P25", "P3"],
-    "head_teen": ["P97", "P75", "P50", "P25", "P3"],
     "extended_bmi": ["P99", "P97", "P85", "P50"],
     "waist": ["P95", "P75", "P50", "P10"],
 }
@@ -439,8 +428,6 @@ def get_y_labels(panel: dict) -> list[str]:
         return ["75", "50", "25", "0"]
     if kind == "head":
         return ["55", "50", "45", "40", "35"]
-    if kind == "head_teen":
-        return ["57", "54", "51", "48", "45"]
     if kind == "weight_for_height":
         return ["28", "21", "14", "7", "0"]
 

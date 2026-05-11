@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import io
+import json
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
@@ -13,172 +14,50 @@ class ChartPlotError(ValueError):
     pass
 
 
-TEMPLATE_LIBRARY: dict[str, dict[str, Any]] = {
-    "girlsHeight0to5": {
-        "label": "Girls Height vs Age 0-5y",
-        "path": "assets/iap-official-png/girls-height-0-5-minimal.png",
-        "regions": {
-            "height": {
-                "x": {"source": "ageMonths", "min": 0, "max": 60, "start": 0.1731, "end": 0.8269},
-                "y": {"source": "height", "min": 45, "max": 130, "start": 0.8617, "end": 0.117},
-            }
-        },
-    },
-    "boysHeight0to5": {
-        "label": "Boys Height vs Age 0-5y",
-        "path": "assets/iap-official-png/boys-height-0-5-minimal.png",
-        "regions": {
-            "height": {
-                "x": {"source": "ageMonths", "min": 0, "max": 60, "start": 0.1731, "end": 0.8269},
-                "y": {"source": "height", "min": 45, "max": 130, "start": 0.8617, "end": 0.117},
-            }
-        },
-    },
-    "girlsWeight0to5": {
-        "label": "Girls Weight vs Age 0-5y",
-        "path": "assets/iap-official-png/girls-weight-0-5-minimal.png",
-        "regions": {
-            "weight": {
-                "x": {"source": "ageMonths", "min": 0, "max": 60, "start": 0.1731, "end": 0.8269},
-                "y": {"source": "weight", "min": 0, "max": 25, "start": 0.8617, "end": 0.117},
-            }
-        },
-    },
-    "boysWeight0to5": {
-        "label": "Boys Weight vs Age 0-5y",
-        "path": "assets/iap-official-png/boys-weight-0-5-minimal.png",
-        "regions": {
-            "weight": {
-                "x": {"source": "ageMonths", "min": 0, "max": 60, "start": 0.1731, "end": 0.8269},
-                "y": {"source": "weight", "min": 0, "max": 25, "start": 0.8617, "end": 0.117},
-            }
-        },
-    },
-    "girlsHead0to5": {
-        "label": "Girls OFC vs Age 0-5y",
-        "path": "assets/iap-official-png/girls-head-0-5-minimal.png",
-        "regions": {
-            "head": {
-                "x": {"source": "ageMonths", "min": 0, "max": 60, "start": 0.1731, "end": 0.8269},
-                "y": {"source": "head", "min": 35, "max": 55, "start": 0.8617, "end": 0.117},
-            }
-        },
-    },
-    "boysHead0to5": {
-        "label": "Boys OFC vs Age 0-5y",
-        "path": "assets/iap-official-png/boys-head-0-5-minimal.png",
-        "regions": {
-            "head": {
-                "x": {"source": "ageMonths", "min": 0, "max": 60, "start": 0.1731, "end": 0.8269},
-                "y": {"source": "head", "min": 35, "max": 55, "start": 0.8617, "end": 0.117},
-            }
-        },
-    },
-    "girlsBmi0to5": {
-        "label": "Girls BMI vs Age 0-5y",
-        "path": "assets/iap-official-png/girls-bmi-0-5-minimal.png",
-        "regions": {
-            "bmi": {
-                "x": {"source": "ageMonths", "min": 0, "max": 60, "start": 0.1731, "end": 0.8269},
-                "y": {"source": "bmi", "min": 10, "max": 22, "start": 0.8617, "end": 0.117},
-            }
-        },
-    },
-    "boysBmi0to5": {
-        "label": "Boys BMI vs Age 0-5y",
-        "path": "assets/iap-official-png/boys-bmi-0-5-minimal.png",
-        "regions": {
-            "bmi": {
-                "x": {"source": "ageMonths", "min": 0, "max": 60, "start": 0.1731, "end": 0.8269},
-                "y": {"source": "bmi", "min": 10, "max": 22, "start": 0.8617, "end": 0.117},
-            }
-        },
-    },
-    "girlsHeight5to18": {
-        "label": "Girls Height vs Age 5-18y",
-        "path": "assets/iap-official-png/girls-height-5-18-minimal.png",
-        "regions": {
-            "height": {
-                "x": {"source": "ageYears", "min": 5, "max": 18, "start": 0.1731, "end": 0.8269},
-                "y": {"source": "height", "min": 80, "max": 180, "start": 0.8617, "end": 0.117},
-            }
-        },
-    },
-    "boysHeight5to18": {
-        "label": "Boys Height vs Age 5-18y",
-        "path": "assets/iap-official-png/boys-height-5-18-minimal.png",
-        "regions": {
-            "height": {
-                "x": {"source": "ageYears", "min": 5, "max": 18, "start": 0.1731, "end": 0.8269},
-                "y": {"source": "height", "min": 85, "max": 190, "start": 0.8617, "end": 0.117},
-            }
-        },
-    },
-    "girlsWeight5to18": {
-        "label": "Girls Weight vs Age 5-18y",
-        "path": "assets/iap-official-png/girls-weight-5-18-minimal.png",
-        "regions": {
-            "weight": {
-                "x": {"source": "ageYears", "min": 5, "max": 18, "start": 0.1731, "end": 0.8269},
-                "y": {"source": "weight", "min": 0, "max": 75, "start": 0.8617, "end": 0.117},
-            }
-        },
-    },
-    "boysWeight5to18": {
-        "label": "Boys Weight vs Age 5-18y",
-        "path": "assets/iap-official-png/boys-weight-5-18-minimal.png",
-        "regions": {
-            "weight": {
-                "x": {"source": "ageYears", "min": 5, "max": 18, "start": 0.1731, "end": 0.8269},
-                "y": {"source": "weight", "min": 0, "max": 90, "start": 0.8617, "end": 0.117},
-            }
-        },
-    },
-    "girlsHead5to18": {
-        "label": "Girls OFC vs Age 5-18y",
-        "path": "assets/iap-official-png/girls-head-5-18-minimal.png",
-        "regions": {
-            "head": {
-                "x": {"source": "ageYears", "min": 5, "max": 18, "start": 0.1731, "end": 0.8269},
-                "y": {"source": "head", "min": 45, "max": 57, "start": 0.8617, "end": 0.117},
-            }
-        },
-    },
-    "boysHead5to18": {
-        "label": "Boys OFC vs Age 5-18y",
-        "path": "assets/iap-official-png/boys-head-5-18-minimal.png",
-        "regions": {
-            "head": {
-                "x": {"source": "ageYears", "min": 5, "max": 18, "start": 0.1731, "end": 0.8269},
-                "y": {"source": "head", "min": 45, "max": 57, "start": 0.8617, "end": 0.117},
-            }
-        },
-    },
-    "girlsBmi5to18": {
-        "label": "Girls BMI vs Age 5-18y",
-        "path": "assets/iap-official-png/girls-bmi-5-18-minimal.png",
-        "regions": {
-            "bmi": {
-                "x": {"source": "ageYears", "min": 5, "max": 18, "start": 0.1731, "end": 0.8269},
-                "y": {"source": "bmi", "min": 10, "max": 35, "start": 0.8617, "end": 0.117},
-            }
-        },
-    },
-    "boysBmi5to18": {
-        "label": "Boys BMI vs Age 5-18y",
-        "path": "assets/iap-official-png/boys-bmi-5-18-minimal.png",
-        "regions": {
-            "bmi": {
-                "x": {"source": "ageYears", "min": 5, "max": 18, "start": 0.1731, "end": 0.8269},
-                "y": {"source": "bmi", "min": 10, "max": 35, "start": 0.8617, "end": 0.117},
-            }
-        },
-    },
-}
+BASE_DIR = Path(__file__).resolve().parent
+
+
+def load_template_library() -> dict[str, dict[str, Any]]:
+    config_path = BASE_DIR / "growth_chart_config.json"
+    config = json.loads(config_path.read_text(encoding="utf-8"))
+    templates: dict[str, dict[str, Any]] = {}
+    for chart in config["charts"]:
+        data_key = chart.get("dataKey") or chart["metric"]
+        plot_area = chart["plotArea"]
+        templates[chart["templateKey"]] = {
+            "chartId": chart["chartId"],
+            "label": chart["label"],
+            "referenceSource": chart["referenceSource"],
+            "path": chart["backgroundImage"],
+            "regions": {
+                data_key: {
+                    "chartId": chart["chartId"],
+                    "referenceSource": chart["referenceSource"],
+                    "metric": chart["metric"],
+                    "x": {
+                        "source": "ageMonths" if chart["xUnit"] == "months" else "ageYears",
+                        "min": chart["xMin"],
+                        "max": chart["xMax"],
+                        "start": plot_area["left"],
+                        "end": plot_area["right"],
+                    },
+                    "y": {
+                        "source": data_key,
+                        "min": chart["yMin"],
+                        "max": chart["yMax"],
+                        "start": plot_area["bottom"],
+                        "end": plot_area["top"],
+                    },
+                }
+            },
+        }
+    return templates
+
+
+TEMPLATE_LIBRARY: dict[str, dict[str, Any]] = load_template_library()
 
 MARKER_FILL = "#111111"
 MARKER_OUTLINE = "#111111"
-BASE_DIR = Path(__file__).resolve().parent
 
 
 def parse_float(value: Any) -> float:
@@ -287,7 +166,7 @@ def sort_entries(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def get_marker_metrics(image_width: int) -> tuple[int, int]:
-    radius = max(5, round(image_width * 0.01))
+    radius = max(3, round(image_width * 0.0025))
     outline_width = 0
     return radius, outline_width
 
@@ -314,7 +193,7 @@ def render_template_page(template_request: dict[str, Any], plot_series: dict[str
         raise ChartPlotError(f"Missing chart asset: {template['path']}")
 
     image = Image.open(image_path).convert("RGBA")
-    line_width = max(20, round(image.width * 0.012))
+    line_width = max(1, round(image.width * 0.001))
     marker_radius, _ = get_marker_metrics(image.width)
 
     for metric_key in template_request.get("metrics", []):

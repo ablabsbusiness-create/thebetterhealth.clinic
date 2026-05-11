@@ -80,7 +80,7 @@ def build_reference_curves(panel: dict, x: int, y: int, width: int, height: int)
             for row in reference["rows"]
         ]
         color = MEDIAN if column == "P50" else CURVE
-        width_px = sx(2.1 if column == "P50" else 1.5)
+        width_px = sx(1)
         curves.append((points, color, width_px))
     return curves
 
@@ -110,7 +110,7 @@ def text_right(draw: ImageDraw.ImageDraw, xy, text: str, font, fill):
 
 
 def draw_axes(draw: ImageDraw.ImageDraw, x: int, y: int, width: int, height: int, panel: dict):
-    draw.line([(sx(x), sx(y)), (sx(x), sx(y + height)), (sx(x + width), sx(y + height))], fill=AXIS, width=sx(2))
+    draw.line([(sx(x), sx(y)), (sx(x), sx(y + height)), (sx(x + width), sx(y + height))], fill=AXIS, width=sx(1))
 
     x_labels = X_AXIS[panel["age_mode"]]
     x_step = width / max(1, len(x_labels) - 1)

@@ -2320,7 +2320,7 @@
     let historyPageIndex = 0;
     let selectedMeasurementDateIso = '';
     let lastHistoryDebug = null;
-    const CHART_ASSET_VERSION = '2026-05-11-iap-2015-data';
+    const CHART_ASSET_VERSION = '2026-05-11-iap-who-official';
     const CHART_PREVIEW_VERSION = 'preview-rebuilt-2026-05-iap-2015-data';
     const TEST_PAST_CHARTS_PATIENT_ID = 'TESTPAST001';
 
@@ -2526,32 +2526,6 @@
           }
         }
       },
-      girlsHead5to18: {
-        label: 'Girls OFC vs Age 5-18y',
-                path: 'assets/iap-official-png/girls-head-5-18-minimal.png',
-        regions: {
-          head: {
-            label: 'Head Circumference',
-            shortLabel: 'HC',
-            color: '#059669',
-            x: { source: 'ageYears', min: 5, max: 18, start: 0.1731, end: 0.8269 },
-            y: { source: 'head', min: 45, max: 57, start: 0.8617, end: 0.117 }
-          }
-        }
-      },
-      boysHead5to18: {
-        label: 'Boys OFC vs Age 5-18y',
-                path: 'assets/iap-official-png/boys-head-5-18-minimal.png',
-        regions: {
-          head: {
-            label: 'Head Circumference',
-            shortLabel: 'HC',
-            color: '#059669',
-            x: { source: 'ageYears', min: 5, max: 18, start: 0.1731, end: 0.8269 },
-            y: { source: 'head', min: 45, max: 57, start: 0.8617, end: 0.117 }
-          }
-        }
-      },
       girlsBmi5to18: {
         label: 'Girls BMI vs Age 5-18y',
                 path: 'assets/iap-official-png/girls-bmi-5-18-minimal.png',
@@ -2584,9 +2558,62 @@
     let generatedPreviewPages = [];
     let generatedPdfBase64 = '';
     const CHART_RENDER_MAX_WIDTH = 760;
-    const CHART_POINT_RADIUS = 5;
+    const CHART_POINT_RADIUS = 3;
+    const GROWTH_CHART_DEBUG = new URLSearchParams(window.location.search).has('growthDebug')
+      || localStorage.getItem('growthChartDebug') === '1';
     const CAN_USE_PYTHON_CHART_SERVICE = ['localhost', '127.0.0.1'].includes(window.location.hostname);
     const LOCAL_RECORD_KEY = 'growthChartRecentRecords';
+
+    async function loadSharedGrowthChartConfigs() {
+      try {
+        const response = await fetch(versionedChartAssetPath('growth_chart_config.json'), { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        return await response.json();
+      } catch (error) {
+        console.warn(`Using embedded chart config fallback: ${error.message}`);
+        return { charts: [] };
+      }
+    }
+
+    function applySharedGrowthChartConfigs(library, sharedConfig) {
+      (sharedConfig?.charts || []).forEach((chart) => {
+        const template = library[chart.templateKey];
+        if (!template) {
+          return;
+        }
+
+        const dataKey = chart.dataKey || chart.metric;
+        const region = template.regions[dataKey];
+        if (!region) {
+          return;
+        }
+
+        template.label = chart.label;
+        template.path = chart.backgroundImage;
+        region.chartId = chart.chartId;
+        region.referenceSource = chart.referenceSource;
+        region.metric = chart.metric;
+        region.backgroundImage = chart.backgroundImage;
+        region.x = {
+          source: chart.xUnit === 'months' ? 'ageMonths' : 'ageYears',
+          min: chart.xMin,
+          max: chart.xMax,
+          start: chart.plotArea.left,
+          end: chart.plotArea.right
+        };
+        region.y = {
+          source: dataKey,
+          min: chart.yMin,
+          max: chart.yMax,
+          start: chart.plotArea.bottom,
+          end: chart.plotArea.top
+        };
+      });
+    }
+
+    applySharedGrowthChartConfigs(templateLibrary, await loadSharedGrowthChartConfigs());
 
     function calculateAgeLabel(dobValue) {
       return calculateAgeLabelAtDate(dobValue, new Date());
@@ -3842,15 +3869,30 @@
         });
       }
 
-      console.log({
-        ageYears: patientData.ageYears,
-        heightCm: patientData.height,
-        weightKg: patientData.weight,
-        ofcCm: patientData.head,
-        bmi: patientData.bmi,
-        plottedX: point.x,
-        plottedY: point.y
-      });
+      if (GROWTH_CHART_DEBUG) {
+        console.log({
+          chartId: region.chartId,
+          referenceSource: region.referenceSource,
+          sex: region.chartId?.startsWith('boys') ? 'male' : region.chartId?.startsWith('girls') ? 'female' : '',
+          ageGroup: region.chartId?.includes('0-5') ? '0-5' : region.chartId?.includes('5-18') ? '5-18' : '',
+          ageMonths: patientData.ageMonths,
+          ageYears: patientData.ageYears,
+          metric: region.metric || metricKey,
+          value: mappedPoint.yValue,
+          bmi: patientData.bmi,
+          xMin: region.x.min,
+          xMax: region.x.max,
+          yMin: region.y.min,
+          yMax: region.y.max,
+          plotLeft: getPlotBounds(region, 0).left,
+          plotTop: getPlotBounds(region, 0).top,
+          plotRight: getPlotBounds(region, 0).right,
+          plotBottom: getPlotBounds(region, 0).bottom,
+          xPixel: point.x,
+          yPixel: point.y,
+          backgroundImage: region.backgroundImage
+        });
+      }
 
       withPlotClip(region, () => {
         chartContext.beginPath();
@@ -4029,15 +4071,30 @@
 
       withPlotClip(region, () => {
         mappedPoints.forEach((point) => {
-          console.log({
-            ageYears: point.patientData.ageYears,
-            heightCm: point.patientData.height,
-            weightKg: point.patientData.weight,
-            ofcCm: point.patientData.head,
-            bmi: point.patientData.bmi,
-            plottedX: point.x,
-            plottedY: point.y
-          });
+          if (GROWTH_CHART_DEBUG) {
+            console.log({
+              chartId: region.chartId,
+              referenceSource: region.referenceSource,
+              sex: region.chartId?.startsWith('boys') ? 'male' : region.chartId?.startsWith('girls') ? 'female' : '',
+              ageGroup: region.chartId?.includes('0-5') ? '0-5' : region.chartId?.includes('5-18') ? '5-18' : '',
+              ageMonths: point.patientData.ageMonths,
+              ageYears: point.patientData.ageYears,
+              metric: region.metric || metricKey,
+              value: point.patientData[metricKey === 'bmi' ? 'bmi' : metricKey],
+              bmi: point.patientData.bmi,
+              xMin: region.x.min,
+              xMax: region.x.max,
+              yMin: region.y.min,
+              yMax: region.y.max,
+              plotLeft: getPlotBounds(region, 0).left,
+              plotTop: getPlotBounds(region, 0).top,
+              plotRight: getPlotBounds(region, 0).right,
+              plotBottom: getPlotBounds(region, 0).bottom,
+              xPixel: point.x,
+              yPixel: point.y,
+              backgroundImage: region.backgroundImage
+            });
+          }
 
           chartContext.beginPath();
           chartContext.arc(point.x, point.y, CHART_POINT_RADIUS, 0, Math.PI * 2);
@@ -4216,7 +4273,7 @@
         addMetricRequest(`${sexPrefix}Weight${ageBand}`, 'weight');
       }
 
-      if (selectedValues.includes('Head Circumference-for-Age')) {
+      if (selectedValues.includes('Head Circumference-for-Age') && ageBand === '0to5') {
         addMetricRequest(`${sexPrefix}Head${ageBand}`, 'head');
       }
 
@@ -4233,6 +4290,19 @@
       if ((selectedValues.includes('Head Circumference-for-Age') || selectedValues.includes('BMI')) && patientData.ageYears > 18) {
         warnings.push('The available age-based chart templates are supported here up to 18 years.');
       }
+      if (selectedValues.includes('Head Circumference-for-Age') && patientData.ageYears >= 5 && patientData.ageYears <= 18) {
+        warnings.push('OFC reference chart not available for 5-18 years.');
+      }
+      generatedTemplates.forEach((templateRequest) => {
+        const template = templateLibrary[templateRequest.key];
+        templateRequest.metrics.forEach((metricKey) => {
+          const region = template?.regions?.[metricKey];
+          const value = patientData[region?.y?.source];
+          if (region && Number.isFinite(value) && (value < region.y.min || value > region.y.max)) {
+            warnings.push(`${region.label} value outside chart range.`);
+          }
+        });
+      });
 
       return warnings;
     }

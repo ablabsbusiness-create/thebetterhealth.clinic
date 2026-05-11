@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 188" role="img" aria-label="IAP Girls BMI Chart 5-18 years">
 <style>
-    .axis { stroke: #111; stroke-width: 1.8; fill: none; }
+    .axis { stroke: #111; stroke-width: 1; fill: none; }
     .tick { stroke: #666; stroke-width: 1; }
     .label { fill: #222; font: 9.5px Arial, sans-serif; text-anchor: middle; }
     .ylabel { fill: #222; font: 9.5px Arial, sans-serif; text-anchor: end; }
-    .curve { fill: none; stroke: #8a8f96; stroke-width: 1.5; stroke-linecap: round; }
-    .median { fill: none; stroke: #222; stroke-width: 2.1; stroke-linecap: round; }
+    .curve { fill: none; stroke: #8a8f96; stroke-width: 1; stroke-linecap: round; }
+    .median { fill: none; stroke: #222; stroke-width: 1; stroke-linecap: round; }
     .percentile { fill: #444; font: 700 8px Arial, sans-serif; }
   </style>
 <rect x="0" y="0" width="260" height="188" fill="#fff"/>
