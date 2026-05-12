@@ -101,14 +101,6 @@
       z-index: 2;
       padding: 0.5rem 0 0.25rem;
     }
-    .hero-content::before {
-      content: '';
-      position: absolute;
-      inset: -1.5rem -1rem -1rem;
-      background: radial-gradient(circle at top, rgba(255,255,255,0.4), rgba(255,255,255,0));
-      pointer-events: none;
-      z-index: -1;
-    }
     .hero-kid-badge {
       display: inline-flex;
       align-items: center;
@@ -133,11 +125,7 @@
     .hero-tagline {
       display: inline-block;
       max-width: 34rem;
-      padding: 0.9rem 1.1rem;
-      border-radius: 1.4rem;
-      background: rgba(255,255,255,0.52);
-      border: 1px solid rgba(46,125,107,0.10);
-      box-shadow: 0 12px 30px rgba(46,125,107,0.06);
+      padding: 0;
     }
     .hero-cta-wrap {
       position: relative;
@@ -149,141 +137,6 @@
     .hero-cta-wrap > a {
       position: relative;
       z-index: 2;
-    }
-    .hero-popup-mascot {
-      position: absolute;
-      left: 50%;
-      top: -3.65rem;
-      width: 9.6rem;
-      transform: translateX(-92%) translateY(10px) rotate(-8deg) scale(0.84);
-      opacity: 0;
-      pointer-events: none;
-      z-index: 1;
-      animation: mascotPopIn 0.75s ease-out 2s forwards;
-      filter: drop-shadow(0 12px 22px rgba(46,125,107,0.10));
-    }
-    .hero-popup-mascot::before {
-      content: '';
-      position: absolute;
-      left: 2.2rem;
-      top: -0.95rem;
-      width: 2px;
-      height: 1.25rem;
-      background: linear-gradient(180deg, rgba(46,125,107,0.06), rgba(46,125,107,0.35));
-      border-radius: 999px;
-    }
-    .hero-popup-mascot-clip {
-      width: 5.4rem;
-      height: 3.8rem;
-      overflow: hidden;
-    }
-    .hero-popup-bubble {
-      position: absolute;
-      top: 0.15rem;
-      left: 3.15rem;
-      padding: 0.45rem 0.75rem;
-      border-radius: 1rem;
-      background: #fff;
-      border: 1px solid rgba(46,125,107,0.14);
-      box-shadow: 0 10px 24px rgba(46,125,107,0.10);
-      color: #2E7D6B;
-      font-size: 0.76rem;
-      font-weight: 800;
-      line-height: 1.15;
-      white-space: nowrap;
-    }
-    .hero-popup-bubble::after {
-      content: '';
-      position: absolute;
-      left: 0.85rem;
-      bottom: -0.28rem;
-      width: 0.58rem;
-      height: 0.58rem;
-      background: #fff;
-      border-right: 1px solid rgba(46,125,107,0.14);
-      border-bottom: 1px solid rgba(46,125,107,0.14);
-      transform: rotate(45deg);
-    }
-    .hero-popup-mascot svg {
-      display: block;
-      width: 5.4rem;
-      height: auto;
-      overflow: visible;
-      animation: mascotBob 3.2s ease-in-out 2.8s infinite;
-    }
-    .hero-popup-mascot .wave-arm {
-      transform-origin: 68px 76px;
-      animation: mascotWave 2.2s ease-in-out 2.7s infinite;
-    }
-    @keyframes mascotPopIn {
-      to {
-        opacity: 1;
-        transform: translateX(-92%) translateY(0) rotate(-4deg) scale(1);
-      }
-    }
-    @keyframes mascotBob {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-4px); }
-    }
-    @keyframes mascotWave {
-      0%, 100% { transform: rotate(0deg); }
-      30% { transform: rotate(-6deg); }
-      65% { transform: rotate(5deg); }
-    }
-    .scroll-booking-mascot {
-      position: fixed;
-      left: 0;
-      top: 50%;
-      width: 11.5rem;
-      display: flex;
-      align-items: flex-start;
-      gap: 0.55rem;
-      transform: translate(-115%, -50%);
-      opacity: 0;
-      pointer-events: none;
-      z-index: 45;
-      text-decoration: none;
-      transition: transform 0.8s ease, opacity 0.8s ease;
-      filter: drop-shadow(0 14px 26px rgba(46,125,107,0.12));
-    }
-    .scroll-booking-mascot.is-visible {
-      transform: translate(1.75rem, -50%);
-      opacity: 1;
-      pointer-events: auto;
-    }
-    .scroll-booking-bubble {
-      margin-top: 0.35rem;
-      padding: 0.6rem 0.82rem;
-      border-radius: 1rem;
-      background: #fff;
-      border: 1px solid rgba(46,125,107,0.14);
-      box-shadow: 0 10px 24px rgba(46,125,107,0.10);
-      color: #2E7D6B;
-      font-size: 0.78rem;
-      font-weight: 800;
-      line-height: 1.2;
-      max-width: 7rem;
-    }
-    .scroll-booking-bubble span {
-      display: inline-block;
-      margin-top: 0.12rem;
-      color: #FF8A4C;
-    }
-    .scroll-booking-clip {
-      width: 4.9rem;
-      height: 3.35rem;
-      overflow: hidden;
-      flex-shrink: 0;
-    }
-    .scroll-booking-mascot svg {
-      display: block;
-      width: 4.9rem;
-      height: auto;
-      animation: mascotBob 3.2s ease-in-out 0.2s infinite;
-    }
-    .scroll-booking-mascot .wave-arm {
-      transform-origin: 68px 76px;
-      animation: mascotWave 2.2s ease-in-out 0.2s infinite;
     }
     .name-slot {
       position: relative;
@@ -345,47 +198,7 @@
         padding: 0.62rem 0.9rem;
       }
       .hero-tagline {
-        padding: 0.8rem 0.9rem;
-        border-radius: 1.2rem;
-      }
-      .hero-popup-mascot {
-        top: -3.05rem;
-        width: 8.4rem;
-        transform: translateX(-83%) translateY(10px) rotate(-8deg) scale(0.84);
-      }
-      .hero-popup-mascot-clip {
-        width: 4.8rem;
-        height: 3.45rem;
-      }
-      .hero-popup-bubble {
-        left: 2.75rem;
-        font-size: 0.7rem;
-        padding: 0.4rem 0.65rem;
-      }
-      .hero-popup-mascot svg {
-        width: 4.8rem;
-      }
-      .scroll-booking-mascot {
-        top: 54%;
-        width: 9.8rem;
-      }
-      .scroll-booking-bubble {
-        font-size: 0.7rem;
-        max-width: 5.8rem;
-        padding: 0.5rem 0.65rem;
-      }
-      .scroll-booking-clip {
-        width: 4.2rem;
-        height: 2.95rem;
-      }
-      .scroll-booking-mascot svg {
-        width: 4.2rem;
-      }
-      @keyframes mascotPopIn {
-        to {
-          opacity: 1;
-          transform: translateX(-83%) translateY(0) rotate(-4deg) scale(1);
-        }
+        padding: 0;
       }
     }
     .hero-cloud {
@@ -498,6 +311,40 @@
     #mobile-menu { display: none; }
     #mobile-menu.open { display: block; }
 
+    .floating-whatsapp-button {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      width: 50px;
+      height: 50px;
+      z-index: 9999;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: #25D366;
+      color: #fff;
+      text-decoration: none;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.24);
+      transition: transform 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+    }
+    .floating-whatsapp-button:hover {
+      background: #20bf5a;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 22px rgba(0,0,0,0.28);
+    }
+    .floating-whatsapp-button svg {
+      width: 28px;
+      height: 28px;
+      fill: currentColor;
+    }
+    @media (max-width: 640px) {
+      .floating-whatsapp-button {
+        right: 16px;
+        bottom: 16px;
+      }
+    }
+
     /* Scrollbar */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: #F5F1E8; }
@@ -587,14 +434,6 @@
 <p class="hero-tagline mt-3 text-lg md:text-xl font-bold text-brand-green max-w-xl mx-auto">Dr. Gunda care for every small name and every big worry.</p>
 <div class="mt-6 hero-cta-wrap">
 <a class="bg-brand-orange hover:bg-brand-orange-dark text-white font-bold px-7 py-3.5 rounded-full shadow-orange transition-colors text-base" href="#contact"> Book Appointment </a>
-<div aria-hidden="true" class="hero-popup-mascot">
-<div class="hero-popup-bubble">Hi! Book Appointment</div>
-<div class="hero-popup-mascot-clip">
-<svg fill="none" viewbox="0 0 120 126">
-<circle cx="36" cy="28" fill="#B8A6F3" r="15"></circle> <circle cx="78" cy="28" fill="#B8A6F3" r="15"></circle> <ellipse cx="58" cy="56" fill="#8ED3C7" rx="31" ry="29"></ellipse> <ellipse cx="58" cy="63" fill="#FFF8F0" rx="20" ry="16"></ellipse> <circle cx="48" cy="53" fill="#FFF8F0" r="3.1"></circle> <circle cx="69" cy="53" fill="#FFF8F0" r="3.1"></circle> <circle cx="48" cy="54" fill="#25413B" r="1.5"></circle> <circle cx="69" cy="54" fill="#25413B" r="1.5"></circle> <ellipse cx="58" cy="62.5" fill="#FF8A4C" rx="3.7" ry="2.7"></ellipse> <path d="M53 69c1.7 1.9 3.3 2.6 5 2.6 1.7 0 3.3-.7 5-2.6" stroke="#25413B" stroke-linecap="round" stroke-width="2"></path> <path d="M41 84c4.8-4.2 10.8-6.2 17-6.2 6.2 0 12.2 2 17 6.2v18H41V84z" fill="#FFF8F0" stroke="#25413B" stroke-linejoin="round" stroke-width="2.1"></path> <path d="M58 77.8v24" stroke="#25413B" stroke-width="2"></path> <path class="wave-arm" d="M41 88c-8-2.2-13.5-8-16-15" stroke="#25413B" stroke-linecap="round" stroke-width="4.4"></path> <path d="M75 88c8.5 2 16-1 24-7" stroke="#25413B" stroke-linecap="round" stroke-width="4.4"></path> <path d="M47 102l-4.3 11" stroke="#25413B" stroke-linecap="round" stroke-width="4"></path> <path d="M68 102l4.7 11" stroke="#25413B" stroke-linecap="round" stroke-width="4"></path>
-</svg>
-</div>
-</div>
 <a class="border-2 border-brand-green text-brand-green hover:bg-brand-green hover:text-white font-bold px-7 py-3.5 rounded-full transition-colors text-base" href="./services"> Explore Services </a>
 </div>
 <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 justify-center">
@@ -1123,7 +962,7 @@
 </div>
 <!-- Copyright -->
 <div class="border-t border-white/10 pt-6 flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-white/50">
-<div>© 2025 The Better Kids Clinic. All rights reserved.</div>
+<div>© 2026 The Better Kids Clinic. All rights reserved.</div>
 <div class="flex gap-4">
 <a class="hover:text-white/80 transition-colors" href="./about">Privacy Policy</a> <a class="hover:text-white/80 transition-colors" href="./contact">Terms of Service</a>
 </div>
@@ -1133,11 +972,10 @@
 <!-- ══════════════════════════════════════════
        FLOATING WHATSAPP BUTTON
   ══════════════════════════════════════════ -->
-<a aria-label="Chat with us on WhatsApp" class="fixed bottom-6 right-6 z-50 w-14 h-14 bg-[#25D366] hover:bg-[#1ebe5d] rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 group" href="https://wa.me/919513988840?text=Hi%2C%20I%20would%20like%20to%20book%20an%20appointment%20at%20The%20Best%20Child%20Clinic." rel="noopener noreferrer" target="_blank">
-<svg aria-hidden="true" class="w-7 h-7 text-white" fill="currentColor" viewbox="0 0 24 24">
+<a aria-label="Chat with us on WhatsApp" class="floating-whatsapp-button" href="https://wa.me/919513988840?text=Hi%2C%20I%20would%20like%20to%20book%20an%20appointment%20at%20The%20Best%20Child%20Clinic." rel="noopener noreferrer" target="_blank">
+<svg aria-hidden="true" fill="currentColor" viewbox="0 0 24 24">
 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"></path>
 </svg>
-<!-- Tooltip --> <span class="absolute right-16 bg-brand-dark text-white text-xs font-semibold px-3 py-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-soft"> Chat on WhatsApp </span>
 </a> <!-- ══════════════════════════════════════════
        JAVASCRIPT
   ══════════════════════════════════════════ -->
@@ -1156,99 +994,16 @@
       document.body.insertAdjacentHTML('beforeend', '<iframe name="booking-submit-frame" id="booking-submit-frame" class="hidden" tabindex="-1" aria-hidden="true"></iframe>');
     }
 
-    if (!document.getElementById('scroll-booking-mascot')) {
-      document.body.insertAdjacentHTML('beforeend', `
-  <a href="./contact" id="scroll-booking-mascot" class="scroll-booking-mascot" aria-label="Book appointment">
-          <div class="scroll-booking-clip" aria-hidden="true">
-            <svg viewBox="0 0 120 126" fill="none">
-              <circle cx="36" cy="28" r="15" fill="#B8A6F3"/>
-              <circle cx="78" cy="28" r="15" fill="#B8A6F3"/>
-              <ellipse cx="58" cy="56" rx="31" ry="29" fill="#8ED3C7"/>
-              <ellipse cx="58" cy="63" rx="20" ry="16" fill="#FFF8F0"/>
-              <circle cx="48" cy="53" r="3.1" fill="#FFF8F0"/>
-              <circle cx="69" cy="53" r="3.1" fill="#FFF8F0"/>
-              <circle cx="48" cy="54" r="1.5" fill="#25413B"/>
-              <circle cx="69" cy="54" r="1.5" fill="#25413B"/>
-              <ellipse cx="58" cy="62.5" rx="3.7" ry="2.7" fill="#FF8A4C"/>
-              <path d="M53 69c1.7 1.9 3.3 2.6 5 2.6 1.7 0 3.3-.7 5-2.6" stroke="#25413B" stroke-width="2" stroke-linecap="round"/>
-              <path d="M41 84c4.8-4.2 10.8-6.2 17-6.2 6.2 0 12.2 2 17 6.2v18H41V84z" fill="#FFF8F0" stroke="#25413B" stroke-width="2.1" stroke-linejoin="round"/>
-              <path d="M58 77.8v24" stroke="#25413B" stroke-width="2"/>
-              <path class="wave-arm" d="M41 88c-8-2.2-13.5-8-16-15" stroke="#25413B" stroke-width="4.4" stroke-linecap="round"/>
-              <path d="M75 88c8.5 2 16-1 24-7" stroke="#25413B" stroke-width="4.4" stroke-linecap="round"/>
-              <path d="M47 102l-4.3 11" stroke="#25413B" stroke-width="4" stroke-linecap="round"/>
-              <path d="M68 102l4.7 11" stroke="#25413B" stroke-width="4" stroke-linecap="round"/>
-            </svg>
-          </div>
-          <div class="scroll-booking-bubble">Hi! <span>Book Appointment</span></div>
-        </a>
-      `);
-    }
-
     // Navbar shadow on scroll
     const navbar = document.getElementById('navbar');
-    const heroSection = document.getElementById('home');
-    const scrollBookingMascot = document.getElementById('scroll-booking-mascot');
-    let scrollMascotTimer = null;
-    let scrollMascotHideTimer = null;
-    let scrollMascotShown = false;
-    let scrollMascotHasPlayed = false;
-
-    function triggerScrollMascotOnce() {
-      if (!scrollBookingMascot || scrollMascotHasPlayed || scrollMascotTimer || scrollMascotShown) return;
-
-      scrollMascotTimer = window.setTimeout(() => {
-        scrollBookingMascot.classList.add('is-visible');
-        scrollMascotShown = true;
-        scrollMascotHasPlayed = true;
-        scrollMascotTimer = null;
-
-        if (scrollMascotHideTimer) {
-          window.clearTimeout(scrollMascotHideTimer);
-        }
-
-        scrollMascotHideTimer = window.setTimeout(() => {
-          scrollBookingMascot.classList.remove('is-visible');
-          scrollMascotShown = false;
-          scrollMascotHideTimer = null;
-        }, 3000);
-      }, 1200);
-    }
 
     window.addEventListener('scroll', () => {
-      const heroBottom = heroSection ? heroSection.offsetTop + heroSection.offsetHeight : 260;
-      const pastHero = window.scrollY > heroBottom - 120;
-
       if (window.scrollY > 20) {
         navbar.classList.add('navbar-scrolled');
       } else {
         navbar.classList.remove('navbar-scrolled');
       }
-
-      if (scrollBookingMascot) {
-        if (pastHero) {
-          triggerScrollMascotOnce();
-        } else {
-          if (scrollMascotTimer) {
-            window.clearTimeout(scrollMascotTimer);
-            scrollMascotTimer = null;
-          }
-          if (scrollMascotHideTimer) {
-            window.clearTimeout(scrollMascotHideTimer);
-            scrollMascotHideTimer = null;
-          }
-          scrollBookingMascot.classList.remove('is-visible');
-          scrollMascotShown = false;
-        }
-      }
     });
-
-    if (scrollBookingMascot) {
-      const heroBottom = heroSection ? heroSection.offsetTop + heroSection.offsetHeight : 260;
-      const pastHero = window.scrollY > heroBottom - 120;
-      if (pastHero) {
-        triggerScrollMascotOnce();
-      }
-    }
 
     // Scroll fade-in observer
     const observer = new IntersectionObserver((entries) => {
