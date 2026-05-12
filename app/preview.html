@@ -692,12 +692,23 @@
     }
 
     @media print {
+      @page {
+        size: A4 portrait;
+        margin: 0;
+      }
+
       :root {
         --print-header-gap: 0cm;
       }
 
+      html,
       body {
+        width: 210mm;
+        height: 297mm;
+        margin: 0 !important;
+        padding: 0 !important;
         background: #fff;
+        overflow: hidden;
       }
 
       .site-header,
@@ -729,12 +740,18 @@
       }
 
       .rx-sheet {
-        width: 100%;
-        min-height: calc(297mm - 24mm);
+        box-sizing: border-box;
+        width: 210mm;
+        height: 297mm;
+        min-height: 0;
+        max-height: 297mm;
         padding: 8mm;
         border: 0;
         box-shadow: none;
         font-size: 10px;
+        overflow: hidden;
+        page-break-after: avoid;
+        page-break-inside: avoid;
       }
     }
   </style>
