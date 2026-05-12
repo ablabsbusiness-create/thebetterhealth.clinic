@@ -874,8 +874,7 @@
       border-radius: 12px;
     }
 
-    .doctor-card .prescription-preview-frame,
-    .doctor-card .prescription-preview-embed {
+    .doctor-card .prescription-preview-frame {
       min-height: 520px;
       height: 520px;
     }
@@ -1418,6 +1417,12 @@
       transition: opacity 0.2s ease;
     }
 
+    canvas.prescription-preview-frame {
+      display: block;
+      min-height: 0;
+      max-height: 606px;
+    }
+
     .prescription-preview-frame.is-ready {
       opacity: 1;
     }
@@ -1439,13 +1444,6 @@
     .prescription-preview-placeholder.is-error {
       color: #8a3b12;
       background: linear-gradient(180deg, #fff8f2, #fff0e6);
-    }
-
-    .prescription-preview-embed {
-      width: 100%;
-      height: 606px;
-      border: 0;
-      background: #fff;
     }
 
     .prescription-preview-open-chip {
@@ -1823,6 +1821,7 @@
     const pdfPreviewLink = document.getElementById('pdf-preview-link');
     const pdfPreviewClose = document.getElementById('pdf-preview-close');
     let prescriptionPreviewObserver = null;
+    let pdfJsModulePromise = null;
     const LOCAL_PRESCRIPTION_HISTORY_KEY = 'savedPrescriptionHistory';
     const LOCAL_WORKLIST_QUEUE_KEY = 'patientWorklistQueueByDate';
 
@@ -2218,49 +2217,75 @@
       imageElement.src = previewImageUrl;
     }
 
-    function renderPrescriptionPreviewPdf(frameElement) {
-      if (!(frameElement instanceof HTMLIFrameElement)) {
+    async function getPdfJsModule() {
+      if (!pdfJsModulePromise) {
+        pdfJsModulePromise = Promise.all([
+          import('pdfjs-dist'),
+          import('pdfjs-dist/build/pdf.worker.mjs?url')
+        ]).then(([pdfjs, workerModule]) => {
+          pdfjs.GlobalWorkerOptions.workerSrc = workerModule.default;
+          return pdfjs;
+        });
+      }
+
+      return pdfJsModulePromise;
+    }
+
+    async function renderPrescriptionPreviewPdf(canvasElement) {
+      if (!(canvasElement instanceof HTMLCanvasElement)) {
         return;
       }
 
-      if (frameElement.dataset.rendered === 'true') {
+      if (canvasElement.dataset.rendered === 'true' || canvasElement.dataset.pdfLoading === 'true') {
         return;
       }
 
-      const pdfUrl = frameElement.dataset.previewPdfUrl || '';
+      const pdfUrl = canvasElement.dataset.previewPdfUrl || '';
       if (!pdfUrl) {
         return;
       }
 
-      setPrescriptionPreviewLoading(frameElement);
+      setPrescriptionPreviewLoading(canvasElement, 'Rendering prescription preview...');
 
-      if (frameElement._previewReadyTimer) {
-        window.clearTimeout(frameElement._previewReadyTimer);
+      if (canvasElement._previewReadyTimer) {
+        window.clearTimeout(canvasElement._previewReadyTimer);
       }
 
-      frameElement.onload = () => {
-        markPrescriptionPreviewReady(frameElement);
-      };
-      frameElement.onerror = () => {
-        markPrescriptionPreviewError(frameElement, 'Failed to load prescription preview.');
-      };
-
-      frameElement._previewReadyTimer = window.setTimeout(() => {
-        if (frameElement.dataset.rendered !== 'true') {
-          markPrescriptionPreviewError(frameElement, 'Failed to load prescription preview.');
+      canvasElement._previewReadyTimer = window.setTimeout(() => {
+        if (canvasElement.dataset.rendered !== 'true') {
+          markPrescriptionPreviewError(canvasElement, 'Prescription preview is taking too long. Open the prescription instead.');
         }
-      }, 8000);
+      }, 12000);
 
-      frameElement.src = '';
-      frameElement.src = pdfUrl.includes('#')
-        ? pdfUrl
-        : `${pdfUrl}#page=1&toolbar=0&navpanes=0&scrollbar=0&view=FitH`;
+      try {
+        const { getDocument } = await getPdfJsModule();
+        const loadingTask = getDocument({ url: pdfUrl });
+        const pdf = await loadingTask.promise;
+        const page = await pdf.getPage(1);
+        const baseViewport = page.getViewport({ scale: 1 });
+        const surface = canvasElement.closest('.prescription-preview-surface');
+        const availableWidth = Math.max(240, surface?.clientWidth || canvasElement.clientWidth || baseViewport.width);
+        const scale = availableWidth / baseViewport.width;
+        const viewport = page.getViewport({ scale });
+        const outputScale = window.devicePixelRatio || 1;
+        const context = canvasElement.getContext('2d');
+        canvasElement.width = Math.floor(viewport.width * outputScale);
+        canvasElement.height = Math.floor(viewport.height * outputScale);
+        canvasElement.style.width = `${Math.floor(viewport.width)}px`;
+        canvasElement.style.height = `${Math.floor(viewport.height)}px`;
+        context.setTransform(outputScale, 0, 0, outputScale, 0, 0);
+        await page.render({ canvasContext: context, viewport }).promise;
+        markPrescriptionPreviewReady(canvasElement);
+      } catch (error) {
+        console.warn(`Unable to render prescription PDF preview: ${error.message}`);
+        markPrescriptionPreviewError(canvasElement, 'Prescription preview could not be rendered. Open the prescription instead.');
+      }
     }
 
     function attachPrescriptionPreviewRendering() {
       const previewElements = [
         ...resultsPanel.querySelectorAll('.prescription-preview-frame[data-preview-image-url]'),
-        ...resultsPanel.querySelectorAll('.prescription-preview-embed[data-preview-pdf-url]')
+        ...resultsPanel.querySelectorAll('.prescription-preview-frame[data-preview-pdf-url]')
       ];
       if (!previewElements.length) {
         return;
@@ -2270,7 +2295,7 @@
         previewElements.forEach((previewElement) => {
           if (previewElement instanceof HTMLImageElement) {
             renderPrescriptionPreviewImage(previewElement);
-          } else if (previewElement instanceof HTMLIFrameElement) {
+          } else if (previewElement instanceof HTMLCanvasElement) {
             renderPrescriptionPreviewPdf(previewElement);
           }
         });
@@ -2286,7 +2311,7 @@
 
             if (entry.target instanceof HTMLImageElement) {
               renderPrescriptionPreviewImage(entry.target);
-            } else if (entry.target instanceof HTMLIFrameElement) {
+            } else if (entry.target instanceof HTMLCanvasElement) {
               renderPrescriptionPreviewPdf(entry.target);
             }
             observer.unobserve(entry.target);
@@ -2827,7 +2852,7 @@
                         ${downloadUrl
                           ? `
                             <div class="prescription-preview-placeholder">Loading prescription preview...</div>
-                            <iframe class="prescription-preview-embed" data-preview-pdf-url="${cardUrl}" title="Prescription PDF preview ${index + 1}" loading="lazy"></iframe>
+                            <canvas class="prescription-preview-frame" data-preview-pdf-url="${cardUrl}" aria-label="Prescription PDF preview ${index + 1}"></canvas>
                             <a class="prescription-preview-open-chip" href="${cardUrl}" target="_blank" rel="noopener noreferrer">Open prescription</a>
                           `
                           : '<div class="prescription-preview-placeholder is-error">Prescription PDF could not be loaded for this record.</div>'}
