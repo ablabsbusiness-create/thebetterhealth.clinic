@@ -349,7 +349,7 @@
       width: min(794px, 100%);
       min-height: 1123px;
       margin: 0 auto;
-      padding: 48px 50px;
+      padding: 38px 42px;
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -359,6 +359,7 @@
       color: #111827;
       box-shadow: 0 20px 45px rgba(22, 38, 29, 0.14);
       font-family: Arial, Helvetica, sans-serif;
+      font-size: 12px;
     }
 
     body.preview-without-header .rx-sheet-header {
@@ -366,55 +367,55 @@
     }
 
     body.preview-without-header .rx-sheet {
-      padding-top: calc(48px + var(--preview-header-gap));
+      padding-top: calc(38px + var(--preview-header-gap));
     }
 
     .rx-sheet-header {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       gap: 16px;
-      padding: 0 0 14px;
+      padding: 0 0 10px;
       border-bottom: 1px solid #777;
       background: #fff;
     }
 
     .clinic-title {
       margin: 0;
-      font-size: 17px;
+      font-size: 15px;
       line-height: 1.1;
       color: #111827;
       font-weight: 800;
     }
 
     .clinic-address {
-      margin: 10px 0 0;
+      margin: 6px 0 0;
       max-width: 310px;
       color: #111827;
-      font-size: 13px;
+      font-size: 10.5px;
       line-height: 1.18;
     }
 
     .doctor-block {
       text-align: right;
-      font-size: 12px;
-      line-height: 1.28;
+      font-size: 10.5px;
+      line-height: 1.18;
     }
 
     .doctor-block strong {
       display: block;
       margin-bottom: 2px;
-      font-size: 13px;
+      font-size: 11px;
     }
 
     .patient-band {
       display: grid;
       grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 0.9fr);
       gap: 10px;
-      margin: 20px 0 18px;
-      padding: 9px 10px;
+      margin: 12px 0 10px;
+      padding: 7px 8px;
       border: 1px solid #e5e7eb;
-      font-size: 13px;
-      line-height: 1.38;
+      font-size: 11px;
+      line-height: 1.24;
     }
 
     .patient-band strong,
@@ -423,9 +424,9 @@
     }
 
     .text-row {
-      margin: 6px 0;
-      font-size: 13px;
-      line-height: 1.35;
+      margin: 3px 0;
+      font-size: 11px;
+      line-height: 1.2;
     }
 
     .rx-section {
@@ -435,15 +436,15 @@
 
     .medicine-table {
       width: 100%;
-      margin: 18px 0 16px;
+      margin: 10px 0 8px;
       border-collapse: collapse;
       border: 1px solid #4b5563;
-      font-size: 12px;
+      font-size: 10.5px;
     }
 
     .medicine-table-wrap {
       overflow-x: auto;
-      margin: 18px 0 16px;
+      margin: 10px 0 8px;
     }
 
     .medicine-table-wrap .medicine-table {
@@ -453,7 +454,7 @@
 
     .medicine-table th,
     .medicine-table td {
-      padding: 7px 8px;
+      padding: 4px 5px;
       border: 1px solid #4b5563;
       text-align: center;
       vertical-align: middle;
@@ -462,7 +463,7 @@
     .medicine-table th {
       background: #e5e7eb;
       color: #111827;
-      font-size: 12px;
+      font-size: 10.5px;
       font-weight: 800;
     }
 
@@ -473,8 +474,8 @@
 
     .medicine-table .medicine-sub {
       display: block;
-      margin-top: 3px;
-      font-size: 9px;
+      margin-top: 1px;
+      font-size: 8px;
       font-style: italic;
       font-weight: 500;
       letter-spacing: 0.02em;
@@ -483,8 +484,8 @@
 
     .medicine-table .medicine-composition {
       display: block;
-      margin-top: 3px;
-      font-size: 9.5px;
+      margin-top: 1px;
+      font-size: 8.5px;
       font-style: normal;
       font-weight: 600;
       letter-spacing: 0;
@@ -492,18 +493,19 @@
     }
 
     .instructions-block {
-      margin-top: 10px;
-      font-size: 13px;
-      line-height: 1.32;
+      margin-top: 6px;
+      font-size: 10.5px;
+      line-height: 1.22;
     }
 
     .instructions-block strong {
-      display: block;
-      margin-bottom: 4px;
-      font-size: 14px;
+      display: inline;
+      margin: 0 4px 0 0;
+      font-size: 11px;
     }
 
     .instructions-block p {
+      display: inline;
       margin: 0;
     }
 
@@ -515,8 +517,8 @@
     .mini-chart-grid {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 8px;
-      margin-top: 16px;
+      gap: 4px;
+      margin-top: 8px;
       align-items: start;
       width: 100%;
       page-break-inside: avoid;
@@ -525,13 +527,13 @@
     .mini-chart-card {
       min-width: 0;
       text-align: center;
-      padding: 4px 2px 0;
+      padding: 2px 1px 0;
     }
 
     .mini-chart-card strong {
       display: block;
-      margin-bottom: 6px;
-      font-size: 12px;
+      margin-bottom: 2px;
+      font-size: 9.5px;
       font-weight: 700;
       color: #27352c;
     }
@@ -553,22 +555,22 @@
       align-items: flex-end;
       gap: 18px;
       margin-top: auto;
-      padding-top: 26px;
-      font-size: 12px;
-      line-height: 1.25;
+      padding-top: 10px;
+      font-size: 10px;
+      line-height: 1.15;
     }
 
     .footer-address {
       max-width: 300px;
       text-align: right;
-      font-size: 11px;
-      line-height: 1.3;
+      font-size: 9px;
+      line-height: 1.18;
     }
 
     .signature-line {
       width: 92px;
-      height: 34px;
-      margin-bottom: 8px;
+      height: 20px;
+      margin-bottom: 5px;
       border-bottom: 1px solid #111827;
     }
 
@@ -729,9 +731,10 @@
       .rx-sheet {
         width: 100%;
         min-height: calc(297mm - 24mm);
-        padding: 12mm;
+        padding: 8mm;
         border: 0;
         box-shadow: none;
+        font-size: 10px;
       }
     }
   </style>
@@ -1358,7 +1361,11 @@
       return values
         .map((value) => String(value || '').trim())
         .filter(Boolean)
-        .map((value) => `. ${value}`);
+        .map((value) => value);
+    }
+
+    function formatInstructionText(values) {
+      return formatInstructionLines(values).join(' | ');
     }
 
     function renderTextRow(label, values, detailMap = {}, sectionName = '') {
@@ -1532,7 +1539,7 @@
         <section class="instructions-block">
           <strong>Instruction:</strong>
           ${instructions.length
-            ? `<p>${formatInstructionLines(instructions).map((line) => escapeHtml(line)).join('<br>')}</p>`
+            ? `<p>${escapeHtml(formatInstructionText(instructions))}</p>`
             : '<p class="empty-note">No instructions selected.</p>'}
         </section>
 
@@ -1611,40 +1618,15 @@
       const margin = 8;
       const contentWidth = pageWidth - margin * 2;
       const contentHeight = pageHeight - margin * 2;
-      const mmPerPx = contentWidth / canvas.width;
-      const pageSliceHeightPx = Math.max(1, Math.floor(contentHeight / mmPerPx));
-      let offsetY = 0;
-      let pageIndex = 0;
+      const widthScale = contentWidth / canvas.width;
+      const heightScale = contentHeight / canvas.height;
+      const mmPerPx = Math.min(widthScale, heightScale);
+      const imageWidthMm = canvas.width * mmPerPx;
+      const imageHeightMm = canvas.height * mmPerPx;
+      const x = margin + (contentWidth - imageWidthMm) / 2;
+      const y = margin;
 
-      while (offsetY < canvas.height) {
-        const sliceHeightPx = Math.min(pageSliceHeightPx, canvas.height - offsetY);
-        const pageCanvas = document.createElement('canvas');
-        pageCanvas.width = canvas.width;
-        pageCanvas.height = sliceHeightPx;
-        const pageContext = pageCanvas.getContext('2d');
-        pageContext.fillStyle = '#ffffff';
-        pageContext.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-        pageContext.drawImage(
-          canvas,
-          0,
-          offsetY,
-          canvas.width,
-          sliceHeightPx,
-          0,
-          0,
-          pageCanvas.width,
-          pageCanvas.height
-        );
-
-        if (pageIndex > 0) {
-          pdf.addPage();
-        }
-
-        const imageHeightMm = sliceHeightPx * mmPerPx;
-        pdf.addImage(pageCanvas.toDataURL('image/png'), 'PNG', margin, margin, contentWidth, imageHeightMm, undefined, 'FAST');
-        offsetY += sliceHeightPx;
-        pageIndex += 1;
-      }
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', x, y, imageWidthMm, imageHeightMm, undefined, 'FAST');
 
       return pdf;
     }
