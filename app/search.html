@@ -756,6 +756,10 @@
       align-items: start;
     }
 
+    .doctor-detail-grid.is-single {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
     .doctor-detail-stack {
       display: grid;
       gap: 16px;
@@ -785,6 +789,10 @@
 
     .doctor-card-body {
       padding: 16px 18px 18px;
+    }
+
+    .doctor-card-body.is-compact {
+      padding-top: 12px;
     }
 
     .doctor-visit-grid {
@@ -1126,6 +1134,44 @@
       margin-top: 2px;
     }
 
+    .history-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .history-pager {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+    }
+
+    .history-page-btn {
+      width: 34px;
+      min-height: 34px;
+      padding: 0;
+      border-radius: 10px;
+      box-shadow: none;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .history-page-btn:disabled {
+      opacity: 0.42;
+      cursor: not-allowed;
+    }
+
+    .history-page-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
     .record-table {
       width: 100%;
       min-width: 100%;
@@ -1251,6 +1297,12 @@
       color: #fff;
       box-shadow: none;
       font-size: 13px;
+    }
+
+    .filter-clear-btn.is-active {
+      background: var(--brand-strong);
+      border-color: var(--brand-strong);
+      color: #ffffff;
     }
 
     .table-empty {
@@ -1790,10 +1842,14 @@
     let allPatients = [];
     let allHistory = [];
     const historyDateFilters = {};
+    const historyShowAll = {};
+    const historyPageIndexes = {};
     let selectedPatientId = '';
     let selectedWorklistDate = getTodayIsoDate();
     let selectedWorklistMode = 'seen';
     const TEST_PAST_CHARTS_PATIENT_ID = 'TESTPAST001';
+    const HISTORY_DEFAULT_VISIBLE_COUNT = 3;
+    const HISTORY_PAGE_SIZE = 4;
 
     function buildDemoMeasurementEntry(daysAgo, values) {
       const measuredAt = new Date();
@@ -2493,7 +2549,18 @@
         return '';
       }
 
-      const filteredEntries = getEditableMeasurementEntries(patient, selectedDate);
+      const patientId = formatMissing(patient.patientId, 'ID not saved');
+      const showAll = Boolean(historyShowAll[patientId]) && !selectedDate;
+      const allFilteredEntries = getEditableMeasurementEntries(patient, selectedDate);
+      const totalPages = showAll ? Math.max(1, Math.ceil(allFilteredEntries.length / HISTORY_PAGE_SIZE)) : 1;
+      const currentPage = showAll
+        ? Math.min(Math.max(Number(historyPageIndexes[patientId] || 0), 0), totalPages - 1)
+        : 0;
+      historyPageIndexes[patientId] = currentPage;
+      const startIndex = showAll ? currentPage * HISTORY_PAGE_SIZE : 0;
+      const visibleCount = showAll ? HISTORY_PAGE_SIZE : HISTORY_DEFAULT_VISIBLE_COUNT;
+      const filteredEntries = allFilteredEntries.slice(startIndex, startIndex + visibleCount);
+      const hasMoreEntries = !selectedDate && allFilteredEntries.length > HISTORY_DEFAULT_VISIBLE_COUNT;
 
       const rows = [
         {
@@ -2555,10 +2622,20 @@
       ];
 
       return `
-        <div class="history-filter-row">
-          <label for="history-date-${patient.patientId}">Change date</label>
-          <input id="history-date-${patient.patientId}" class="history-date-input" data-patient-id="${patient.patientId}" type="date" value="${selectedDate}">
-          <button class="filter-clear-btn" type="button" data-clear-history-date="${patient.patientId}">Show all</button>
+        <div class="history-controls">
+          <div class="history-filter-row">
+            <label for="history-date-${patient.patientId}">Change date</label>
+            <input id="history-date-${patient.patientId}" class="history-date-input" data-patient-id="${patient.patientId}" type="date" value="${selectedDate}">
+            ${selectedDate ? `<button class="filter-clear-btn" type="button" data-clear-history-date="${patient.patientId}">Show all</button>` : ''}
+            ${hasMoreEntries ? `<button class="filter-clear-btn ${showAll ? 'is-active' : ''}" type="button" data-toggle-history-all="${escapeHtml(patientId)}">${showAll ? 'Fit view' : 'Show all'}</button>` : ''}
+          </div>
+          ${showAll ? `
+            <div class="history-pager" aria-label="Vitals history navigation">
+              <button class="history-page-btn filter-clear-btn" type="button" data-history-page-step="-1" data-patient-id="${escapeHtml(patientId)}" ${currentPage <= 0 ? 'disabled' : ''} aria-label="Newer vitals">&lsaquo;</button>
+              <span class="history-page-label">${currentPage + 1} / ${totalPages}</span>
+              <button class="history-page-btn filter-clear-btn" type="button" data-history-page-step="1" data-patient-id="${escapeHtml(patientId)}" ${currentPage >= totalPages - 1 ? 'disabled' : ''} aria-label="Older vitals">&rsaquo;</button>
+            </div>
+          ` : ''}
         </div>
         <div class="record-table-wrap">
           <table class="record-table">
@@ -2935,6 +3012,8 @@
       const phone = selectedPatient ? formatMissing(selectedPatient.phone, 'Phone not saved') : '';
       const gender = selectedPatient ? formatMissing(selectedPatient.gender, 'Gender not saved') : '';
       const dob = selectedPatient ? formatDateDisplay(selectedPatient.dob) : '';
+      const prescriptionEntries = selectedPatientIdValue ? getPrescriptionEntries(selectedPatientIdValue) : [];
+      const hasPrescriptionEntries = prescriptionEntries.length > 0;
 
       resultsPanel.innerHTML = `
         <div class="results-dashboard">
@@ -2987,26 +3066,28 @@
                 </div>
               </div>
 
-              <div class="doctor-detail-grid">
+              <div class="doctor-detail-grid ${hasPrescriptionEntries ? '' : 'is-single'}">
                 <div class="doctor-detail-stack">
                   <section class="doctor-card">
                     <div class="doctor-card-head">
                       <h3>Vitals Trend</h3>
                     </div>
-                    <div class="doctor-card-body">
+                    <div class="doctor-card-body is-compact">
                       ${renderMeasurementTableHtml(selectedPatient, selectedHistoryDate) || '<p class="doctor-card-note">No vitals trend has been saved yet.</p>'}
                     </div>
                   </section>
                 </div>
 
-                <section class="doctor-card">
-                  <div class="doctor-card-head">
-                    <h3>Past Prescriptions</h3>
-                  </div>
-                  <div class="doctor-card-body">
-                    ${renderPrescriptionListHtml(selectedPatientIdValue)}
-                  </div>
-                </section>
+                ${hasPrescriptionEntries ? `
+                  <section class="doctor-card">
+                    <div class="doctor-card-head">
+                      <h3>Past Prescriptions</h3>
+                    </div>
+                    <div class="doctor-card-body">
+                      ${renderPrescriptionListHtml(selectedPatientIdValue)}
+                    </div>
+                  </section>
+                ` : ''}
               </div>
             ` : `
               <div class="doctor-empty-state">Select a patient from the left list.</div>
@@ -3061,6 +3142,7 @@
 
       if (target.classList.contains('history-date-input')) {
         historyDateFilters[target.dataset.patientId] = target.value;
+        historyPageIndexes[target.dataset.patientId] = 0;
         filterPatients();
       }
 
@@ -3119,6 +3201,9 @@
       }
 
       const patientId = target.getAttribute('data-clear-history-date');
+      const toggleHistoryPatientId = target.getAttribute('data-toggle-history-all');
+      const historyPageStep = target.getAttribute('data-history-page-step');
+      const historyPagePatientId = target.getAttribute('data-patient-id');
       const openProfilePatientId = target.closest('[data-open-profile]')?.getAttribute('data-open-profile');
       const selectedWorklistPatientId = target.closest('[data-select-worklist-patient]')?.getAttribute('data-select-worklist-patient');
       const queuedPatientId = target.closest('[data-queue-patient]')?.getAttribute('data-queue-patient');
@@ -3176,6 +3261,21 @@
         return;
       }
 
+      if (toggleHistoryPatientId) {
+        historyShowAll[toggleHistoryPatientId] = !historyShowAll[toggleHistoryPatientId];
+        historyPageIndexes[toggleHistoryPatientId] = 0;
+        filterPatients();
+        return;
+      }
+
+      if (historyPageStep && historyPagePatientId) {
+        const nextPage = Math.max(0, Number(historyPageIndexes[historyPagePatientId] || 0) + Number(historyPageStep));
+        historyPageIndexes[historyPagePatientId] = nextPage;
+        historyShowAll[historyPagePatientId] = true;
+        filterPatients();
+        return;
+      }
+
       const prescriptionCard = target.closest('.prescription-preview-card');
       const prescriptionUrl = prescriptionCard?.dataset.openPrescriptionUrl;
       if (prescriptionUrl && prescriptionCard) {
@@ -3194,6 +3294,8 @@
       }
 
       delete historyDateFilters[patientId];
+      historyPageIndexes[patientId] = 0;
+      historyShowAll[patientId] = true;
       filterPatients();
     });
 
