@@ -1822,6 +1822,9 @@
     const pdfPreviewClose = document.getElementById('pdf-preview-close');
     let prescriptionPreviewObserver = null;
     let pdfJsModulePromise = null;
+    const PDFJS_VERSION = '5.6.205';
+    const PDFJS_MODULE_URL = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/build/pdf.mjs`;
+    const PDFJS_WORKER_URL = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/build/pdf.worker.mjs`;
     const LOCAL_PRESCRIPTION_HISTORY_KEY = 'savedPrescriptionHistory';
     const LOCAL_WORKLIST_QUEUE_KEY = 'patientWorklistQueueByDate';
 
@@ -2219,11 +2222,9 @@
 
     async function getPdfJsModule() {
       if (!pdfJsModulePromise) {
-        pdfJsModulePromise = Promise.all([
-          import('pdfjs-dist'),
-          import('pdfjs-dist/build/pdf.worker.mjs?url')
-        ]).then(([pdfjs, workerModule]) => {
-          pdfjs.GlobalWorkerOptions.workerSrc = workerModule.default;
+        pdfJsModulePromise = import(/* @vite-ignore */ PDFJS_MODULE_URL)
+        .then((pdfjs) => {
+          pdfjs.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL;
           return pdfjs;
         });
       }
