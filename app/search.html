@@ -2653,7 +2653,7 @@
         return matches.length ? matches.slice(0, 6) : [buildBlankMeasurementEntry(selectedDate)];
       }
 
-      return entries.slice(0, 6);
+      return entries;
     }
 
     async function saveMeasurementEntryEdit(patientId, entryKey, metricKey, nextValue) {
@@ -2929,7 +2929,7 @@
 
       const selectedPatient = worklistPatients.find((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId) || worklistPatients[0] || null;
       const selectedPatientIdValue = selectedPatient ? formatMissing(selectedPatient.patientId, 'ID not saved') : '';
-      const selectedHistoryDate = selectedPatientIdValue ? historyDateFilters[selectedPatientIdValue] || selectedWorklistDate : '';
+      const selectedHistoryDate = selectedPatientIdValue ? historyDateFilters[selectedPatientIdValue] || '' : '';
       const childName = selectedPatient ? getPatientDisplayName(selectedPatient) : 'Select a patient';
       const parentName = selectedPatient ? formatMissing(selectedPatient.parentName, 'Parent not saved') : '';
       const phone = selectedPatient ? formatMissing(selectedPatient.phone, 'Phone not saved') : '';
@@ -3291,10 +3291,23 @@
           const patientId = String(patient.patientId || '').trim().toUpperCase();
           const historyEntries = patientId ? historyByPatientId.get(patientId) || [] : [];
 
+          const measurementEntries = Array.isArray(patient.measurementHistory)
+            ? [...patient.measurementHistory]
+            : [];
+          historyEntries
+            .filter((entry) => entry.type !== 'prescription' && entry.source !== 'prescription-pdf')
+            .forEach((entry) => {
+              const entryKey = createMeasurementEntryKey(entry);
+              const alreadyIncluded = measurementEntries.some((candidate) => createMeasurementEntryKey(candidate) === entryKey);
+              if (!alreadyIncluded) {
+                measurementEntries.push(entry);
+              }
+            });
+
           mergedPatients.push({
             ...patient,
-            measurementHistory: Array.isArray(patient.measurementHistory) ? patient.measurementHistory : historyEntries.filter((entry) => entry.type !== 'prescription' && entry.source !== 'prescription-pdf'),
-            lastMeasurementRecord: patient.lastMeasurementRecord || historyEntries.find((entry) => entry.type !== 'prescription' && entry.source !== 'prescription-pdf') || null
+            measurementHistory: measurementEntries,
+            lastMeasurementRecord: patient.lastMeasurementRecord || measurementEntries[0] || null
           });
 
           if (patientId) {
