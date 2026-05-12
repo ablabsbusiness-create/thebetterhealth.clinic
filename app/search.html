@@ -1435,6 +1435,10 @@
         linear-gradient(180deg, rgba(255,255,255,0.95), rgba(244, 248, 245, 0.96));
     }
 
+    .prescription-preview-placeholder[hidden] {
+      display: none !important;
+    }
+
     .prescription-preview-placeholder.is-error {
       color: #8a3b12;
       background: linear-gradient(180deg, #fff8f2, #fff0e6);
@@ -2060,6 +2064,7 @@
       const placeholder = previewElement.parentElement?.querySelector('.prescription-preview-placeholder');
       if (placeholder) {
         placeholder.hidden = false;
+        placeholder.style.display = '';
         placeholder.classList.remove('is-error');
         placeholder.textContent = message;
       }
@@ -2082,6 +2087,7 @@
       const placeholder = previewElement.parentElement?.querySelector('.prescription-preview-placeholder');
       if (placeholder) {
         placeholder.hidden = true;
+        placeholder.style.display = 'none';
       }
     }
 
@@ -2100,6 +2106,7 @@
       const placeholder = previewElement?.parentElement?.querySelector('.prescription-preview-placeholder');
       if (placeholder) {
         placeholder.hidden = false;
+        placeholder.style.display = '';
         placeholder.classList.add('is-error');
         placeholder.textContent = message;
       }
@@ -2258,6 +2265,7 @@
           const placeholder = frameElement.parentElement?.querySelector('.prescription-preview-placeholder');
           if (placeholder) {
             placeholder.hidden = true;
+            placeholder.style.display = 'none';
             placeholder.classList.remove('is-error');
           }
         }
