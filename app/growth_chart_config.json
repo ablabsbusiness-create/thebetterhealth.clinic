@@ -1,6 +1,6 @@
 {
-  "version": "preview-rebuilt-2026-05-iap-nellhaus-data",
-  "assetVersion": "2026-05-11-iap-who-nellhaus-minimal",
+  "version": "preview-rebuilt-2026-05-iap-no-ofc-5-18",
+  "assetVersion": "2026-05-12-iap-who-no-ofc-5-18",
   "charts": [
     {
       "chartId": "boys-height-0-5",
@@ -296,72 +296,6 @@
         "P50",
         "P85",
         "P97"
-      ]
-    },
-    {
-      "chartId": "boys-ofc-5-18",
-      "templateKey": "boysHead5to18",
-      "label": "Boys OFC vs Age 5-18y",
-      "sex": "male",
-      "ageGroup": "5-18",
-      "referenceSource": "Nellhaus 1968 / Mead Johnson 1988",
-      "metric": "ofc",
-      "dataKey": "head",
-      "xMin": 5,
-      "xMax": 18,
-      "yMin": 45,
-      "yMax": 60,
-      "xUnit": "years",
-      "yUnit": "cm",
-      "backgroundImage": "assets/nellhaus-official-png/boys-ofc-5-18-nellhaus.png",
-      "plotArea": {
-        "left": 0.1731,
-        "top": 0.117,
-        "right": 0.8269,
-        "bottom": 0.8617
-      },
-      "percentileLabels": [
-        "+2SD",
-        "Mean",
-        "-2SD"
-      ],
-      "availablePercentiles": [
-        "+2SD",
-        "Mean",
-        "-2SD"
-      ]
-    },
-    {
-      "chartId": "girls-ofc-5-18",
-      "templateKey": "girlsHead5to18",
-      "label": "Girls OFC vs Age 5-18y",
-      "sex": "female",
-      "ageGroup": "5-18",
-      "referenceSource": "Nellhaus 1968 / Mead Johnson 1988",
-      "metric": "ofc",
-      "dataKey": "head",
-      "xMin": 5,
-      "xMax": 18,
-      "yMin": 45,
-      "yMax": 60,
-      "xUnit": "years",
-      "yUnit": "cm",
-      "backgroundImage": "assets/nellhaus-official-png/girls-ofc-5-18-nellhaus.png",
-      "plotArea": {
-        "left": 0.1731,
-        "top": 0.117,
-        "right": 0.8269,
-        "bottom": 0.8617
-      },
-      "percentileLabels": [
-        "+2SD",
-        "Mean",
-        "-2SD"
-      ],
-      "availablePercentiles": [
-        "+2SD",
-        "Mean",
-        "-2SD"
       ]
     },
     {

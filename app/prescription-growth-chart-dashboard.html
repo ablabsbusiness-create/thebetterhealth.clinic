@@ -2320,8 +2320,8 @@
     let historyPageIndex = 0;
     let selectedMeasurementDateIso = '';
     let lastHistoryDebug = null;
-    const CHART_ASSET_VERSION = '2026-05-11-iap-who-nellhaus-minimal';
-    const CHART_PREVIEW_VERSION = 'preview-rebuilt-2026-05-iap-2015-data-v4';
+    const CHART_ASSET_VERSION = '2026-05-12-iap-who-no-ofc-5-18';
+    const CHART_PREVIEW_VERSION = 'preview-rebuilt-2026-05-iap-no-ofc-5-18';
     const TEST_PAST_CHARTS_PATIENT_ID = 'TESTPAST001';
 
     function buildDemoMeasurementEntry(daysAgo, values) {
@@ -2557,6 +2557,7 @@
     let generatedTemplates = [];
     let generatedPreviewPages = [];
     let generatedPdfBase64 = '';
+    let latestChartPdfUploadResult = null;
     const CHART_RENDER_MAX_WIDTH = 760;
     const CHART_POINT_RADIUS = 7;
     const GROWTH_CHART_DEBUG = new URLSearchParams(window.location.search).has('growthDebug')
@@ -3643,6 +3644,9 @@
         measuredAt: measuredAt.toISOString(),
         measuredAtDisplay: measuredAt.toLocaleString('en-IN'),
         keepUntilPrescription: true,
+        chartPdfDownloadURL: latestChartPdfUploadResult?.downloadURL || '',
+        chartPdfStoragePath: latestChartPdfUploadResult?.storagePath || '',
+        chartPdfSavedAt: latestChartPdfUploadResult?.savedAt || '',
         patientId,
         childName: childNameInput.value.trim(),
         parentName: parentNameInput.value.trim(),
@@ -3713,7 +3717,11 @@
         measuredAtDisplay: measuredAt.toLocaleString('en-IN'),
         createdAt: serverTimestamp(),
         createdAtIso: now.toISOString(),
-        createdAtDisplay: now.toLocaleString('en-IN')
+        createdAtDisplay: now.toLocaleString('en-IN'),
+        chartFormatVersion: CHART_PREVIEW_VERSION,
+        chartPdfDownloadURL: latestChartPdfUploadResult?.downloadURL || '',
+        chartPdfStoragePath: latestChartPdfUploadResult?.storagePath || '',
+        chartPdfSavedAt: latestChartPdfUploadResult?.savedAt || ''
       };
 
       await addDoc(collection(db, 'history'), historyRecord);
@@ -3746,6 +3754,12 @@
         age: ageInput.value,
         source: 'prescription-growth-chart'
       };
+      if (latestChartPdfUploadResult?.ok) {
+        measurementEntry.chartPdfDownloadURL = latestChartPdfUploadResult.downloadURL;
+        measurementEntry.chartPdfStoragePath = latestChartPdfUploadResult.storagePath;
+        measurementEntry.chartPdfSavedAt = latestChartPdfUploadResult.savedAt;
+        measurementEntry.chartFormatVersion = CHART_PREVIEW_VERSION;
+      }
 
       await setDoc(doc(db, 'patients', patientId), {
         lastMeasurementRecord: measurementEntry,
@@ -3776,8 +3790,29 @@
       return {
         ok: true,
         storagePath,
-        downloadURL
+        downloadURL,
+        savedAt: new Date().toISOString()
       };
+    }
+
+    function buildCurrentChartPdfBlob() {
+      return generatedPdfBase64
+        ? decodeBase64ToBlob(generatedPdfBase64, 'application/pdf')
+        : buildPdfBlobFromPreviewPages();
+    }
+
+    async function uploadLatestChartPdfToFirebase() {
+      if (!generatedPreviewPages.length) {
+        latestChartPdfUploadResult = null;
+        return { ok: false, reason: 'No generated chart PDF is available.' };
+      }
+
+      const pdfBlob = buildCurrentChartPdfBlob();
+      latestChartPdfUploadResult = await uploadPdfToFirebase(pdfBlob).catch((error) => ({
+        ok: false,
+        reason: error.message
+      }));
+      return latestChartPdfUploadResult;
     }
 
     function drawBaseTemplate(image) {
@@ -4298,7 +4333,7 @@
         addMetricRequest(`${sexPrefix}Weight${ageBand}`, 'weight');
       }
 
-      if (selectedValues.includes('Head Circumference-for-Age')) {
+      if (selectedValues.includes('Head Circumference-for-Age') && ageBand === '0to5') {
         addMetricRequest(`${sexPrefix}Head${ageBand}`, 'head');
       }
 
@@ -4314,6 +4349,9 @@
 
       if ((selectedValues.includes('Head Circumference-for-Age') || selectedValues.includes('BMI')) && patientData.ageYears > 18) {
         warnings.push('The available age-based chart templates are supported here up to 18 years.');
+      }
+      if (selectedValues.includes('Head Circumference-for-Age') && patientData.ageYears >= 5 && patientData.ageYears <= 18) {
+        warnings.push('OFC chart is not shown for 5-18 years.');
       }
       generatedTemplates.forEach((templateRequest) => {
         const template = templateLibrary[templateRequest.key];
@@ -4439,6 +4477,7 @@
       const patientData = getPatientData();
       generatedTemplates = buildTemplateRequests();
       generatedPdfBase64 = '';
+      latestChartPdfUploadResult = null;
 
       if (generatedTemplates.length === 0) {
         setChartPreviewMessage('No matching IAP template could be selected for the entered age, gender, and chart combination.', 'warning');
@@ -4694,10 +4733,13 @@
       downloadLink.remove();
       window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
 
-      const uploadResult = await uploadPdfToFirebase(pdfBlob).catch((error) => ({
-        ok: false,
-        reason: error.message
-      }));
+      const uploadResult = latestChartPdfUploadResult?.ok
+        ? latestChartPdfUploadResult
+        : await uploadPdfToFirebase(pdfBlob).catch((error) => ({
+            ok: false,
+            reason: error.message
+          }));
+      latestChartPdfUploadResult = uploadResult;
 
       if (uploadResult.ok) {
         statusNote.textContent = `Downloaded PDF with ${generatedPreviewPages.length} chart${generatedPreviewPages.length === 1 ? '' : 's'} and saved it to Firebase Storage.`;
@@ -4822,6 +4864,16 @@
       statusNote.classList.add('visible');
       revealActions();
       await renderGeneratedChart();
+
+      if (generatedPreviewPages.length === 0) {
+        statusNote.textContent = 'No charts were generated, so nothing was saved to history.';
+        statusNote.classList.add('visible');
+        generateBtn.disabled = false;
+        generateBtn.textContent = 'Generate Chart';
+        return;
+      }
+
+      const pdfUploadResult = await uploadLatestChartPdfToFirebase();
       saveLocalRecord();
 
       const patientMeasurementResult = await saveMeasurementsToPatientRecord().catch((error) => ({
@@ -4829,23 +4881,21 @@
         reason: error.message
       }));
 
-      if (generatedPreviewPages.length === 0) {
-        statusNote.textContent = 'No charts were generated, so nothing was saved to history.';
-        statusNote.classList.add('visible');
-        return;
-      }
-
       const historyResult = await saveHistoryRecord().catch((error) => ({
         ok: false,
         reason: error.message
       }));
 
+      const pdfSaveNote = pdfUploadResult.ok
+        ? ' Latest chart PDF was saved to Firebase Storage.'
+        : ` Latest chart PDF could not be saved to Firebase Storage: ${pdfUploadResult.reason}`;
+
       if (historyResult.ok && patientMeasurementResult.ok) {
-        statusNote.textContent = `Chart set prepared. ${generatedPreviewPages.length} file${generatedPreviewPages.length === 1 ? '' : 's'} ready for PDF download and saved until the prescription is made.`;
+        statusNote.textContent = `Chart set prepared. ${generatedPreviewPages.length} file${generatedPreviewPages.length === 1 ? '' : 's'} ready for PDF download and saved until the prescription is made.${pdfSaveNote}`;
       } else if (!patientMeasurementResult.ok) {
-        statusNote.textContent = `Chart set prepared. ${generatedPreviewPages.length} file${generatedPreviewPages.length === 1 ? '' : 's'} ready for PDF download. Chart is saved locally until the prescription is made, but patient measurement save failed: ${patientMeasurementResult.reason}`;
+        statusNote.textContent = `Chart set prepared. ${generatedPreviewPages.length} file${generatedPreviewPages.length === 1 ? '' : 's'} ready for PDF download. Chart is saved locally until the prescription is made, but patient measurement save failed: ${patientMeasurementResult.reason}.${pdfSaveNote}`;
       } else {
-        statusNote.textContent = `Chart set prepared. ${generatedPreviewPages.length} file${generatedPreviewPages.length === 1 ? '' : 's'} ready for PDF download. Chart is saved locally until the prescription is made, but Firebase save failed: ${historyResult.reason}`;
+        statusNote.textContent = `Chart set prepared. ${generatedPreviewPages.length} file${generatedPreviewPages.length === 1 ? '' : 's'} ready for PDF download. Chart is saved locally until the prescription is made, but Firebase save failed: ${historyResult.reason}.${pdfSaveNote}`;
       }
       statusNote.classList.add('visible');
       generateBtn.disabled = false;
