@@ -2252,14 +2252,16 @@
 
       frameElement._previewReadyTimer = window.setTimeout(() => {
         if (frameElement.dataset.rendered !== 'true') {
+          frameElement.dataset.pdfLoading = 'false';
+          frameElement.dataset.pdfError = 'false';
+          frameElement.classList.add('is-ready');
           const placeholder = frameElement.parentElement?.querySelector('.prescription-preview-placeholder');
           if (placeholder) {
-            placeholder.hidden = false;
+            placeholder.hidden = true;
             placeholder.classList.remove('is-error');
-            placeholder.textContent = 'Preview is still loading. You can open the prescription directly.';
           }
         }
-      }, 12000);
+      }, 3500);
 
       frameElement.src = '';
       frameElement.src = pdfUrl.includes('#')
