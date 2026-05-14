@@ -922,6 +922,33 @@
       }
     }
 
+    function stripChartPageData(record) {
+      return {
+        ...record,
+        chartPages: Array.isArray(record?.chartPages)
+          ? record.chartPages.slice(0, 4).map((page) => ({
+            label: page?.label || '',
+            width: page?.width || 0,
+            height: page?.height || 0,
+            chartFormatVersion: page?.chartFormatVersion || record.chartFormatVersion || CHART_PREVIEW_VERSION
+          }))
+          : []
+      };
+    }
+
+    function writeChartRecords(records) {
+      const compactRecords = records
+        .map(stripChartPageData)
+        .sort((left, right) => new Date(right.savedAt || 0) - new Date(left.savedAt || 0))
+        .slice(0, 8);
+
+      if (compactRecords.length) {
+        localStorage.setItem(CHART_RECORD_STORAGE_KEY, JSON.stringify(compactRecords));
+      } else {
+        localStorage.removeItem(CHART_RECORD_STORAGE_KEY);
+      }
+    }
+
     function persistLocalPrescriptionRecord(record) {
       const existingRecords = readJson(LOCAL_PRESCRIPTION_HISTORY_KEY, []);
       const filteredRecords = existingRecords.filter((entry) => entry?.prescriptionSaveId !== record?.prescriptionSaveId);
@@ -955,11 +982,7 @@
         .filter((record) => !patientId || (record.patientId || '').toUpperCase() === patientId)
         .sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
 
-      if (activeRecords.length) {
-        localStorage.setItem(CHART_RECORD_STORAGE_KEY, JSON.stringify(activeRecords));
-      } else {
-        localStorage.removeItem(CHART_RECORD_STORAGE_KEY);
-      }
+      writeChartRecords(activeRecords);
 
       return records[0] || null;
     }
@@ -1313,7 +1336,7 @@
         updatedRecords.push(record);
       }
 
-      localStorage.setItem(CHART_RECORD_STORAGE_KEY, JSON.stringify(updatedRecords));
+      writeChartRecords(updatedRecords);
     }
 
     function formatDate(value) {

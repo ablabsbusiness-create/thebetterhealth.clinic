@@ -2213,6 +2213,20 @@
       return (params.get('patientId') || '').trim().toUpperCase();
     }
 
+    function stripChartPageData(record) {
+      return {
+        ...record,
+        chartPages: Array.isArray(record?.chartPages)
+          ? record.chartPages.slice(0, 4).map((page) => ({
+            label: page?.label || '',
+            width: page?.width || 0,
+            height: page?.height || 0,
+            chartFormatVersion: page?.chartFormatVersion || record.chartFormatVersion || ''
+          }))
+          : []
+      };
+    }
+
     function getRecentChartRecords() {
       try {
         const records = JSON.parse(localStorage.getItem(CHART_RECORD_STORAGE_KEY) || '[]');
@@ -2220,7 +2234,7 @@
         const activeRecords = records.filter((record) => record.keepUntilPrescription || Number(record.expiresAt) > now);
 
         if (activeRecords.length) {
-          localStorage.setItem(CHART_RECORD_STORAGE_KEY, JSON.stringify(activeRecords));
+          localStorage.setItem(CHART_RECORD_STORAGE_KEY, JSON.stringify(activeRecords.map(stripChartPageData).slice(0, 8)));
         } else {
           localStorage.removeItem(CHART_RECORD_STORAGE_KEY);
         }

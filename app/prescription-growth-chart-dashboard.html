@@ -2564,6 +2564,7 @@
       || localStorage.getItem('growthChartDebug') === '1';
     const CAN_USE_PYTHON_CHART_SERVICE = ['localhost', '127.0.0.1'].includes(window.location.hostname);
     const LOCAL_RECORD_KEY = 'growthChartRecentRecords';
+    const MAX_LOCAL_CHART_RECORDS = 8;
 
     async function loadSharedGrowthChartConfigs() {
       try {
@@ -3617,20 +3618,52 @@
       }
     }
 
-    function cleanupExpiredLocalRecords() {
-      const raw = localStorage.getItem(LOCAL_RECORD_KEY);
-      if (!raw) {
-        return [];
-      }
+    function stripChartPageData(record) {
+      return {
+        ...record,
+        chartPages: Array.isArray(record.chartPages)
+          ? record.chartPages.slice(0, 4).map((page) => ({
+            label: page?.label || '',
+            width: page?.width || 0,
+            height: page?.height || 0,
+            chartFormatVersion: page?.chartFormatVersion || record.chartFormatVersion || CHART_PREVIEW_VERSION
+          }))
+          : []
+      };
+    }
 
-      const now = Date.now();
-      const records = JSON.parse(raw).filter((record) => record.keepUntilPrescription || Number(record.expiresAt) > now);
-      if (records.length > 0) {
-        localStorage.setItem(LOCAL_RECORD_KEY, JSON.stringify(records));
+    function writeLocalChartRecords(records) {
+      const compactRecords = records
+        .map(stripChartPageData)
+        .sort((left, right) => new Date(right.savedAt || 0) - new Date(left.savedAt || 0))
+        .slice(0, MAX_LOCAL_CHART_RECORDS);
+
+      if (compactRecords.length > 0) {
+        localStorage.setItem(LOCAL_RECORD_KEY, JSON.stringify(compactRecords));
       } else {
         localStorage.removeItem(LOCAL_RECORD_KEY);
       }
-      return records;
+
+      return compactRecords;
+    }
+
+    function cleanupExpiredLocalRecords() {
+      try {
+        const raw = localStorage.getItem(LOCAL_RECORD_KEY);
+        if (!raw) {
+          return [];
+        }
+
+        const now = Date.now();
+        const parsedRecords = JSON.parse(raw);
+        const records = (Array.isArray(parsedRecords) ? parsedRecords : [])
+          .filter((record) => record.keepUntilPrescription || Number(record.expiresAt) > now);
+        return writeLocalChartRecords(records);
+      } catch (error) {
+        console.warn(`Unable to clean local growth chart records: ${error.message}`);
+        localStorage.removeItem(LOCAL_RECORD_KEY);
+        return [];
+      }
     }
 
     function saveLocalRecord() {
@@ -3657,7 +3690,6 @@
         charts: getSelectedCharts().map((option) => option.value),
         chartPages: generatedPreviewPages.map((page) => ({
           label: page.label,
-          dataUrl: page.dataUrl,
           width: page.width,
           height: page.height,
           chartFormatVersion: CHART_PREVIEW_VERSION
@@ -3673,7 +3705,13 @@
       };
       const records = existingRecords.filter((record) => (record.patientId || '').toUpperCase() !== patientId || record.source !== 'prescription-growth-chart');
       records.push(nextRecord);
-      localStorage.setItem(LOCAL_RECORD_KEY, JSON.stringify(records));
+      try {
+        writeLocalChartRecords(records);
+      } catch (error) {
+        console.warn(`Unable to save local growth chart record: ${error.message}`);
+        localStorage.removeItem(LOCAL_RECORD_KEY);
+        writeLocalChartRecords([nextRecord]);
+      }
     }
 
     function loadPatientIdFromUrl() {
