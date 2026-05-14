@@ -1988,6 +1988,7 @@
 
     function getSelectedCharts() {
       const selected = [];
+      const ageYears = getAgeInYears(dobInput.value);
       const weight = Number.parseFloat(metricInputs.weight.value);
       const height = Number.parseFloat(metricInputs.height.value);
       const head = Number.parseFloat(metricInputs.head.value);
@@ -2000,7 +2001,7 @@
         selected.push({ value: 'Weight' });
       }
 
-      if (Number.isFinite(head) && head > 0) {
+      if (Number.isFinite(head) && head > 0 && Number.isFinite(ageYears) && ageYears < 5) {
         selected.push({ value: 'Head Circumference-for-Age' });
       }
 
