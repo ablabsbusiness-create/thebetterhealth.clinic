@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>The Better Kids Clinic – Expert Child Care</title>
+<title>The Better Kids Clinic - Expert Child Care</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -137,6 +137,12 @@
     .hero-cta-wrap > a {
       position: relative;
       z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 3.35rem;
+      line-height: 1.2;
+      text-align: center;
     }
     .name-slot {
       position: relative;
@@ -181,10 +187,17 @@
       50%, 100% { opacity: 0; }
     }
     @media (max-width: 767px) {
+      .hero-soft {
+        padding-top: 2.5rem;
+        padding-bottom: 3rem;
+      }
       .hero-content h1 {
         font-size: 3.35rem;
         line-height: 0.95;
         margin-bottom: 0.85rem;
+      }
+      .hero-content {
+        padding: 0;
       }
       .name-slot {
         width: min(88vw, 12rem);
@@ -199,6 +212,43 @@
       }
       .hero-tagline {
         padding: 0;
+        font-size: 1rem;
+        line-height: 1.4;
+      }
+      .hero-cta-wrap {
+        display: grid;
+        width: 100%;
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+      }
+      .hero-cta-wrap > a {
+        width: 100%;
+        justify-content: center;
+        min-height: 3.25rem;
+        padding-inline: 1rem;
+      }
+      .section-open-link {
+        width: 100%;
+        justify-content: center;
+        min-height: 3.25rem;
+        text-align: center;
+      }
+      .doctor-profile-card {
+        padding: 1.25rem;
+      }
+      .doctor-card-button {
+        width: 100%;
+      }
+      .contact-action-grid {
+        grid-template-columns: 1fr;
+      }
+      #about,
+      #services,
+      #gallery,
+      #testimonials,
+      #contact {
+        padding-top: 3.5rem;
+        padding-bottom: 3.5rem;
       }
     }
     .hero-cloud {
@@ -245,6 +295,99 @@
     .hero-stat {
       border: 1px solid rgba(46,125,107,0.10);
       background: rgba(255,255,255,0.88);
+    }
+    .doctor-profile-card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 1.5rem;
+      border: 1.5px solid rgba(46,125,107,0.14);
+      background: #fff;
+      padding: 1.5rem;
+      box-shadow: 0 8px 40px rgba(31,41,55,0.08);
+    }
+    .doctor-profile-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #2E7D6B, #3a9980);
+    }
+    .doctor-profile-card .card-glow {
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      border-radius: 999px;
+      opacity: 0.75;
+      pointer-events: none;
+      right: -24px;
+      top: -28px;
+      background: radial-gradient(circle, rgba(181,241,228,0.9) 0%, rgba(181,241,228,0) 72%);
+    }
+    .doctor-card-mark {
+      position: relative;
+      width: 3.75rem;
+      height: 3.75rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 1.2rem;
+      background: #e8f8f3;
+      color: #2E7D6B;
+      font-weight: 900;
+      font-size: 1.05rem;
+      box-shadow: 0 8px 22px rgba(46,125,107,0.12);
+    }
+    .doctor-card-button {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      min-height: 2.8rem;
+      border-radius: 999px;
+      background: #2E7D6B;
+      color: #fff;
+      padding: 0.75rem 1.15rem;
+      font-size: 0.875rem;
+      font-weight: 800;
+      box-shadow: 0 4px 24px rgba(46,125,107,0.16);
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+    .doctor-card-button:hover {
+      background: #235f52;
+      transform: translateY(-1px);
+    }
+    .section-open-link,
+    .offer-cta-button,
+    .contact-action-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 3.35rem;
+      line-height: 1.2;
+      text-align: center;
+    }
+    .offer-cta-button {
+      padding-inline: 1.5rem;
+    }
+    .contact-action-button {
+      width: 100%;
+      border-radius: 1rem;
+      padding: 0.9rem 1rem;
+    }
+    .contact-action-whatsapp {
+      background: #25D366;
+      color: #fff;
+    }
+    .hero-photo-card a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 3rem;
+      line-height: 1.2;
+      text-align: center;
     }
     .hero-photo-shell {
       position: relative;
@@ -430,13 +573,13 @@
 <span class="name-stage font-heading text-brand-green" id="hero-name">Baby</span>
 </div>
 </div>
-<p class="hidden md:block text-base md:text-lg text-gray-500 leading-relaxed max-w-xl mx-auto">Dr. Gunda Srinivas brings compassionate pediatric care, clear guidance, and reassuring support for every family at The Better Kids Clinic.</p>
-<p class="hero-tagline mt-3 text-lg md:text-xl font-bold text-brand-green max-w-xl mx-auto">Dr. Gunda care for every small name and every big worry.</p>
+<p class="text-base md:text-lg text-gray-500 leading-relaxed max-w-xl mx-auto">Dr. Gunda Srinivas brings compassionate pediatric care, clear guidance, and reassuring support for every family at The Better Kids Clinic.</p>
+<p class="hero-tagline mt-3 text-lg md:text-xl font-bold text-brand-green max-w-xl mx-auto">Dr. Gunda cares for every small name and every big worry.</p>
 <div class="mt-6 hero-cta-wrap">
 <a class="bg-brand-orange hover:bg-brand-orange-dark text-white font-bold px-7 py-3.5 rounded-full shadow-orange transition-colors text-base" href="#contact"> Book Appointment </a>
 <a class="border-2 border-brand-green text-brand-green hover:bg-brand-green hover:text-white font-bold px-7 py-3.5 rounded-full transition-colors text-base" href="./services"> Explore Services </a>
 </div>
-<div class="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 justify-center">
+<div class="hidden md:grid mt-8 grid-cols-1 sm:grid-cols-2 gap-4 justify-center">
 <div class="hero-stat rounded-3xl p-4 text-center sm:col-start-1 sm:col-end-3 max-w-md mx-auto w-full">
 <div class="text-sm font-bold text-brand-green uppercase tracking-wide">4.8 Rating</div>
 <div class="mt-2 text-sm text-gray-600">118 reviews and a reputation for clear explanations and caring support.</div>
@@ -521,7 +664,7 @@
 <section class="bg-brand-cream py-20 overflow-hidden" id="about">
 <div class="max-w-6xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
 <!-- Image -->
-<div class="relative fade-in order-2 lg:order-1">
+<div class="relative fade-in order-2 lg:order-1 hidden lg:block">
 <div class="absolute inset-0 bg-brand-green opacity-10 rounded-5xl -rotate-3 pointer-events-none"></div>
 <img alt="Dr. Gunda Srinivas consulting with a young patient in a warm, welcoming clinic" class="relative rounded-5xl w-full h-80 md:h-[480px] object-cover shadow-card" src="https://images.unsplash.com/photo-1551601651-2a8555f1a136?w=800&amp;auto=format&amp;fit=crop&amp;q=80"/> <!-- Mini stat card -->
 <div class="absolute -bottom-6 -right-4 lg:-right-8 bg-white rounded-3xl px-6 py-4 shadow-card text-center">
@@ -534,12 +677,34 @@
 <div class="inline-flex items-center gap-2 bg-white rounded-full px-4 py-1.5 shadow-soft mb-5">
 <span class="w-2 h-2 rounded-full bg-brand-orange inline-block"></span> <span class="text-sm font-bold text-brand-green tracking-wide">Know Your Doctor</span>
 </div>
+<div class="relative lg:hidden mb-6">
+<div class="absolute inset-0 bg-brand-green opacity-10 rounded-5xl -rotate-3 pointer-events-none"></div>
+<img alt="Dr. Gunda Srinivas consulting with a young patient in a warm, welcoming clinic" class="relative rounded-5xl w-full h-72 object-cover shadow-card" src="https://images.unsplash.com/photo-1551601651-2a8555f1a136?w=800&amp;auto=format&amp;fit=crop&amp;q=80"/>
+<div class="absolute -bottom-5 right-4 bg-white rounded-3xl px-5 py-3 shadow-card text-center">
+<div class="text-2xl font-bold text-brand-green font-heading">15+</div>
+<div class="text-xs text-gray-500 font-semibold">Years of Experience</div>
+</div>
+</div>
 <h2 class="text-3xl md:text-4xl font-bold text-brand-dark mb-5">Providing Exceptional Care
       <br/>
       for Every Child</h2>
-<p class="text-gray-600 leading-relaxed mb-4">The Better Kids Clinic was founded with one simple belief — every child deserves healthcare that is not just medically excellent, but also gentle, kind, and reassuring. Our lead pediatrician, Dr. Gunda Srinivas, brings trusted child-focused care to every visit.</p>
+<p class="text-gray-600 leading-relaxed mb-4">The Better Kids Clinic was founded with one simple belief: every child deserves healthcare that is not just medically excellent, but also gentle, kind, and reassuring. Our lead pediatrician, Dr. Gunda Srinivas, brings trusted child-focused care to every visit.</p>
 <p class="text-gray-600 leading-relaxed mb-4">We have created a clinic that feels less like a medical facility and more like a friendly, safe space where children feel comfortable and parents feel heard. Our waiting area, consultation rooms, and staff have all been thoughtfully designed to reduce anxiety for both children and parents.</p>
 <p class="text-gray-600 leading-relaxed mb-8">We follow the highest hygiene and safety standards and use only certified medical equipment. Every child receives a personalized care plan tailored to their unique needs.</p>
+<div class="doctor-profile-card mb-8">
+<span class="card-glow"></span>
+<div class="relative flex flex-col sm:flex-row sm:items-start gap-4">
+<div class="doctor-card-mark">TBKC</div>
+<div class="flex-1">
+<h3 class="font-heading font-bold text-2xl text-brand-dark mb-1">Children's Specialist</h3>
+<p class="text-brand-green text-sm font-bold mb-1">(Pediatrician)</p>
+<p class="text-brand-dark text-sm font-bold mb-1">Dr. Gunda Srinivas</p>
+<p class="text-gray-500 text-xs leading-relaxed mb-3">DCH, DNB(Pediatrics), PGDDN, FPEM</p>
+<p class="text-gray-500 text-sm leading-relaxed mb-5">Pediatric care, vaccinations, growth tracking, fever, cough, and child health support.</p>
+<a class="doctor-card-button" href="#contact">Book Appointment</a>
+</div>
+</div>
+</div>
 <!-- Feature points -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 <div class="flex flex-col items-start gap-2 bg-white rounded-3xl p-4 shadow-soft">
@@ -571,7 +736,7 @@
 </div>
 </div>
 <div class="mt-10 fade-in">
-<a class="inline-flex items-center gap-2 border-2 border-brand-green text-brand-green hover:bg-brand-green hover:text-white font-bold px-7 py-3.5 rounded-full transition-colors" href="./about"> Open About Page </a>
+<a class="section-open-link inline-flex items-center gap-2 border-2 border-brand-green text-brand-green hover:bg-brand-green hover:text-white font-bold px-7 py-3.5 rounded-full transition-colors" href="./about"> Open About Page </a>
 </div>
 </div>
 </div>
@@ -684,7 +849,7 @@
 </div>
 </div>
 <div class="mt-12 text-center fade-in">
-<a class="inline-flex items-center gap-2 border-2 border-brand-green text-brand-green hover:bg-brand-green hover:text-white font-bold px-7 py-3.5 rounded-full transition-colors" href="./services"> Open Services Page </a>
+<a class="section-open-link inline-flex items-center gap-2 border-2 border-brand-green text-brand-green hover:bg-brand-green hover:text-white font-bold px-7 py-3.5 rounded-full transition-colors" href="./services"> Open Services Page </a>
 </div>
 </div>
 </section>
@@ -701,16 +866,16 @@
 <!-- Doctor image -->
 <div class="relative flex-shrink-0">
 <div class="w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden border-4 border-white/30 shadow-lg">
-<img alt="Dr. Gunda Srinivas – Pediatric Specialist" class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=400&amp;auto=format&amp;fit=crop&amp;q=80"/>
+<img alt="Dr. Gunda Srinivas - Pediatric Specialist" class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=400&amp;auto=format&amp;fit=crop&amp;q=80"/>
 </div>
 <div class="absolute -bottom-1 -right-1 bg-brand-orange text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">15% OFF</div>
 </div>
 <!-- Text -->
 <div class="text-center md:text-left text-white flex-1">
 <div class="text-sm font-bold text-white/70 mb-2 uppercase tracking-widest">Limited Time Offer</div>
-<h2 class="text-2xl md:text-3xl font-bold mb-3">First Visit Discount – Get 15% Off</h2>
+<h2 class="text-2xl md:text-3xl font-bold mb-3">First Visit Discount - Get 15% Off</h2>
 <p class="text-white/80 mb-6 leading-relaxed max-w-lg">Book your child's first consultation with Dr. Gunda Srinivas today and receive 15% off on all services. Give your little one the best start in life.</p>
-<a class="inline-flex items-center gap-2 bg-brand-orange hover:bg-brand-orange-dark text-white font-bold px-7 py-3.5 rounded-full shadow-orange transition-colors" href="#contact"> Book First Visit 
+<a class="offer-cta-button inline-flex items-center gap-2 bg-brand-orange hover:bg-brand-orange-dark text-white font-bold px-7 py-3.5 rounded-full shadow-orange transition-colors" href="#contact"> Book First Visit
        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24">
 <path d="M17 8l4 4m0 0l-4 4m4-4H3" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg> </a>
@@ -815,7 +980,7 @@
 </div>
 </div>
 <div class="mt-12 text-center fade-in">
-<a class="inline-flex items-center gap-2 border-2 border-brand-green text-brand-green hover:bg-brand-green hover:text-white font-bold px-7 py-3.5 rounded-full transition-colors" href="./testimonials"> Open Testimonials Page </a>
+<a class="section-open-link inline-flex items-center gap-2 border-2 border-brand-green text-brand-green hover:bg-brand-green hover:text-white font-bold px-7 py-3.5 rounded-full transition-colors" href="./testimonials"> Open Testimonials Page </a>
 </div>
 </div>
 </section>
@@ -863,8 +1028,8 @@
 </div>
 </div>
 </div>
-<div class="grid grid-cols-2 gap-3 pt-2">
-<a class="text-center bg-brand-green text-white py-4 rounded-2xl font-bold shadow-lg hover:-translate-y-1 hover:shadow-xl transition-all" href="tel:9686183999"> Call Now </a><a class="text-center bg-brand-green text-white py-4 rounded-2xl font-bold shadow-lg hover:-translate-y-1 hover:shadow-xl transition-all" href="https://wa.me/919686183999?text=Hello%20Doctor,%20I%20would%20like%20to%20book%20an%20appointment" style="background:#25D366;color:white;margin-left:10px;display:inline-block;">WhatsApp</a>
+<div class="contact-action-grid grid grid-cols-2 gap-3 pt-2">
+<a class="contact-action-button bg-brand-green text-white font-bold shadow-lg hover:-translate-y-1 hover:shadow-xl transition-all" href="tel:9686183999">Call Now</a><a class="contact-action-button contact-action-whatsapp font-bold shadow-lg hover:-translate-y-1 hover:shadow-xl transition-all" href="https://wa.me/919686183999?text=Hello%20Doctor,%20I%20would%20like%20to%20book%20an%20appointment">WhatsApp</a>
 </div>
 </div>
 </div>
