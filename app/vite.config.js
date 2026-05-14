@@ -97,13 +97,24 @@ export default defineConfig({
   },
   plugins: [
     {
-      name: 'copy-iap-assets',
+      name: 'copy-growth-chart-assets',
       closeBundle() {
-        const distAssets = resolve(__dirname, 'dist', 'assets');
-        const generatedChartAssets = resolve(__dirname, 'assets', 'iap-official-png');
+        const distRoot = resolve(__dirname, 'dist');
+        const distAssets = resolve(distRoot, 'assets');
+        const chartAssetDirs = ['iap-official-png', 'who-official-png'];
 
-        if (existsSync(generatedChartAssets)) {
-          cpSync(generatedChartAssets, resolve(distAssets, 'iap-official-png'), { recursive: true });
+        chartAssetDirs.forEach((dirName) => {
+          const sourceDir = resolve(__dirname, 'assets', dirName);
+
+          if (existsSync(sourceDir)) {
+            cpSync(sourceDir, resolve(distAssets, dirName), { recursive: true });
+          }
+        });
+
+        const sharedChartConfig = resolve(__dirname, 'growth_chart_config.json');
+
+        if (existsSync(sharedChartConfig)) {
+          cpSync(sharedChartConfig, resolve(distRoot, 'growth_chart_config.json'));
         }
       }
     },
