@@ -1784,7 +1784,10 @@
         setPreviewStatus('Saving prescription...');
         const details = await buildPdf();
         const { pdf, patientId, childName, phone, previewBlob } = details;
-        const saveId = details.draftId || `rx-${patientId || 'UNKNOWN'}-${new Date().toISOString().slice(0, 10)}`;
+        const fallbackSaveId = window.crypto?.randomUUID
+          ? `rx-${patientId || 'UNKNOWN'}-${window.crypto.randomUUID()}`
+          : `rx-${patientId || 'UNKNOWN'}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+        const saveId = details.draftId || fallbackSaveId;
         const fileName = `${saveId}.pdf`;
         const pdfBlob = pdf.output('blob');
         const saveResult = await savePrescriptionPdfToFirebase(pdfBlob, fileName, {

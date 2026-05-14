@@ -1831,7 +1831,6 @@
     const pdfPreviewFrame = document.getElementById('pdf-preview-frame');
     const pdfPreviewLink = document.getElementById('pdf-preview-link');
     const pdfPreviewClose = document.getElementById('pdf-preview-close');
-    let prescriptionPreviewObserver = null;
     const LOCAL_PRESCRIPTION_HISTORY_KEY = 'savedPrescriptionHistory';
     const LOCAL_WORKLIST_QUEUE_KEY = 'patientWorklistQueueByDate';
 
@@ -2286,40 +2285,12 @@
         return;
       }
 
-      if (!('IntersectionObserver' in window)) {
-        previewElements.forEach((previewElement) => {
-          if (previewElement instanceof HTMLImageElement) {
-            renderPrescriptionPreviewImage(previewElement);
-          } else if (previewElement instanceof HTMLIFrameElement) {
-            renderPrescriptionPreviewPdf(previewElement);
-          }
-        });
-        return;
-      }
-
-      if (!prescriptionPreviewObserver) {
-        prescriptionPreviewObserver = new IntersectionObserver((entries, observer) => {
-          entries.forEach((entry) => {
-            if (!entry.isIntersecting) {
-              return;
-            }
-
-            if (entry.target instanceof HTMLImageElement) {
-              renderPrescriptionPreviewImage(entry.target);
-            } else if (entry.target instanceof HTMLIFrameElement) {
-              renderPrescriptionPreviewPdf(entry.target);
-            }
-            observer.unobserve(entry.target);
-          });
-        }, {
-          root: null,
-          rootMargin: '240px 0px',
-          threshold: 0.01
-        });
-      }
-
       previewElements.forEach((previewElement) => {
-        prescriptionPreviewObserver.observe(previewElement);
+        if (previewElement instanceof HTMLImageElement) {
+          renderPrescriptionPreviewImage(previewElement);
+        } else if (previewElement instanceof HTMLIFrameElement) {
+          renderPrescriptionPreviewPdf(previewElement);
+        }
       });
     }
 
@@ -2826,7 +2797,7 @@
         <div class="prescription-carousel">
           ${entries.length > 1 ? '<button class="carousel-arrow carousel-arrow-left" type="button" data-carousel-direction="-1" aria-label="Previous prescription">‹</button>' : ''}
           <div class="prescription-list">
-            ${entries.slice(0, 5).map((entry, index) => {
+            ${entries.map((entry, index) => {
               const downloadUrl = getPrescriptionDownloadUrl(entry);
               const previewImageUrl = getPrescriptionPreviewImageUrl(entry);
               const cardUrl = escapeHtml(downloadUrl);
