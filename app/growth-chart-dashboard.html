@@ -965,18 +965,6 @@
   </header>
 
   <div class="page-shell">
-    <section class="page-intro">
-      <div>
-        <div class="eyebrow">Pediatric Growth Records</div>
-        <h1>Generate growth chart selections as part of the clinic workflow.</h1>
-        <p></p>
-      </div>
-      <div class="page-meta">
-        <strong>Growth Charts</strong>
-        <span></span>
-      </div>
-    </section>
-
     <div class="grid">
       <main class="form-card">
         <form id="chart-form" novalidate>
@@ -994,13 +982,11 @@
               <div class="field">
                 <label for="child-name">Child's Name <span class="required">*</span></label>
                 <input id="child-name" name="childName" type="text" placeholder="Enter child's full name" required>
-                <span class="field-hint">Use the name exactly as it should appear on the record.</span>
               </div>
 
               <div class="field">
                 <label for="parent-name">Parent's Name <span class="required">*</span></label>
                 <input id="parent-name" name="parentName" type="text" placeholder="Enter parent or guardian name" required>
-                <span class="field-hint">This helps identify the correct family record.</span>
               </div>
 
               <div class="field field-full">
@@ -1015,7 +1001,6 @@
                     <label for="gender-female">Female</label>
                   </div>
                 </div>
-                <span class="field-hint">Choose the option appropriate for the chart record.</span>
               </div>
 
               <div class="field">
@@ -1026,13 +1011,11 @@
                   <input id="dob-month" type="text" inputmode="numeric" maxlength="2" placeholder="MM" autocomplete="bday-month" required>
                   <input id="dob-year" type="text" inputmode="numeric" maxlength="4" placeholder="YYYY" autocomplete="bday-year" required>
                 </div>
-                <span class="field-hint">Enter date of birth as day, month, and year.</span>
               </div>
 
               <div class="field">
                 <label for="age">Age (Auto)</label>
                 <input id="age" name="age" type="text" placeholder="Calculated from DOB" readonly>
-                <span class="field-hint">Age updates automatically after a date of birth is selected.</span>
               </div>
             </div>
           </section>
@@ -1052,56 +1035,48 @@
                 <span class="metric-chip">Weight Input</span>
                 <label for="weight">Weight (kg) <span class="required">*</span></label>
                 <input id="weight" name="weight" type="number" min="0" step="0.1" placeholder="e.g. 12.4">
-                <span class="field-hint">Enter the most recent measured weight in kilograms.</span>
               </div>
 
               <div id="metric-height" class="metric-card" data-field="height">
                 <span class="metric-chip">Height Input</span>
                 <label for="height">Height (cm) <span class="required">*</span></label>
                 <input id="height" name="height" type="number" min="0" step="0.1" placeholder="e.g. 88.0">
-                <span class="field-hint">Enter height or length in centimeters.</span>
               </div>
 
               <div id="metric-head" class="metric-card" data-field="head">
                 <span class="metric-chip">Head Circumference</span>
                 <label for="head">Head Circumference (cm) <span class="required">*</span></label>
                 <input id="head" name="head" type="number" min="0" step="0.1" placeholder="e.g. 48.5">
-                <span class="field-hint">Required only for head circumference charts.</span>
               </div>
 
               <div id="metric-spo2" class="metric-card" data-field="spo2">
                 <span class="metric-chip">Oxygen</span>
                 <label for="spo2">SPO2 (%)</label>
                 <input id="spo2" name="spo2" type="number" min="0" max="100" step="1" placeholder="e.g. 99">
-                <span class="field-hint">Optional oxygen saturation.</span>
               </div>
 
               <div id="metric-pulse" class="metric-card" data-field="pulse">
                 <span class="metric-chip">Pulse</span>
                 <label for="pulse">Pulse (/min)</label>
                 <input id="pulse" name="pulse" type="number" min="0" step="1" placeholder="e.g. 108">
-                <span class="field-hint">Optional pulse rate.</span>
               </div>
 
               <div id="metric-systolic" class="metric-card" data-field="systolic">
                 <span class="metric-chip">Blood Pressure</span>
                 <label for="systolic">Systolic (mmHg)</label>
                 <input id="systolic" name="systolic" type="number" min="0" step="1" placeholder="e.g. 90">
-                <span class="field-hint">Optional systolic BP.</span>
               </div>
 
               <div id="metric-diastolic" class="metric-card" data-field="diastolic">
                 <span class="metric-chip">Blood Pressure</span>
                 <label for="diastolic">Diastolic (mmHg)</label>
                 <input id="diastolic" name="diastolic" type="number" min="0" step="1" placeholder="e.g. 60">
-                <span class="field-hint">Optional diastolic BP.</span>
               </div>
 
               <div id="metric-temperature" class="metric-card" data-field="temperature">
                 <span class="metric-chip">Temperature</span>
                 <label for="temperature">Temperature (C)</label>
                 <input id="temperature" name="temperature" type="number" min="0" step="0.1" placeholder="e.g. 36.8">
-                <span class="field-hint">Optional temperature.</span>
               </div>
             </div>
           </section>
@@ -1139,15 +1114,6 @@
             </div>
           </div>
 
-          <div class="validation-box">
-            <h3 class="validation-title">Validation included in this interface</h3>
-            <ul class="validation-list">
-              <li>Patient name, parent name, gender, and date of birth are required.</li>
-              <li>At least one chart type must be selected before generation.</li>
-              <li>Only visible measurement fields are treated as required.</li>
-              <li>Numeric inputs use kilogram and centimeter units with decimal support.</li>
-            </ul>
-          </div>
         </div>
       </aside>
     </div>
