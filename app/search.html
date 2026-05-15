@@ -3156,7 +3156,7 @@
       const selectedPatientIdValue = selectedPatient ? formatMissing(selectedPatient.patientId, 'ID not saved') : '';
       const selectedHistoryDate = selectedPatientIdValue ? historyDateFilters[selectedPatientIdValue] || '' : '';
       const childName = selectedPatient ? getPatientDisplayName(selectedPatient) : 'Select a patient';
-      const parentName = selectedPatient ? formatMissing(selectedPatient.parentName, 'Parent not saved') : '';
+      const parentName = selectedPatient ? formatMissing(selectedPatient.parentName, '').trim() : '';
       const phone = selectedPatient ? formatMissing(selectedPatient.phone, 'Phone not saved') : '';
       const gender = selectedPatient ? formatMissing(selectedPatient.gender, 'Gender not saved') : '';
       const dob = selectedPatient ? formatDateDisplay(selectedPatient.dob) : '';
@@ -3208,7 +3208,7 @@
                   <p>${gender} | ${dob} | ${selectedPatientIdValue}</p>
                 </div>
                 <div class="doctor-patient-meta">
-                  <span class="doctor-meta-chip">${parentName}</span>
+                  ${parentName ? `<span class="doctor-meta-chip">${parentName}</span>` : ''}
                   <span class="doctor-meta-chip">${phone}</span>
                   <a class="continue-link" href="vacination?patientId=${encodeURIComponent(selectedPatientIdValue)}">Vacination</a>
                   <a class="continue-link" href="prescription-growth-chart-dashboard?patientId=${encodeURIComponent(selectedPatientIdValue)}">Start Consult</a>
