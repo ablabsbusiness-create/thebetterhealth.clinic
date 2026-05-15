@@ -239,7 +239,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 1780px;
+      min-width: 2320px;
     }
 
     th,
@@ -297,16 +297,17 @@
     }
 
     .vaccine-row-label {
-      height: 74px;
+      min-height: 118px;
       display: grid;
       place-items: center;
       padding: 8px;
     }
 
     .schedule-cell {
-      height: 74px;
-      padding: 5px 6px;
+      min-height: 118px;
+      padding: 7px 8px;
       background: #ffffff;
+      overflow: hidden;
     }
 
     .schedule-cell.has-vaccine {
@@ -333,15 +334,17 @@
       display: block;
       font-weight: 800;
       color: #1f2937;
-      line-height: 1.15;
+      line-height: 1.18;
+      overflow-wrap: anywhere;
     }
 
     .cell-date,
     .cell-note {
       display: block;
-      margin-top: 2px;
+      margin-top: 4px;
       color: #475569;
-      line-height: 1.15;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
     }
 
     .cell-status {
@@ -359,22 +362,24 @@
 
     .row-actions {
       display: flex;
-      gap: 4px;
+      gap: 5px;
       flex-wrap: wrap;
-      margin-top: 4px;
+      margin-top: 6px;
     }
 
     .cell-action {
-      min-height: 20px;
-      border-radius: 3px;
+      min-height: 22px;
+      border-radius: 4px;
       border: 1px solid #cbd5e1;
       background: rgba(255, 255, 255, 0.86);
       color: #14532d;
       font: inherit;
       font-size: 10px;
       font-weight: 800;
-      padding: 0 5px;
+      line-height: 1;
+      padding: 0 6px;
       cursor: pointer;
+      white-space: nowrap;
     }
 
     .edit-grid {
