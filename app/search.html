@@ -832,50 +832,6 @@
       line-height: 1.6;
     }
 
-    .vaccination-summary {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
-    }
-
-    .vaccination-summary-item {
-      min-height: 92px;
-      border: 1px solid #dbe8df;
-      background: linear-gradient(180deg, #ffffff 0%, #f8fbf9 100%);
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    .vaccination-summary-item span {
-      display: block;
-      color: #64746b;
-      font-size: 11px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    .vaccination-summary-item strong {
-      display: block;
-      margin-top: 10px;
-      color: #16251d;
-      font-size: 26px;
-      line-height: 1;
-      letter-spacing: 0;
-    }
-
-    .vaccination-summary-item.is-next {
-      border-color: #b7d8c3;
-      background: #effaf2;
-    }
-
-    .vaccination-summary-item.is-next strong {
-      font-size: 16px;
-      line-height: 1.25;
-    }
-
     .doctor-card .history-filter-row label,
     .doctor-card .record-table .metric-name,
     .doctor-card .record-table th,
@@ -894,37 +850,6 @@
       background: #ffffff;
       border: 1px solid var(--line);
       color: var(--brand-strong);
-    }
-
-    .doctor-card .vaccination-open-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 102px;
-      min-height: 38px;
-      padding: 0 16px;
-      border: 1px solid #126c37;
-      border-radius: 8px;
-      background: #126c37;
-      color: #ffffff;
-      font-size: 13px;
-      font-weight: 800;
-      line-height: 1;
-      text-decoration: none;
-      box-shadow: none;
-      white-space: nowrap;
-    }
-
-    .doctor-card .vaccination-open-btn::after {
-      content: '›';
-      margin-left: 8px;
-      font-size: 13px;
-      line-height: 1;
-    }
-
-    .doctor-card .vaccination-open-btn:hover {
-      background: #0f5f30;
-      border-color: #0f5f30;
     }
 
     .doctor-card .record-table thead th {
@@ -1934,37 +1859,6 @@
     const TEST_PAST_CHARTS_PATIENT_ID = 'TESTPAST001';
     const HISTORY_DEFAULT_VISIBLE_COUNT = 3;
     const HISTORY_PAGE_SIZE = 4;
-    const VACCINATION_SCHEDULE = [
-      { key: 'birth-bcg', vaccine: 'BCG', months: 0, days: 0 },
-      { key: 'birth-opv0', vaccine: 'OPV 0', months: 0, days: 0 },
-      { key: 'birth-hepb', vaccine: 'Hepatitis B Birth Dose', months: 0, days: 0 },
-      { key: '6w-penta1', vaccine: 'Pentavalent 1', months: 0, days: 42 },
-      { key: '6w-opv1', vaccine: 'OPV 1', months: 0, days: 42 },
-      { key: '6w-rota1', vaccine: 'Rotavirus 1', months: 0, days: 42 },
-      { key: '6w-pcv1', vaccine: 'PCV 1', months: 0, days: 42 },
-      { key: '10w-penta2', vaccine: 'Pentavalent 2', months: 0, days: 70 },
-      { key: '10w-opv2', vaccine: 'OPV 2', months: 0, days: 70 },
-      { key: '10w-rota2', vaccine: 'Rotavirus 2', months: 0, days: 70 },
-      { key: '14w-penta3', vaccine: 'Pentavalent 3', months: 0, days: 98 },
-      { key: '14w-opv3', vaccine: 'OPV 3', months: 0, days: 98 },
-      { key: '14w-rota3', vaccine: 'Rotavirus 3', months: 0, days: 98 },
-      { key: '14w-pcv2', vaccine: 'PCV 2', months: 0, days: 98 },
-      { key: '6m-influenza1', vaccine: 'Influenza 1', months: 6, days: 0 },
-      { key: '7m-influenza2', vaccine: 'Influenza 2', months: 7, days: 0 },
-      { key: '9m-mr1', vaccine: 'MR 1', months: 9, days: 0 },
-      { key: '9m-typhoid', vaccine: 'Typhoid Conjugate', months: 9, days: 0 },
-      { key: '12m-hepa1', vaccine: 'Hepatitis A 1', months: 12, days: 0 },
-      { key: '15m-mmr', vaccine: 'MMR', months: 15, days: 0 },
-      { key: '15m-varicella1', vaccine: 'Varicella 1', months: 15, days: 0 },
-      { key: '16m-pcv-booster', vaccine: 'PCV Booster', months: 16, days: 0 },
-      { key: '18m-dpt-booster', vaccine: 'DPT Booster 1', months: 18, days: 0 },
-      { key: '18m-opv-booster', vaccine: 'OPV Booster', months: 18, days: 0 },
-      { key: '24m-hepa2', vaccine: 'Hepatitis A 2', months: 24, days: 0 },
-      { key: '4y-dpt-booster', vaccine: 'DPT Booster 2', months: 48, days: 0 },
-      { key: '9y-tdap', vaccine: 'Tdap/Td', months: 108, days: 0 },
-      { key: '10y-hpv', vaccine: 'HPV', months: 120, days: 0 }
-    ];
-
     function buildDemoMeasurementEntry(daysAgo, values) {
       const measuredAt = new Date();
       measuredAt.setHours(10, 15, 0, 0);
@@ -2420,57 +2314,6 @@
         month: 'short',
         year: 'numeric'
       });
-    }
-
-    function addVaccineOffsetToDob(dobValue, months, days) {
-      const date = new Date(dobValue || '');
-      if (Number.isNaN(date.getTime())) {
-        return '';
-      }
-
-      date.setMonth(date.getMonth() + months);
-      date.setDate(date.getDate() + days);
-      return date.toISOString().slice(0, 10);
-    }
-
-    function getVaccinationSummary(patient) {
-      const records = Array.isArray(patient?.vaccinationRecords) ? patient.vaccinationRecords : [];
-      const completedKeys = new Set(records.filter((record) => record?.givenDate || record?.status === 'Given').map((record) => record.vaccineKey));
-      const pendingRows = VACCINATION_SCHEDULE
-        .filter((item) => !completedKeys.has(item.key))
-        .map((item) => ({
-          ...item,
-          dueDate: addVaccineOffsetToDob(patient?.dob || '', item.months, item.days)
-        }))
-        .filter((item) => item.dueDate)
-        .sort((left, right) => new Date(left.dueDate) - new Date(right.dueDate));
-      const nextDue = pendingRows[0] || null;
-
-      return {
-        completed: completedKeys.size,
-        pending: VACCINATION_SCHEDULE.length - completedKeys.size,
-        nextDueLabel: nextDue ? `${nextDue.vaccine} - ${formatDateDisplay(nextDue.dueDate, nextDue.dueDate)}` : 'No pending vaccines'
-      };
-    }
-
-    function renderVaccinationSummaryHtml(patient) {
-      const summary = getVaccinationSummary(patient);
-      return `
-        <div class="vaccination-summary">
-          <div class="vaccination-summary-item">
-            <span>Completed</span>
-            <strong>${summary.completed}</strong>
-          </div>
-          <div class="vaccination-summary-item">
-            <span>Pending</span>
-            <strong>${summary.pending}</strong>
-          </div>
-          <div class="vaccination-summary-item is-next">
-            <span>Next due</span>
-            <strong>${escapeHtml(summary.nextDueLabel)}</strong>
-          </div>
-        </div>
-      `;
     }
 
     function getIsoDatePart(dateValue) {
@@ -3229,15 +3072,6 @@
                     </div>
                     <div class="doctor-card-body is-compact">
                       ${renderMeasurementTableHtml(selectedPatient, selectedHistoryDate) || '<p class="doctor-card-note">No vitals trend has been saved yet.</p>'}
-                    </div>
-                  </section>
-                  <section class="doctor-card">
-                    <div class="doctor-card-head">
-                      <h3>Vaccination Summary</h3>
-                      <a class="filter-clear-btn vaccination-open-btn" href="vacination?patientId=${encodeURIComponent(selectedPatientIdValue)}">Open Chart</a>
-                    </div>
-                    <div class="doctor-card-body">
-                      ${renderVaccinationSummaryHtml(selectedPatient)}
                     </div>
                   </section>
                 </div>
