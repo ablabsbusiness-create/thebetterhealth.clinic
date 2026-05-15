@@ -785,6 +785,7 @@
     .doctor-card-head h3 {
       margin: 0;
       font-size: 16px;
+      line-height: 1.2;
     }
 
     .doctor-card-body {
@@ -896,14 +897,19 @@
     }
 
     .doctor-card .vaccination-open-btn {
-      min-height: 32px;
-      padding: 0 12px;
-      border-radius: 999px;
-      background: #effaf2;
-      border-color: #b7d8c3;
-      color: var(--brand-strong);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 102px;
+      min-height: 38px;
+      padding: 0 16px;
+      border: 1px solid #126c37;
+      border-radius: 8px;
+      background: #126c37;
+      color: #ffffff;
       font-size: 13px;
       font-weight: 800;
+      line-height: 1;
       text-decoration: none;
       box-shadow: none;
       white-space: nowrap;
@@ -912,13 +918,13 @@
     .doctor-card .vaccination-open-btn::after {
       content: '›';
       margin-left: 8px;
-      font-size: 16px;
+      font-size: 13px;
       line-height: 1;
     }
 
     .doctor-card .vaccination-open-btn:hover {
-      background: var(--brand-soft);
-      border-color: #86c99b;
+      background: #0f5f30;
+      border-color: #0f5f30;
     }
 
     .doctor-card .record-table thead th {
