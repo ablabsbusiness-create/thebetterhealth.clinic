@@ -452,6 +452,79 @@
       font-size: 14px;
     }
 
+    .vaccine-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(15, 23, 42, 0.36);
+    }
+
+    .vaccine-modal.is-open {
+      display: flex;
+    }
+
+    .vaccine-modal-dialog {
+      width: min(720px, 100%);
+      border: 1px solid var(--line);
+      background: #ffffff;
+      box-shadow: 0 24px 70px rgba(15, 23, 42, 0.22);
+    }
+
+    .vaccine-modal-head {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid #e9f0ea;
+    }
+
+    .vaccine-modal-head h2 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .vaccine-modal-head p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .vaccine-modal-close {
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f8fbf9;
+      color: var(--ink);
+      font-size: 20px;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .vaccine-modal-body {
+      padding: 18px 20px 20px;
+    }
+
+    .vaccine-modal .edit-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .vaccine-modal .field.is-wide {
+      grid-column: 1 / -1;
+    }
+
+    .vaccine-modal .row-actions {
+      grid-column: 1 / -1;
+      justify-content: flex-end;
+      margin-top: 2px;
+    }
+
     .empty-state,
     .status-note {
       color: var(--muted);
@@ -466,8 +539,14 @@
         grid-template-columns: 1fr;
       }
 
-      .edit-grid {
+      .edit-grid,
+      .vaccine-modal .edit-grid {
         grid-template-columns: 1fr;
+      }
+
+      .vaccine-modal {
+        align-items: end;
+        padding: 12px;
       }
     }
   </style>
@@ -514,6 +593,19 @@
     <div id="tables-root"></div>
   </main>
 
+  <div id="vaccine-modal" class="vaccine-modal" aria-hidden="true">
+    <div class="vaccine-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="vaccine-modal-title">
+      <div class="vaccine-modal-head">
+        <div>
+          <h2 id="vaccine-modal-title">Mark vaccine as given</h2>
+          <p id="vaccine-modal-subtitle">Save the given date, doctor/user, and notes.</p>
+        </div>
+        <button id="vaccine-modal-close" class="vaccine-modal-close" type="button" aria-label="Close vaccine popup">x</button>
+      </div>
+      <div id="vaccine-modal-body" class="vaccine-modal-body"></div>
+    </div>
+  </div>
+
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
     import { doc, getDoc, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
@@ -541,6 +633,11 @@
     const pendingCount = document.getElementById('pending-count');
     const missedCount = document.getElementById('missed-count');
     const nextDueLabel = document.getElementById('next-due-label');
+    const vaccineModal = document.getElementById('vaccine-modal');
+    const vaccineModalTitle = document.getElementById('vaccine-modal-title');
+    const vaccineModalSubtitle = document.getElementById('vaccine-modal-subtitle');
+    const vaccineModalBody = document.getElementById('vaccine-modal-body');
+    const vaccineModalClose = document.getElementById('vaccine-modal-close');
     const todayIso = new Date().toISOString().slice(0, 10);
     let currentPatient = null;
     let editingKey = '';
@@ -714,31 +811,48 @@
       `;
     }
 
-    function editPanelHtml(row) {
+    function editFormHtml(row) {
       if (!row) return '';
       return `
-        <section class="action-panel" data-edit-panel>
-          <h2>${escapeHtml(row.status === 'Given' ? 'Edit vaccine record' : 'Mark vaccine as given')}: ${escapeHtml(row.vaccine)} (${escapeHtml(row.milestone)})</h2>
-          <div class="edit-grid">
-            <div class="field">
-              <label>Given date</label>
-              <input type="date" data-given-date value="${escapeHtml(row.givenDate || todayIso)}">
-            </div>
-            <div class="field">
-              <label>Doctor/user</label>
-              <input type="text" data-marked-by value="${escapeHtml(row.record.markedBy || localStorage.getItem('clinicUserName') || 'Clinic user')}">
-            </div>
-            <div class="field">
-              <label>Notes</label>
-              <textarea data-vaccine-notes>${escapeHtml(row.notes || '')}</textarea>
-            </div>
-            <div class="row-actions">
-              <button class="btn-primary" type="button" data-save-vaccine="${escapeHtml(row.key)}">Save</button>
-              <button class="btn-ghost" type="button" data-cancel-edit>Cancel</button>
-            </div>
+        <div class="edit-grid" data-edit-panel>
+          <div class="field">
+            <label>Given date</label>
+            <input type="date" data-given-date value="${escapeHtml(row.givenDate || todayIso)}">
           </div>
-        </section>
+          <div class="field">
+            <label>Doctor/user</label>
+            <input type="text" data-marked-by value="${escapeHtml(row.record.markedBy || localStorage.getItem('clinicUserName') || 'Clinic user')}">
+          </div>
+          <div class="field is-wide">
+            <label>Notes</label>
+            <textarea data-vaccine-notes>${escapeHtml(row.notes || '')}</textarea>
+          </div>
+          <div class="row-actions">
+            <button class="btn-primary" type="button" data-save-vaccine="${escapeHtml(row.key)}">Save</button>
+            <button class="btn-ghost" type="button" data-cancel-edit>Cancel</button>
+          </div>
+        </div>
       `;
+    }
+
+    function openVaccineModal(row) {
+      if (!row) return;
+      editingKey = row.key;
+      vaccineModalTitle.textContent = `${row.status === 'Given' ? 'Edit vaccine record' : 'Mark vaccine as given'}: ${row.vaccine}`;
+      vaccineModalSubtitle.textContent = `${row.milestone} | Due ${formatDate(row.dueDate)}`;
+      vaccineModalBody.innerHTML = editFormHtml(row);
+      vaccineModal.classList.add('is-open');
+      vaccineModal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      vaccineModalBody.querySelector('[data-given-date]')?.focus();
+    }
+
+    function closeVaccineModal() {
+      vaccineModal.classList.remove('is-open');
+      vaccineModal.setAttribute('aria-hidden', 'true');
+      vaccineModalBody.innerHTML = '';
+      document.body.style.overflow = '';
+      editingKey = '';
     }
 
     function historyPanelHtml(row) {
@@ -807,7 +921,6 @@
       patientMeta.textContent = `${currentPatient.gender || 'Gender not saved'} | ${formatDate(currentPatient.dob)} | Age ${calculateAge(currentPatient.dob)} | ${currentPatient.patientId}`;
       backToProfileLink.href = `search?patientId=${encodeURIComponent(currentPatient.patientId || '')}`;
       tablesRoot.innerHTML = [
-        editPanelHtml(getRowByKey(editingKey)),
         historyPanelHtml(getRowByKey(historyKey)),
         scheduleGridHtml(rows)
       ].join('');
@@ -881,7 +994,7 @@
 
       currentPatient = { ...currentPatient, vaccinationRecords };
       localStorage.setItem('clinicUserName', markedBy);
-      editingKey = '';
+      closeVaccineModal();
       statusNote.textContent = `${row.vaccine} marked as given.`;
       render();
     }
@@ -911,16 +1024,8 @@
       }
 
       if (editKey) {
-        editingKey = editingKey === editKey ? '' : editKey;
+        openVaccineModal(getRowByKey(editKey));
         historyKey = '';
-        render();
-        return;
-      }
-
-      if (saveKey) {
-        saveVaccine(saveKey).catch((error) => {
-          statusNote.textContent = `Unable to save vaccine: ${error.message}`;
-        });
         return;
       }
 
@@ -930,10 +1035,36 @@
         render();
         return;
       }
+    });
+
+    vaccineModal.addEventListener('click', (event) => {
+      if (event.target === vaccineModal) {
+        closeVaccineModal();
+      }
+    });
+
+    vaccineModalClose.addEventListener('click', closeVaccineModal);
+
+    vaccineModalBody.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      const saveKey = target.getAttribute('data-save-vaccine');
+
+      if (saveKey) {
+        saveVaccine(saveKey).catch((error) => {
+          statusNote.textContent = `Unable to save vaccine: ${error.message}`;
+        });
+        return;
+      }
 
       if (target.matches('[data-cancel-edit]')) {
-        editingKey = '';
-        render();
+        closeVaccineModal();
+      }
+    });
+
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && vaccineModal.classList.contains('is-open')) {
+        closeVaccineModal();
       }
     });
 
