@@ -1007,8 +1007,8 @@
 
               <div class="field">
                 <label for="dob">Date of Birth <span class="required">*</span></label>
-                <input id="dob" name="dob" type="date" required>
-                <span class="field-hint">The date picker keeps DOB entry consistent.</span>
+                <input id="dob" name="dob" type="text" inputmode="numeric" placeholder="DD MM YYYY" autocomplete="bday" required>
+                <span class="field-hint">Enter DOB as DD MM YYYY, for example 15 05 2020.</span>
               </div>
 
               <div class="field">
@@ -1078,7 +1078,8 @@
           <div class="action-box">
             <div class="btn-row">
               <button id="generate-btn" class="btn-primary" type="button">Generate Chart</button>
-              <button id="download-btn" class="btn-secondary" type="button" hidden>Download PDF</button>
+              <button id="download-btn" class="btn-secondary" type="button" hidden>Preview PDF</button>
+              <button id="whatsapp-btn" class="btn-secondary" type="button" hidden>Send WhatsApp</button>
             </div>
             <div id="status-note" class="status-note">
               Chart actions are ready once patient details and measurements are complete.
@@ -1103,8 +1104,6 @@
 
   <script type="module">
     import { jsPDF } from 'https://cdn.jsdelivr.net/npm/jspdf@3.0.3/+esm';
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
-    import { addDoc, collection, getFirestore, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
 
     const metricInputs = {
       weight: document.getElementById('weight'),
@@ -1115,6 +1114,7 @@
     const selectedList = document.getElementById('selected-list');
     const generateBtn = document.getElementById('generate-btn');
     const downloadBtn = document.getElementById('download-btn');
+    const whatsappBtn = document.getElementById('whatsapp-btn');
     const statusNote = document.getElementById('status-note');
     const chartCanvas = document.getElementById('chart-canvas');
     const chartContext = chartCanvas.getContext('2d');
@@ -1127,19 +1127,6 @@
     const menuToggle = document.getElementById('menu-toggle');
     const primaryNav = document.getElementById('primary-nav');
     const navLinks = [...document.querySelectorAll('#primary-nav .nav-link')];
-    const firebaseEnv = import.meta.env || {};
-    const firebaseConfig = {
-      apiKey: firebaseEnv.VITE_FIREBASE_API_KEY || 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
-      authDomain: firebaseEnv.VITE_FIREBASE_AUTH_DOMAIN || 'clinci-dr-gunda.firebaseapp.com',
-      projectId: firebaseEnv.VITE_FIREBASE_PROJECT_ID || 'clinci-dr-gunda',
-      storageBucket: firebaseEnv.VITE_FIREBASE_STORAGE_BUCKET || 'clinci-dr-gunda.firebasestorage.app',
-      messagingSenderId: firebaseEnv.VITE_FIREBASE_MESSAGING_SENDER_ID || '1059959825609',
-      appId: firebaseEnv.VITE_FIREBASE_APP_ID || '1:1059959825609:web:8201599754706ac4661918',
-      measurementId: firebaseEnv.VITE_FIREBASE_MEASUREMENT_ID || 'G-4V5JMVW45E'
-    };
-    const firebaseConfigured = Object.values(firebaseConfig).every(Boolean);
-    const firebaseApp = firebaseConfigured ? initializeApp(firebaseConfig) : null;
-    const db = firebaseApp ? getFirestore(firebaseApp) : null;
     const CHART_ASSET_VERSION = '2026-05-12-iap-who-no-ofc-5-18';
 
     function versionedChartAssetPath(path) {
@@ -1333,14 +1320,12 @@
     const templateImages = new Map();
     let generatedTemplates = [];
     let generatedPreviewPages = [];
-    let generatedPdfBase64 = '';
+    let generatedPdfUrl = '';
     const CHART_RENDER_MAX_WIDTH = 760;
     const CHART_POINT_RADIUS = 7;
     const GROWTH_CHART_DEBUG = new URLSearchParams(window.location.search).has('growthDebug')
       || localStorage.getItem('growthChartDebug') === '1';
     const CAN_USE_PYTHON_CHART_SERVICE = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-    const LOCAL_RECORD_KEY = 'growthChartRecentRecords';
-    const LOCAL_RECORD_TTL_MS = 10 * 60 * 1000;
 
     async function loadSharedGrowthChartConfigs() {
       try {
@@ -1409,13 +1394,68 @@
 
     applySharedGrowthChartConfigs(templateLibrary, await loadSharedGrowthChartConfigs());
 
+    function parseDobValue(dobValue) {
+      const rawValue = String(dobValue || '').trim();
+      if (!rawValue) return null;
+      const parts = rawValue.split(/\D+/).filter(Boolean);
+      if (parts.length !== 3) return null;
+
+      const [dayPart, monthPart, yearPart] = parts;
+      const day = Number(dayPart);
+      const month = Number(monthPart);
+      const year = Number(yearPart);
+      if (!Number.isInteger(day) || !Number.isInteger(month) || !Number.isInteger(year)) return null;
+      if (year < 1900 || year > 2100 || month < 1 || month > 12 || day < 1 || day > 31) return null;
+
+      const parsed = new Date(year, month - 1, day);
+      if (parsed.getFullYear() !== year || parsed.getMonth() !== month - 1 || parsed.getDate() !== day) return null;
+      return parsed;
+    }
+
+    function formatDobForDisplay(dateValue) {
+      if (!dateValue) return '';
+      const day = String(dateValue.getDate()).padStart(2, '0');
+      const month = String(dateValue.getMonth() + 1).padStart(2, '0');
+      return `${day} ${month} ${dateValue.getFullYear()}`;
+    }
+
+    function formatDobForPayload(dobValue) {
+      const parsed = parseDobValue(dobValue);
+      if (!parsed) return '';
+      const day = String(parsed.getDate()).padStart(2, '0');
+      const month = String(parsed.getMonth() + 1).padStart(2, '0');
+      return `${parsed.getFullYear()}-${month}-${day}`;
+    }
+
+    function updateDobValidity() {
+      const parsed = parseDobValue(dobInput.value);
+      if (!dobInput.value.trim()) {
+        dobInput.setCustomValidity('Enter DOB as DD MM YYYY.');
+        return false;
+      }
+      if (!parsed || parsed > new Date()) {
+        dobInput.setCustomValidity('Enter a valid DOB as DD MM YYYY.');
+        return false;
+      }
+      dobInput.setCustomValidity('');
+      return true;
+    }
+
+    function normalizeDobInput() {
+      const parsed = parseDobValue(dobInput.value);
+      if (parsed) {
+        dobInput.value = formatDobForDisplay(parsed);
+      }
+      updateDobValidity();
+    }
+
     function calculateAgeLabel(dobValue) {
       if (!dobValue) return '';
 
       const today = new Date();
-      const dob = new Date(dobValue);
+      const dob = parseDobValue(dobValue);
 
-      if (Number.isNaN(dob.getTime()) || dob > today) {
+      if (!dob || dob > today) {
         return '';
       }
 
@@ -1438,16 +1478,17 @@
     }
 
     function updateAge() {
+      updateDobValidity();
       ageInput.value = calculateAgeLabel(dobInput.value);
     }
 
     function getAgeInYears(dobValue) {
       if (!dobValue) return NaN;
 
-      const dob = new Date(dobValue);
+      const dob = parseDobValue(dobValue);
       const today = new Date();
 
-      if (Number.isNaN(dob.getTime()) || dob > today) {
+      if (!dob || dob > today) {
         return NaN;
       }
 
@@ -1622,7 +1663,7 @@
       });
 
       return {
-        dob: dobInput.value,
+        dob: formatDobForPayload(dobInput.value),
         templateRequests: generatedTemplates.map((template) => ({
           key: template.key,
           label: template.label,
@@ -1700,15 +1741,6 @@
       return result;
     }
 
-    function decodeBase64ToBlob(base64Value, mimeType) {
-      const byteCharacters = atob(base64Value);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let index = 0; index < byteCharacters.length; index += 1) {
-        byteNumbers[index] = byteCharacters.charCodeAt(index);
-      }
-      return new Blob([new Uint8Array(byteNumbers)], { type: mimeType });
-    }
-
     function buildPdfBlobFromPreviewPages() {
       const pdf = new jsPDF({
         orientation: 'portrait',
@@ -1723,21 +1755,112 @@
 
         const pageWidth = pdf.internal.pageSize.getWidth();
         const pageHeight = pdf.internal.pageSize.getHeight();
-        const margin = 10;
+        const margin = 12;
         const usableWidth = pageWidth - margin * 2;
-        const usableHeight = pageHeight - 24;
+        const headerBottom = 32;
+        const footerTop = pageHeight - 13;
+        const usableHeight = footerTop - headerBottom - 4;
         const imageWidth = preview.width || chartCanvas.width || 1725;
         const imageHeight = preview.height || chartCanvas.height || 2367;
         const scale = Math.min(usableWidth / imageWidth, usableHeight / imageHeight);
         const renderWidth = imageWidth * scale;
         const renderHeight = imageHeight * scale;
+        const renderX = margin + (usableWidth - renderWidth) / 2;
+        const childName = form.elements.childName.value.trim() || 'Growth Chart';
+        const parentName = form.elements.parentName.value.trim();
+        const dobLabel = formatDobForDisplay(parseDobValue(dobInput.value));
 
+        pdf.setTextColor(22, 101, 52);
+        pdf.setFont('helvetica', 'bold');
         pdf.setFontSize(13);
-        pdf.text(preview.label, margin, 10);
-        pdf.addImage(preview.dataUrl, 'PNG', margin, 14, renderWidth, renderHeight, undefined, 'FAST');
+        pdf.text('The Better Health Clinic', margin, 11);
+        pdf.setFontSize(9);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(80, 95, 87);
+        pdf.text('Growth Monitoring Portal', margin, 16);
+        pdf.text(`Child: ${childName}`, margin, 23);
+        pdf.text(`DOB: ${dobLabel || '-'}${parentName ? `   Parent: ${parentName}` : ''}`, margin, 28);
+        pdf.setDrawColor(215, 226, 217);
+        pdf.line(margin, 30, pageWidth - margin, 30);
+
+        pdf.setTextColor(27, 42, 33);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(11);
+        pdf.text(preview.label, margin, 37);
+        pdf.addImage(preview.dataUrl, 'PNG', renderX, 40, renderWidth, renderHeight, undefined, 'FAST');
+
+        pdf.setDrawColor(215, 226, 217);
+        pdf.line(margin, footerTop, pageWidth - margin, footerTop);
+        pdf.setTextColor(96, 112, 103);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(8);
+        pdf.text('Generated for clinical review. Doctor confirms final interpretation.', margin, pageHeight - 7);
+        pdf.text(`Page ${index + 1} of ${generatedPreviewPages.length}`, pageWidth - margin, pageHeight - 7, { align: 'right' });
       });
 
       return pdf.output('blob');
+    }
+
+    function getBrandedPdfBlob() {
+      return buildPdfBlobFromPreviewPages();
+    }
+
+    function revokeGeneratedPdfUrl() {
+      if (generatedPdfUrl) {
+        URL.revokeObjectURL(generatedPdfUrl);
+        generatedPdfUrl = '';
+      }
+    }
+
+    function createBrandedPdfUrl() {
+      if (generatedPreviewPages.length === 0) {
+        return '';
+      }
+
+      revokeGeneratedPdfUrl();
+      generatedPdfUrl = URL.createObjectURL(getBrandedPdfBlob());
+      return generatedPdfUrl;
+    }
+
+    function openPdfPreview() {
+      const previewUrl = createBrandedPdfUrl();
+      if (!previewUrl) {
+        statusNote.textContent = 'Generate the available charts before previewing the PDF.';
+        statusNote.classList.add('visible');
+        return null;
+      }
+
+      window.open(generatedPdfUrl, '_blank', 'noopener');
+      return generatedPdfUrl;
+    }
+
+    async function sendPdfToWhatsApp() {
+      if (generatedPreviewPages.length === 0) {
+        statusNote.textContent = 'Generate the available charts before sending.';
+        statusNote.classList.add('visible');
+        return;
+      }
+
+      const childName = form.elements.childName.value.trim() || 'patient';
+      const fileName = `${childName.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') || 'growth-chart'}-growth-chart.pdf`;
+      const pdfFile = new File([getBrandedPdfBlob()], fileName, { type: 'application/pdf' });
+
+      if (navigator.canShare?.({ files: [pdfFile] }) && navigator.share) {
+        await navigator.share({
+          title: 'Growth chart PDF',
+          text: `Growth chart PDF for ${childName}`,
+          files: [pdfFile]
+        });
+        statusNote.textContent = 'PDF shared. Choose WhatsApp from the share sheet.';
+        statusNote.classList.add('visible');
+        return;
+      }
+
+      openPdfPreview();
+      const message = encodeURIComponent(`Growth chart PDF for ${childName} is ready. Please attach the opened PDF preview in WhatsApp.`);
+      window.open(`https://wa.me/?text=${message}`, '_blank', 'noopener');
+      statusNote.textContent = 'WhatsApp opened. Attach the PDF from the preview tab if your browser cannot share files directly.';
+      statusNote.classList.add('visible');
     }
 
     function getPatientData() {
@@ -1753,77 +1876,6 @@
         head: Number.parseFloat(metricInputs.head.value),
         bmi: Number.isFinite(weight) && Number.isFinite(height) && height > 0 ? weight / ((height / 100) ** 2) : NaN
       };
-    }
-
-    function cleanupExpiredLocalRecords() {
-      const raw = localStorage.getItem(LOCAL_RECORD_KEY);
-      if (!raw) {
-        return [];
-      }
-
-      const now = Date.now();
-      const records = JSON.parse(raw).filter((record) => Number(record.expiresAt) > now);
-      if (records.length > 0) {
-        localStorage.setItem(LOCAL_RECORD_KEY, JSON.stringify(records));
-      } else {
-        localStorage.removeItem(LOCAL_RECORD_KEY);
-      }
-      return records;
-    }
-
-    function scheduleLocalRecordCleanup(expiresAt) {
-      const delay = Math.max(0, expiresAt - Date.now());
-      window.setTimeout(() => {
-        cleanupExpiredLocalRecords();
-      }, delay + 50);
-    }
-
-    function saveLocalRecord() {
-      const existingRecords = cleanupExpiredLocalRecords();
-      const expiresAt = Date.now() + LOCAL_RECORD_TTL_MS;
-      existingRecords.push({
-        source: 'growth-chart',
-        savedAt: new Date().toISOString(),
-        expiresAt,
-        childName: form.elements.childName.value.trim(),
-        parentName: form.elements.parentName.value.trim(),
-        gender: form.elements.gender.value,
-        dob: form.elements.dob.value,
-        age: ageInput.value,
-        charts: getSelectedCharts().map((option) => option.value),
-        weight: metricInputs.weight.value,
-        height: metricInputs.height.value,
-        head: metricInputs.head.value
-      });
-      localStorage.setItem(LOCAL_RECORD_KEY, JSON.stringify(existingRecords));
-      scheduleLocalRecordCleanup(expiresAt);
-    }
-
-    async function saveHistoryRecord() {
-      if (!db) {
-        return { ok: false, reason: 'Firebase is not configured.' };
-      }
-
-      const now = new Date();
-      const historyRecord = {
-        patientId: '',
-        childName: form.elements.childName.value.trim(),
-        parentName: form.elements.parentName.value.trim(),
-        gender: form.elements.gender.value,
-        dob: form.elements.dob.value,
-        age: ageInput.value,
-        charts: getSelectedCharts().map((option) => option.value),
-        weight: metricInputs.weight.value,
-        height: metricInputs.height.value,
-        head: metricInputs.head.value,
-        source: 'growth-chart',
-        createdAt: serverTimestamp(),
-        createdAtIso: now.toISOString(),
-        createdAtDisplay: now.toLocaleString('en-IN')
-      };
-
-      await addDoc(collection(db, 'history'), historyRecord);
-      return { ok: true };
     }
 
     function buildTemplateRequests() {
@@ -1986,7 +2038,7 @@
       const selectedValues = getSelectedCharts().map((option) => option.value);
       const patientData = getPatientData();
       generatedTemplates = buildTemplateRequests();
-      generatedPdfBase64 = '';
+      revokeGeneratedPdfUrl();
 
       if (generatedTemplates.length === 0) {
         setChartPreviewMessage('No matching IAP template could be selected for the entered age, gender, and chart combination.', 'warning');
@@ -2002,11 +2054,9 @@
 
         const generatedResult = await requestPythonGeneratedCharts(buildChartGenerationPayload());
         generatedPreviewPages = Array.isArray(generatedResult.pages) ? generatedResult.pages.filter((preview) => preview?.dataUrl) : [];
-        generatedPdfBase64 = typeof generatedResult.pdfBase64 === 'string' ? generatedResult.pdfBase64 : '';
         await renderCanvasFromGeneratedPreview(generatedPreviewPages[0] || null);
       } catch (error) {
         await renderAllGeneratedPreviews();
-        generatedPdfBase64 = '';
         await renderCanvasFromGeneratedPreview(generatedPreviewPages[0] || null);
 
         const warnings = buildWarnings(selectedValues, patientData);
@@ -2014,7 +2064,7 @@
           ? 'Python chart service is unavailable, so the chart was generated in browser mode.'
           : 'This deployment is using browser chart rendering.';
         setChartPreviewMessage(
-          `Generated ${generatedPreviewPages.length} chart${generatedPreviewPages.length === 1 ? '' : 's'} for download. ${fallbackNote}${warnings.length ? ` ${warnings.join(' ')}` : ''}`,
+          `Generated ${generatedPreviewPages.length} chart${generatedPreviewPages.length === 1 ? '' : 's'} for PDF preview. ${fallbackNote}${warnings.length ? ` ${warnings.join(' ')}` : ''}`,
           'warning'
         );
         return;
@@ -2022,9 +2072,9 @@
 
       const warnings = buildWarnings(selectedValues, patientData);
       if (warnings.length > 0) {
-        setChartPreviewMessage(`Generated ${generatedPreviewPages.length} chart${generatedPreviewPages.length === 1 ? '' : 's'} for download. ${warnings.join(' ')}`, 'warning');
+        setChartPreviewMessage(`Generated ${generatedPreviewPages.length} chart${generatedPreviewPages.length === 1 ? '' : 's'} for PDF preview. ${warnings.join(' ')}`, 'warning');
       } else {
-        setChartPreviewMessage(`Generated ${generatedPreviewPages.length} chart${generatedPreviewPages.length === 1 ? '' : 's'} for download.`, 'ready');
+        setChartPreviewMessage(`Generated ${generatedPreviewPages.length} chart${generatedPreviewPages.length === 1 ? '' : 's'} for PDF preview.`, 'ready');
       }
     }
 
@@ -2077,6 +2127,7 @@
 
     function revealActions() {
       downloadBtn.hidden = false;
+      whatsappBtn.hidden = false;
       statusNote.classList.add('visible');
     }
 
@@ -2093,6 +2144,7 @@
 
     dobInput.addEventListener('change', updateAge);
     dobInput.addEventListener('input', updateAge);
+    dobInput.addEventListener('blur', normalizeDobInput);
     dobInput.addEventListener('change', updatePreview);
     dobInput.addEventListener('input', updatePreview);
     Object.values(metricInputs).forEach((input) => {
@@ -2108,35 +2160,30 @@
     });
 
     downloadBtn.addEventListener('click', () => {
-      if (generatedPreviewPages.length === 0) {
-        statusNote.textContent = 'Generate the available charts before downloading the PDF.';
+      if (openPdfPreview()) {
+        statusNote.textContent = `Opened PDF preview with ${generatedPreviewPages.length} chart${generatedPreviewPages.length === 1 ? '' : 's'}.`;
         statusNote.classList.add('visible');
-        return;
       }
+    });
 
-      const pdfBlob = generatedPdfBase64
-        ? decodeBase64ToBlob(generatedPdfBase64, 'application/pdf')
-        : buildPdfBlobFromPreviewPages();
-      const downloadUrl = URL.createObjectURL(pdfBlob);
-      const downloadLink = document.createElement('a');
-      downloadLink.href = downloadUrl;
-      downloadLink.download = 'growth-charts.pdf';
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      downloadLink.remove();
-      window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
-      statusNote.textContent = `Downloaded PDF with ${generatedPreviewPages.length} chart${generatedPreviewPages.length === 1 ? '' : 's'}.`;
-      statusNote.classList.add('visible');
+    whatsappBtn.addEventListener('click', () => {
+      sendPdfToWhatsApp().catch((error) => {
+        statusNote.textContent = `Unable to share PDF: ${error.message}`;
+        statusNote.classList.add('visible');
+      });
     });
 
     updateMeasurements();
     updatePreview();
     updateAge();
     drawBaseTemplate(null);
-    cleanupExpiredLocalRecords();
 
     generateBtn.addEventListener('click', async () => {
       const isValid = form.reportValidity();
+
+      if (!isValid) {
+        return;
+      }
 
       if (getSelectedCharts().length === 0) {
         statusNote.textContent = 'Add height, weight, or OFC to generate charts.';
@@ -2144,22 +2191,20 @@
         return;
       }
 
-      if (!isValid) {
-        return;
+      const previewWindow = window.open('', '_blank', 'noopener');
+      if (previewWindow) {
+        previewWindow.document.write('<!doctype html><title>Preparing growth chart PDF</title><body style="font-family:system-ui,sans-serif;padding:24px;">Preparing growth chart PDF...</body>');
       }
 
       revealActions();
       await renderGeneratedChart();
-      saveLocalRecord();
-      const historyResult = await saveHistoryRecord().catch((error) => ({
-        ok: false,
-        reason: error.message
-      }));
-      if (historyResult.ok) {
-        statusNote.textContent = `Chart set prepared. ${generatedPreviewPages.length} file${generatedPreviewPages.length === 1 ? '' : 's'} ready for PDF download and auto-saved for 10 minutes.`;
-      } else {
-        statusNote.textContent = `Chart set prepared. ${generatedPreviewPages.length} file${generatedPreviewPages.length === 1 ? '' : 's'} ready for PDF download. Local auto-save will expire in 10 minutes, but Firebase save failed: ${historyResult.reason}`;
+      const previewUrl = createBrandedPdfUrl();
+      if (previewWindow && previewUrl) {
+        previewWindow.location.href = previewUrl;
+      } else if (previewWindow && !previewUrl) {
+        previewWindow.close();
       }
+      statusNote.textContent = `Chart set prepared. ${generatedPreviewPages.length} page${generatedPreviewPages.length === 1 ? '' : 's'} ready for PDF preview and WhatsApp sharing. Nothing was saved.`;
       statusNote.classList.add('visible');
     });
   </script>
