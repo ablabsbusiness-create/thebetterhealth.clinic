@@ -425,12 +425,25 @@
       gap: 16px;
     }
 
+    .dob-input-row {
+      display: grid;
+      grid-template-columns: 84px 84px minmax(120px, 1fr);
+      gap: 10px;
+    }
+
+    .dob-input-row input {
+      text-align: center;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
     .metric-card {
       padding: 16px;
       border: 1px dashed #b8cabd;
       border-radius: 18px;
       background: #f9fcf8;
-      display: none;
+      display: grid;
+      gap: 8px;
     }
 
     .metric-card.visible {
@@ -1007,8 +1020,13 @@
 
               <div class="field">
                 <label for="dob">Date of Birth <span class="required">*</span></label>
-                <input id="dob" name="dob" type="text" inputmode="numeric" placeholder="DD MM YYYY" autocomplete="bday" required>
-                <span class="field-hint">Enter DOB as DD MM YYYY, for example 15 05 2020.</span>
+                <input id="dob" name="dob" type="hidden" required>
+                <div class="dob-input-row" aria-label="Date of birth">
+                  <input id="dob-day" type="text" inputmode="numeric" maxlength="2" placeholder="DD" autocomplete="bday-day" required>
+                  <input id="dob-month" type="text" inputmode="numeric" maxlength="2" placeholder="MM" autocomplete="bday-month" required>
+                  <input id="dob-year" type="text" inputmode="numeric" maxlength="4" placeholder="YYYY" autocomplete="bday-year" required>
+                </div>
+                <span class="field-hint">Enter date of birth as day, month, and year.</span>
               </div>
 
               <div class="field">
@@ -1049,6 +1067,41 @@
                 <label for="head">Head Circumference (cm) <span class="required">*</span></label>
                 <input id="head" name="head" type="number" min="0" step="0.1" placeholder="e.g. 48.5">
                 <span class="field-hint">Required only for head circumference charts.</span>
+              </div>
+
+              <div id="metric-spo2" class="metric-card" data-field="spo2">
+                <span class="metric-chip">Oxygen</span>
+                <label for="spo2">SPO2 (%)</label>
+                <input id="spo2" name="spo2" type="number" min="0" max="100" step="1" placeholder="e.g. 99">
+                <span class="field-hint">Optional oxygen saturation.</span>
+              </div>
+
+              <div id="metric-pulse" class="metric-card" data-field="pulse">
+                <span class="metric-chip">Pulse</span>
+                <label for="pulse">Pulse (/min)</label>
+                <input id="pulse" name="pulse" type="number" min="0" step="1" placeholder="e.g. 108">
+                <span class="field-hint">Optional pulse rate.</span>
+              </div>
+
+              <div id="metric-systolic" class="metric-card" data-field="systolic">
+                <span class="metric-chip">Blood Pressure</span>
+                <label for="systolic">Systolic (mmHg)</label>
+                <input id="systolic" name="systolic" type="number" min="0" step="1" placeholder="e.g. 90">
+                <span class="field-hint">Optional systolic BP.</span>
+              </div>
+
+              <div id="metric-diastolic" class="metric-card" data-field="diastolic">
+                <span class="metric-chip">Blood Pressure</span>
+                <label for="diastolic">Diastolic (mmHg)</label>
+                <input id="diastolic" name="diastolic" type="number" min="0" step="1" placeholder="e.g. 60">
+                <span class="field-hint">Optional diastolic BP.</span>
+              </div>
+
+              <div id="metric-temperature" class="metric-card" data-field="temperature">
+                <span class="metric-chip">Temperature</span>
+                <label for="temperature">Temperature (C)</label>
+                <input id="temperature" name="temperature" type="number" min="0" step="0.1" placeholder="e.g. 36.8">
+                <span class="field-hint">Optional temperature.</span>
               </div>
             </div>
           </section>
@@ -1110,6 +1163,13 @@
       height: document.getElementById('height'),
       head: document.getElementById('head')
     };
+    const vitalInputs = {
+      spo2: document.getElementById('spo2'),
+      pulse: document.getElementById('pulse'),
+      systolic: document.getElementById('systolic'),
+      diastolic: document.getElementById('diastolic'),
+      temperature: document.getElementById('temperature')
+    };
     const selectedCount = document.getElementById('selected-count');
     const selectedList = document.getElementById('selected-list');
     const generateBtn = document.getElementById('generate-btn');
@@ -1123,6 +1183,11 @@
     const chartPreviewStatus = document.getElementById('chart-preview-status');
     const form = document.getElementById('chart-form');
     const dobInput = document.getElementById('dob');
+    const dobPartInputs = {
+      day: document.getElementById('dob-day'),
+      month: document.getElementById('dob-month'),
+      year: document.getElementById('dob-year')
+    };
     const ageInput = document.getElementById('age');
     const menuToggle = document.getElementById('menu-toggle');
     const primaryNav = document.getElementById('primary-nav');
@@ -1412,6 +1477,19 @@
       return parsed;
     }
 
+    function getDobPartsValue() {
+      return [
+        dobPartInputs.day.value,
+        dobPartInputs.month.value,
+        dobPartInputs.year.value
+      ].map((part) => String(part || '').trim()).join(' ');
+    }
+
+    function syncDobFromParts() {
+      dobInput.value = getDobPartsValue();
+      updateDobValidity();
+    }
+
     function formatDobForDisplay(dateValue) {
       if (!dateValue) return '';
       const day = String(dateValue.getDate()).padStart(2, '0');
@@ -1429,12 +1507,17 @@
 
     function updateDobValidity() {
       const parsed = parseDobValue(dobInput.value);
-      if (!dobInput.value.trim()) {
+      const hasAnyDobPart = Object.values(dobPartInputs).some((input) => input.value.trim());
+      Object.values(dobPartInputs).forEach((input) => input.setCustomValidity(''));
+
+      if (!hasAnyDobPart) {
         dobInput.setCustomValidity('Enter DOB as DD MM YYYY.');
+        dobPartInputs.day.setCustomValidity('Enter DOB as DD MM YYYY.');
         return false;
       }
       if (!parsed || parsed > new Date()) {
         dobInput.setCustomValidity('Enter a valid DOB as DD MM YYYY.');
+        dobPartInputs.day.setCustomValidity('Enter a valid DOB as DD MM YYYY.');
         return false;
       }
       dobInput.setCustomValidity('');
@@ -1444,7 +1527,13 @@
     function normalizeDobInput() {
       const parsed = parseDobValue(dobInput.value);
       if (parsed) {
-        dobInput.value = formatDobForDisplay(parsed);
+        const day = String(parsed.getDate()).padStart(2, '0');
+        const month = String(parsed.getMonth() + 1).padStart(2, '0');
+        const year = String(parsed.getFullYear());
+        dobPartInputs.day.value = day;
+        dobPartInputs.month.value = month;
+        dobPartInputs.year.value = year;
+        dobInput.value = `${day} ${month} ${year}`;
       }
       updateDobValidity();
     }
@@ -1654,6 +1743,18 @@
       };
     }
 
+    function getVitalsSummaryParts() {
+      const parts = [];
+      if (metricInputs.weight.value) parts.push(`Wt ${metricInputs.weight.value} kg`);
+      if (metricInputs.height.value) parts.push(`Ht ${metricInputs.height.value} cm`);
+      if (metricInputs.head.value) parts.push(`OFC ${metricInputs.head.value} cm`);
+      if (vitalInputs.spo2.value) parts.push(`SPO2 ${vitalInputs.spo2.value}%`);
+      if (vitalInputs.pulse.value) parts.push(`Pulse ${vitalInputs.pulse.value}/min`);
+      if (vitalInputs.systolic.value || vitalInputs.diastolic.value) parts.push(`BP ${vitalInputs.systolic.value || '-'} / ${vitalInputs.diastolic.value || '-'} mmHg`);
+      if (vitalInputs.temperature.value) parts.push(`Temp ${vitalInputs.temperature.value} C`);
+      return parts;
+    }
+
     function buildChartGenerationPayload() {
       const currentEntry = normalizePlotSeriesEntry({
         createdAtIso: new Date().toISOString(),
@@ -1757,7 +1858,7 @@
         const pageHeight = pdf.internal.pageSize.getHeight();
         const margin = 12;
         const usableWidth = pageWidth - margin * 2;
-        const headerBottom = 32;
+        const headerBottom = 42;
         const footerTop = pageHeight - 13;
         const usableHeight = footerTop - headerBottom - 4;
         const imageWidth = preview.width || chartCanvas.width || 1725;
@@ -1769,6 +1870,7 @@
         const childName = form.elements.childName.value.trim() || 'Growth Chart';
         const parentName = form.elements.parentName.value.trim();
         const dobLabel = formatDobForDisplay(parseDobValue(dobInput.value));
+        const vitalsSummary = getVitalsSummaryParts().join('   ');
 
         pdf.setTextColor(22, 101, 52);
         pdf.setFont('helvetica', 'bold');
@@ -1780,14 +1882,17 @@
         pdf.text('Growth Monitoring Portal', margin, 16);
         pdf.text(`Child: ${childName}`, margin, 23);
         pdf.text(`DOB: ${dobLabel || '-'}${parentName ? `   Parent: ${parentName}` : ''}`, margin, 28);
+        if (vitalsSummary) {
+          pdf.text(vitalsSummary, margin, 33);
+        }
         pdf.setDrawColor(215, 226, 217);
-        pdf.line(margin, 30, pageWidth - margin, 30);
+        pdf.line(margin, vitalsSummary ? 35 : 30, pageWidth - margin, vitalsSummary ? 35 : 30);
 
         pdf.setTextColor(27, 42, 33);
         pdf.setFont('helvetica', 'bold');
         pdf.setFontSize(11);
-        pdf.text(preview.label, margin, 37);
-        pdf.addImage(preview.dataUrl, 'PNG', renderX, 40, renderWidth, renderHeight, undefined, 'FAST');
+        pdf.text(preview.label, margin, vitalsSummary ? 42 : 37);
+        pdf.addImage(preview.dataUrl, 'PNG', renderX, vitalsSummary ? 45 : 40, renderWidth, renderHeight, undefined, 'FAST');
 
         pdf.setDrawColor(215, 226, 217);
         pdf.line(margin, footerTop, pageWidth - margin, footerTop);
@@ -2142,11 +2247,37 @@
       primaryNav.classList.toggle('is-open', !isOpen);
     }
 
+    function updateMeasurements() {
+      document.querySelectorAll('.metric-card').forEach((card) => card.classList.add('visible'));
+    }
+
+    function handleDobPartInput(event) {
+      const target = event.target;
+      target.value = target.value.replace(/\D+/g, '').slice(0, target.maxLength || 4);
+      syncDobFromParts();
+      updateAge();
+      updatePreview();
+
+      if (target.value.length >= Number(target.maxLength || 0)) {
+        if (target === dobPartInputs.day) dobPartInputs.month.focus();
+        if (target === dobPartInputs.month) dobPartInputs.year.focus();
+      }
+    }
+
     dobInput.addEventListener('change', updateAge);
     dobInput.addEventListener('input', updateAge);
     dobInput.addEventListener('blur', normalizeDobInput);
     dobInput.addEventListener('change', updatePreview);
     dobInput.addEventListener('input', updatePreview);
+    Object.values(dobPartInputs).forEach((input) => {
+      input.addEventListener('input', handleDobPartInput);
+      input.addEventListener('change', () => {
+        syncDobFromParts();
+        updateAge();
+        updatePreview();
+      });
+      input.addEventListener('blur', normalizeDobInput);
+    });
     Object.values(metricInputs).forEach((input) => {
       input.addEventListener('input', updatePreview);
       input.addEventListener('change', updatePreview);
