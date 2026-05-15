@@ -127,8 +127,9 @@
     }
 
     .page-shell {
-      width: min(1220px, calc(100% - 28px));
-      margin: 18px auto 32px;
+      width: 100%;
+      margin: 0;
+      padding: 10px 8px 32px;
     }
 
     .patient-bar,
@@ -142,13 +143,13 @@
       grid-template-columns: minmax(0, 1fr) auto;
       gap: 14px;
       align-items: end;
-      padding: 16px;
-      margin-bottom: 14px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
     }
 
     h1 {
       margin: 0 0 5px;
-      font-size: 24px;
+      font-size: 18px;
       line-height: 1.1;
     }
 
@@ -187,14 +188,14 @@
     .summary-grid {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
-      margin-bottom: 14px;
+      gap: 6px;
+      margin-bottom: 8px;
     }
 
     .summary-card {
       border: 1px solid var(--line);
       background: #fff;
-      padding: 14px;
+      padding: 9px 10px;
     }
 
     .summary-card span {
@@ -208,12 +209,12 @@
     .summary-card strong {
       display: block;
       margin-top: 7px;
-      font-size: 22px;
+      font-size: 16px;
       line-height: 1.1;
     }
 
     .panel {
-      margin-bottom: 14px;
+      margin-bottom: 8px;
       overflow: hidden;
     }
 
@@ -222,13 +223,13 @@
       justify-content: space-between;
       gap: 12px;
       align-items: center;
-      padding: 14px 16px;
+      padding: 8px 10px;
       border-bottom: 1px solid #e9f0ea;
     }
 
     .panel-head h2 {
       margin: 0;
-      font-size: 16px;
+      font-size: 13px;
     }
 
     .table-wrap {
@@ -238,53 +239,142 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 920px;
+      min-width: 1780px;
     }
 
     th,
     td {
-      padding: 11px 12px;
-      border-bottom: 1px solid #e9f0ea;
+      padding: 0;
+      border: 1px solid #e5e7eb;
       text-align: left;
       vertical-align: top;
-      font-size: 13px;
+      font-size: 11px;
     }
 
     th {
-      color: var(--brand-strong);
-      background: #f8fbf9;
-      font-size: 12px;
-      text-transform: uppercase;
+      height: 30px;
+      padding: 6px 8px;
+      color: #334155;
+      background: #f8fafc;
+      font-size: 11px;
+      text-align: center;
+      white-space: nowrap;
+      text-transform: none;
     }
 
-    .vaccine-name {
+    .schedule-table {
+      table-layout: fixed;
+    }
+
+    .schedule-table th:first-child,
+    .schedule-table td:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 3;
+      width: 92px;
+      min-width: 92px;
+      max-width: 92px;
+      background: #ffffff;
+      text-align: center;
       font-weight: 700;
+      color: #475569;
     }
 
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      min-height: 26px;
-      border-radius: 999px;
-      padding: 0 9px;
-      font-size: 12px;
+    .schedule-table th:first-child {
+      z-index: 5;
+      background: #f8fafc;
+    }
+
+    .schedule-table th.is-current,
+    .schedule-table td.is-current {
+      border-left: 2px solid #2563eb;
+      border-right: 2px solid #2563eb;
+    }
+
+    .schedule-table th.is-current {
+      background: #2563eb;
+      color: #ffffff;
+    }
+
+    .vaccine-row-label {
+      height: 74px;
+      display: grid;
+      place-items: center;
+      padding: 8px;
+    }
+
+    .schedule-cell {
+      height: 74px;
+      padding: 5px 6px;
+      background: #ffffff;
+    }
+
+    .schedule-cell.has-vaccine {
+      background: #fffdf5;
+    }
+
+    .schedule-cell.status-given {
+      background: #d1fae5;
+    }
+
+    .schedule-cell.status-due {
+      background: #dbeafe;
+    }
+
+    .schedule-cell.status-missed {
+      background: #fee2e2;
+    }
+
+    .schedule-cell.status-pending {
+      background: #ffffff;
+    }
+
+    .cell-vaccine {
+      display: block;
       font-weight: 800;
-      border: 1px solid transparent;
+      color: #1f2937;
+      line-height: 1.15;
     }
 
-    .badge.given { color: var(--brand-strong); background: var(--brand-soft); }
-    .badge.due { color: #075985; background: #e0f2fe; }
-    .badge.pending { color: var(--accent); background: var(--accent-soft); }
-    .badge.missed { color: var(--danger); background: var(--danger-soft); }
+    .cell-date,
+    .cell-note {
+      display: block;
+      margin-top: 2px;
+      color: #475569;
+      line-height: 1.15;
+    }
+
+    .cell-status {
+      display: inline-flex;
+      margin-top: 4px;
+      min-height: 18px;
+      align-items: center;
+      border-radius: 999px;
+      padding: 0 6px;
+      background: rgba(255, 255, 255, 0.74);
+      color: #334155;
+      font-size: 10px;
+      font-weight: 800;
+    }
 
     .row-actions {
       display: flex;
-      gap: 8px;
+      gap: 4px;
       flex-wrap: wrap;
+      margin-top: 4px;
     }
 
-    .edit-row td {
-      background: #fbfdfb;
+    .cell-action {
+      min-height: 20px;
+      border-radius: 3px;
+      border: 1px solid #cbd5e1;
+      background: rgba(255, 255, 255, 0.86);
+      color: #14532d;
+      font: inherit;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 0 5px;
+      cursor: pointer;
     }
 
     .edit-grid {
@@ -316,6 +406,18 @@
       background: #f8fbf9;
       padding: 10px;
       font-size: 13px;
+    }
+
+    .action-panel {
+      border: 1px solid var(--line);
+      background: #ffffff;
+      margin-bottom: 8px;
+      padding: 12px;
+    }
+
+    .action-panel h2 {
+      margin: 0 0 10px;
+      font-size: 14px;
     }
 
     .empty-state,
@@ -512,14 +614,6 @@
       });
     }
 
-    function groupRows(rows) {
-      return {
-        due: rows.filter((row) => row.status === 'Due' || row.status === 'Missed'),
-        upcoming: rows.filter((row) => row.status === 'Pending'),
-        completed: rows.filter((row) => row.status === 'Given')
-      };
-    }
-
     function updateSummary(rows) {
       const completed = rows.filter((row) => row.status === 'Given').length;
       const pending = rows.filter((row) => row.status !== 'Given').length;
@@ -533,93 +627,133 @@
       nextDueLabel.textContent = next ? `${next.vaccine} ${formatDate(next.dueDate)}` : '-';
     }
 
-    function rowHtml(row) {
-      const canSave = Boolean(currentPatient?.patientId);
+    function getVaccineGroup(vaccineName) {
+      const value = vaccineName.toLowerCase();
+      if (value.includes('pentavalent')) return 'Pentavalent';
+      if (value.includes('opv')) return 'OPV';
+      if (value.includes('rotavirus')) return 'Rotavirus';
+      if (value.includes('pcv')) return 'PCV';
+      if (value.includes('hepatitis b')) return 'Hepatitis B';
+      if (value.includes('hepatitis a')) return 'Hepatitis A';
+      if (value.includes('influenza')) return 'Influenza';
+      if (value.includes('typhoid')) return 'Typhoid';
+      if (value === 'mr 1' || value.includes('mmr')) return 'MR/MMR';
+      if (value.includes('varicella')) return 'Varicella';
+      if (value.includes('dpt')) return 'DPT';
+      if (value.includes('tdap') || value === 'td') return 'Td/Tdap';
+      if (value.includes('hpv')) return 'HPV';
+      return vaccineName.replace(/\s+\d+$/, '');
+    }
+
+    function getMilestones() {
+      return [...new Map(vaccineSchedule.map((item) => [item.milestone, item])).keys()];
+    }
+
+    function getVaccineGroups() {
+      return [...new Set(vaccineSchedule.map((item) => getVaccineGroup(item.vaccine)))];
+    }
+
+    function getCurrentMilestone(rows, milestones) {
+      const dueRows = milestones.map((milestone) => rows.find((row) => row.milestone === milestone)).filter(Boolean);
+      const nextUpcoming = dueRows.find((row) => row.dueDate && row.dueDate >= todayIso);
+      return nextUpcoming?.milestone || dueRows[dueRows.length - 1]?.milestone || '';
+    }
+
+    function getRowByKey(key) {
+      return buildRows(currentPatient).find((row) => row.key === key) || null;
+    }
+
+    function vaccineCellHtml(row, currentMilestone) {
+      if (!row) {
+        return '<div class="schedule-cell"></div>';
+      }
+
       return `
-        <tr>
-          <td>${escapeHtml(row.milestone)}</td>
-          <td><span class="vaccine-name">${escapeHtml(row.vaccine)}</span></td>
-          <td>${formatDate(row.dueDate)}</td>
-          <td><span class="badge ${row.status.toLowerCase()}">${escapeHtml(row.status)}</span></td>
-          <td>${formatDate(row.givenDate)}</td>
-          <td>${escapeHtml(row.notes || '-')}</td>
-          <td>
+        <div class="schedule-cell has-vaccine status-${row.status.toLowerCase()}">
+          <span class="cell-vaccine">${escapeHtml(row.vaccine)}</span>
+          <span class="cell-date">${row.status === 'Given' ? `Given ${formatDate(row.givenDate)}` : `Due ${formatDate(row.dueDate)}`}</span>
+          <span class="cell-status">${escapeHtml(row.status)}</span>
+          ${row.notes ? `<span class="cell-note">${escapeHtml(row.notes)}</span>` : ''}
+          <div class="row-actions">
+            <button class="cell-action" type="button" data-edit-vaccine="${escapeHtml(row.key)}">${row.status === 'Given' ? 'Edit' : 'Mark Given'}</button>
+            <button class="cell-action" type="button" data-history-vaccine="${escapeHtml(row.key)}">History</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function editPanelHtml(row) {
+      if (!row) return '';
+      return `
+        <section class="action-panel" data-edit-panel>
+          <h2>${escapeHtml(row.status === 'Given' ? 'Edit vaccine record' : 'Mark vaccine as given')}: ${escapeHtml(row.vaccine)} (${escapeHtml(row.milestone)})</h2>
+          <div class="edit-grid">
+            <div class="field">
+              <label>Given date</label>
+              <input type="date" data-given-date value="${escapeHtml(row.givenDate || todayIso)}">
+            </div>
+            <div class="field">
+              <label>Doctor/user</label>
+              <input type="text" data-marked-by value="${escapeHtml(row.record.markedBy || localStorage.getItem('clinicUserName') || 'Clinic user')}">
+            </div>
+            <div class="field">
+              <label>Notes</label>
+              <textarea data-vaccine-notes>${escapeHtml(row.notes || '')}</textarea>
+            </div>
             <div class="row-actions">
-              <button class="btn-primary" type="button" data-edit-vaccine="${escapeHtml(row.key)}" ${canSave ? '' : 'disabled'}>${row.status === 'Given' ? 'Edit' : 'Mark Given'}</button>
-              <button class="btn-ghost" type="button" data-history-vaccine="${escapeHtml(row.key)}">View History</button>
+              <button class="btn-primary" type="button" data-save-vaccine="${escapeHtml(row.key)}">Save</button>
+              <button class="btn-ghost" type="button" data-cancel-edit>Cancel</button>
             </div>
-          </td>
-        </tr>
-        ${editingKey === row.key ? editRowHtml(row) : ''}
-        ${historyKey === row.key ? historyRowHtml(row) : ''}
+          </div>
+        </section>
       `;
     }
 
-    function editRowHtml(row) {
-      return `
-        <tr class="edit-row">
-          <td colspan="7">
-            <div class="edit-grid">
-              <div class="field">
-                <label>Given date</label>
-                <input type="date" data-given-date value="${escapeHtml(row.givenDate || todayIso)}">
-              </div>
-              <div class="field">
-                <label>Doctor/user</label>
-                <input type="text" data-marked-by value="${escapeHtml(row.record.markedBy || localStorage.getItem('clinicUserName') || 'Clinic user')}">
-              </div>
-              <div class="field">
-                <label>Notes</label>
-                <textarea data-vaccine-notes>${escapeHtml(row.notes || '')}</textarea>
-              </div>
-              <div class="row-actions">
-                <button class="btn-primary" type="button" data-save-vaccine="${escapeHtml(row.key)}">Save</button>
-                <button class="btn-ghost" type="button" data-cancel-edit>Cancel</button>
-              </div>
-            </div>
-          </td>
-        </tr>
-      `;
-    }
-
-    function historyRowHtml(row) {
+    function historyPanelHtml(row) {
+      if (!row) return '';
       const history = Array.isArray(row.record.history) ? row.record.history : [];
       return `
-        <tr class="edit-row">
-          <td colspan="7">
-            ${history.length
-              ? `<ul class="history-list">${history.map((entry) => `<li><strong>${formatDate(entry.givenDate)}</strong> marked by ${escapeHtml(entry.markedBy || '-')}. ${escapeHtml(entry.notes || '')}</li>`).join('')}</ul>`
-              : '<div class="empty-state">No history for this vaccine yet.</div>'}
-          </td>
-        </tr>
+        <section class="action-panel">
+          <h2>History: ${escapeHtml(row.vaccine)} (${escapeHtml(row.milestone)})</h2>
+          ${history.length
+            ? `<ul class="history-list">${history.map((entry) => `<li><strong>${formatDate(entry.givenDate)}</strong> marked by ${escapeHtml(entry.markedBy || '-')}. ${escapeHtml(entry.notes || '')}</li>`).join('')}</ul>`
+            : '<div class="empty-state">No history for this vaccine yet.</div>'}
+        </section>
       `;
     }
 
-    function sectionHtml(title, rows) {
+    function scheduleGridHtml(rows) {
+      const milestones = getMilestones();
+      const vaccineGroups = getVaccineGroups();
+      const currentMilestone = getCurrentMilestone(rows, milestones);
+
       return `
         <section class="panel">
           <div class="panel-head">
-            <h2>${escapeHtml(title)}</h2>
-            <span class="muted">${rows.length} vaccine${rows.length === 1 ? '' : 's'}</span>
+            <h2>Vaccination Chart</h2>
+            <span class="muted">Doctor confirms the final schedule</span>
           </div>
-          ${rows.length ? `
-            <div class="table-wrap">
-              <table>
-                <thead>
+          <div class="table-wrap">
+            <table class="schedule-table">
+              <thead>
+                <tr>
+                  <th>Vaccine</th>
+                  ${milestones.map((milestone) => `<th class="${milestone === currentMilestone ? 'is-current' : ''}">${escapeHtml(milestone)}</th>`).join('')}
+                </tr>
+              </thead>
+              <tbody>
+                ${vaccineGroups.map((group) => `
                   <tr>
-                    <th>Age/Milestone</th>
-                    <th>Vaccine</th>
-                    <th>Due date</th>
-                    <th>Status</th>
-                    <th>Given date</th>
-                    <th>Notes</th>
-                    <th>Actions</th>
+                    <td><div class="vaccine-row-label">${escapeHtml(group)}</div></td>
+                    ${milestones.map((milestone) => {
+                      const row = rows.find((entry) => entry.milestone === milestone && getVaccineGroup(entry.vaccine) === group);
+                      return `<td class="${milestone === currentMilestone ? 'is-current' : ''}">${vaccineCellHtml(row, currentMilestone)}</td>`;
+                    }).join('')}
                   </tr>
-                </thead>
-                <tbody>${rows.map(rowHtml).join('')}</tbody>
-              </table>
-            </div>
-          ` : '<div class="empty-state">No vaccines in this section.</div>'}
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
         </section>
       `;
     }
@@ -632,15 +766,14 @@
       }
 
       const rows = buildRows(currentPatient);
-      const groups = groupRows(rows);
       updateSummary(rows);
       pageTitle.textContent = getPatientName(currentPatient);
       patientMeta.textContent = `${currentPatient.gender || 'Gender not saved'} | ${formatDate(currentPatient.dob)} | Age ${calculateAge(currentPatient.dob)} | ${currentPatient.patientId}`;
       backToProfileLink.href = `search?patientId=${encodeURIComponent(currentPatient.patientId || '')}`;
       tablesRoot.innerHTML = [
-        sectionHtml('Due Vaccines', groups.due),
-        sectionHtml('Upcoming Vaccines', groups.upcoming),
-        sectionHtml('Completed Vaccines', groups.completed)
+        editPanelHtml(getRowByKey(editingKey)),
+        historyPanelHtml(getRowByKey(historyKey)),
+        scheduleGridHtml(rows)
       ].join('');
     }
 
@@ -678,10 +811,10 @@
     async function saveVaccine(vaccineKey) {
       if (!currentPatient?.patientId || !db) return;
       const row = buildRows(currentPatient).find((entry) => entry.key === vaccineKey);
-      const editRow = document.querySelector('.edit-row');
-      const givenDate = editRow?.querySelector('[data-given-date]')?.value || todayIso;
-      const markedBy = editRow?.querySelector('[data-marked-by]')?.value.trim() || 'Clinic user';
-      const notes = editRow?.querySelector('[data-vaccine-notes]')?.value.trim() || '';
+      const editPanel = document.querySelector('[data-edit-panel]');
+      const givenDate = editPanel?.querySelector('[data-given-date]')?.value || todayIso;
+      const markedBy = editPanel?.querySelector('[data-marked-by]')?.value.trim() || 'Clinic user';
+      const notes = editPanel?.querySelector('[data-vaccine-notes]')?.value.trim() || '';
       const existingRecords = Array.isArray(currentPatient.vaccinationRecords) ? currentPatient.vaccinationRecords : [];
       const existingRecord = existingRecords.find((record) => record.vaccineKey === vaccineKey) || {};
       const savedRecord = {

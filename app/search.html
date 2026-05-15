@@ -3170,19 +3170,19 @@
                 <div class="doctor-detail-stack">
                   <section class="doctor-card">
                     <div class="doctor-card-head">
+                      <h3>Vitals Trend</h3>
+                    </div>
+                    <div class="doctor-card-body is-compact">
+                      ${renderMeasurementTableHtml(selectedPatient, selectedHistoryDate) || '<p class="doctor-card-note">No vitals trend has been saved yet.</p>'}
+                    </div>
+                  </section>
+                  <section class="doctor-card">
+                    <div class="doctor-card-head">
                       <h3>Vaccination Summary</h3>
                       <a class="filter-clear-btn" href="vacination?patientId=${encodeURIComponent(selectedPatientIdValue)}">Open</a>
                     </div>
                     <div class="doctor-card-body">
                       ${renderVaccinationSummaryHtml(selectedPatient)}
-                    </div>
-                  </section>
-                  <section class="doctor-card">
-                    <div class="doctor-card-head">
-                      <h3>Vitals Trend</h3>
-                    </div>
-                    <div class="doctor-card-body is-compact">
-                      ${renderMeasurementTableHtml(selectedPatient, selectedHistoryDate) || '<p class="doctor-card-note">No vitals trend has been saved yet.</p>'}
                     </div>
                   </section>
                 </div>
