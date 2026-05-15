@@ -449,6 +449,30 @@
       color: var(--brand-strong);
     }
 
+    .save-status {
+      min-height: 42px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: #f8fbf9;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+      font-weight: 600;
+    }
+
+    .save-status.error {
+      border-color: #fecaca;
+      background: #fff1f2;
+      color: #991b1b;
+    }
+
+    .save-status.ready {
+      border-color: #bbf7d0;
+      background: #f0fdf4;
+      color: var(--brand-strong);
+    }
+
     @media (max-width: 900px) {
       .topbar {
         width: min(100% - 24px, 100%);
@@ -704,6 +728,7 @@
           </div>
 
           <button id="continue-btn" class="btn-primary" type="submit" form="new-patient-form">Continue</button>
+          <div id="save-status" class="save-status">Patient will be saved to Firestore before consult starts.</div>
         </div>
       </div>
 
@@ -719,6 +744,7 @@
     const navLinks = [...document.querySelectorAll('#primary-nav .nav-link')];
     const newPatientForm = document.getElementById('new-patient-form');
     const continueBtn = document.getElementById('continue-btn');
+    const saveStatus = document.getElementById('save-status');
     const patientIdOutput = document.getElementById('patient-id-output');
     const dobDayInput = document.getElementById('dob-day');
     const dobMonthInput = document.getElementById('dob-month');
@@ -740,6 +766,14 @@
     if (firebaseConfigured) {
       const app = initializeApp(firebaseConfig);
       db = getFirestore(app);
+    }
+
+    function setSaveStatus(message, tone = '') {
+      if (!saveStatus) {
+        return;
+      }
+      saveStatus.textContent = message;
+      saveStatus.className = `save-status${tone ? ` ${tone}` : ''}`;
     }
 
     function closeMobileMenu() {
@@ -845,12 +879,16 @@
 
       try {
         const savedToFirebase = await savePatientToFirebase(autoPatientId);
+        setSaveStatus(savedToFirebase
+          ? `Saved patient ${autoPatientId} to Firestore.`
+          : `Patient ${autoPatientId} generated locally, but Firebase is not configured.`, savedToFirebase ? 'ready' : 'error');
         console.log(savedToFirebase
           ? `Saved to Firebase with Patient ID ${autoPatientId}.`
           : `Patient ID ${autoPatientId} generated locally. Add Firebase config to store this in Firestore.`);
         window.location.href = `prescription-growth-chart-dashboard?patientId=${encodeURIComponent(autoPatientId)}`;
       } catch (error) {
         console.error(`Firebase save failed: ${error.message}`);
+        setSaveStatus(`Firebase save failed: ${error.message}. Publish Firestore rules and try again.`, 'error');
       } finally {
         continueBtn.disabled = false;
         continueBtn.textContent = 'Continue';
