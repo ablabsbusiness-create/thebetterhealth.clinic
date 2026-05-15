@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vacination</title>
+  <script type="module" src="./auth-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f4f7f5;
+      --panel: #ffffff;
+      --ink: #1b2a21;
+      --muted: #607067;
+      --line: #d7e2d9;
+      --brand: #166534;
+      --brand-soft: #dcfce7;
+      --brand-strong: #14532d;
+      --accent: #b45309;
+      --accent-soft: #ffedd5;
+      --danger: #b91c1c;
+      --danger-soft: #fee2e2;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Outfit', system-ui, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(248, 252, 248, 0.9);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(12px);
+    }
+
+    .topbar {
+      width: min(1220px, calc(100% - 28px));
+      min-height: 72px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #166534, #22c55e);
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .brand-copy strong,
+    .brand-copy span {
+      display: block;
+    }
+
+    .brand-copy strong { font-size: 15px; }
+    .brand-copy span { margin-top: 4px; color: var(--muted); font-size: 12px; }
+
+    .topbar-actions {
+      margin-left: auto;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .nav-link,
+    .btn-primary,
+    .btn-secondary,
+    .btn-ghost {
+      min-height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      padding: 0 14px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .nav-link,
+    .btn-secondary,
+    .btn-ghost {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--brand-strong);
+    }
+
+    .btn-primary {
+      border: 1px solid var(--brand);
+      background: var(--brand);
+      color: #fff;
+    }
+
+    .btn-ghost {
+      min-height: 32px;
+      padding: 0 10px;
+      background: #f8fbf9;
+      color: var(--muted);
+    }
+
+    .page-shell {
+      width: min(1220px, calc(100% - 28px));
+      margin: 18px auto 32px;
+    }
+
+    .patient-bar,
+    .panel {
+      border: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .patient-bar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: end;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      margin: 0 0 5px;
+      font-size: 24px;
+      line-height: 1.1;
+    }
+
+    .muted {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .patient-search {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    input,
+    select,
+    textarea {
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      font-size: 13px;
+      padding: 8px 10px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 72px;
+      resize: vertical;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .summary-card {
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 14px;
+    }
+
+    .summary-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .summary-card strong {
+      display: block;
+      margin-top: 7px;
+      font-size: 22px;
+      line-height: 1.1;
+    }
+
+    .panel {
+      margin-bottom: 14px;
+      overflow: hidden;
+    }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      padding: 14px 16px;
+      border-bottom: 1px solid #e9f0ea;
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 920px;
+    }
+
+    th,
+    td {
+      padding: 11px 12px;
+      border-bottom: 1px solid #e9f0ea;
+      text-align: left;
+      vertical-align: top;
+      font-size: 13px;
+    }
+
+    th {
+      color: var(--brand-strong);
+      background: #f8fbf9;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    .vaccine-name {
+      font-weight: 700;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      border-radius: 999px;
+      padding: 0 9px;
+      font-size: 12px;
+      font-weight: 800;
+      border: 1px solid transparent;
+    }
+
+    .badge.given { color: var(--brand-strong); background: var(--brand-soft); }
+    .badge.due { color: #075985; background: #e0f2fe; }
+    .badge.pending { color: var(--accent); background: var(--accent-soft); }
+    .badge.missed { color: var(--danger); background: var(--danger-soft); }
+
+    .row-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .edit-row td {
+      background: #fbfdfb;
+    }
+
+    .edit-grid {
+      display: grid;
+      grid-template-columns: 180px 180px minmax(220px, 1fr) auto;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .history-list {
+      display: grid;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .history-list li {
+      border: 1px solid var(--line);
+      background: #f8fbf9;
+      padding: 10px;
+      font-size: 13px;
+    }
+
+    .empty-state,
+    .status-note {
+      color: var(--muted);
+      padding: 16px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 860px) {
+      .patient-bar,
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .edit-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="topbar">
+      <a class="brand" href="search">
+        <span class="brand-mark">VH</span>
+        <span class="brand-copy">
+          <strong>The Better Health Clinic</strong>
+          <span>Vaccination Tracker</span>
+        </span>
+      </a>
+      <div class="topbar-actions">
+        <a class="nav-link" href="search">Search</a>
+        <a class="nav-link" href="pending-approvals">Approvals</a>
+        <a class="nav-link" href="settings">Settings</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section class="patient-bar">
+      <div>
+        <h1 id="page-title">Vacination</h1>
+        <p id="patient-meta" class="muted">Enter or open a patient to track vaccines. Doctor confirms the final schedule.</p>
+      </div>
+      <div class="patient-search">
+        <input id="patient-id-input" type="text" placeholder="Patient ID">
+        <button id="load-patient-btn" class="btn-secondary" type="button">Load Patient</button>
+        <a id="back-to-profile-link" class="btn-ghost" href="search">Back to Profile</a>
+      </div>
+    </section>
+
+    <section class="summary-grid" aria-label="Vaccination summary">
+      <div class="summary-card"><span>Completed</span><strong id="completed-count">0</strong></div>
+      <div class="summary-card"><span>Pending</span><strong id="pending-count">0</strong></div>
+      <div class="summary-card"><span>Missed</span><strong id="missed-count">0</strong></div>
+      <div class="summary-card"><span>Next Due</span><strong id="next-due-label">-</strong></div>
+    </section>
+
+    <div id="status-note" class="status-note">Loading vaccination module...</div>
+    <div id="tables-root"></div>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
+    import { doc, getDoc, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+
+    const firebaseEnv = import.meta.env || {};
+    const firebaseConfig = {
+      apiKey: firebaseEnv.VITE_FIREBASE_API_KEY || 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
+      authDomain: firebaseEnv.VITE_FIREBASE_AUTH_DOMAIN || 'clinci-dr-gunda.firebaseapp.com',
+      projectId: firebaseEnv.VITE_FIREBASE_PROJECT_ID || 'clinci-dr-gunda',
+      storageBucket: firebaseEnv.VITE_FIREBASE_STORAGE_BUCKET || 'clinci-dr-gunda.firebasestorage.app',
+      messagingSenderId: firebaseEnv.VITE_FIREBASE_MESSAGING_SENDER_ID || '1059959825609',
+      appId: firebaseEnv.VITE_FIREBASE_APP_ID || '1:1059959825609:web:8201599754706ac4661918',
+      measurementId: firebaseEnv.VITE_FIREBASE_MEASUREMENT_ID || 'G-4V5JMVW45E'
+    };
+
+    const db = Object.values(firebaseConfig).every(Boolean) ? getFirestore(initializeApp(firebaseConfig)) : null;
+    const patientIdInput = document.getElementById('patient-id-input');
+    const loadPatientBtn = document.getElementById('load-patient-btn');
+    const backToProfileLink = document.getElementById('back-to-profile-link');
+    const pageTitle = document.getElementById('page-title');
+    const patientMeta = document.getElementById('patient-meta');
+    const statusNote = document.getElementById('status-note');
+    const tablesRoot = document.getElementById('tables-root');
+    const completedCount = document.getElementById('completed-count');
+    const pendingCount = document.getElementById('pending-count');
+    const missedCount = document.getElementById('missed-count');
+    const nextDueLabel = document.getElementById('next-due-label');
+    const todayIso = new Date().toISOString().slice(0, 10);
+    let currentPatient = null;
+    let editingKey = '';
+    let historyKey = '';
+
+    const vaccineSchedule = [
+      { key: 'birth-bcg', milestone: 'Birth', vaccine: 'BCG', months: 0, days: 0 },
+      { key: 'birth-opv0', milestone: 'Birth', vaccine: 'OPV 0', months: 0, days: 0 },
+      { key: 'birth-hepb', milestone: 'Birth', vaccine: 'Hepatitis B Birth Dose', months: 0, days: 0 },
+      { key: '6w-penta1', milestone: '6 weeks', vaccine: 'Pentavalent 1', months: 0, days: 42 },
+      { key: '6w-opv1', milestone: '6 weeks', vaccine: 'OPV 1', months: 0, days: 42 },
+      { key: '6w-rota1', milestone: '6 weeks', vaccine: 'Rotavirus 1', months: 0, days: 42 },
+      { key: '6w-pcv1', milestone: '6 weeks', vaccine: 'PCV 1', months: 0, days: 42 },
+      { key: '10w-penta2', milestone: '10 weeks', vaccine: 'Pentavalent 2', months: 0, days: 70 },
+      { key: '10w-opv2', milestone: '10 weeks', vaccine: 'OPV 2', months: 0, days: 70 },
+      { key: '10w-rota2', milestone: '10 weeks', vaccine: 'Rotavirus 2', months: 0, days: 70 },
+      { key: '14w-penta3', milestone: '14 weeks', vaccine: 'Pentavalent 3', months: 0, days: 98 },
+      { key: '14w-opv3', milestone: '14 weeks', vaccine: 'OPV 3', months: 0, days: 98 },
+      { key: '14w-rota3', milestone: '14 weeks', vaccine: 'Rotavirus 3', months: 0, days: 98 },
+      { key: '14w-pcv2', milestone: '14 weeks', vaccine: 'PCV 2', months: 0, days: 98 },
+      { key: '6m-influenza1', milestone: '6 months', vaccine: 'Influenza 1', months: 6, days: 0 },
+      { key: '7m-influenza2', milestone: '7 months', vaccine: 'Influenza 2', months: 7, days: 0 },
+      { key: '9m-mr1', milestone: '9 months', vaccine: 'MR 1', months: 9, days: 0 },
+      { key: '9m-typhoid', milestone: '9 months', vaccine: 'Typhoid Conjugate', months: 9, days: 0 },
+      { key: '12m-hepa1', milestone: '12 months', vaccine: 'Hepatitis A 1', months: 12, days: 0 },
+      { key: '15m-mmr', milestone: '15 months', vaccine: 'MMR', months: 15, days: 0 },
+      { key: '15m-varicella1', milestone: '15 months', vaccine: 'Varicella 1', months: 15, days: 0 },
+      { key: '16m-pcv-booster', milestone: '16-18 months', vaccine: 'PCV Booster', months: 16, days: 0 },
+      { key: '18m-dpt-booster', milestone: '18 months', vaccine: 'DPT Booster 1', months: 18, days: 0 },
+      { key: '18m-opv-booster', milestone: '18 months', vaccine: 'OPV Booster', months: 18, days: 0 },
+      { key: '24m-hepa2', milestone: '24 months', vaccine: 'Hepatitis A 2', months: 24, days: 0 },
+      { key: '4y-dpt-booster', milestone: '4-6 years', vaccine: 'DPT Booster 2', months: 48, days: 0 },
+      { key: '9y-tdap', milestone: '9-14 years', vaccine: 'Tdap/Td', months: 108, days: 0 },
+      { key: '10y-hpv', milestone: '9-14 years', vaccine: 'HPV', months: 120, days: 0 }
+    ];
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function formatDate(value) {
+      if (!value) return '-';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return value;
+      return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function addToDob(dobValue, months, days) {
+      const date = new Date(dobValue);
+      if (Number.isNaN(date.getTime())) return '';
+      date.setMonth(date.getMonth() + months);
+      date.setDate(date.getDate() + days);
+      return date.toISOString().slice(0, 10);
+    }
+
+    function calculateAge(dobValue) {
+      const dob = new Date(dobValue);
+      if (Number.isNaN(dob.getTime())) return 'DOB not saved';
+      const now = new Date();
+      const months = Math.max(0, Math.floor((now.getFullYear() - dob.getFullYear()) * 12 + now.getMonth() - dob.getMonth()));
+      if (months < 24) return `${months} month${months === 1 ? '' : 's'}`;
+      const years = Math.floor(months / 12);
+      return `${years} year${years === 1 ? '' : 's'}`;
+    }
+
+    function getPatientName(patient) {
+      return patient?.childName || [patient?.firstName, patient?.middleName, patient?.lastName].filter(Boolean).join(' ') || 'Unnamed child';
+    }
+
+    function getRecordsByKey(patient) {
+      const map = new Map();
+      (Array.isArray(patient?.vaccinationRecords) ? patient.vaccinationRecords : []).forEach((record) => {
+        if (record?.vaccineKey) map.set(record.vaccineKey, record);
+      });
+      return map;
+    }
+
+    function getStatus(dueDate, record) {
+      if (record?.status === 'Given' || record?.givenDate) return 'Given';
+      if (!dueDate) return 'Pending';
+      if (dueDate === todayIso) return 'Due';
+      return dueDate < todayIso ? 'Missed' : 'Pending';
+    }
+
+    function buildRows(patient) {
+      const recordsByKey = getRecordsByKey(patient);
+      return vaccineSchedule.map((item) => {
+        const record = recordsByKey.get(item.key) || {};
+        const dueDate = addToDob(patient?.dob || '', item.months, item.days);
+        return {
+          ...item,
+          dueDate,
+          record,
+          status: getStatus(dueDate, record),
+          givenDate: record.givenDate || '',
+          notes: record.notes || ''
+        };
+      });
+    }
+
+    function groupRows(rows) {
+      return {
+        due: rows.filter((row) => row.status === 'Due' || row.status === 'Missed'),
+        upcoming: rows.filter((row) => row.status === 'Pending'),
+        completed: rows.filter((row) => row.status === 'Given')
+      };
+    }
+
+    function updateSummary(rows) {
+      const completed = rows.filter((row) => row.status === 'Given').length;
+      const pending = rows.filter((row) => row.status !== 'Given').length;
+      const missed = rows.filter((row) => row.status === 'Missed').length;
+      const next = rows
+        .filter((row) => row.status !== 'Given' && row.dueDate)
+        .sort((left, right) => new Date(left.dueDate) - new Date(right.dueDate))[0];
+      completedCount.textContent = completed;
+      pendingCount.textContent = pending;
+      missedCount.textContent = missed;
+      nextDueLabel.textContent = next ? `${next.vaccine} ${formatDate(next.dueDate)}` : '-';
+    }
+
+    function rowHtml(row) {
+      const canSave = Boolean(currentPatient?.patientId);
+      return `
+        <tr>
+          <td>${escapeHtml(row.milestone)}</td>
+          <td><span class="vaccine-name">${escapeHtml(row.vaccine)}</span></td>
+          <td>${formatDate(row.dueDate)}</td>
+          <td><span class="badge ${row.status.toLowerCase()}">${escapeHtml(row.status)}</span></td>
+          <td>${formatDate(row.givenDate)}</td>
+          <td>${escapeHtml(row.notes || '-')}</td>
+          <td>
+            <div class="row-actions">
+              <button class="btn-primary" type="button" data-edit-vaccine="${escapeHtml(row.key)}" ${canSave ? '' : 'disabled'}>${row.status === 'Given' ? 'Edit' : 'Mark Given'}</button>
+              <button class="btn-ghost" type="button" data-history-vaccine="${escapeHtml(row.key)}">View History</button>
+            </div>
+          </td>
+        </tr>
+        ${editingKey === row.key ? editRowHtml(row) : ''}
+        ${historyKey === row.key ? historyRowHtml(row) : ''}
+      `;
+    }
+
+    function editRowHtml(row) {
+      return `
+        <tr class="edit-row">
+          <td colspan="7">
+            <div class="edit-grid">
+              <div class="field">
+                <label>Given date</label>
+                <input type="date" data-given-date value="${escapeHtml(row.givenDate || todayIso)}">
+              </div>
+              <div class="field">
+                <label>Doctor/user</label>
+                <input type="text" data-marked-by value="${escapeHtml(row.record.markedBy || localStorage.getItem('clinicUserName') || 'Clinic user')}">
+              </div>
+              <div class="field">
+                <label>Notes</label>
+                <textarea data-vaccine-notes>${escapeHtml(row.notes || '')}</textarea>
+              </div>
+              <div class="row-actions">
+                <button class="btn-primary" type="button" data-save-vaccine="${escapeHtml(row.key)}">Save</button>
+                <button class="btn-ghost" type="button" data-cancel-edit>Cancel</button>
+              </div>
+            </div>
+          </td>
+        </tr>
+      `;
+    }
+
+    function historyRowHtml(row) {
+      const history = Array.isArray(row.record.history) ? row.record.history : [];
+      return `
+        <tr class="edit-row">
+          <td colspan="7">
+            ${history.length
+              ? `<ul class="history-list">${history.map((entry) => `<li><strong>${formatDate(entry.givenDate)}</strong> marked by ${escapeHtml(entry.markedBy || '-')}. ${escapeHtml(entry.notes || '')}</li>`).join('')}</ul>`
+              : '<div class="empty-state">No history for this vaccine yet.</div>'}
+          </td>
+        </tr>
+      `;
+    }
+
+    function sectionHtml(title, rows) {
+      return `
+        <section class="panel">
+          <div class="panel-head">
+            <h2>${escapeHtml(title)}</h2>
+            <span class="muted">${rows.length} vaccine${rows.length === 1 ? '' : 's'}</span>
+          </div>
+          ${rows.length ? `
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Age/Milestone</th>
+                    <th>Vaccine</th>
+                    <th>Due date</th>
+                    <th>Status</th>
+                    <th>Given date</th>
+                    <th>Notes</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>${rows.map(rowHtml).join('')}</tbody>
+              </table>
+            </div>
+          ` : '<div class="empty-state">No vaccines in this section.</div>'}
+        </section>
+      `;
+    }
+
+    function render() {
+      if (!currentPatient) {
+        tablesRoot.innerHTML = '';
+        updateSummary([]);
+        return;
+      }
+
+      const rows = buildRows(currentPatient);
+      const groups = groupRows(rows);
+      updateSummary(rows);
+      pageTitle.textContent = getPatientName(currentPatient);
+      patientMeta.textContent = `${currentPatient.gender || 'Gender not saved'} | ${formatDate(currentPatient.dob)} | Age ${calculateAge(currentPatient.dob)} | ${currentPatient.patientId}`;
+      backToProfileLink.href = `search?patientId=${encodeURIComponent(currentPatient.patientId || '')}`;
+      tablesRoot.innerHTML = [
+        sectionHtml('Due Vaccines', groups.due),
+        sectionHtml('Upcoming Vaccines', groups.upcoming),
+        sectionHtml('Completed Vaccines', groups.completed)
+      ].join('');
+    }
+
+    async function loadPatient(patientId) {
+      const normalizedPatientId = String(patientId || '').trim().toUpperCase();
+      patientIdInput.value = normalizedPatientId;
+      if (!normalizedPatientId) {
+        statusNote.textContent = 'Enter a patient ID to load vaccination records.';
+        return;
+      }
+
+      if (!db) {
+        statusNote.textContent = 'Firebase is not configured.';
+        return;
+      }
+
+      statusNote.textContent = 'Loading patient vaccination records...';
+      const snapshot = await getDoc(doc(db, 'patients', normalizedPatientId));
+      if (!snapshot.exists()) {
+        currentPatient = { patientId: normalizedPatientId, vaccinationRecords: [] };
+        statusNote.textContent = 'Patient was not found. Showing an empty vaccination tracker for this ID.';
+      } else {
+        currentPatient = {
+          id: snapshot.id,
+          patientId: snapshot.data().patientId || normalizedPatientId,
+          ...snapshot.data()
+        };
+        statusNote.textContent = 'Vaccination records loaded. This screen only tracks records; doctor confirms the schedule.';
+      }
+      editingKey = '';
+      historyKey = '';
+      render();
+    }
+
+    async function saveVaccine(vaccineKey) {
+      if (!currentPatient?.patientId || !db) return;
+      const row = buildRows(currentPatient).find((entry) => entry.key === vaccineKey);
+      const editRow = document.querySelector('.edit-row');
+      const givenDate = editRow?.querySelector('[data-given-date]')?.value || todayIso;
+      const markedBy = editRow?.querySelector('[data-marked-by]')?.value.trim() || 'Clinic user';
+      const notes = editRow?.querySelector('[data-vaccine-notes]')?.value.trim() || '';
+      const existingRecords = Array.isArray(currentPatient.vaccinationRecords) ? currentPatient.vaccinationRecords : [];
+      const existingRecord = existingRecords.find((record) => record.vaccineKey === vaccineKey) || {};
+      const savedRecord = {
+        ...existingRecord,
+        vaccineKey,
+        vaccineName: row.vaccine,
+        milestone: row.milestone,
+        dueDate: row.dueDate,
+        status: 'Given',
+        givenDate,
+        markedBy,
+        notes,
+        updatedAtIso: new Date().toISOString(),
+        history: [
+          ...(Array.isArray(existingRecord.history) ? existingRecord.history : []),
+          { givenDate, markedBy, notes, savedAtIso: new Date().toISOString() }
+        ]
+      };
+      const vaccinationRecords = [
+        ...existingRecords.filter((record) => record.vaccineKey !== vaccineKey),
+        savedRecord
+      ];
+
+      await setDoc(doc(db, 'patients', currentPatient.patientId), {
+        vaccinationRecords,
+        vaccinationUpdatedAt: serverTimestamp()
+      }, { merge: true });
+
+      currentPatient = { ...currentPatient, vaccinationRecords };
+      localStorage.setItem('clinicUserName', markedBy);
+      editingKey = '';
+      statusNote.textContent = `${row.vaccine} marked as given.`;
+      render();
+    }
+
+    loadPatientBtn.addEventListener('click', () => loadPatient(patientIdInput.value));
+    patientIdInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') loadPatient(patientIdInput.value);
+    });
+
+    tablesRoot.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      const editKey = target.getAttribute('data-edit-vaccine');
+      const saveKey = target.getAttribute('data-save-vaccine');
+      const rowHistoryKey = target.getAttribute('data-history-vaccine');
+
+      if (editKey) {
+        editingKey = editingKey === editKey ? '' : editKey;
+        historyKey = '';
+        render();
+        return;
+      }
+
+      if (saveKey) {
+        saveVaccine(saveKey).catch((error) => {
+          statusNote.textContent = `Unable to save vaccine: ${error.message}`;
+        });
+        return;
+      }
+
+      if (rowHistoryKey) {
+        historyKey = historyKey === rowHistoryKey ? '' : rowHistoryKey;
+        editingKey = '';
+        render();
+        return;
+      }
+
+      if (target.matches('[data-cancel-edit]')) {
+        editingKey = '';
+        render();
+      }
+    });
+
+    const params = new URLSearchParams(window.location.search);
+    const initialPatientId = params.get('patientId') || '';
+    if (initialPatientId) {
+      loadPatient(initialPatientId).catch((error) => {
+        statusNote.textContent = `Unable to load patient: ${error.message}`;
+      });
+    } else {
+      statusNote.textContent = 'Enter a patient ID to load vaccination records.';
+    }
+  </script>
+</body>
+</html>

@@ -197,6 +197,62 @@
       0%, 48% { opacity: 1; }
       50%, 100% { opacity: 0; }
     }
+    .gallery-carousel {
+      position: relative;
+    }
+    .gallery-carousel-track {
+      display: flex;
+      gap: 1.25rem;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      padding: 0.25rem 0.25rem 1rem;
+      scrollbar-width: none;
+    }
+    .gallery-carousel-track::-webkit-scrollbar {
+      display: none;
+    }
+    .gallery-carousel-track > article {
+      flex: 0 0 calc((100% - 2.5rem) / 3);
+      scroll-snap-align: start;
+    }
+    .gallery-carousel-control {
+      width: 2.85rem;
+      height: 2.85rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: #ffffff;
+      color: #2E7D6B;
+      box-shadow: 0 12px 30px rgba(28, 78, 67, 0.12);
+      border: 1px solid rgba(46, 125, 107, 0.14);
+      font-size: 1.45rem;
+      font-weight: 900;
+      line-height: 1;
+      transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+    }
+    .gallery-carousel-control:hover {
+      transform: translateY(-2px);
+      background: #2E7D6B;
+      color: #ffffff;
+    }
+    .gallery-carousel-dot {
+      width: 0.55rem;
+      height: 0.55rem;
+      border-radius: 999px;
+      background: rgba(46, 125, 107, 0.24);
+      transition: width 0.2s ease, background 0.2s ease;
+    }
+    .gallery-carousel-dot.is-active {
+      width: 1.65rem;
+      background: #2E7D6B;
+    }
+    @media (max-width: 1023px) {
+      .gallery-carousel-track > article {
+        flex-basis: calc((100% - 1.25rem) / 2);
+      }
+    }
     @media (max-width: 767px) {
       .hero-soft {
         padding-top: 2.5rem;
@@ -233,6 +289,17 @@
         border-radius: 1.05rem;
         font-size: 0.92rem;
         line-height: 1.35;
+      }
+      .gallery-carousel-track {
+        gap: 1rem;
+        padding-inline: 0.1rem;
+      }
+      .gallery-carousel-track > article {
+        flex-basis: 88%;
+      }
+      .gallery-carousel-control {
+        width: 2.65rem;
+        height: 2.65rem;
       }
       .hero-cta-wrap {
         width: 100%;
@@ -970,7 +1037,7 @@
 <!-- ==========================================
        HERO SECTION
   ========================================== -->
-<section class="hero-soft relative overflow-hidden pt-14 pb-16 md:pt-20 md:pb-20" id="home">
+<section class="hero-soft relative overflow-hidden pt-7 pb-16 md:pt-20 md:pb-20" id="home">
 <div class="hero-cloud one"></div>
 <div class="hero-cloud two"></div>
 <div class="max-w-6xl mx-auto px-4 grid lg:grid-cols-[1.05fr_0.95fr] gap-10 items-center">
@@ -990,7 +1057,7 @@
 <p class="text-base md:text-lg text-gray-500 leading-relaxed max-w-xl mx-auto">Dr. Chaitanya Sravanthi offers calm, evidence-based respiratory care for asthma, chronic cough, allergies, COPD, and long-term lung health.</p>
 <div class="mt-4">
 <div class="hero-respiratory-note">
-<span class="pulse"></span> <span>Asthma, COPD, chronic cough, allergy, and breathing reviews</span>
+<span>The Better Lungs Clinic cares for every small breath concern and every big chest worry.</span>
 </div>
 </div>
 <div class="mt-6 hero-cta-wrap">
@@ -1142,20 +1209,6 @@
 <h2 class="text-3xl md:text-4xl font-bold text-brand-dark mb-5">Meet Dr. Chaitanya Sravanthi</h2>
 <p class="text-gray-600 leading-relaxed mb-4">Dr. Chaitanya Sravanthi is dedicated to making chest and respiratory care feel calm, clear, and deeply attentive for every patient and family.</p>
 <p class="text-gray-600 leading-relaxed mb-8">With a strong focus on accurate diagnosis, breathing comfort, and practical recovery guidance, she works to build long-term trust with every patient who walks into the clinic.</p>
-<div class="doctor-profile-card mb-8">
-<span class="card-glow"></span>
-<div class="relative flex flex-col sm:flex-row sm:items-start gap-4">
-<div class="doctor-card-mark">TBLC</div>
-<div class="flex-1">
-<h3 class="font-heading font-bold text-2xl text-brand-dark mb-1">Chest Physician</h3>
-<p class="text-blue-700 text-sm font-bold mb-1">(Pulmonologist)</p>
-<p class="text-brand-dark text-sm font-bold mb-1">Dr. Chaitanya Sravanthi R</p>
-<p class="text-gray-500 text-xs leading-relaxed mb-3">MD(Pulmonology), DNB(TB and Respiratory diseases)</p>
-<p class="text-gray-500 text-sm leading-relaxed mb-5">Asthma, breathing problems, allergy, cough, chest issues, and respiratory care.</p>
-<a class="doctor-card-button" href="#contact">Book Consultation</a>
-</div>
-</div>
-</div>
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
 <div class="bg-brand-cream rounded-3xl p-5 shadow-soft">
 <div class="text-2xl font-bold text-brand-green font-heading mb-1">15+</div>
@@ -1327,7 +1380,8 @@
 <h2 class="text-3xl md:text-4xl font-bold text-brand-dark mb-3">Inside the breathing-care experience</h2>
 <p class="text-gray-500 max-w-2xl mx-auto">A quick gallery section to make the lungs homepage feel complete, while keeping the same calm visual language as the rest of the site.</p>
 </div>
-<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+<div class="gallery-carousel" data-gallery-carousel>
+<div class="gallery-carousel-track" data-gallery-track>
 <article class="hover-lift fade-in bg-white rounded-5xl overflow-hidden shadow-soft">
 <img alt="Respiratory consultation room" class="w-full h-64 object-cover" src="https://images.unsplash.com/photo-1666214280391-8ff5bd3c0bf0?w=900&amp;auto=format&amp;fit=crop&amp;q=80"/>
 <div class="p-5">
@@ -1356,6 +1410,12 @@
 <p class="mt-2 text-sm text-gray-500">Well-kept spaces support confidence during chest and breathing consultations.</p>
 </div>
 </article>
+</div>
+<div class="mt-6 flex items-center justify-center gap-4">
+<button aria-label="Previous gallery item" class="gallery-carousel-control" data-gallery-prev type="button">&#8249;</button>
+<div aria-label="Gallery slide position" class="flex items-center justify-center gap-2" data-gallery-dots></div>
+<button aria-label="Next gallery item" class="gallery-carousel-control" data-gallery-next type="button">&#8250;</button>
+</div>
 </div>
 </div>
 </section>
@@ -1441,7 +1501,6 @@
 <div class="w-14 h-14 rounded-2xl bg-brand-orange text-white flex items-center justify-center text-2xl shadow-md shrink-0">🕒</div>
 <div>
 <p class="text-xs uppercase tracking-widest text-gray-400 font-extrabold">Clinic Timings</p>
-<p class="text-sm text-gray-500">Short schedule</p>
 </div>
 </div>
 <div class="space-y-2 text-sm">
@@ -1813,6 +1872,56 @@
     }, { threshold: 0.12 });
 
     document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+    document.querySelectorAll('[data-gallery-carousel]').forEach((carousel) => {
+      const track = carousel.querySelector('[data-gallery-track]');
+      const slides = Array.from(track ? track.children : []);
+      const prevButton = carousel.querySelector('[data-gallery-prev]');
+      const nextButton = carousel.querySelector('[data-gallery-next]');
+      const dotsWrap = carousel.querySelector('[data-gallery-dots]');
+      if (!track || !slides.length || !prevButton || !nextButton || !dotsWrap) return;
+
+      const dots = slides.map((_, index) => {
+        const dot = document.createElement('button');
+        dot.className = 'gallery-carousel-dot';
+        dot.type = 'button';
+        dot.setAttribute('aria-label', `Go to gallery item ${index + 1}`);
+        dot.addEventListener('click', () => {
+          slides[index].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+        });
+        dotsWrap.appendChild(dot);
+        return dot;
+      });
+
+      const getActiveIndex = () => {
+        const trackLeft = track.getBoundingClientRect().left;
+        return slides.reduce((closestIndex, slide, index) => {
+          const currentDistance = Math.abs(slide.getBoundingClientRect().left - trackLeft);
+          const closestDistance = Math.abs(slides[closestIndex].getBoundingClientRect().left - trackLeft);
+          return currentDistance < closestDistance ? index : closestIndex;
+        }, 0);
+      };
+
+      const updateDots = () => {
+        const activeIndex = getActiveIndex();
+        dots.forEach((dot, index) => {
+          dot.classList.toggle('is-active', index === activeIndex);
+          dot.setAttribute('aria-current', index === activeIndex ? 'true' : 'false');
+        });
+      };
+
+      const scrollToOffset = (direction) => {
+        const firstSlide = slides[0];
+        const gap = slides[1] ? slides[1].offsetLeft - firstSlide.offsetLeft - firstSlide.offsetWidth : 0;
+        track.scrollBy({ left: direction * (firstSlide.offsetWidth + gap), behavior: 'smooth' });
+      };
+
+      prevButton.addEventListener('click', () => scrollToOffset(-1));
+      nextButton.addEventListener('click', () => scrollToOffset(1));
+      track.addEventListener('scroll', () => window.requestAnimationFrame(updateDots), { passive: true });
+      window.addEventListener('resize', updateDots);
+      updateDots();
+    });
 
     const heroName = document.getElementById('hero-name');
     const heroNames = ['Breathe', 'Relief', 'Airflow', 'Recovery', 'Comfort', 'Lungs'];
