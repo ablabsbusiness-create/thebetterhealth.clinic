@@ -574,6 +574,15 @@
       border-bottom: 1px solid #111827;
     }
 
+    .signature-image {
+      display: block;
+      width: 112px;
+      max-height: 38px;
+      margin-bottom: 5px;
+      object-fit: contain;
+      object-position: left bottom;
+    }
+
     .empty-note {
       margin: 0;
       color: var(--muted);
@@ -862,6 +871,15 @@
     const LOCAL_PRESCRIPTION_HISTORY_KEY = 'savedPrescriptionHistory';
     const PRINT_HEADER_MODE_STORAGE_KEY = 'previewPrintWithHeader';
     const PRINT_HEADER_GAP_STORAGE_KEY = 'previewPrintHeaderGapCm';
+    const PRESCRIPTION_BRANDING_STORAGE_KEY = 'prescriptionBrandingSettings';
+    const DEFAULT_BRANDING = {
+      clinicTitle: 'The Better Health Clinic',
+      clinicAddress: 'The Better Health Clinic - Paediatrician #118, 5th Cross, Omkar Nagar Akere, Bannerghatta road 560076 Bengaluru Karnataka',
+      doctorName: 'Dr. Gunda Srinivas',
+      doctorDetails: 'MBBS, DCH, DNB - Paediatrics, PGDDN, FPEM\n71826',
+      footerText: 'The Better Health Clinic - Paediatrician #118, 5th Cross, Omkar Nagar Akere,\nBannerghatta road 560076 Bengaluru Karnataka',
+      signatureDataUrl: ''
+    };
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
       apiKey: firebaseEnv.VITE_FIREBASE_API_KEY || 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
@@ -956,12 +974,24 @@
         .replace(/'/g, '&#39;');
     }
 
+    function formatMultiline(value) {
+      return escapeHtml(value).replace(/\r?\n/g, '<br>');
+    }
+
     function readJson(key, fallback) {
       try {
         return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback));
       } catch (error) {
         return fallback;
       }
+    }
+
+    function getPrescriptionBranding() {
+      const saved = readJson(PRESCRIPTION_BRANDING_STORAGE_KEY, {});
+      return {
+        ...DEFAULT_BRANDING,
+        ...(saved && typeof saved === 'object' ? saved : {})
+      };
     }
 
     function stripChartPageData(record) {
@@ -1580,16 +1610,20 @@
       const patientId = draft?.patientId || chartRecord?.patientId || getPatientIdFromUrl() || '-';
       const now = new Date().toISOString();
       const instructions = sections.Instruction || [];
+      const branding = getPrescriptionBranding();
+      const signatureHtml = branding.signatureDataUrl
+        ? `<img class="signature-image" src="${escapeHtml(branding.signatureDataUrl)}" alt="Doctor signature">`
+        : '<div class="signature-line"></div>';
 
       rxSheet.innerHTML = `
         <header class="rx-sheet-header">
           <div>
-            <h1 class="clinic-title">The Better Health Clinic</h1>
-            <p class="clinic-address">The Better Health Clinic - Paediatrician #118, 5th Cross, Omkar Nagar Akere, Bannerghatta road 560076 Bengaluru Karnataka</p>
+            <h1 class="clinic-title">${escapeHtml(branding.clinicTitle)}</h1>
+            <p class="clinic-address">${formatMultiline(branding.clinicAddress)}</p>
           </div>
           <div class="doctor-block">
-            <strong>Dr. Gunda Srinivas</strong>
-            MBBS, DCH, DNB - Paediatrics, PGDDN, FPEM
+            <strong>${escapeHtml(branding.doctorName)}</strong>
+            ${formatMultiline(branding.doctorDetails)}
           </div>
         </header>
 
@@ -1629,14 +1663,12 @@
 
         <footer class="rx-footer">
           <div>
-            <div class="signature-line"></div>
-            <strong>Dr. Gunda Srinivas</strong><br>
-            MBBS, DCH, DNB - Paediatrics, PGDDN, FPEM<br>
-            71826
+            ${signatureHtml}
+            <strong>${escapeHtml(branding.doctorName)}</strong><br>
+            ${formatMultiline(branding.doctorDetails)}
           </div>
           <div class="footer-address">
-            The Better Health Clinic - Paediatrician #118, 5th Cross, Omkar Nagar Akere,<br>
-            Bannerghatta road 560076 Bengaluru Karnataka
+            ${formatMultiline(branding.footerText)}
           </div>
         </footer>
       `;
