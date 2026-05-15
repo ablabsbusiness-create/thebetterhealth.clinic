@@ -232,6 +232,33 @@
       font-size: 13px;
     }
 
+    .chart-head-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+    }
+
+    .chart-scroll-btn {
+      width: 32px;
+      height: 30px;
+      display: inline-grid;
+      place-items: center;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      background: #ffffff;
+      color: #14532d;
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .chart-scroll-btn:hover {
+      background: #effaf2;
+      border-color: #9fcfb0;
+    }
+
     .table-wrap {
       overflow-x: auto;
     }
@@ -736,9 +763,13 @@
         <section class="panel">
           <div class="panel-head">
             <h2>Vaccination Chart</h2>
-            <span class="muted">Doctor confirms the final schedule</span>
+            <div class="chart-head-actions">
+              <span class="muted">Doctor confirms the final schedule</span>
+              <button class="chart-scroll-btn" type="button" data-table-scroll="-1" aria-label="Move table left">&lsaquo;</button>
+              <button class="chart-scroll-btn" type="button" data-table-scroll="1" aria-label="Move table right">&rsaquo;</button>
+            </div>
           </div>
-          <div class="table-wrap">
+          <div class="table-wrap" data-vaccination-table-wrap>
             <table class="schedule-table">
               <thead>
                 <tr>
@@ -866,6 +897,18 @@
       const editKey = target.getAttribute('data-edit-vaccine');
       const saveKey = target.getAttribute('data-save-vaccine');
       const rowHistoryKey = target.getAttribute('data-history-vaccine');
+      const scrollDirection = target.getAttribute('data-table-scroll');
+
+      if (scrollDirection) {
+        const tableWrap = tablesRoot.querySelector('[data-vaccination-table-wrap]');
+        if (tableWrap) {
+          tableWrap.scrollBy({
+            left: tableWrap.clientWidth * 0.8 * Number(scrollDirection),
+            behavior: 'smooth'
+          });
+        }
+        return;
+      }
 
       if (editKey) {
         editingKey = editingKey === editKey ? '' : editKey;
