@@ -3083,7 +3083,8 @@
       resultsPanel.innerHTML = patients.map((patient) => {
         const childName = getPatientDisplayName(patient);
         const phone = formatMissing(patient.phone, 'Phone not saved');
-        const parentName = formatMissing(patient.parentName, 'Parent not saved');
+        const parentName = getSavedParentName(patient);
+        const parentNameHtml = parentName ? `<small>${parentName}</small>` : '';
         const dob = formatDateDisplay(patient.dob);
         const gender = formatMissing(patient.gender, 'Gender not saved');
         const patientId = formatMissing(patient.patientId, 'ID not saved');
@@ -3110,7 +3111,7 @@
               <div class="result-meta">
                 <span class="result-meta-label">Phone number</span>
                 <strong>${phone}</strong>
-                <small>${parentName}</small>
+                ${parentNameHtml}
               </div>
               <a class="continue-link" href="prescription-growth-chart-dashboard?patientId=${encodeURIComponent(patientId)}">Continue</a>
             </div>
