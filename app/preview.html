@@ -856,7 +856,7 @@
     import html2canvas from 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/+esm';
     import { jsPDF } from 'https://cdn.jsdelivr.net/npm/jspdf@3.0.3/+esm';
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
-    import { doc, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { doc, getDoc, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     import { getDownloadURL, getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
 
     const primaryNav = document.getElementById('primary-nav');
@@ -872,6 +872,7 @@
     const PRINT_HEADER_MODE_STORAGE_KEY = 'previewPrintWithHeader';
     const PRINT_HEADER_GAP_STORAGE_KEY = 'previewPrintHeaderGapCm';
     const PRESCRIPTION_BRANDING_STORAGE_KEY = 'prescriptionBrandingSettings';
+    const PRESCRIPTION_BRANDING_DOC_PATH = ['clinicSettings', 'prescriptionBranding'];
     const DEFAULT_BRANDING = {
       clinicTitle: 'The Better Health Clinic',
       clinicAddress: 'The Better Health Clinic - Paediatrician #118, 5th Cross, Omkar Nagar Akere, Bannerghatta road 560076 Bengaluru Karnataka',
@@ -898,6 +899,7 @@
     let prescriptionSavePromise = null;
     let savedPrescriptionRecord = null;
     let preparedChartRecord = null;
+    let activePrescriptionBranding = null;
     const CHART_ASSET_VERSION = '2026-05-12-iap-who-no-ofc-5-18';
     const CHART_PREVIEW_VERSION = 'preview-rebuilt-2026-05-iap-no-ofc-5-18';
     const CHART_RENDER_MAX_WIDTH = 1600;
@@ -987,11 +989,42 @@
     }
 
     function getPrescriptionBranding() {
+      if (activePrescriptionBranding) {
+        return activePrescriptionBranding;
+      }
+
       const saved = readJson(PRESCRIPTION_BRANDING_STORAGE_KEY, {});
       return {
         ...DEFAULT_BRANDING,
         ...(saved && typeof saved === 'object' ? saved : {})
       };
+    }
+
+    function cachePrescriptionBranding(settings) {
+      activePrescriptionBranding = {
+        ...DEFAULT_BRANDING,
+        ...(settings && typeof settings === 'object' ? settings : {})
+      };
+      localStorage.setItem(PRESCRIPTION_BRANDING_STORAGE_KEY, JSON.stringify(activePrescriptionBranding));
+      return activePrescriptionBranding;
+    }
+
+    async function loadPrescriptionBranding() {
+      const cachedBranding = cachePrescriptionBranding(readJson(PRESCRIPTION_BRANDING_STORAGE_KEY, {}));
+      if (!db) {
+        return cachedBranding;
+      }
+
+      try {
+        const snapshot = await getDoc(doc(db, ...PRESCRIPTION_BRANDING_DOC_PATH));
+        if (!snapshot.exists()) {
+          return cachedBranding;
+        }
+        return cachePrescriptionBranding(snapshot.data());
+      } catch (error) {
+        console.warn(`Unable to load prescription branding from Firebase: ${error.message}`);
+        return cachedBranding;
+      }
     }
 
     function stripChartPageData(record) {
@@ -1953,6 +1986,7 @@
       try {
         const savedRecord = await ensurePrescriptionSaved();
         const chartRecord = getCurrentChartRecord();
+        const branding = getPrescriptionBranding();
         const shortLink = buildShortPrescriptionLink(savedRecord.saveId) || savedRecord.downloadURL;
         const message = [
           `Hello ${chartRecord?.childName || 'Patient'},`,
@@ -1961,7 +1995,7 @@
           shortLink,
           '',
           `Patient ID: ${savedRecord.patientId || chartRecord?.patientId || '-'}`,
-          `Clinic: The Better Health Clinic`,
+          `Clinic: ${branding.clinicTitle || DEFAULT_BRANDING.clinicTitle}`,
           '',
           `Regards,`,
           `AB Labs`
@@ -1977,6 +2011,7 @@
 
     async function initializePreview() {
       setPreviewStatus('Preparing preview...');
+      await loadPrescriptionBranding();
       const activeRecord = getActiveChartRecord();
       preparedChartRecord = await rebuildChartPages(activeRecord);
       persistPreparedChartRecord(preparedChartRecord);
@@ -2055,6 +2090,14 @@
     window.addEventListener('storage', (event) => {
       if (event.key === PRINT_HEADER_MODE_STORAGE_KEY || event.key === PRINT_HEADER_GAP_STORAGE_KEY) {
         applySavedPreviewSettings(true);
+      }
+      if (event.key === PRESCRIPTION_BRANDING_STORAGE_KEY) {
+        activePrescriptionBranding = null;
+        buildPreviewHtml();
+        invalidateSavedPrescriptionCache();
+        ensurePrescriptionSaved().catch((error) => {
+          console.warn(`Unable to refresh prescription after branding change: ${error.message}`);
+        });
       }
     });
     initializePreview().catch((error) => {

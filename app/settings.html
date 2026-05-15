@@ -845,7 +845,7 @@
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
-    import { collection, getDocs, getFirestore } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { collection, doc, getDoc, getDocs, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     import { getMetadata, getStorage, ref } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
 
     const menuToggle = document.getElementById('menu-toggle');
@@ -873,6 +873,7 @@
     const FIREBASE_FREE_STORAGE_BYTES = 5 * 1024 * 1024 * 1024;
     const PRINT_HEADER_GAP_STORAGE_KEY = 'previewPrintHeaderGapCm';
     const PRESCRIPTION_BRANDING_STORAGE_KEY = 'prescriptionBrandingSettings';
+    const PRESCRIPTION_BRANDING_DOC_PATH = ['clinicSettings', 'prescriptionBranding'];
     const ACCESS_COOKIE_NAME = 'clinic_session';
     const DEFAULT_BRANDING = {
       clinicTitle: 'The Better Health Clinic',
@@ -957,6 +958,52 @@
       }
     }
 
+    function cacheBrandingSettings(settings) {
+      const normalizedSettings = {
+        ...DEFAULT_BRANDING,
+        ...(settings && typeof settings === 'object' ? settings : {})
+      };
+      localStorage.setItem(PRESCRIPTION_BRANDING_STORAGE_KEY, JSON.stringify(normalizedSettings));
+      return normalizedSettings;
+    }
+
+    async function loadBrandingSettings() {
+      const cachedSettings = readBrandingSettings();
+      populateBrandingForm(cachedSettings);
+
+      if (!db) {
+        if (brandingSettingStatus) {
+          brandingSettingStatus.textContent = localStorage.getItem(PRESCRIPTION_BRANDING_STORAGE_KEY)
+            ? 'Current branding: loaded from this browser. Firebase is not configured.'
+            : 'Current branding: default clinic header and footer. Firebase is not configured.';
+        }
+        return cachedSettings;
+      }
+
+      try {
+        const snapshot = await getDoc(doc(db, ...PRESCRIPTION_BRANDING_DOC_PATH));
+        if (!snapshot.exists()) {
+          if (brandingSettingStatus) {
+            brandingSettingStatus.textContent = 'Current branding: default clinic header and footer. Save once to share it across devices.';
+          }
+          return cachedSettings;
+        }
+
+        const firestoreSettings = cacheBrandingSettings(snapshot.data());
+        populateBrandingForm(firestoreSettings);
+        if (brandingSettingStatus) {
+          brandingSettingStatus.textContent = 'Current branding: loaded from Firebase.';
+        }
+        return firestoreSettings;
+      } catch (error) {
+        console.warn(`Unable to load branding settings: ${error.message}`);
+        if (brandingSettingStatus) {
+          brandingSettingStatus.textContent = 'Current branding: using this browser cache because Firebase could not be loaded.';
+        }
+        return cachedSettings;
+      }
+    }
+
     function renderSignaturePreview(dataUrl) {
       if (!signaturePreview) {
         return;
@@ -996,10 +1043,23 @@
       };
     }
 
-    function saveBrandingSettings(message = 'Branding saved') {
-      const nextSettings = collectBrandingForm();
-      localStorage.setItem(PRESCRIPTION_BRANDING_STORAGE_KEY, JSON.stringify(nextSettings));
+    async function saveBrandingSettings(message = 'Branding saved', overrideSettings = null) {
+      const nextSettings = cacheBrandingSettings(overrideSettings || collectBrandingForm());
       populateBrandingForm(nextSettings);
+
+      if (db) {
+        await setDoc(doc(db, ...PRESCRIPTION_BRANDING_DOC_PATH), {
+          ...nextSettings,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+      } else if (message.includes('Firebase')) {
+        message = message
+          .replace(' to Firebase and this browser', ' in this browser')
+          .replace(' from Firebase and this browser', ' from this browser')
+          .replace(' and saved to Firebase', '')
+          .replace(' to Firebase', '');
+      }
+
       if (brandingSettingStatus) {
         brandingSettingStatus.textContent = message;
       }
@@ -1124,7 +1184,7 @@
       });
     }
 
-    populateBrandingForm();
+    loadBrandingSettings();
 
     if (signatureFileInput) {
       signatureFileInput.addEventListener('change', async () => {
@@ -1147,11 +1207,7 @@
             ...collectBrandingForm(),
             signatureDataUrl
           };
-          localStorage.setItem(PRESCRIPTION_BRANDING_STORAGE_KEY, JSON.stringify(nextSettings));
-          populateBrandingForm(nextSettings);
-          if (brandingSettingStatus) {
-            brandingSettingStatus.textContent = 'Signature image saved. Header and footer text are also ready to save.';
-          }
+          await saveBrandingSettings('Signature image saved to Firebase and this browser.', nextSettings);
         } catch (error) {
           if (brandingSettingStatus) {
             brandingSettingStatus.textContent = error.message || 'Unable to save signature image.';
@@ -1163,29 +1219,49 @@
     }
 
     if (removeSignatureBtn) {
-      removeSignatureBtn.addEventListener('click', () => {
+      removeSignatureBtn.addEventListener('click', async () => {
         const nextSettings = {
           ...collectBrandingForm(),
           signatureDataUrl: ''
         };
-        localStorage.setItem(PRESCRIPTION_BRANDING_STORAGE_KEY, JSON.stringify(nextSettings));
-        populateBrandingForm(nextSettings);
-        if (brandingSettingStatus) {
-          brandingSettingStatus.textContent = 'Signature removed.';
+        try {
+          await saveBrandingSettings('Signature removed from Firebase and this browser.', nextSettings);
+        } catch (error) {
+          if (brandingSettingStatus) {
+            brandingSettingStatus.textContent = `Signature removed locally, but Firebase save failed: ${error.message}`;
+          }
         }
       });
     }
 
     if (saveBrandingBtn) {
-      saveBrandingBtn.addEventListener('click', () => saveBrandingSettings('Branding saved for prescription preview and PDF.'));
+      saveBrandingBtn.addEventListener('click', async () => {
+        saveBrandingBtn.disabled = true;
+        try {
+          await saveBrandingSettings('Branding saved to Firebase for prescription preview and PDF.');
+        } catch (error) {
+          if (brandingSettingStatus) {
+            brandingSettingStatus.textContent = `Saved locally, but Firebase save failed: ${error.message}`;
+          }
+        } finally {
+          saveBrandingBtn.disabled = false;
+        }
+      });
     }
 
     if (resetBrandingBtn) {
-      resetBrandingBtn.addEventListener('click', () => {
-        localStorage.removeItem(PRESCRIPTION_BRANDING_STORAGE_KEY);
-        populateBrandingForm({ ...DEFAULT_BRANDING });
-        if (brandingSettingStatus) {
-          brandingSettingStatus.textContent = 'Branding reset to default.';
+      resetBrandingBtn.addEventListener('click', async () => {
+        resetBrandingBtn.disabled = true;
+        try {
+          await saveBrandingSettings('Branding reset to default and saved to Firebase.', { ...DEFAULT_BRANDING });
+        } catch (error) {
+          cacheBrandingSettings({ ...DEFAULT_BRANDING });
+          populateBrandingForm({ ...DEFAULT_BRANDING });
+          if (brandingSettingStatus) {
+            brandingSettingStatus.textContent = `Reset locally, but Firebase save failed: ${error.message}`;
+          }
+        } finally {
+          resetBrandingBtn.disabled = false;
         }
       });
     }
