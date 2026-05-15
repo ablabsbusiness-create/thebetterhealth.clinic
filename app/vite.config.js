@@ -253,6 +253,7 @@ export default defineConfig({
         rx: resolve(__dirname, 'rx.html'),
         settings: resolve(__dirname, 'settings.html'),
         prescriptionGrowthChart: resolve(__dirname, 'prescription-growth-chart-dashboard.html'),
+        vaccination: resolve(__dirname, 'vaccination.html'),
         vacination: resolve(__dirname, 'vacination.html'),
         search: resolve(__dirname, 'search.html')
       }
