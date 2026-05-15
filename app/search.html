@@ -834,28 +834,45 @@
     .vaccination-summary {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 10px;
+      gap: 12px;
     }
 
     .vaccination-summary-item {
-      border: 1px solid #e3ece5;
-      background: #f8fbf9;
-      padding: 12px;
+      min-height: 92px;
+      border: 1px solid #dbe8df;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbf9 100%);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
     .vaccination-summary-item span {
       display: block;
-      color: var(--muted);
+      color: #64746b;
       font-size: 11px;
       font-weight: 800;
       text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
 
     .vaccination-summary-item strong {
       display: block;
-      margin-top: 7px;
-      font-size: 18px;
-      line-height: 1.2;
+      margin-top: 10px;
+      color: #16251d;
+      font-size: 26px;
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .vaccination-summary-item.is-next {
+      border-color: #b7d8c3;
+      background: #effaf2;
+    }
+
+    .vaccination-summary-item.is-next strong {
+      font-size: 16px;
+      line-height: 1.25;
     }
 
     .doctor-card .history-filter-row label,
@@ -2411,7 +2428,7 @@
             <span>Pending</span>
             <strong>${summary.pending}</strong>
           </div>
-          <div class="vaccination-summary-item">
+          <div class="vaccination-summary-item is-next">
             <span>Next due</span>
             <strong>${escapeHtml(summary.nextDueLabel)}</strong>
           </div>
