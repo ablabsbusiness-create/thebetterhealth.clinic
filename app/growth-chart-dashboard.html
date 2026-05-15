@@ -427,9 +427,8 @@
 
     .measurement-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      column-gap: 18px;
-      row-gap: 14px;
+      grid-template-columns: 1fr;
+      gap: 10px;
     }
 
     .dob-input-row {
@@ -445,17 +444,24 @@
     }
 
     .metric-card {
-      padding: 16px;
-      border: 1px dashed #b8cabd;
-      border-radius: 18px;
+      padding: 10px 12px;
+      border: 1px solid #d6e4db;
+      border-radius: 14px;
       background: #f9fcf8;
       display: grid;
-      gap: 8px;
+      grid-template-columns: minmax(150px, 0.5fr) minmax(220px, 1fr);
+      gap: 12px;
+      align-items: center;
     }
 
     .metric-card.visible {
       display: grid;
-      gap: 8px;
+    }
+
+    .metric-meta {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
     }
 
     .metric-chip {
@@ -463,14 +469,84 @@
       align-items: center;
       gap: 8px;
       width: fit-content;
-      padding: 6px 10px;
+      padding: 4px 8px;
       border-radius: 999px;
       background: var(--brand-soft);
       color: var(--brand-strong);
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 700;
       letter-spacing: 0.04em;
       text-transform: uppercase;
+    }
+
+    .metric-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.25;
+    }
+
+    .metric-helper {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .metric-chart-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      width: fit-content;
+      padding: 3px 7px;
+      border: 1px solid #cddbd1;
+      border-radius: 6px;
+      background: #ffffff;
+      color: #5f7167;
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    .metric-chart-toggle input {
+      width: 11px;
+      height: 11px;
+      accent-color: var(--brand);
+    }
+
+    .metric-input-wrap {
+      display: grid;
+      gap: 5px;
+    }
+
+    .vitals-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .vitals-tool {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 30px;
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #ffffff;
+      color: var(--brand-strong);
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .vitals-tool.is-live::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      margin-right: 6px;
+      border-radius: 50%;
+      background: #16a34a;
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12);
     }
 
     .preview-card {
@@ -731,7 +807,7 @@
       }
 
       .measurement-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: 1fr;
       }
     }
 
@@ -860,6 +936,15 @@
         gap: 12px;
       }
 
+      .metric-card {
+        grid-template-columns: 1fr;
+        align-items: stretch;
+      }
+
+      .vitals-toolbar {
+        justify-content: flex-start;
+      }
+
       .section-head {
         margin-bottom: 14px;
       }
@@ -979,7 +1064,7 @@
             <div class="section-head">
               <div>
                 <div class="section-kicker">Step 1</div>
-                <h2 class="section-title">Vitals</h2>
+                <h2 class="section-title">Patient Details</h2>
               </div>
             </div>
 
@@ -1029,57 +1114,110 @@
             <div class="section-head">
               <div>
                 <div class="section-kicker">Step 2</div>
-                <h2 class="section-title">Measurements</h2>
+                <h2 class="section-title">Vitals</h2>
+              </div>
+              <div class="vitals-toolbar" aria-label="Vitals actions">
+                <span class="vitals-tool">Recorded date: Today</span>
+                <span class="vitals-tool">Add Measurement</span>
+                <span class="vitals-tool is-live">Autograph</span>
               </div>
             </div>
 
             <div class="measurement-grid">
               <div id="metric-weight" class="metric-card" data-field="weight">
-                <span class="metric-chip">Weight Input</span>
-                <label for="weight">Weight (kg) <span class="required">*</span></label>
-                <input id="weight" name="weight" type="number" min="0" step="0.1" placeholder="e.g. 12.4">
+                <div class="metric-meta">
+                  <span class="metric-chip">Growth</span>
+                  <label class="metric-title" for="weight">Weight (kg) <span class="required">*</span></label>
+                  <label class="metric-chart-toggle"><input type="checkbox" checked disabled> Chart</label>
+                </div>
+                <div class="metric-input-wrap">
+                  <input id="weight" name="weight" type="number" min="0" step="0.1" placeholder="e.g. 12.4">
+                  <span class="metric-helper">Enter the most recent measured weight in kilograms.</span>
+                </div>
               </div>
 
               <div id="metric-height" class="metric-card" data-field="height">
-                <span class="metric-chip">Height Input</span>
-                <label for="height">Height (cm) <span class="required">*</span></label>
-                <input id="height" name="height" type="number" min="0" step="0.1" placeholder="e.g. 88.0">
+                <div class="metric-meta">
+                  <span class="metric-chip">Growth</span>
+                  <label class="metric-title" for="height">Height (cm) <span class="required">*</span></label>
+                  <label class="metric-chart-toggle"><input type="checkbox" checked disabled> Chart</label>
+                </div>
+                <div class="metric-input-wrap">
+                  <input id="height" name="height" type="number" min="0" step="0.1" placeholder="e.g. 88.0">
+                  <span class="metric-helper">Enter height or length in centimeters.</span>
+                </div>
               </div>
 
               <div id="metric-head" class="metric-card" data-field="head">
-                <span class="metric-chip">Head Circumference</span>
-                <label for="head">Head Circumference (cm) <span class="required">*</span></label>
-                <input id="head" name="head" type="number" min="0" step="0.1" placeholder="e.g. 48.5">
+                <div class="metric-meta">
+                  <span class="metric-chip">Growth</span>
+                  <label class="metric-title" for="head">OFC (cm) <span class="required">*</span></label>
+                  <label class="metric-chart-toggle"><input type="checkbox" checked disabled> Chart</label>
+                </div>
+                <div class="metric-input-wrap">
+                  <input id="head" name="head" type="number" min="0" step="0.1" placeholder="e.g. 48.5">
+                  <span class="metric-helper">Occipito-frontal circumference in centimeters.</span>
+                </div>
               </div>
 
               <div id="metric-spo2" class="metric-card" data-field="spo2">
-                <span class="metric-chip">Oxygen</span>
-                <label for="spo2">SPO2 (%)</label>
-                <input id="spo2" name="spo2" type="number" min="0" max="100" step="1" placeholder="e.g. 99">
+                <div class="metric-meta">
+                  <span class="metric-chip">Vitals</span>
+                  <label class="metric-title" for="spo2">SPO2 (%)</label>
+                  <label class="metric-chart-toggle"><input type="checkbox" disabled> Chart</label>
+                </div>
+                <div class="metric-input-wrap">
+                  <input id="spo2" name="spo2" type="number" min="0" max="100" step="1" placeholder="e.g. 99">
+                  <span class="metric-helper">Peripheral oxygen saturation percentage.</span>
+                </div>
               </div>
 
               <div id="metric-pulse" class="metric-card" data-field="pulse">
-                <span class="metric-chip">Pulse</span>
-                <label for="pulse">Pulse (/min)</label>
-                <input id="pulse" name="pulse" type="number" min="0" step="1" placeholder="e.g. 108">
+                <div class="metric-meta">
+                  <span class="metric-chip">Vitals</span>
+                  <label class="metric-title" for="pulse">Pulse (/min)</label>
+                  <label class="metric-chart-toggle"><input type="checkbox" disabled> Chart</label>
+                </div>
+                <div class="metric-input-wrap">
+                  <input id="pulse" name="pulse" type="number" min="0" step="1" placeholder="e.g. 108">
+                  <span class="metric-helper">Heart rate in beats per minute.</span>
+                </div>
               </div>
 
               <div id="metric-systolic" class="metric-card" data-field="systolic">
-                <span class="metric-chip">Blood Pressure</span>
-                <label for="systolic">Systolic (mmHg)</label>
-                <input id="systolic" name="systolic" type="number" min="0" step="1" placeholder="e.g. 90">
+                <div class="metric-meta">
+                  <span class="metric-chip">Vitals</span>
+                  <label class="metric-title" for="systolic">Systolic (mmHg)</label>
+                  <label class="metric-chart-toggle"><input type="checkbox" disabled> Chart</label>
+                </div>
+                <div class="metric-input-wrap">
+                  <input id="systolic" name="systolic" type="number" min="0" step="1" placeholder="e.g. 100">
+                  <span class="metric-helper">Upper blood pressure reading.</span>
+                </div>
               </div>
 
               <div id="metric-diastolic" class="metric-card" data-field="diastolic">
-                <span class="metric-chip">Blood Pressure</span>
-                <label for="diastolic">Diastolic (mmHg)</label>
-                <input id="diastolic" name="diastolic" type="number" min="0" step="1" placeholder="e.g. 60">
+                <div class="metric-meta">
+                  <span class="metric-chip">Vitals</span>
+                  <label class="metric-title" for="diastolic">Diastolic (mmHg)</label>
+                  <label class="metric-chart-toggle"><input type="checkbox" disabled> Chart</label>
+                </div>
+                <div class="metric-input-wrap">
+                  <input id="diastolic" name="diastolic" type="number" min="0" step="1" placeholder="e.g. 64">
+                  <span class="metric-helper">Lower blood pressure reading.</span>
+                </div>
               </div>
 
               <div id="metric-temperature" class="metric-card" data-field="temperature">
-                <span class="metric-chip">Temperature</span>
-                <label for="temperature">Temperature (C)</label>
-                <input id="temperature" name="temperature" type="number" min="0" step="0.1" placeholder="e.g. 36.8">
+                <div class="metric-meta">
+                  <span class="metric-chip">Vitals</span>
+                  <label class="metric-title" for="temperature">Temp (C)</label>
+                  <label class="metric-chart-toggle"><input type="checkbox" disabled> Chart</label>
+                </div>
+                <div class="metric-input-wrap">
+                  <input id="temperature" name="temperature" type="number" min="0" step="0.1" placeholder="e.g. 37.1">
+                  <span class="metric-helper">Body temperature in Celsius.</span>
+                </div>
               </div>
             </div>
           </section>
