@@ -913,13 +913,19 @@
       });
     }
 
+    function getNextDueRow(rows) {
+      const upcoming = rows
+        .filter((row) => row.status !== 'Given' && row.dueDate)
+        .filter((row) => row.dueDate >= todayIso)
+        .sort((left, right) => new Date(left.dueDate) - new Date(right.dueDate));
+      return upcoming[0] || null;
+    }
+
     function updateSummary(rows) {
       const completed = rows.filter((row) => row.status === 'Given').length;
       const pending = rows.filter((row) => row.status !== 'Given').length;
       const missed = rows.filter((row) => row.status === 'Missed').length;
-      const next = rows
-        .filter((row) => row.status !== 'Given' && row.dueDate)
-        .sort((left, right) => new Date(left.dueDate) - new Date(right.dueDate))[0];
+      const next = getNextDueRow(rows);
       completedCount.textContent = completed;
       pendingCount.textContent = pending;
       missedCount.textContent = missed;
