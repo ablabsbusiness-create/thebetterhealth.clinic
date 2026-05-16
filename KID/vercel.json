@@ -6,36 +6,8 @@
       "destination": "/index"
     },
     {
-      "source": "/emr/KID/assets/:path*",
-      "destination": "/assets/:path*"
-    },
-    {
-      "source": "/emr/KID/api/:path*",
-      "destination": "/api/:path*"
-    },
-    {
-      "source": "/emr/KID/auth-guard.js",
-      "destination": "/auth-guard.js"
-    },
-    {
-      "source": "/emr/KID/growth_chart_config.json",
-      "destination": "/growth_chart_config.json"
-    },
-    {
-      "source": "/emr/assets/:path*",
-      "destination": "/assets/:path*"
-    },
-    {
-      "source": "/emr/api/:path*",
-      "destination": "/api/:path*"
-    },
-    {
-      "source": "/emr/auth-guard.js",
-      "destination": "/auth-guard.js"
-    },
-    {
-      "source": "/emr/growth_chart_config.json",
-      "destination": "/growth_chart_config.json"
+      "source": "/emr/KID/:path*",
+      "destination": "/:path*"
     },
     {
       "source": "/emr/password",
@@ -102,12 +74,8 @@
       "destination": "/search"
     },
     {
-      "source": "/emr/KID/:path*",
-      "destination": "/:path*.html"
-    },
-    {
       "source": "/emr/:path*",
-      "destination": "/:path*.html"
+      "destination": "/:path*"
     }
   ]
 }
