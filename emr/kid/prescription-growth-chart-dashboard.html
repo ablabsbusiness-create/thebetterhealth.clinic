@@ -3988,18 +3988,6 @@
 
       const point = constrainPointToBounds(mappedPoint, getPlotBounds(region, CHART_POINT_RADIUS));
 
-      if (mappedPoint.outOfRange) {
-        console.warn('Growth chart measurement outside chart range; plotting at nearest chart edge.', {
-          metric: metricKey,
-          xValue: mappedPoint.xValue,
-          yValue: mappedPoint.yValue,
-          xMin: region.x.min,
-          xMax: region.x.max,
-          yMin: region.y.min,
-          yMax: region.y.max
-        });
-      }
-
       if (GROWTH_CHART_DEBUG) {
         console.log({
           chartId: region.chartId,
@@ -4160,18 +4148,6 @@
           const mappedPoint = mapPoint(region, entry);
           if (!mappedPoint) {
             return null;
-          }
-
-          if (mappedPoint.outOfRange) {
-            console.warn('Growth chart measurement outside chart range; plotting at nearest chart edge.', {
-              metric: metricKey,
-              xValue: mappedPoint.xValue,
-              yValue: mappedPoint.yValue,
-              xMin: region.x.min,
-              xMax: region.x.max,
-              yMin: region.y.min,
-              yMax: region.y.max
-            });
           }
 
           return {
@@ -4424,29 +4400,6 @@
       return requests;
     }
 
-    function buildWarnings(selectedValues, patientData) {
-      const warnings = [];
-
-      if ((selectedValues.includes('Head Circumference-for-Age') || selectedValues.includes('BMI')) && patientData.ageYears > 18) {
-        warnings.push('The available age-based chart templates are supported here up to 18 years.');
-      }
-      if (selectedValues.includes('Head Circumference-for-Age') && patientData.ageYears >= 5 && patientData.ageYears <= 18) {
-        warnings.push('OFC chart is not shown for 5-18 years.');
-      }
-      generatedTemplates.forEach((templateRequest) => {
-        const template = templateLibrary[templateRequest.key];
-        templateRequest.metrics.forEach((metricKey) => {
-          const region = template?.regions?.[metricKey];
-          const value = patientData[region?.y?.source];
-          if (region && Number.isFinite(value) && (value < region.y.min || value > region.y.max)) {
-            warnings.push(`${region.label} value outside chart range.`);
-          }
-        });
-      });
-
-      return warnings;
-    }
-
     async function drawTemplateRequest(templateRequest) {
       const image = await loadTemplateImage(templateRequest.key);
       const renderScale = Math.min(1, CHART_RENDER_MAX_WIDTH / image.naturalWidth);
@@ -4553,8 +4506,6 @@
     }
 
     async function renderGeneratedChart() {
-      const selectedValues = getSelectedCharts().map((option) => option.value);
-      const patientData = getPatientData();
       generatedTemplates = buildTemplateRequests();
       generatedPdfBase64 = '';
       latestChartPdfUploadResult = null;
@@ -4581,25 +4532,11 @@
         generatedPdfBase64 = '';
         await renderCanvasFromGeneratedPreview(generatedPreviewPages[0] || null);
 
-        const warnings = buildWarnings(selectedValues, patientData);
-        const fallbackNote = CAN_USE_PYTHON_CHART_SERVICE
-          ? 'Python chart service is unavailable, so the chart was generated in browser mode.'
-          : (IS_FILE_PROTOCOL
-              ? 'This local file preview is using browser-only rendering and skips Firebase features.'
-              : 'This deployment is using browser chart rendering.');
-        setChartPreviewMessage(
-          `Generated ${generatedPreviewPages.length} chart${generatedPreviewPages.length === 1 ? '' : 's'} for download. ${fallbackNote}${warnings.length ? ` ${warnings.join(' ')}` : ''}`,
-          'warning'
-        );
+        setChartPreviewMessage('Charts are ready for preview and download.', 'ready');
         return;
       }
 
-      const warnings = buildWarnings(selectedValues, patientData);
-      if (warnings.length > 0) {
-        setChartPreviewMessage(`Generated ${generatedPreviewPages.length} chart${generatedPreviewPages.length === 1 ? '' : 's'} for download. ${warnings.join(' ')}`, 'warning');
-      } else {
-        setChartPreviewMessage(`Generated ${generatedPreviewPages.length} chart${generatedPreviewPages.length === 1 ? '' : 's'} for download.`, 'ready');
-      }
+      setChartPreviewMessage('Charts are ready for preview and download.', 'ready');
     }
 
     function getSelectedCharts() {
@@ -4813,19 +4750,7 @@
       downloadLink.remove();
       window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
 
-      const uploadResult = latestChartPdfUploadResult?.ok
-        ? latestChartPdfUploadResult
-        : await uploadPdfToFirebase(pdfBlob).catch((error) => ({
-            ok: false,
-            reason: error.message
-          }));
-      latestChartPdfUploadResult = uploadResult;
-
-      if (uploadResult.ok) {
-        statusNote.textContent = `Downloaded PDF with ${generatedPreviewPages.length} chart${generatedPreviewPages.length === 1 ? '' : 's'} and saved it to Firebase Storage.`;
-      } else {
-        statusNote.textContent = `Downloaded PDF with ${generatedPreviewPages.length} chart${generatedPreviewPages.length === 1 ? '' : 's'}, but Firebase Storage upload failed: ${uploadResult.reason}`;
-      }
+      statusNote.textContent = 'Chart PDF downloaded.';
       statusNote.classList.add('visible');
     });
 
@@ -4953,7 +4878,7 @@
         return;
       }
 
-      const pdfUploadResult = await uploadLatestChartPdfToFirebase();
+      latestChartPdfUploadResult = null;
       saveLocalRecord();
 
       const patientMeasurementResult = await saveMeasurementsToPatientRecord().catch((error) => ({
@@ -4966,17 +4891,7 @@
         reason: error.message
       }));
 
-      const pdfSaveNote = pdfUploadResult.ok
-        ? ' Latest chart PDF was saved to Firebase Storage.'
-        : ` Latest chart PDF could not be saved to Firebase Storage: ${pdfUploadResult.reason}`;
-
-      if (historyResult.ok && patientMeasurementResult.ok) {
-        statusNote.textContent = `Chart set prepared. ${generatedPreviewPages.length} file${generatedPreviewPages.length === 1 ? '' : 's'} ready for PDF download and saved until the prescription is made.${pdfSaveNote}`;
-      } else if (!patientMeasurementResult.ok) {
-        statusNote.textContent = `Chart set prepared. ${generatedPreviewPages.length} file${generatedPreviewPages.length === 1 ? '' : 's'} ready for PDF download. Chart is saved locally until the prescription is made, but patient measurement save failed: ${patientMeasurementResult.reason}.${pdfSaveNote}`;
-      } else {
-        statusNote.textContent = `Chart set prepared. ${generatedPreviewPages.length} file${generatedPreviewPages.length === 1 ? '' : 's'} ready for PDF download. Chart is saved locally until the prescription is made, but Firebase save failed: ${historyResult.reason}.${pdfSaveNote}`;
-      }
+      statusNote.textContent = 'Charts are ready. Continue to prescription.';
       statusNote.classList.add('visible');
       generateBtn.disabled = false;
       generateBtn.textContent = 'Continue';
