@@ -458,6 +458,73 @@
       font-weight: 600;
     }
 
+    .firebase-save-popup {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 80;
+      width: min(420px, calc(100vw - 32px));
+      display: grid;
+      grid-template-columns: 44px minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: start;
+      padding: 18px;
+      border: 1px solid rgba(22, 101, 52, 0.2);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 22px 48px rgba(22, 38, 29, 0.22);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(18px) scale(0.98);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .firebase-save-popup.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0) scale(1);
+    }
+
+    .firebase-save-icon {
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      background: #dcfce7;
+      color: #166534;
+      font-size: 26px;
+      font-weight: 800;
+    }
+
+    .firebase-save-copy strong {
+      display: block;
+      color: var(--ink);
+      font-size: 17px;
+      line-height: 1.2;
+    }
+
+    .firebase-save-copy span {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.45;
+    }
+
+    .firebase-save-close {
+      width: 32px;
+      height: 32px;
+      border: 0;
+      border-radius: 10px;
+      background: #eef4ef;
+      color: var(--ink);
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
     .help-actions {
       display: flex;
       flex-wrap: wrap;
@@ -843,6 +910,15 @@
     </section>
   </main>
 
+  <div id="firebase-save-popup" class="firebase-save-popup" role="status" aria-live="polite" aria-hidden="true">
+    <div class="firebase-save-icon">OK</div>
+    <div class="firebase-save-copy">
+      <strong id="firebase-save-popup-title">Saved to Firebase</strong>
+      <span id="firebase-save-popup-message">Your clinic setting was updated.</span>
+    </div>
+    <button id="firebase-save-popup-close" class="firebase-save-close" type="button" aria-label="Dismiss confirmation">x</button>
+  </div>
+
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
     import { collection, doc, getDoc, getDocs, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
@@ -880,6 +956,10 @@
     const saveBrandingBtn = document.getElementById('save-branding-btn');
     const resetBrandingBtn = document.getElementById('reset-branding-btn');
     const brandingSettingStatus = document.getElementById('branding-setting-status');
+    const firebaseSavePopup = document.getElementById('firebase-save-popup');
+    const firebaseSavePopupTitle = document.getElementById('firebase-save-popup-title');
+    const firebaseSavePopupMessage = document.getElementById('firebase-save-popup-message');
+    const firebaseSavePopupClose = document.getElementById('firebase-save-popup-close');
     const FIREBASE_FREE_STORAGE_BYTES = 2.5 * 1024 * 1024 * 1024;
     const FIREBASE_STORAGE_LABEL = '2.5 GB';
     const PRINT_HEADER_GAP_STORAGE_KEY = clinicStorageKey('previewPrintHeaderGapCm');
@@ -914,6 +994,28 @@
     const firebaseApp = firebaseConfigured ? initializeApp(firebaseConfig) : null;
     const db = firebaseApp ? getFirestore(firebaseApp) : null;
     const storage = firebaseApp ? getStorage(firebaseApp) : null;
+    let firebaseSavePopupTimer = null;
+
+    function showFirebaseSavePopup(message, title = 'Saved to Firebase') {
+      if (!firebaseSavePopup) {
+        return;
+      }
+
+      if (firebaseSavePopupTitle) {
+        firebaseSavePopupTitle.textContent = title;
+      }
+      if (firebaseSavePopupMessage) {
+        firebaseSavePopupMessage.textContent = message;
+      }
+
+      firebaseSavePopup.classList.add('is-visible');
+      firebaseSavePopup.setAttribute('aria-hidden', 'false');
+      clearTimeout(firebaseSavePopupTimer);
+      firebaseSavePopupTimer = setTimeout(() => {
+        firebaseSavePopup.classList.remove('is-visible');
+        firebaseSavePopup.setAttribute('aria-hidden', 'true');
+      }, 3800);
+    }
 
     function formatBytes(byteCount) {
       if (!Number.isFinite(byteCount) || byteCount <= 0) {
@@ -988,6 +1090,7 @@
           printHeaderGapCm: confirmedValue
         });
         updatePrintGapSettingStatus(confirmedValue, `Saved gap: ${confirmedValue.toFixed(1)} cm to Firebase`);
+        showFirebaseSavePopup(`Print without header gap saved as ${confirmedValue.toFixed(1)} cm.`);
         return;
       }
 
@@ -1110,6 +1213,7 @@
           ...nextSettings,
           updatedAt: serverTimestamp()
         }, { merge: true });
+        showFirebaseSavePopup(message);
       } else if (message.includes('Firebase')) {
         message = message
           .replace(' to Firebase and this browser', ' in this browser')
@@ -1236,6 +1340,14 @@
         if (window.innerWidth > 640) {
           closeMobileMenu();
         }
+      });
+    }
+
+    if (firebaseSavePopupClose && firebaseSavePopup) {
+      firebaseSavePopupClose.addEventListener('click', () => {
+        clearTimeout(firebaseSavePopupTimer);
+        firebaseSavePopup.classList.remove('is-visible');
+        firebaseSavePopup.setAttribute('aria-hidden', 'true');
       });
     }
 
