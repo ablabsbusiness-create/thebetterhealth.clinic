@@ -904,6 +904,47 @@
       pointer-events: none;
     }
 
+    .patient-loading-gate {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      display: none;
+      place-items: center;
+      padding: 24px;
+      background: rgba(248, 252, 249, 0.94);
+      color: var(--text);
+    }
+
+    body.patient-loading .patient-loading-gate {
+      display: grid;
+    }
+
+    body.patient-loading .page-shell {
+      pointer-events: none;
+      user-select: none;
+      opacity: 0.18;
+    }
+
+    .patient-loading-panel {
+      width: min(420px, 100%);
+      border: 1px solid var(--border);
+      background: #fff;
+      padding: 22px;
+      text-align: center;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .patient-loading-panel strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 18px;
+    }
+
+    .patient-loading-panel span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
     .template-status {
       padding: 12px 14px;
       border-radius: 14px;
@@ -2278,6 +2319,13 @@
 
   <canvas id="chart-canvas" class="template-canvas" width="1725" height="2367"></canvas>
 
+  <div id="patient-loading-gate" class="patient-loading-gate" role="status" aria-live="polite" hidden>
+    <div class="patient-loading-panel">
+      <strong>Loading patient details</strong>
+      <span>Please wait until the child profile is ready.</span>
+    </div>
+  </div>
+
   <div id="record-modal-backdrop" class="record-modal-backdrop" hidden>
     <div class="record-modal" role="dialog" aria-modal="true" aria-label="Add record"></div>
   </div>
@@ -2307,6 +2355,7 @@
     const generateBtn = document.getElementById('generate-btn');
     const downloadBtn = document.getElementById('download-btn');
     const statusNote = document.getElementById('status-note');
+    const patientLoadingGate = document.getElementById('patient-loading-gate');
     const chartCanvas = document.getElementById('chart-canvas');
     const chartContext = chartCanvas.getContext('2d');
     chartContext.imageSmoothingEnabled = true;
@@ -2362,6 +2411,8 @@
     let historyPageIndex = 0;
     let selectedMeasurementDateIso = '';
     let lastHistoryDebug = null;
+    let patientDetailsState = 'idle';
+    let patientDetailsLoadPromise = Promise.resolve(false);
     const CHART_ASSET_VERSION = '2026-05-12-iap-who-no-ofc-5-18';
     const CHART_PREVIEW_VERSION = 'preview-rebuilt-2026-05-iap-no-ofc-5-18';
     const TEST_PAST_CHARTS_PATIENT_ID = 'TESTPAST001';
@@ -2740,6 +2791,66 @@
 
     function setPatientHint(message) {
       chartPreviewStatus.textContent = message;
+    }
+
+    function updatePatientLoadGate(message = '') {
+      const isLoading = patientDetailsState === 'loading';
+      document.body.classList.toggle('patient-loading', isLoading);
+      if (patientLoadingGate) {
+        patientLoadingGate.hidden = !isLoading;
+      }
+
+      const lockActions = isLoading || patientDetailsState !== 'loaded';
+      const isGenerating = generateBtn.textContent.trim() === 'Making Chart...';
+      generateBtn.disabled = lockActions || isGenerating;
+      addRecordBtn.disabled = lockActions || isGenerating;
+      downloadBtn.disabled = lockActions || isGenerating || generatedPreviewPages.length === 0;
+      Object.values(metricInputs).forEach((input) => {
+        input.disabled = lockActions;
+      });
+      metricHistoryToggles.forEach((input) => {
+        input.disabled = lockActions;
+      });
+      metricHistoryCountInputs.forEach((input) => {
+        input.disabled = lockActions;
+      });
+      if (metricHistoryMasterToggle) {
+        metricHistoryMasterToggle.disabled = lockActions;
+      }
+
+      if (message) {
+        statusNote.textContent = message;
+        statusNote.classList.add('visible');
+      }
+    }
+
+    function setPatientDetailsState(nextState, message = '') {
+      patientDetailsState = nextState;
+      updatePatientLoadGate(message);
+    }
+
+    function hasLoadedPatientDetails() {
+      return patientDetailsState === 'loaded'
+        && Boolean(patientIdInput.value.trim())
+        && Boolean(childNameInput.value.trim())
+        && Boolean(form.elements.gender.value)
+        && Boolean(dobInput.value);
+    }
+
+    async function waitForPatientDetailsBeforeAction() {
+      if (patientDetailsState === 'loading') {
+        await patientDetailsLoadPromise.catch(() => false);
+      }
+
+      if (hasLoadedPatientDetails()) {
+        return true;
+      }
+
+      setPatientHint('Patient details are still not ready. Open this page from search and wait for the profile to load.');
+      statusNote.textContent = 'Please wait until patient details are loaded before continuing.';
+      statusNote.classList.add('visible');
+      updatePatientLoadGate();
+      return false;
     }
 
     function updatePageMeta(patientRecord = null) {
@@ -3607,6 +3718,7 @@
       const patientId = patientIdInput.value.trim().toUpperCase();
 
       if (!patientId) {
+        setPatientDetailsState('idle');
         lastHistoryDebug = null;
         clearMeasurementInputs();
         childNameInput.value = '';
@@ -3618,11 +3730,12 @@
         setPatientHint('');
         updatePageMeta();
         setPatientGrowthHistory([]);
-        return;
+        return false;
       }
 
       patientIdInput.value = patientId;
-      setPatientHint('');
+      setPatientDetailsState('loading', 'Loading patient details...');
+      setPatientHint('Loading patient details...');
 
       try {
         const patientRecord = await fetchPatientRecord(patientId);
@@ -3638,11 +3751,14 @@
           setPatientHint('No patient record was found for that ID.');
           updatePageMeta();
           setPatientGrowthHistory([]);
-          return;
+          setPatientDetailsState('error', 'Patient details could not be loaded.');
+          return false;
         }
 
         applyPatientRecord(patientRecord);
         setPatientHint('');
+        setPatientDetailsState('loaded', 'Patient details loaded. Add vitals, then generate charts.');
+        return true;
       } catch (error) {
         lastHistoryDebug = {
           patientId,
@@ -3657,6 +3773,8 @@
         setPatientHint(`Unable to load patient details: ${error.message}`);
         updatePageMeta();
         setPatientGrowthHistory([]);
+        setPatientDetailsState('error', 'Patient details could not be loaded.');
+        return false;
       }
     }
 
@@ -3761,11 +3879,13 @@
       const patientId = (params.get('patientId') || '').trim().toUpperCase();
 
       if (!patientId) {
-        return;
+        setPatientDetailsState('idle', 'Open this page from a patient profile to load details first.');
+        return Promise.resolve(false);
       }
 
       patientIdInput.value = patientId;
-      autoFillPatientDetails();
+      patientDetailsLoadPromise = autoFillPatientDetails();
+      return patientDetailsLoadPromise;
     }
 
     async function saveHistoryRecord() {
@@ -4533,10 +4653,12 @@
         await renderCanvasFromGeneratedPreview(generatedPreviewPages[0] || null);
 
         setChartPreviewMessage('Charts are ready for preview and download.', 'ready');
+        updatePatientLoadGate();
         return;
       }
 
       setChartPreviewMessage('Charts are ready for preview and download.', 'ready');
+      updatePatientLoadGate();
     }
 
     function getSelectedCharts() {
@@ -4588,6 +4710,7 @@
 
     function revealActions() {
       downloadBtn.hidden = false;
+      downloadBtn.disabled = patientDetailsState !== 'loaded' || generatedPreviewPages.length === 0;
       statusNote.classList.add('visible');
     }
 
@@ -4729,6 +4852,10 @@
     });
 
     downloadBtn.addEventListener('click', async () => {
+      if (!(await waitForPatientDetailsBeforeAction())) {
+        return;
+      }
+
       if (generatedPreviewPages.length === 0) {
         statusNote.textContent = 'Generate the available charts before downloading the PDF.';
         statusNote.classList.add('visible');
@@ -4835,6 +4962,10 @@
     });
 
       generateBtn.addEventListener('click', async () => {
+      if (!(await waitForPatientDetailsBeforeAction())) {
+        return;
+      }
+
       if (generateBtn.textContent.trim() === 'Continue') {
         const patientId = patientIdInput.value.trim().toUpperCase();
         const targetUrl = patientId
