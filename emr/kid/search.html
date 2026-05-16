@@ -1861,6 +1861,14 @@
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
     import { collection, doc, getDocs, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
+    const FIREBASE_COLLECTIONS = {
+      patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
+      pendingPatients: `${CLINIC_FIREBASE_NAMESPACE}/pendingPatients`,
+      history: `${CLINIC_FIREBASE_NAMESPACE}/history`,
+      prescription: `${CLINIC_FIREBASE_NAMESPACE}/prescription`
+    };
+    const CLINIC_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE;
 
     const searchInput = document.getElementById('search-input');
     const clearBtn = document.getElementById('clear-btn');
@@ -2795,7 +2803,7 @@
       nextEntries.sort((a, b) => new Date(b.createdAtIso || 0) - new Date(a.createdAtIso || 0));
       const latestEntry = nextEntries[0] || null;
 
-      await setDoc(doc(db, 'patients', patientId), {
+      await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId), {
         patientId,
         measurementHistory: nextEntries,
         ...(latestEntry ? { lastMeasurementRecord: latestEntry } : {}),
@@ -3360,8 +3368,8 @@
       setStatus('Loading patients...');
 
       try {
-        const snapshot = await getDocs(collection(db, 'patients'));
-        const historySnapshot = await getDocs(collection(db, 'history')).catch((error) => {
+        const snapshot = await getDocs(collection(db, FIREBASE_COLLECTIONS.patients));
+        const historySnapshot = await getDocs(collection(db, FIREBASE_COLLECTIONS.history)).catch((error) => {
           console.warn(`Unable to load history records: ${error.message}`);
           return { docs: [] };
         });

@@ -162,6 +162,14 @@
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
     import { collection, doc, getDoc, getDocs, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
+    const FIREBASE_COLLECTIONS = {
+      patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
+      pendingPatients: `${CLINIC_FIREBASE_NAMESPACE}/pendingPatients`,
+      history: `${CLINIC_FIREBASE_NAMESPACE}/history`,
+      prescription: `${CLINIC_FIREBASE_NAMESPACE}/prescription`
+    };
+    const CLINIC_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE;
     const queueList = document.getElementById('queue-list');
     const queueCount = document.getElementById('queue-count');
     const queueSearch = document.getElementById('queue-search');
@@ -184,7 +192,7 @@
     function setStatus(message, tone = '') { statusNote.textContent = message; statusNote.className = `status-note${tone ? ` ${tone}` : ''}`; }
     function updateQueueCount(count = pendingItems.length) { queueCount.textContent = `${count} pending`; }
     function buildPatientId() { const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'; let suffix = ''; for (let index = 0; index < 3; index += 1) suffix += characters[Math.floor(Math.random() * characters.length)]; return `SX${suffix}`; }
-    async function buildUniquePatientId() { for (let attempts = 0; attempts < 20; attempts += 1) { const candidate = buildPatientId(); const snapshot = await getDoc(doc(db, 'patients', candidate)); if (!snapshot.exists()) return candidate; } throw new Error('Could not generate a unique patient ID right now.'); }
+    async function buildUniquePatientId() { for (let attempts = 0; attempts < 20; attempts += 1) { const candidate = buildPatientId(); const snapshot = await getDoc(doc(db, FIREBASE_COLLECTIONS.patients, candidate)); if (!snapshot.exists()) return candidate; } throw new Error('Could not generate a unique patient ID right now.'); }
     function getActivePendingItem() { return pendingItems.find((item) => item.id === activePendingId) || null; }
     function escapeHtml(value) { return String(value || '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'", '&#39;'); }
     function getFilteredPendingItems() { const queryValue = queueSearch.value.trim().toLowerCase(); return queryValue ? pendingItems.filter((item) => getPendingSearchText(item).includes(queryValue)) : pendingItems; }
@@ -219,8 +227,8 @@
     function selectPendingItem(itemId) { activePendingId = itemId; const item = getActivePendingItem(); renderQueue(getFilteredPendingItems()); if (!item) { emptyState.hidden = false; reviewForm.hidden = true; reviewStatus.textContent = 'No submission selected'; return; } loadPendingIntoForm(item); }
     async function loadPendingPatients() {
       setStatus('Loading pending intake submissions...');
-      const pendingSnapshotPromise = getDocs(collection(db, 'pendingPatients')).catch(() => ({ docs: [] }));
-      const patientsSnapshotPromise = getDocs(collection(db, 'patients')).catch(() => ({ docs: [] }));
+      const pendingSnapshotPromise = getDocs(collection(db, FIREBASE_COLLECTIONS.pendingPatients)).catch(() => ({ docs: [] }));
+      const patientsSnapshotPromise = getDocs(collection(db, FIREBASE_COLLECTIONS.patients)).catch(() => ({ docs: [] }));
       const [pendingSnapshot, patientsSnapshot] = await Promise.all([pendingSnapshotPromise, patientsSnapshotPromise]);
       const directPendingItems = pendingSnapshot.docs.map((docSnapshot) => ({
         id: docSnapshot.id,
@@ -273,12 +281,12 @@
       };
       approveBtn.disabled = true; rejectBtn.disabled = true; setStatus('Approving and creating patient record...');
       try {
-        await setDoc(doc(db, 'patients', patientId), {
+        await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId), {
           ...patientRecord,
           ...(activeItem.sourceCollection === 'patients' ? { updatedAt: serverTimestamp() } : { createdAt: serverTimestamp() })
         }, { merge: true });
         if (activeItem.sourceCollection === 'pendingPatients') {
-          await setDoc(doc(db, 'pendingPatients', activeItem.id), {
+          await setDoc(doc(db, FIREBASE_COLLECTIONS.pendingPatients, activeItem.id), {
             childName: patientRecord.childName,
             parentName: patientRecord.parentName,
             gender: patientRecord.gender,
@@ -313,7 +321,7 @@
           status: 'rejected',
           notes: reviewForm.elements.notes.value.trim()
         };
-        await setDoc(doc(db, activeItem.sourceCollection === 'patients' ? 'patients' : 'pendingPatients', activeItem.id), rejectPayload, { merge: true });
+        await setDoc(doc(db, activeItem.sourceCollection === 'patients' ? FIREBASE_COLLECTIONS.patients : FIREBASE_COLLECTIONS.pendingPatients, activeItem.id), rejectPayload, { merge: true });
         activePendingId = '';
         await loadPendingPatients();
         setStatus('Submission rejected and removed from the pending queue.', 'success');

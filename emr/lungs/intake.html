@@ -123,6 +123,14 @@
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
     import { addDoc, collection, doc, getDoc, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    const CLINIC_FIREBASE_NAMESPACE = 'clinics/lungs';
+    const FIREBASE_COLLECTIONS = {
+      patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
+      pendingPatients: `${CLINIC_FIREBASE_NAMESPACE}/pendingPatients`,
+      history: `${CLINIC_FIREBASE_NAMESPACE}/history`,
+      prescription: `${CLINIC_FIREBASE_NAMESPACE}/prescription`
+    };
+    const CLINIC_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE;
     const intakeForm = document.getElementById('intake-form');
     const submitBtn = document.getElementById('submit-btn');
     const statusNote = document.getElementById('status-note');
@@ -147,7 +155,7 @@
     async function buildUniquePatientId() {
       for (let attempts = 0; attempts < 20; attempts += 1) {
         const candidate = buildPatientId();
-        const snapshot = await getDoc(doc(db, 'patients', candidate));
+        const snapshot = await getDoc(doc(db, FIREBASE_COLLECTIONS.patients, candidate));
         if (!snapshot.exists()) {
           return candidate;
         }
@@ -178,14 +186,14 @@
       try {
         let queueId = '';
         try {
-          const docRef = await addDoc(collection(db, 'pendingPatients'), payload);
+          const docRef = await addDoc(collection(db, FIREBASE_COLLECTIONS.pendingPatients), payload);
           queueId = docRef.id;
         } catch (error) {
           if (!String(error?.message || '').toLowerCase().includes('insufficient permissions')) {
             throw error;
           }
           const fallbackPatientId = await buildUniquePatientId();
-          await setDoc(doc(db, 'patients', fallbackPatientId), {
+          await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, fallbackPatientId), {
             patientId: fallbackPatientId,
             childName: payload.childName,
             parentName: payload.parentName,

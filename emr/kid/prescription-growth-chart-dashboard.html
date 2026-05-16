@@ -2287,6 +2287,14 @@
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
     import { addDoc, arrayUnion, collection, doc, getDoc, getDocs, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     import { getDownloadURL, getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
+    const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
+    const FIREBASE_COLLECTIONS = {
+      patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
+      pendingPatients: `${CLINIC_FIREBASE_NAMESPACE}/pendingPatients`,
+      history: `${CLINIC_FIREBASE_NAMESPACE}/history`,
+      prescription: `${CLINIC_FIREBASE_NAMESPACE}/prescription`
+    };
+    const CLINIC_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE;
 
     const metricInputs = {
       weight: document.getElementById('weight'),
@@ -2940,7 +2948,7 @@
       const nextEntries = normalizeGrowthHistory([...entriesByKey.values(), ...draftEntriesByKey.values()]);
       const latestEntry = nextEntries[0] || null;
 
-      await setDoc(doc(db, 'patients', patientId), {
+      await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId), {
         measurementHistory: nextEntries,
         ...(latestEntry ? { lastMeasurementRecord: latestEntry } : {}),
         updatedAt: serverTimestamp()
@@ -3176,7 +3184,7 @@
         return { patients: [], history: [] };
       }
 
-      const patientsSnapshot = await getDocs(collection(db, 'patients')).catch((error) => {
+      const patientsSnapshot = await getDocs(collection(db, FIREBASE_COLLECTIONS.patients)).catch((error) => {
         console.warn(`Unable to load patient records: ${error.message}`);
         if (lastHistoryDebug) {
           lastHistoryDebug.errorMessage = `patients load failed: ${error.message}`;
@@ -3184,7 +3192,7 @@
         return { docs: [] };
       });
 
-      const historySnapshot = await getDocs(collection(db, 'history')).catch((error) => {
+      const historySnapshot = await getDocs(collection(db, FIREBASE_COLLECTIONS.history)).catch((error) => {
         console.warn(`Unable to load history records: ${error.message}`);
         if (lastHistoryDebug) {
           lastHistoryDebug.errorMessage = lastHistoryDebug.errorMessage
@@ -3565,7 +3573,7 @@
         return null;
       }
 
-      const patientSnapshot = await getDoc(doc(db, 'patients', patientId)).catch(() => null);
+      const patientSnapshot = await getDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId)).catch(() => null);
       lastHistoryDebug.patientDocFound = !!(patientSnapshot && patientSnapshot.exists && patientSnapshot.exists());
       const { patients: mergedPatients, historyByPatientId } = await loadMergedPatientsForDashboard();
       lastHistoryDebug.historyMatchCount = (historyByPatientId.get(patientId) || []).length;
@@ -3587,7 +3595,7 @@
       };
 
       if ((!patientSnapshot || !patientSnapshot.exists()) && patientRecord) {
-        await setDoc(doc(db, 'patients', patientId), {
+        await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId), {
           ...mergedPatientRecord,
           patientId,
           updatedAt: serverTimestamp()
@@ -3804,7 +3812,7 @@
         chartPdfSavedAt: latestChartPdfUploadResult?.savedAt || ''
       };
 
-      await addDoc(collection(db, 'history'), historyRecord);
+      await addDoc(collection(db, FIREBASE_COLLECTIONS.history), historyRecord);
       return { ok: true };
     }
 
@@ -3841,7 +3849,7 @@
         measurementEntry.chartFormatVersion = CHART_PREVIEW_VERSION;
       }
 
-      await setDoc(doc(db, 'patients', patientId), {
+      await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId), {
         lastMeasurementRecord: measurementEntry,
         measurementHistory: arrayUnion(measurementEntry),
         updatedAt: serverTimestamp()
@@ -3859,7 +3867,7 @@
       const patientId = patientIdInput.value.trim().toUpperCase() || 'UNKNOWN';
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const fileName = `${patientId}-${timestamp}.pdf`;
-      const storagePath = `chart-pdfs/${patientId}/${fileName}`;
+      const storagePath = `${CLINIC_STORAGE_PREFIX}/chart-pdfs/${patientId}/${fileName}`;
       const storageRef = ref(storage, storagePath);
       const metadata = {
         contentType: 'application/pdf'

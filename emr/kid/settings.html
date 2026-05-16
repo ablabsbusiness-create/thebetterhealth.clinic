@@ -847,6 +847,14 @@
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
     import { collection, doc, getDoc, getDocs, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     import { getMetadata, getStorage, ref } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
+    const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
+    const FIREBASE_COLLECTIONS = {
+      patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
+      pendingPatients: `${CLINIC_FIREBASE_NAMESPACE}/pendingPatients`,
+      history: `${CLINIC_FIREBASE_NAMESPACE}/history`,
+      prescription: `${CLINIC_FIREBASE_NAMESPACE}/prescription`
+    };
+    const CLINIC_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE;
 
     const menuToggle = document.getElementById('menu-toggle');
     const primaryNav = document.getElementById('primary-nav');
@@ -873,7 +881,7 @@
     const FIREBASE_FREE_STORAGE_BYTES = 5 * 1024 * 1024 * 1024;
     const PRINT_HEADER_GAP_STORAGE_KEY = 'previewPrintHeaderGapCm';
     const PRESCRIPTION_BRANDING_STORAGE_KEY = 'prescriptionBrandingSettings';
-    const PRESCRIPTION_BRANDING_DOC_PATH = ['clinicSettings', 'prescriptionBranding'];
+    const PRESCRIPTION_BRANDING_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'prescriptionBranding'];
     const ACCESS_COOKIE_NAME = 'clinic_session';
     const DEFAULT_BRANDING = {
       clinicTitle: 'The Better Health Clinic',
@@ -1103,7 +1111,7 @@
       }
 
       try {
-        const snapshot = await getDocs(collection(db, 'history'));
+        const snapshot = await getDocs(collection(db, FIREBASE_COLLECTIONS.history));
         const pdfRecords = snapshot.docs
           .map((docSnapshot) => ({ id: docSnapshot.id, ...docSnapshot.data() }))
           .filter((entry) => entry && (entry.source === 'prescription-pdf' || entry.type === 'prescription'));

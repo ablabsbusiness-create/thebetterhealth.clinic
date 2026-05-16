@@ -2,24 +2,28 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /clinicSettings/prescriptionBranding {
-      allow read, write: if true;
-    }
+    match /clinics/{clinicId} {
+      allow read, write: if clinicId in ['kid', 'lungs'];
 
-    match /patients/{patientId} {
-      allow read, write: if true;
-    }
+      match /clinicSettings/{settingId} {
+        allow read, write: if clinicId in ['kid', 'lungs'];
+      }
 
-    match /pendingPatients/{pendingPatientId} {
-      allow read, write: if true;
-    }
+      match /patients/{patientId} {
+        allow read, write: if clinicId in ['kid', 'lungs'];
+      }
 
-    match /history/{historyId} {
-      allow read, write: if true;
-    }
+      match /pendingPatients/{pendingPatientId} {
+        allow read, write: if clinicId in ['kid', 'lungs'];
+      }
 
-    match /prescription/{sectionId} {
-      allow read, write: if true;
+      match /history/{historyId} {
+        allow read, write: if clinicId in ['kid', 'lungs'];
+      }
+
+      match /prescription/{sectionId} {
+        allow read, write: if clinicId in ['kid', 'lungs'];
+      }
     }
 
     match /{document=**} {

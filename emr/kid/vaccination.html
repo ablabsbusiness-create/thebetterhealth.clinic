@@ -793,6 +793,14 @@
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
     import { doc, getDoc, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
+    const FIREBASE_COLLECTIONS = {
+      patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
+      pendingPatients: `${CLINIC_FIREBASE_NAMESPACE}/pendingPatients`,
+      history: `${CLINIC_FIREBASE_NAMESPACE}/history`,
+      prescription: `${CLINIC_FIREBASE_NAMESPACE}/prescription`
+    };
+    const CLINIC_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE;
 
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
@@ -1285,7 +1293,7 @@
       }
 
       statusNote.textContent = 'Loading patient vaccination records...';
-      const snapshot = await getDoc(doc(db, 'patients', normalizedPatientId));
+      const snapshot = await getDoc(doc(db, FIREBASE_COLLECTIONS.patients, normalizedPatientId));
       if (!snapshot.exists()) {
         currentPatient = { patientId: normalizedPatientId, vaccinationRecords: [] };
         statusNote.textContent = 'Patient was not found. Showing an empty vaccination tracker for this ID.';
@@ -1334,7 +1342,7 @@
         savedRecord
       ];
 
-      await setDoc(doc(db, 'patients', currentPatient.patientId), {
+      await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, currentPatient.patientId), {
         vaccinationRecords,
         vaccinationUpdatedAt: serverTimestamp()
       }, { merge: true });
@@ -1376,7 +1384,7 @@
         savedRecord
       ];
 
-      await setDoc(doc(db, 'patients', currentPatient.patientId), {
+      await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, currentPatient.patientId), {
         vaccinationRecords,
         vaccinationUpdatedAt: serverTimestamp()
       }, { merge: true });

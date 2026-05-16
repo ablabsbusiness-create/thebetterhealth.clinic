@@ -1570,6 +1570,14 @@
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
     import { getFirestore, doc, getDoc, setDoc, arrayUnion, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    const CLINIC_FIREBASE_NAMESPACE = 'clinics/lungs';
+    const FIREBASE_COLLECTIONS = {
+      patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
+      pendingPatients: `${CLINIC_FIREBASE_NAMESPACE}/pendingPatients`,
+      history: `${CLINIC_FIREBASE_NAMESPACE}/history`,
+      prescription: `${CLINIC_FIREBASE_NAMESPACE}/prescription`
+    };
+    const CLINIC_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE;
 
     const menuToggle = document.getElementById('menu-toggle');
     const primaryNav = document.getElementById('primary-nav');
@@ -2968,7 +2976,7 @@
 
       const entries = await Promise.all(
         Object.entries(prescriptionTemplates).map(async ([sectionName, items]) => {
-          const sectionRef = doc(db, 'prescription', sectionName);
+          const sectionRef = doc(db, FIREBASE_COLLECTIONS.prescription, sectionName);
           const snapshot = await getDoc(sectionRef);
 
           if (!snapshot.exists()) {
@@ -3010,7 +3018,7 @@
         return;
       }
 
-      const sectionRef = db ? doc(db, 'prescription', sectionName) : null;
+      const sectionRef = db ? doc(db, FIREBASE_COLLECTIONS.prescription, sectionName) : null;
       const selectedValues = new Set();
       prescriptionSelections[sectionName] = selectedValues;
       let allItems = mergeUniqueItems(initialItems);

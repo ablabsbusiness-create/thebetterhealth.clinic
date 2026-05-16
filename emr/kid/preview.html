@@ -858,6 +858,14 @@
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
     import { doc, getDoc, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     import { getDownloadURL, getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
+    const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
+    const FIREBASE_COLLECTIONS = {
+      patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
+      pendingPatients: `${CLINIC_FIREBASE_NAMESPACE}/pendingPatients`,
+      history: `${CLINIC_FIREBASE_NAMESPACE}/history`,
+      prescription: `${CLINIC_FIREBASE_NAMESPACE}/prescription`
+    };
+    const CLINIC_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE;
 
     const primaryNav = document.getElementById('primary-nav');
     const rxSheet = document.getElementById('rx-sheet');
@@ -872,7 +880,7 @@
     const PRINT_HEADER_MODE_STORAGE_KEY = 'previewPrintWithHeader';
     const PRINT_HEADER_GAP_STORAGE_KEY = 'previewPrintHeaderGapCm';
     const PRESCRIPTION_BRANDING_STORAGE_KEY = 'prescriptionBrandingSettings';
-    const PRESCRIPTION_BRANDING_DOC_PATH = ['clinicSettings', 'prescriptionBranding'];
+    const PRESCRIPTION_BRANDING_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'prescriptionBranding'];
     const DEFAULT_BRANDING = {
       clinicTitle: 'The Better Health Clinic',
       clinicAddress: 'The Better Health Clinic - Paediatrician #118, 5th Cross, Omkar Nagar Akere, Bannerghatta road 560076 Bengaluru Karnataka',
@@ -1824,7 +1832,7 @@
       }
 
       const patientId = details.patientId || 'UNKNOWN';
-      const storagePath = `prescriptions/${patientId}/${fileName}`;
+      const storagePath = `${CLINIC_STORAGE_PREFIX}/prescriptions/${patientId}/${fileName}`;
       let persistedStoragePath = '';
       let previewImageURL = '';
       let previewImagePath = '';
@@ -1875,7 +1883,7 @@
         createdAtDisplay: new Date().toLocaleString('en-IN')
       };
 
-      await setDoc(doc(db, 'history', saveId), historyRecord, { merge: true });
+      await setDoc(doc(db, FIREBASE_COLLECTIONS.history, saveId), historyRecord, { merge: true });
       persistLocalPrescriptionRecord(historyRecord);
 
       return { ok: true, downloadURL, storagePath: persistedStoragePath, previewImageURL, previewImagePath, warning };
