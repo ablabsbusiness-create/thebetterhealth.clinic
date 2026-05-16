@@ -9,11 +9,9 @@
   }
 
   const nextPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-  const loginPath = window.location.pathname.startsWith('/emr/kid/') || window.location.pathname === '/emr/kid'
-    ? '/emr/kid/password.html'
-    : window.location.pathname.startsWith('/emr/') || window.location.pathname === '/emr'
-      ? '/emr/password.html'
-      : '/password';
+  const loginPath = window.location.pathname.startsWith('/emr/lungs/') || window.location.pathname === '/emr/lungs'
+    ? '/emr/lungs/password.html'
+    : '/password';
 
   window.location.replace(`${loginPath}?next=${encodeURIComponent(nextPath)}`);
 })();

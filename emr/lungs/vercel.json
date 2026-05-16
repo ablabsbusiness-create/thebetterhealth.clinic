@@ -2,79 +2,79 @@
   "cleanUrls": true,
   "rewrites": [
     {
-      "source": "/emr",
+      "source": "/emr/lungs",
       "destination": "/index"
     },
     {
-      "source": "/emr/kid/:path*",
+      "source": "/emr/lungs/:path*",
       "destination": "/:path*"
     },
     {
-      "source": "/emr/password",
+      "source": "/emr/lungs/password",
       "destination": "/password"
     },
     {
-      "source": "/emr/index",
+      "source": "/emr/lungs/index",
       "destination": "/index"
     },
     {
-      "source": "/emr/clinci",
+      "source": "/emr/lungs/clinci",
       "destination": "/clinci"
     },
     {
-      "source": "/emr/new-patient",
+      "source": "/emr/lungs/new-patient",
       "destination": "/new-patient"
     },
     {
-      "source": "/emr/growth-chart-dashboard",
+      "source": "/emr/lungs/growth-chart-dashboard",
       "destination": "/growth-chart-dashboard"
     },
     {
-      "source": "/emr/prescription-growth-chart-dashboard",
+      "source": "/emr/lungs/prescription-growth-chart-dashboard",
       "destination": "/prescription-growth-chart-dashboard"
     },
     {
-      "source": "/emr/prescription",
+      "source": "/emr/lungs/prescription",
       "destination": "/prescription"
     },
     {
-      "source": "/emr/preview",
+      "source": "/emr/lungs/preview",
       "destination": "/preview"
     },
     {
-      "source": "/emr/rx",
+      "source": "/emr/lungs/rx",
       "destination": "/rx"
     },
     {
-      "source": "/emr/pending-approvals",
+      "source": "/emr/lungs/pending-approvals",
       "destination": "/pending-approvals"
     },
     {
-      "source": "/emr/reception-qr",
+      "source": "/emr/lungs/reception-qr",
       "destination": "/reception-qr"
     },
     {
-      "source": "/emr/intake",
+      "source": "/emr/lungs/intake",
       "destination": "/intake"
     },
     {
-      "source": "/emr/settings",
+      "source": "/emr/lungs/settings",
       "destination": "/settings"
     },
     {
-      "source": "/emr/vaccination",
+      "source": "/emr/lungs/vaccination",
       "destination": "/vaccination"
     },
     {
-      "source": "/emr/vacination",
+      "source": "/emr/lungs/vacination",
       "destination": "/vacination"
     },
     {
-      "source": "/emr/search",
+      "source": "/emr/lungs/search",
       "destination": "/search"
     },
     {
-      "source": "/emr/:path*",
+      "source": "/emr/lungs/:path*",
       "destination": "/:path*"
     }
   ]

@@ -1,7 +1,7 @@
 export const SESSION_COOKIE_NAME = 'clinic_session';
 export const SESSION_TTL_SECONDS = 60 * 60 * 12;
 
-const APP_BASE_SEGMENT = '/emr';
+const APP_BASE_SEGMENT = '/emr/lungs';
 
 const PROTECTED_PATHS = new Set([
   '/',
@@ -9,11 +9,8 @@ const PROTECTED_PATHS = new Set([
   '/clinci',
   '/new-patient',
   '/growth-chart-dashboard',
-  '/KID/growth-chart-dashboard',
   '/prescription',
-  '/KID/prescription',
   '/preview',
-  '/KID/preview',
   '/pending-approvals',
   '/reception-qr',
   '/search',
@@ -21,7 +18,6 @@ const PROTECTED_PATHS = new Set([
   '/vaccination',
   '/vacination',
   '/prescription-growth-chart-dashboard',
-  '/KID/prescription-growth-chart-dashboard',
   '/api/growth_charts'
 ]);
 
@@ -29,7 +25,6 @@ const PUBLIC_PATHS = new Set([
   '/password',
   '/intake',
   '/rx',
-  '/KID/rx',
   '/api/auth/login',
   '/api/auth/logout'
 ]);
@@ -67,12 +62,6 @@ export function normalizeAppPath(pathname) {
   }
 
   normalized = normalizeSlashes(normalized);
-
-  if (normalized.startsWith('/KID/')) {
-    normalized = normalized.slice('/KID'.length);
-  } else if (normalized === '/KID') {
-    normalized = '/';
-  }
 
   if (normalized.length > 1 && normalized.endsWith('/')) {
     normalized = normalized.slice(0, -1);
