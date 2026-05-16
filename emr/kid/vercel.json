@@ -6,7 +6,7 @@
       "destination": "/index"
     },
     {
-      "source": "/emr/KID/:path*",
+      "source": "/emr/kid/:path*",
       "destination": "/:path*"
     },
     {
