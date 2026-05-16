@@ -16,7 +16,7 @@ import {
   shouldUseAppBase
 } from './lib/auth.js';
 
-const repoRoot = resolve(__dirname, '..');
+const repoRoot = resolve(__dirname, '..', '..');
 const pythonChartRendererScript = resolve(__dirname, 'scripts', 'render_growth_charts.py');
 const nodeModulesRoot = existsSync(resolve(__dirname, 'node_modules')) ? __dirname : resolve(__dirname, '..');
 const pythonCommands = [

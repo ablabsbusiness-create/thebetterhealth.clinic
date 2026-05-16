@@ -76,7 +76,7 @@ def convert_to_bw(image: Image.Image) -> Image.Image:
 
 
 def main() -> None:
-    output_dir = Path("KID/assets/who-official-png")
+    output_dir = Path("emr/KID/assets/who-official-png")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     for filename, chart in CHARTS.items():

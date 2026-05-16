@@ -485,7 +485,7 @@ def render_chart(chart: dict) -> str:
 
 
 def main() -> None:
-    output_dir = Path("KID/assets/iap-official-minimal")
+    output_dir = Path("emr/KID/assets/iap-official-minimal")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     for chart in CHARTS:
