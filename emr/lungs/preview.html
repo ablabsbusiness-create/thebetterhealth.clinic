@@ -885,11 +885,16 @@
     const MEDICINE_DETAIL_STORAGE_KEY = clinicStorageKey('prescriptionMedicineDetails');
     const PRESCRIPTION_BRANDING_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'prescriptionBranding'];
     const DEFAULT_BRANDING = {
+      sectionTitle: 'Prescription Header, Footer & Signature',
+      sectionDescription: 'Set the clinic text and doctor signature used on prescription preview, print, and saved PDF.',
       clinicTitle: 'The Better Health Clinic',
       clinicAddress: 'The Better Health Clinic - Paediatrician #118, 5th Cross, Omkar Nagar Akere, Bannerghatta road 560076 Bengaluru Karnataka',
       doctorName: 'Dr. Gunda Srinivas',
       doctorDetails: 'MBBS, DCH, DNB - Paediatrics, PGDDN, FPEM\n71826',
       footerText: 'The Better Health Clinic - Paediatrician #118, 5th Cross, Omkar Nagar Akere,\nBannerghatta road 560076 Bengaluru Karnataka',
+      printWithoutHeaderTitle: 'Print Without Header',
+      printWithoutHeaderDescription: 'Choose how much blank top space to leave when you print or save without the prescription header.',
+      printHeaderGapCm: 0,
       signatureDataUrl: ''
     };
     const firebaseEnv = import.meta.env || {};
@@ -1948,6 +1953,14 @@
     let printWithHeaderEnabled = true;
 
     function getSavedPrintGapCm() {
+      const brandingGap = getPrescriptionBranding().printHeaderGapCm;
+      if (brandingGap !== undefined && brandingGap !== null && brandingGap !== '') {
+        const parsedBrandingGap = Number.parseFloat(String(brandingGap));
+        if (Number.isFinite(parsedBrandingGap) && parsedBrandingGap >= 0) {
+          return Math.min(parsedBrandingGap, 10);
+        }
+      }
+
       const rawValue = localStorage.getItem(PRINT_HEADER_GAP_STORAGE_KEY);
       const parsedValue = Number.parseFloat(rawValue || '');
       if (!Number.isFinite(parsedValue) || parsedValue < 0) {
@@ -2041,4 +2054,3 @@
   </style>
 </body>
 </html>
-

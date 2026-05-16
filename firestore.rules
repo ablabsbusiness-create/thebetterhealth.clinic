@@ -3,27 +3,15 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /clinics/{clinicId} {
-      allow read, write: if clinicId in ['kid', 'lungs'];
+      allow read, write: if clinicId == 'kid' || clinicId == 'lungs';
+    }
 
-      match /clinicSettings/{settingId} {
-        allow read, write: if clinicId in ['kid', 'lungs'];
-      }
+    match /clinics/{clinicId}/{document=**} {
+      allow read, write: if clinicId == 'kid' || clinicId == 'lungs';
+    }
 
-      match /patients/{patientId} {
-        allow read, write: if clinicId in ['kid', 'lungs'];
-      }
-
-      match /pendingPatients/{pendingPatientId} {
-        allow read, write: if clinicId in ['kid', 'lungs'];
-      }
-
-      match /history/{historyId} {
-        allow read, write: if clinicId in ['kid', 'lungs'];
-      }
-
-      match /prescription/{sectionId} {
-        allow read, write: if clinicId in ['kid', 'lungs'];
-      }
+    match /clinicSettings/{settingId} {
+      allow read, write: if settingId == 'kid' || settingId == 'lungs';
     }
 
     match /{document=**} {

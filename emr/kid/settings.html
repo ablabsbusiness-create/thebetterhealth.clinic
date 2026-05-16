@@ -765,7 +765,7 @@
           <div class="usage-meter" aria-hidden="true">
             <div id="usage-fill" class="usage-meter-fill"></div>
           </div>
-          <div id="usage-caption" class="usage-caption">0% of 5 GB free storage used</div>
+          <div id="usage-caption" class="usage-caption">0% of 2.5 GB free storage used</div>
         </article>
 
         <article class="stat-card setting-card">
@@ -846,7 +846,7 @@
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
     import { collection, doc, getDoc, getDocs, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
-    import { getMetadata, getStorage, ref } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
+    import { getMetadata, getStorage, listAll, ref } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
     const FIREBASE_COLLECTIONS = {
       patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
@@ -880,17 +880,23 @@
     const saveBrandingBtn = document.getElementById('save-branding-btn');
     const resetBrandingBtn = document.getElementById('reset-branding-btn');
     const brandingSettingStatus = document.getElementById('branding-setting-status');
-    const FIREBASE_FREE_STORAGE_BYTES = 5 * 1024 * 1024 * 1024;
+    const FIREBASE_FREE_STORAGE_BYTES = 2.5 * 1024 * 1024 * 1024;
+    const FIREBASE_STORAGE_LABEL = '2.5 GB';
     const PRINT_HEADER_GAP_STORAGE_KEY = clinicStorageKey('previewPrintHeaderGapCm');
     const PRESCRIPTION_BRANDING_STORAGE_KEY = clinicStorageKey('prescriptionBrandingSettings');
     const PRESCRIPTION_BRANDING_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'prescriptionBranding'];
     const ACCESS_COOKIE_NAME = 'clinic_session';
     const DEFAULT_BRANDING = {
+      sectionTitle: 'Prescription Header, Footer & Signature',
+      sectionDescription: 'Set the clinic text and doctor signature used on prescription preview, print, and saved PDF.',
       clinicTitle: 'The Better Health Clinic',
       clinicAddress: 'The Better Health Clinic - Paediatrician #118, 5th Cross, Omkar Nagar Akere, Bannerghatta road 560076 Bengaluru Karnataka',
       doctorName: 'Dr. Gunda Srinivas',
       doctorDetails: 'MBBS, DCH, DNB - Paediatrics, PGDDN, FPEM\n71826',
       footerText: 'The Better Health Clinic - Paediatrician #118, 5th Cross, Omkar Nagar Akere,\nBannerghatta road 560076 Bengaluru Karnataka',
+      printWithoutHeaderTitle: 'Print Without Header',
+      printWithoutHeaderDescription: 'Choose how much blank top space to leave when you print or save without the prescription header.',
+      printHeaderGapCm: 0,
       signatureDataUrl: ''
     };
 
@@ -927,16 +933,21 @@
       const rawPercent = (safeBytes / FIREBASE_FREE_STORAGE_BYTES) * 100;
       const boundedPercent = Math.max(0, Math.min(rawPercent, 100));
       usageFill.style.width = `${boundedPercent}%`;
-      usageCaption.textContent = `${rawPercent.toFixed(rawPercent >= 10 ? 1 : 2)}% of 5 GB free storage used`;
+      usageCaption.textContent = `${rawPercent.toFixed(rawPercent >= 10 ? 1 : 2)}% of ${FIREBASE_STORAGE_LABEL} free storage used`;
     }
 
-    function getSavedPrintGapCm() {
-      const rawValue = localStorage.getItem(PRINT_HEADER_GAP_STORAGE_KEY);
-      const parsedValue = Number.parseFloat(rawValue || '');
+    function normalizePrintGapCm(value) {
+      const parsedValue = Number.parseFloat(String(value ?? ''));
       if (!Number.isFinite(parsedValue) || parsedValue < 0) {
         return 0;
       }
       return Math.min(parsedValue, 10);
+    }
+
+    function getSavedPrintGapCm() {
+      const localValue = localStorage.getItem(PRINT_HEADER_GAP_STORAGE_KEY);
+      const brandingValue = readBrandingSettings().printHeaderGapCm;
+      return normalizePrintGapCm(localValue ?? brandingValue);
     }
 
     function updatePrintGapSettingStatus(value, message) {
@@ -949,11 +960,38 @@
       }
     }
 
-    function savePrintGapSetting() {
+    async function savePrintGapSetting() {
       const parsedValue = Number.parseFloat(printGapSettingInput.value);
       const safeValue = Number.isFinite(parsedValue) && parsedValue >= 0 ? Math.min(parsedValue, 10) : 0;
       localStorage.setItem(PRINT_HEADER_GAP_STORAGE_KEY, String(safeValue));
-      updatePrintGapSettingStatus(safeValue, `Saved gap: ${safeValue.toFixed(1)} cm`);
+      const nextSettings = cacheBrandingSettings({
+        ...readBrandingSettings(),
+        printWithoutHeaderTitle: DEFAULT_BRANDING.printWithoutHeaderTitle,
+        printWithoutHeaderDescription: DEFAULT_BRANDING.printWithoutHeaderDescription,
+        printHeaderGapCm: safeValue
+      });
+
+      if (db) {
+        const brandingDocRef = doc(db, ...PRESCRIPTION_BRANDING_DOC_PATH);
+        await setDoc(brandingDocRef, {
+          printWithoutHeaderTitle: nextSettings.printWithoutHeaderTitle,
+          printWithoutHeaderDescription: nextSettings.printWithoutHeaderDescription,
+          printHeaderGapCm: safeValue,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+
+        const confirmedSnapshot = await getDoc(brandingDocRef);
+        const confirmedValue = normalizePrintGapCm(confirmedSnapshot.data()?.printHeaderGapCm);
+        localStorage.setItem(PRINT_HEADER_GAP_STORAGE_KEY, String(confirmedValue));
+        cacheBrandingSettings({
+          ...readBrandingSettings(),
+          printHeaderGapCm: confirmedValue
+        });
+        updatePrintGapSettingStatus(confirmedValue, `Saved gap: ${confirmedValue.toFixed(1)} cm to Firebase`);
+        return;
+      }
+
+      updatePrintGapSettingStatus(safeValue, `Saved gap: ${safeValue.toFixed(1)} cm in this browser`);
     }
 
     function readBrandingSettings() {
@@ -1003,6 +1041,8 @@
           ...snapshot.data(),
           signatureDataUrl: snapshot.data().signatureDataUrl || cachedSettings.signatureDataUrl || ''
         });
+        localStorage.setItem(PRINT_HEADER_GAP_STORAGE_KEY, String(normalizePrintGapCm(firestoreSettings.printHeaderGapCm)));
+        updatePrintGapSettingStatus(normalizePrintGapCm(firestoreSettings.printHeaderGapCm));
         populateBrandingForm(firestoreSettings);
         if (brandingSettingStatus) {
           brandingSettingStatus.textContent = 'Current branding: loaded from Firebase.';
@@ -1047,11 +1087,16 @@
     function collectBrandingForm() {
       const current = readBrandingSettings();
       return {
+        sectionTitle: DEFAULT_BRANDING.sectionTitle,
+        sectionDescription: DEFAULT_BRANDING.sectionDescription,
         clinicTitle: clinicTitleInput?.value.trim() || DEFAULT_BRANDING.clinicTitle,
         clinicAddress: clinicAddressInput?.value.trim() || DEFAULT_BRANDING.clinicAddress,
         doctorName: doctorNameInput?.value.trim() || DEFAULT_BRANDING.doctorName,
         doctorDetails: doctorDetailsInput?.value.trim() || DEFAULT_BRANDING.doctorDetails,
         footerText: footerTextInput?.value.trim() || DEFAULT_BRANDING.footerText,
+        printWithoutHeaderTitle: DEFAULT_BRANDING.printWithoutHeaderTitle,
+        printWithoutHeaderDescription: DEFAULT_BRANDING.printWithoutHeaderDescription,
+        printHeaderGapCm: getSavedPrintGapCm(),
         signatureDataUrl: current.signatureDataUrl || ''
       };
     }
@@ -1103,6 +1148,19 @@
       });
     }
 
+    async function collectPdfStorageRefs(prefix) {
+      const pdfRefs = [];
+
+      async function walk(folderRef) {
+        const listing = await listAll(folderRef);
+        pdfRefs.push(...listing.items.filter((itemRef) => itemRef.name.toLowerCase().endsWith('.pdf')));
+        await Promise.all(listing.prefixes.map((childRef) => walk(childRef)));
+      }
+
+      await walk(ref(storage, prefix));
+      return pdfRefs;
+    }
+
     async function updatePdfStats() {
       if (!db || !storage) {
         pdfCount.textContent = '0';
@@ -1113,43 +1171,38 @@
       }
 
       try {
-        const snapshot = await getDocs(collection(db, FIREBASE_COLLECTIONS.history));
-        const pdfRecords = snapshot.docs
-          .map((docSnapshot) => ({ id: docSnapshot.id, ...docSnapshot.data() }))
-          .filter((entry) => entry && (entry.source === 'prescription-pdf' || entry.type === 'prescription'));
+        const pdfRefs = [
+          ...(await collectPdfStorageRefs(`${CLINIC_STORAGE_PREFIX}/prescriptions`)),
+          ...(await collectPdfStorageRefs(`${CLINIC_STORAGE_PREFIX}/chart-pdfs`))
+        ];
 
-        pdfCount.textContent = String(pdfRecords.length);
+        pdfCount.textContent = String(pdfRefs.length);
 
         let totalBytes = 0;
         let resolvedFiles = 0;
 
-        await Promise.all(pdfRecords.map(async (entry) => {
-          const storagePath = String(entry.storagePath || '').trim();
-          if (!storagePath) {
-            return;
-          }
-
+        await Promise.all(pdfRefs.map(async (storageRef) => {
           try {
-            const metadata = await getMetadata(ref(storage, storagePath));
+            const metadata = await getMetadata(storageRef);
             totalBytes += Number(metadata.size || 0);
             resolvedFiles += 1;
           } catch (error) {
-            console.warn(`Unable to read PDF metadata for ${storagePath}: ${error.message}`);
+            console.warn(`Unable to read PDF metadata for ${storageRef.fullPath}: ${error.message}`);
           }
         }));
 
         pdfSize.textContent = formatBytes(totalBytes);
         updateUsageBar(totalBytes);
 
-        if (pdfRecords.length === 0) {
-          usageCaption.textContent = '0% of 5 GB free storage used';
+        if (pdfRefs.length === 0) {
+          usageCaption.textContent = `0% of ${FIREBASE_STORAGE_LABEL} free storage used`;
           return;
         }
 
-        if (resolvedFiles === pdfRecords.length) {
+        if (resolvedFiles === pdfRefs.length) {
           return;
         }
-        usageCaption.textContent = `${(totalBytes / FIREBASE_FREE_STORAGE_BYTES * 100).toFixed(totalBytes >= FIREBASE_FREE_STORAGE_BYTES * 0.1 ? 1 : 2)}% of 5 GB free storage used`;
+        usageCaption.textContent = `${(totalBytes / FIREBASE_FREE_STORAGE_BYTES * 100).toFixed(totalBytes >= FIREBASE_FREE_STORAGE_BYTES * 0.1 ? 1 : 2)}% of ${FIREBASE_STORAGE_LABEL} free storage used`;
       } catch (error) {
         console.warn(`Unable to load Firebase PDF stats: ${error.message}`);
         pdfCount.textContent = '0';
@@ -1188,11 +1241,20 @@
 
     if (savePrintGapBtn && printGapSettingInput) {
       updatePrintGapSettingStatus(getSavedPrintGapCm());
-      savePrintGapBtn.addEventListener('click', savePrintGapSetting);
+      savePrintGapBtn.addEventListener('click', async () => {
+        savePrintGapBtn.disabled = true;
+        try {
+          await savePrintGapSetting();
+        } catch (error) {
+          updatePrintGapSettingStatus(getSavedPrintGapCm(), `Saved locally, but Firebase save failed: ${error.message}`);
+        } finally {
+          savePrintGapBtn.disabled = false;
+        }
+      });
       printGapSettingInput.addEventListener('keydown', (event) => {
         if (event.key === 'Enter') {
           event.preventDefault();
-          savePrintGapSetting();
+          savePrintGapBtn.click();
         }
       });
     }
