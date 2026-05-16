@@ -5,7 +5,7 @@ import {
   isProtectedPath,
   normalizeAppPath,
   shouldUseAppBase
-} from './lib/auth.js';
+} from './KID/lib/auth.js';
 
 export default async function middleware(request) {
   const { pathname, search } = request.nextUrl;

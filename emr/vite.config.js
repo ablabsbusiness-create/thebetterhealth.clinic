@@ -14,7 +14,7 @@ import {
   isProtectedPath,
   normalizeAppPath,
   shouldUseAppBase
-} from './lib/auth.js';
+} from './KID/lib/auth.js';
 
 const repoRoot = resolve(__dirname, '..');
 const pythonChartRendererScript = resolve(__dirname, 'KID', 'scripts', 'render_growth_charts.py');
@@ -89,6 +89,7 @@ function readRequestBody(req) {
 export default defineConfig({
   root: __dirname,
   envDir: __dirname,
+  publicDir: resolve(__dirname, 'KID', 'public'),
   base: '/emr/',
   resolve: {
     alias: {
@@ -241,22 +242,22 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        password: resolve(__dirname, 'password.html'),
-        entryDashboard: resolve(__dirname, 'index.html'),
-        dashboard: resolve(__dirname, 'clinci.html'),
-        newPatient: resolve(__dirname, 'new-patient.html'),
+        password: resolve(__dirname, 'KID', 'password.html'),
+        entryDashboard: resolve(__dirname, 'KID', 'index.html'),
+        dashboard: resolve(__dirname, 'KID', 'clinci.html'),
+        newPatient: resolve(__dirname, 'KID', 'new-patient.html'),
         growthChart: resolve(__dirname, 'KID', 'growth-chart-dashboard.html'),
         prescription: resolve(__dirname, 'KID', 'prescription.html'),
         preview: resolve(__dirname, 'KID', 'preview.html'),
-        pendingApprovals: resolve(__dirname, 'pending-approvals.html'),
-        receptionQr: resolve(__dirname, 'reception-qr.html'),
-        intake: resolve(__dirname, 'intake.html'),
+        pendingApprovals: resolve(__dirname, 'KID', 'pending-approvals.html'),
+        receptionQr: resolve(__dirname, 'KID', 'reception-qr.html'),
+        intake: resolve(__dirname, 'KID', 'intake.html'),
         rx: resolve(__dirname, 'KID', 'rx.html'),
-        settings: resolve(__dirname, 'settings.html'),
+        settings: resolve(__dirname, 'KID', 'settings.html'),
         prescriptionGrowthChart: resolve(__dirname, 'KID', 'prescription-growth-chart-dashboard.html'),
-        vaccination: resolve(__dirname, 'vaccination.html'),
-        vacination: resolve(__dirname, 'vacination.html'),
-        search: resolve(__dirname, 'search.html')
+        vaccination: resolve(__dirname, 'KID', 'vaccination.html'),
+        vacination: resolve(__dirname, 'KID', 'vacination.html'),
+        search: resolve(__dirname, 'KID', 'search.html')
       }
     }
   }

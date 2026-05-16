@@ -3,7 +3,27 @@
   "rewrites": [
     {
       "source": "/emr",
-      "destination": "/index"
+      "destination": "/KID/index"
+    },
+    {
+      "source": "/emr/KID/:path*",
+      "destination": "/KID/:path*"
+    },
+    {
+      "source": "/emr/password",
+      "destination": "/KID/password"
+    },
+    {
+      "source": "/emr/index",
+      "destination": "/KID/index"
+    },
+    {
+      "source": "/emr/clinci",
+      "destination": "/KID/clinci"
+    },
+    {
+      "source": "/emr/new-patient",
+      "destination": "/KID/new-patient"
     },
     {
       "source": "/emr/growth-chart-dashboard",
@@ -24,6 +44,34 @@
     {
       "source": "/emr/rx",
       "destination": "/KID/rx"
+    },
+    {
+      "source": "/emr/pending-approvals",
+      "destination": "/KID/pending-approvals"
+    },
+    {
+      "source": "/emr/reception-qr",
+      "destination": "/KID/reception-qr"
+    },
+    {
+      "source": "/emr/intake",
+      "destination": "/KID/intake"
+    },
+    {
+      "source": "/emr/settings",
+      "destination": "/KID/settings"
+    },
+    {
+      "source": "/emr/vaccination",
+      "destination": "/KID/vaccination"
+    },
+    {
+      "source": "/emr/vacination",
+      "destination": "/KID/vacination"
+    },
+    {
+      "source": "/emr/search",
+      "destination": "/KID/search"
     },
     {
       "source": "/emr/:path*",

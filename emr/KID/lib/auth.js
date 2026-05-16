@@ -68,6 +68,12 @@ export function normalizeAppPath(pathname) {
 
   normalized = normalizeSlashes(normalized);
 
+  if (normalized.startsWith('/KID/')) {
+    normalized = normalized.slice('/KID'.length);
+  } else if (normalized === '/KID') {
+    normalized = '/';
+  }
+
   if (normalized.length > 1 && normalized.endsWith('/')) {
     normalized = normalized.slice(0, -1);
   }

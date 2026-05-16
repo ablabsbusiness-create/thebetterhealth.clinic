@@ -2,12 +2,12 @@ import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 
-const appDir = resolve(import.meta.dirname, '..');
-const repoRoot = resolve(appDir, '..');
+const kidDir = resolve(import.meta.dirname, '..');
+const repoRoot = resolve(kidDir, '..', '..');
 const generatorScript = resolve(repoRoot, 'scripts', 'generate_minimal_iap_pngs.py');
 const whoGeneratorScript = resolve(repoRoot, 'scripts', 'generate_official_who_pngs.py');
-const outputDir = resolve(appDir, 'KID', 'assets', 'iap-official-png');
-const whoOutputDir = resolve(appDir, 'KID', 'assets', 'who-official-png');
+const outputDir = resolve(kidDir, 'assets', 'iap-official-png');
+const whoOutputDir = resolve(kidDir, 'assets', 'who-official-png');
 
 const pythonCommands = [
   ['python', [generatorScript]],
