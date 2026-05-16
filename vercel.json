@@ -30,16 +30,40 @@
       "destination": "/KID/growth_chart_config.json"
     },
     {
+      "source": "/emr/KID/prescription-growth-chart-dashboard",
+      "destination": "/KID/prescription-growth-chart-dashboard"
+    },
+    {
+      "source": "/emr/KID/growth-chart-dashboard",
+      "destination": "/KID/growth-chart-dashboard"
+    },
+    {
+      "source": "/emr/KID/search",
+      "destination": "/KID/search"
+    },
+    {
+      "source": "/emr/KID/prescription",
+      "destination": "/KID/prescription"
+    },
+    {
+      "source": "/emr/KID/preview",
+      "destination": "/KID/preview"
+    },
+    {
+      "source": "/emr/KID/rx",
+      "destination": "/KID/rx"
+    },
+    {
       "source": "/emr/KID/:path*",
-      "destination": "/KID/:path*.html"
+      "destination": "/KID/:path*"
     },
     {
       "source": "/emr/:path*",
-      "destination": "/KID/:path*.html"
+      "destination": "/KID/:path*"
     },
     {
       "source": "/KID/:path*",
-      "destination": "/KID/:path*.html"
+      "destination": "/KID/:path*"
     }
   ]
 }

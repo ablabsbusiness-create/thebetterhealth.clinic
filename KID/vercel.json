@@ -102,12 +102,36 @@
       "destination": "/search"
     },
     {
+      "source": "/emr/KID/prescription-growth-chart-dashboard",
+      "destination": "/prescription-growth-chart-dashboard"
+    },
+    {
+      "source": "/emr/KID/growth-chart-dashboard",
+      "destination": "/growth-chart-dashboard"
+    },
+    {
+      "source": "/emr/KID/search",
+      "destination": "/search"
+    },
+    {
+      "source": "/emr/KID/prescription",
+      "destination": "/prescription"
+    },
+    {
+      "source": "/emr/KID/preview",
+      "destination": "/preview"
+    },
+    {
+      "source": "/emr/KID/rx",
+      "destination": "/rx"
+    },
+    {
       "source": "/emr/KID/:path*",
-      "destination": "/:path*.html"
+      "destination": "/:path*"
     },
     {
       "source": "/emr/:path*",
-      "destination": "/:path*.html"
+      "destination": "/:path*"
     }
   ]
 }
