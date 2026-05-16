@@ -2999,7 +2999,7 @@
                 <strong>${phone}</strong>
                 ${parentNameHtml}
               </div>
-              <a class="continue-link" href="prescription-growth-chart-dashboard?patientId=${encodeURIComponent(patientId)}">Continue</a>
+              <a class="continue-link" href="prescription?patientId=${encodeURIComponent(patientId)}">Continue</a>
             </div>
 
             ${isExpanded ? `
@@ -3102,8 +3102,7 @@
                 <div class="doctor-patient-meta">
                   ${parentName ? `<span class="doctor-meta-chip">${parentName}</span>` : ''}
                   <span class="doctor-meta-chip">${phone}</span>
-                  <a class="continue-link" href="vaccination?patientId=${encodeURIComponent(selectedPatientIdValue)}">Vaccination</a>
-                  <a class="continue-link" href="prescription-growth-chart-dashboard?patientId=${encodeURIComponent(selectedPatientIdValue)}">Start Consult</a>
+                  <a class="continue-link" href="prescription?patientId=${encodeURIComponent(selectedPatientIdValue)}">Start Consult</a>
                 </div>
               </div>
 

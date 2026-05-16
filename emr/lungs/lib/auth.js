@@ -8,17 +8,12 @@ const PROTECTED_PATHS = new Set([
   '/index',
   '/clinci',
   '/new-patient',
-  '/growth-chart-dashboard',
   '/prescription',
   '/preview',
   '/pending-approvals',
   '/reception-qr',
   '/search',
-  '/settings',
-  '/vaccination',
-  '/vacination',
-  '/prescription-growth-chart-dashboard',
-  '/api/growth_charts'
+  '/settings'
 ]);
 
 const PUBLIC_PATHS = new Set([
