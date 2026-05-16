@@ -1281,9 +1281,11 @@
 
         document.cookie = `${ACCESS_COOKIE_NAME}=; Max-Age=0; Path=/; SameSite=Strict`;
 
-        const passwordPath = window.location.pathname.includes('/emr/') || window.location.pathname === '/emr/settings'
-          ? '/emr/password'
-          : '/password';
+        const passwordPath = window.location.pathname.startsWith('/emr/kid/')
+          ? '/emr/kid/password.html'
+          : window.location.pathname.includes('/emr/') || window.location.pathname === '/emr/settings'
+            ? '/emr/password.html'
+            : '/password';
 
         window.location.replace(passwordPath);
       });
