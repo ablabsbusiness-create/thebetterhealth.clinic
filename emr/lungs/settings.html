@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Setting</title>
+  <script type="module" src="./auth-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #eef4ef;
+      --ink: #1b2a21;
+      --muted: #607067;
+      --line: #d7e2d9;
+      --brand: #166534;
+      --brand-soft: #dcfce7;
+      --brand-strong: #14532d;
+      --accent-soft: #ffedd5;
+      --shadow: 0 18px 45px rgba(22, 38, 29, 0.08);
+      --radius-lg: 24px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Outfit', system-ui, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(34, 197, 94, 0.14), transparent 28%),
+        linear-gradient(180deg, #f5faf3 0%, #edf5ef 100%);
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(12px);
+      background: rgba(248, 252, 248, 0.85);
+      border-bottom: 1px solid rgba(215, 226, 217, 0.95);
+      box-shadow: 0 8px 24px rgba(22, 38, 29, 0.05);
+    }
+
+    .topbar {
+      width: min(1180px, calc(100% - 28px));
+      margin: 0 auto;
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      background: linear-gradient(135deg, #166534, #22c55e);
+      color: #fff;
+      box-shadow: 0 10px 22px rgba(22, 101, 52, 0.22);
+    }
+
+    .brand-copy strong {
+      display: block;
+      font-size: 15px;
+      line-height: 1.1;
+    }
+
+    .brand-copy span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: 10px;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
+
+    .nav-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 999px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      transition: background 0.18s ease, color 0.18s ease;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      background: var(--brand-soft);
+      color: var(--brand-strong);
+    }
+
+    .menu-toggle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      margin-left: auto;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.82);
+      color: var(--ink);
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(22, 38, 29, 0.08);
+    }
+
+    .menu-toggle-inner {
+      display: grid;
+      gap: 4px;
+    }
+
+    .menu-toggle-bar {
+      display: block;
+      width: 18px;
+      height: 2px;
+      border-radius: 999px;
+      background: currentColor;
+      transition: transform 0.18s ease, opacity 0.18s ease;
+    }
+
+    .menu-toggle[aria-expanded="true"] .menu-toggle-bar:nth-child(1) {
+      transform: translateY(6px) rotate(45deg);
+    }
+
+    .menu-toggle[aria-expanded="true"] .menu-toggle-bar:nth-child(2) {
+      opacity: 0;
+    }
+
+    .menu-toggle[aria-expanded="true"] .menu-toggle-bar:nth-child(3) {
+      transform: translateY(-6px) rotate(-45deg);
+    }
+
+    .topbar-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .settings-shortcut {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 0 16px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--brand-strong);
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: 0 10px 22px rgba(22, 38, 29, 0.08);
+    }
+
+    .settings-shortcut:hover {
+      background: var(--brand-soft);
+    }
+
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      background: #f8fbf9;
+      border: 1px solid var(--line);
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.12);
+    }
+
+    .page-shell {
+      width: min(760px, calc(100% - 32px));
+      margin: 32px auto 40px;
+    }
+
+    .stats-panel {
+      padding: 26px;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(215, 226, 217, 0.95);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+    }
+
+    h1 {
+      margin: 14px 0 4px;
+      font-size: clamp(28px, 3.6vw, 40px);
+      line-height: 1.05;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 22px;
+    }
+
+    .stat-card {
+      padding: 22px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(244,250,245,0.96));
+      box-shadow: 0 12px 24px rgba(22, 38, 29, 0.05);
+    }
+
+    .stat-card strong {
+      display: block;
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .stat-value {
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 700;
+      line-height: 1;
+      color: var(--brand-strong);
+    }
+
+    .stat-hint {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .usage-meter {
+      margin-top: 14px;
+      width: 100%;
+      height: 12px;
+      border-radius: 999px;
+      background: #e7efe9;
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .usage-meter-fill {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #22c55e, #166534);
+      transition: width 0.3s ease;
+    }
+
+    .usage-caption {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .setting-card {
+      grid-column: 1 / -1;
+    }
+
+    .setting-copy {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .setting-control {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    .setting-input-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 52px;
+      padding: 8px 10px 8px 14px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #f8fbf9;
+      box-shadow: inset 0 1px 2px rgba(22, 38, 29, 0.04);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .setting-input-wrap input {
+      width: 92px;
+      min-height: 36px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      color: var(--brand-strong);
+      font: inherit;
+      font-weight: 700;
+    }
+
+    .branding-form {
+      display: grid;
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .branding-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .branding-field {
+      display: grid;
+      gap: 7px;
+    }
+
+    .branding-field.full {
+      grid-column: 1 / -1;
+    }
+
+    .branding-field label {
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .branding-field input,
+    .branding-field textarea {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      padding: 10px 12px;
+      resize: vertical;
+    }
+
+    .signature-editor {
+      display: grid;
+      grid-template-columns: minmax(180px, 240px) 1fr;
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .signature-preview {
+      min-height: 112px;
+      display: grid;
+      place-items: center;
+      padding: 12px;
+      border: 1px dashed #b8cabd;
+      border-radius: 16px;
+      background: #f8fbf9;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .signature-preview img {
+      max-width: 100%;
+      max-height: 88px;
+      object-fit: contain;
+    }
+
+    .signature-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .file-button,
+    .setting-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 0 16px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      color: var(--brand-strong);
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .file-button input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .setting-save {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 18px;
+      border: 0;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #166534, #22c55e);
+      color: #fff;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 12px 24px rgba(22, 101, 52, 0.18);
+    }
+
+    .setting-status {
+      min-height: 20px;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .help-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0 18px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #166534, #22c55e);
+      color: #fff;
+      box-shadow: 0 14px 28px rgba(22, 101, 52, 0.2);
+      transition: transform 0.18s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+    }
+
+    @media (max-width: 1100px) {
+      .topbar {
+        width: min(100% - 24px, 100%);
+        gap: 14px;
+      }
+
+      .page-shell {
+        width: min(100% - 24px, 100%);
+      }
+    }
+
+    @media (max-width: 900px) {
+      .site-header {
+        position: static;
+      }
+
+      .topbar {
+        min-height: auto;
+        padding: 14px 0;
+        align-items: flex-start;
+        flex-wrap: wrap;
+      }
+
+      .brand {
+        flex: 1 1 260px;
+      }
+
+      .nav-links {
+        order: 3;
+        width: 100%;
+        margin-left: 0;
+        gap: 10px;
+      }
+
+      .nav-link {
+        flex: 1 1 calc(50% - 10px);
+        text-align: center;
+        padding: 12px 14px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .site-header {
+        position: static;
+      }
+
+      .topbar {
+        width: min(100% - 20px, 100%);
+        padding: 12px 0;
+        gap: 12px;
+        align-items: stretch;
+      }
+
+      .brand {
+        width: auto;
+        flex: 1 1 auto;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .menu-toggle {
+        display: inline-flex;
+        flex-shrink: 0;
+      }
+
+      .nav-links {
+        width: 100%;
+        order: 3;
+        margin-left: 0;
+        display: none;
+        flex-direction: column;
+        gap: 6px;
+        padding: 10px;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.96);
+        box-shadow: 0 14px 28px rgba(22, 38, 29, 0.08);
+      }
+
+      .nav-links.is-open {
+        display: flex;
+      }
+
+      .topbar-actions {
+        margin-left: 0;
+        width: auto;
+        order: 2;
+        margin-left: auto;
+      }
+
+      .settings-shortcut {
+        display: inline-flex;
+      }
+
+      .status-chip {
+        width: auto;
+        justify-content: flex-start;
+        border-radius: 14px;
+      }
+
+      .nav-link {
+        width: 100%;
+        min-height: 42px;
+        padding: 10px 12px;
+        border-radius: 14px;
+        font-size: 12px;
+        background: rgba(255, 255, 255, 0.7);
+        border: 1px solid var(--line);
+      }
+
+      .page-shell {
+        width: min(100% - 20px, 100%);
+        margin: 16px auto 24px;
+      }
+
+      .stats-panel {
+        padding: 18px;
+        border-radius: 20px;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .branding-grid,
+      .signature-editor {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: clamp(24px, 8vw, 32px);
+      }
+
+      .brand-mark {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        font-size: 18px;
+      }
+
+      .brand-copy strong {
+        font-size: 14px;
+      }
+
+      .brand-copy span {
+        font-size: 11px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .topbar {
+        padding: 10px 0;
+      }
+
+      .brand-mark {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        font-size: 16px;
+      }
+
+      .brand-copy strong {
+        font-size: 13px;
+      }
+
+      .brand-copy span {
+        font-size: 10px;
+      }
+
+      .topbar-actions {
+        gap: 8px;
+      }
+
+      .settings-shortcut,
+      .status-chip {
+        min-height: 40px;
+      }
+    }
+  
+    /* Shared top navigation button style. */
+    .topbar-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .topbar-actions .nav-link,
+    .topbar-actions .settings-shortcut,
+    .topbar-actions .btn-secondary,
+    .topbar-actions .btn-primary {
+      min-height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 16px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: #ffffff;
+      color: var(--brand-strong);
+      box-shadow: none;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .topbar-actions .nav-link:hover,
+    .topbar-actions .nav-link.active,
+    .topbar-actions .settings-shortcut:hover,
+    .topbar-actions .btn-secondary:hover,
+    .topbar-actions .btn-primary:hover {
+      border-color: #b9cabe;
+      background: #f8fbf9;
+      color: var(--brand-strong);
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-mark">⚙️</div>
+        <div class="brand-copy">
+          <strong>The Better Health Clinic</strong>
+          <span>Setting</span>
+        </div>
+      </div>
+
+      <button
+        class="menu-toggle"
+        id="menu-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="primary-nav"
+        aria-label="Toggle navigation"
+      >
+        <span class="menu-toggle-inner" aria-hidden="true">
+          <span class="menu-toggle-bar"></span>
+          <span class="menu-toggle-bar"></span>
+          <span class="menu-toggle-bar"></span>
+        </span>
+      </button>
+
+      <nav id="primary-nav" class="nav-links" aria-label="Primary">
+        <a class="nav-link" href="index">Dashboard</a>
+        <a class="nav-link" href="search">Enter Clinic</a>
+        <a class="nav-link active" href="settings">Settings</a>
+      </nav>
+
+      <div class="topbar-actions">
+        <a class="settings-shortcut" href="settings">Settings</a>
+        <div class="status-chip">
+          <span class="status-dot"></span>
+          Prescription history
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section class="stats-panel">
+      <h1>Setting</h1>
+
+      <div class="stats-grid">
+        <article class="stat-card">
+          <strong>Generated PDFs</strong>
+          <div id="pdf-count" class="stat-value">0</div>
+        </article>
+
+        <article class="stat-card">
+          <strong>Space Used</strong>
+          <div id="pdf-size" class="stat-value">0 KB</div>
+          <div class="usage-meter" aria-hidden="true">
+            <div id="usage-fill" class="usage-meter-fill"></div>
+          </div>
+          <div id="usage-caption" class="usage-caption">0% of 5 GB free storage used</div>
+        </article>
+
+        <article class="stat-card setting-card">
+          <strong>Print Without Header</strong>
+          <div class="setting-copy">Choose how much blank top space to leave when you print or save without the prescription header.</div>
+          <div class="setting-control">
+            <label class="setting-input-wrap" for="print-gap-setting-input">
+              Gap (cm)
+              <input id="print-gap-setting-input" type="number" min="0" max="10" step="0.1" value="0">
+            </label>
+            <button id="save-print-gap-btn" class="setting-save" type="button">Save Setting</button>
+          </div>
+          <div id="print-gap-setting-status" class="setting-status">Current saved gap: 0.0 cm</div>
+        </article>
+
+        <article class="stat-card setting-card">
+          <strong>Prescription Header, Footer & Signature</strong>
+          <div class="setting-copy">Set the clinic text and doctor signature used on prescription preview, print, and saved PDF.</div>
+
+          <div class="branding-form">
+            <div class="branding-grid">
+              <div class="branding-field">
+                <label for="clinic-title-input">Clinic header title</label>
+                <input id="clinic-title-input" type="text" placeholder="The Better Health Clinic">
+              </div>
+
+              <div class="branding-field">
+                <label for="doctor-name-input">Doctor name</label>
+                <input id="doctor-name-input" type="text" placeholder="Dr. Gunda Srinivas">
+              </div>
+
+              <div class="branding-field full">
+                <label for="clinic-address-input">Header address</label>
+                <textarea id="clinic-address-input" rows="3" placeholder="Clinic name, speciality, address"></textarea>
+              </div>
+
+              <div class="branding-field full">
+                <label for="doctor-details-input">Doctor details</label>
+                <textarea id="doctor-details-input" rows="3" placeholder="Qualifications, registration number, speciality"></textarea>
+              </div>
+
+              <div class="branding-field full">
+                <label for="footer-text-input">Footer text</label>
+                <textarea id="footer-text-input" rows="3" placeholder="Footer address or clinic note"></textarea>
+              </div>
+            </div>
+
+            <div class="signature-editor">
+              <div id="signature-preview" class="signature-preview">No signature selected</div>
+              <div>
+                <div class="signature-actions">
+                  <label class="file-button">
+                    Add / Change Signature
+                    <input id="signature-file-input" type="file" accept="image/png,image/jpeg,image/webp">
+                  </label>
+                  <button id="remove-signature-btn" class="setting-secondary" type="button">Remove Signature</button>
+                </div>
+                <div class="setting-copy">Use a clear PNG/JPG/WebP signature image. You can replace it anytime.</div>
+              </div>
+            </div>
+
+            <div class="setting-control">
+              <button id="save-branding-btn" class="setting-save" type="button">Save Branding</button>
+              <button id="reset-branding-btn" class="setting-secondary" type="button">Reset Default</button>
+            </div>
+            <div id="branding-setting-status" class="setting-status">Current branding: default clinic header and footer</div>
+          </div>
+        </article>
+      </div>
+
+      <div class="help-actions">
+        <a class="btn-primary" href="index">Back to Dashboard</a>
+        <button id="sign-out-btn" class="setting-save" type="button">Sign Out</button>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
+    import { collection, doc, getDoc, getDocs, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { getMetadata, getStorage, ref } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
+
+    const menuToggle = document.getElementById('menu-toggle');
+    const primaryNav = document.getElementById('primary-nav');
+    const navLinks = [...document.querySelectorAll('#primary-nav .nav-link')];
+    const pdfCount = document.getElementById('pdf-count');
+    const pdfSize = document.getElementById('pdf-size');
+    const usageFill = document.getElementById('usage-fill');
+    const usageCaption = document.getElementById('usage-caption');
+    const printGapSettingInput = document.getElementById('print-gap-setting-input');
+    const savePrintGapBtn = document.getElementById('save-print-gap-btn');
+    const signOutBtn = document.getElementById('sign-out-btn');
+    const printGapSettingStatus = document.getElementById('print-gap-setting-status');
+    const clinicTitleInput = document.getElementById('clinic-title-input');
+    const clinicAddressInput = document.getElementById('clinic-address-input');
+    const doctorNameInput = document.getElementById('doctor-name-input');
+    const doctorDetailsInput = document.getElementById('doctor-details-input');
+    const footerTextInput = document.getElementById('footer-text-input');
+    const signatureFileInput = document.getElementById('signature-file-input');
+    const signaturePreview = document.getElementById('signature-preview');
+    const removeSignatureBtn = document.getElementById('remove-signature-btn');
+    const saveBrandingBtn = document.getElementById('save-branding-btn');
+    const resetBrandingBtn = document.getElementById('reset-branding-btn');
+    const brandingSettingStatus = document.getElementById('branding-setting-status');
+    const FIREBASE_FREE_STORAGE_BYTES = 5 * 1024 * 1024 * 1024;
+    const PRINT_HEADER_GAP_STORAGE_KEY = 'previewPrintHeaderGapCm';
+    const PRESCRIPTION_BRANDING_STORAGE_KEY = 'prescriptionBrandingSettings';
+    const PRESCRIPTION_BRANDING_DOC_PATH = ['clinicSettings', 'prescriptionBranding'];
+    const ACCESS_COOKIE_NAME = 'clinic_session';
+    const DEFAULT_BRANDING = {
+      clinicTitle: 'The Better Health Clinic',
+      clinicAddress: 'The Better Health Clinic - Paediatrician #118, 5th Cross, Omkar Nagar Akere, Bannerghatta road 560076 Bengaluru Karnataka',
+      doctorName: 'Dr. Gunda Srinivas',
+      doctorDetails: 'MBBS, DCH, DNB - Paediatrics, PGDDN, FPEM\n71826',
+      footerText: 'The Better Health Clinic - Paediatrician #118, 5th Cross, Omkar Nagar Akere,\nBannerghatta road 560076 Bengaluru Karnataka',
+      signatureDataUrl: ''
+    };
+
+    const firebaseEnv = import.meta.env || {};
+    const firebaseConfig = {
+      apiKey: firebaseEnv.VITE_FIREBASE_API_KEY || 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
+      authDomain: firebaseEnv.VITE_FIREBASE_AUTH_DOMAIN || 'clinci-dr-gunda.firebaseapp.com',
+      projectId: firebaseEnv.VITE_FIREBASE_PROJECT_ID || 'clinci-dr-gunda',
+      storageBucket: firebaseEnv.VITE_FIREBASE_STORAGE_BUCKET || 'clinci-dr-gunda.firebasestorage.app',
+      messagingSenderId: firebaseEnv.VITE_FIREBASE_MESSAGING_SENDER_ID || '1059959825609',
+      appId: firebaseEnv.VITE_FIREBASE_APP_ID || '1:1059959825609:web:8201599754706ac4661918',
+      measurementId: firebaseEnv.VITE_FIREBASE_MEASUREMENT_ID || 'G-4V5JMVW45E'
+    };
+    const firebaseConfigured = Object.values(firebaseConfig).every(Boolean);
+    const firebaseApp = firebaseConfigured ? initializeApp(firebaseConfig) : null;
+    const db = firebaseApp ? getFirestore(firebaseApp) : null;
+    const storage = firebaseApp ? getStorage(firebaseApp) : null;
+
+    function formatBytes(byteCount) {
+      if (!Number.isFinite(byteCount) || byteCount <= 0) {
+        return '0 KB';
+      }
+      if (byteCount < 1024) {
+        return `${byteCount} B`;
+      }
+      if (byteCount < 1024 * 1024) {
+        return `${(byteCount / 1024).toFixed(byteCount < 10240 ? 1 : 0)} KB`;
+      }
+      return `${(byteCount / (1024 * 1024)).toFixed(2)} MB`;
+    }
+
+    function updateUsageBar(byteCount) {
+      const safeBytes = Number.isFinite(byteCount) && byteCount > 0 ? byteCount : 0;
+      const rawPercent = (safeBytes / FIREBASE_FREE_STORAGE_BYTES) * 100;
+      const boundedPercent = Math.max(0, Math.min(rawPercent, 100));
+      usageFill.style.width = `${boundedPercent}%`;
+      usageCaption.textContent = `${rawPercent.toFixed(rawPercent >= 10 ? 1 : 2)}% of 5 GB free storage used`;
+    }
+
+    function getSavedPrintGapCm() {
+      const rawValue = localStorage.getItem(PRINT_HEADER_GAP_STORAGE_KEY);
+      const parsedValue = Number.parseFloat(rawValue || '');
+      if (!Number.isFinite(parsedValue) || parsedValue < 0) {
+        return 0;
+      }
+      return Math.min(parsedValue, 10);
+    }
+
+    function updatePrintGapSettingStatus(value, message) {
+      const safeValue = Number.isFinite(value) ? value : 0;
+      if (printGapSettingInput) {
+        printGapSettingInput.value = safeValue.toFixed(1);
+      }
+      if (printGapSettingStatus) {
+        printGapSettingStatus.textContent = message || `Current saved gap: ${safeValue.toFixed(1)} cm`;
+      }
+    }
+
+    function savePrintGapSetting() {
+      const parsedValue = Number.parseFloat(printGapSettingInput.value);
+      const safeValue = Number.isFinite(parsedValue) && parsedValue >= 0 ? Math.min(parsedValue, 10) : 0;
+      localStorage.setItem(PRINT_HEADER_GAP_STORAGE_KEY, String(safeValue));
+      updatePrintGapSettingStatus(safeValue, `Saved gap: ${safeValue.toFixed(1)} cm`);
+    }
+
+    function readBrandingSettings() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(PRESCRIPTION_BRANDING_STORAGE_KEY) || '{}');
+        return {
+          ...DEFAULT_BRANDING,
+          ...(parsed && typeof parsed === 'object' ? parsed : {})
+        };
+      } catch (error) {
+        return { ...DEFAULT_BRANDING };
+      }
+    }
+
+    function cacheBrandingSettings(settings) {
+      const normalizedSettings = {
+        ...DEFAULT_BRANDING,
+        ...(settings && typeof settings === 'object' ? settings : {})
+      };
+      localStorage.setItem(PRESCRIPTION_BRANDING_STORAGE_KEY, JSON.stringify(normalizedSettings));
+      return normalizedSettings;
+    }
+
+    async function loadBrandingSettings() {
+      const cachedSettings = readBrandingSettings();
+      populateBrandingForm(cachedSettings);
+
+      if (!db) {
+        if (brandingSettingStatus) {
+          brandingSettingStatus.textContent = localStorage.getItem(PRESCRIPTION_BRANDING_STORAGE_KEY)
+            ? 'Current branding: loaded from this browser. Firebase is not configured.'
+            : 'Current branding: default clinic header and footer. Firebase is not configured.';
+        }
+        return cachedSettings;
+      }
+
+      try {
+        const snapshot = await getDoc(doc(db, ...PRESCRIPTION_BRANDING_DOC_PATH));
+        if (!snapshot.exists()) {
+          if (brandingSettingStatus) {
+            brandingSettingStatus.textContent = 'Current branding: default clinic header and footer. Save once to share it across devices.';
+          }
+          return cachedSettings;
+        }
+
+        const firestoreSettings = cacheBrandingSettings({
+          ...snapshot.data(),
+          signatureDataUrl: snapshot.data().signatureDataUrl || cachedSettings.signatureDataUrl || ''
+        });
+        populateBrandingForm(firestoreSettings);
+        if (brandingSettingStatus) {
+          brandingSettingStatus.textContent = 'Current branding: loaded from Firebase.';
+        }
+        return firestoreSettings;
+      } catch (error) {
+        console.warn(`Unable to load branding settings: ${error.message}`);
+        if (brandingSettingStatus) {
+          brandingSettingStatus.textContent = 'Current branding: using this browser cache because Firebase could not be loaded.';
+        }
+        return cachedSettings;
+      }
+    }
+
+    function renderSignaturePreview(dataUrl) {
+      if (!signaturePreview) {
+        return;
+      }
+
+      if (!dataUrl) {
+        signaturePreview.textContent = 'No signature selected';
+        return;
+      }
+
+      signaturePreview.innerHTML = `<img src="${dataUrl}" alt="Doctor signature preview">`;
+    }
+
+    function populateBrandingForm(settings = readBrandingSettings()) {
+      if (clinicTitleInput) clinicTitleInput.value = settings.clinicTitle || '';
+      if (clinicAddressInput) clinicAddressInput.value = settings.clinicAddress || '';
+      if (doctorNameInput) doctorNameInput.value = settings.doctorName || '';
+      if (doctorDetailsInput) doctorDetailsInput.value = settings.doctorDetails || '';
+      if (footerTextInput) footerTextInput.value = settings.footerText || '';
+      renderSignaturePreview(settings.signatureDataUrl || '');
+      if (brandingSettingStatus) {
+        brandingSettingStatus.textContent = localStorage.getItem(PRESCRIPTION_BRANDING_STORAGE_KEY)
+          ? 'Current branding: custom header, footer, and signature settings loaded'
+          : 'Current branding: default clinic header and footer';
+      }
+    }
+
+    function collectBrandingForm() {
+      const current = readBrandingSettings();
+      return {
+        clinicTitle: clinicTitleInput?.value.trim() || DEFAULT_BRANDING.clinicTitle,
+        clinicAddress: clinicAddressInput?.value.trim() || DEFAULT_BRANDING.clinicAddress,
+        doctorName: doctorNameInput?.value.trim() || DEFAULT_BRANDING.doctorName,
+        doctorDetails: doctorDetailsInput?.value.trim() || DEFAULT_BRANDING.doctorDetails,
+        footerText: footerTextInput?.value.trim() || DEFAULT_BRANDING.footerText,
+        signatureDataUrl: current.signatureDataUrl || ''
+      };
+    }
+
+    async function saveBrandingSettings(message = 'Branding saved', overrideSettings = null) {
+      const nextSettings = cacheBrandingSettings(overrideSettings || collectBrandingForm());
+      populateBrandingForm(nextSettings);
+
+      if (db) {
+        await setDoc(doc(db, ...PRESCRIPTION_BRANDING_DOC_PATH), {
+          ...nextSettings,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+      } else if (message.includes('Firebase')) {
+        message = message
+          .replace(' to Firebase and this browser', ' in this browser')
+          .replace(' from Firebase and this browser', ' from this browser')
+          .replace(' and saved to Firebase', '')
+          .replace(' to Firebase', '');
+      }
+
+      if (brandingSettingStatus) {
+        brandingSettingStatus.textContent = message;
+      }
+    }
+
+    function resizeSignatureImage(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.addEventListener('error', () => reject(new Error('Unable to read signature image.')));
+        reader.addEventListener('load', () => {
+          const image = new Image();
+          image.addEventListener('error', () => reject(new Error('Unable to load signature image.')));
+          image.addEventListener('load', () => {
+            const maxWidth = 520;
+            const maxHeight = 180;
+            const scale = Math.min(maxWidth / image.width, maxHeight / image.height, 1);
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.max(1, Math.round(image.width * scale));
+            canvas.height = Math.max(1, Math.round(image.height * scale));
+            const context = canvas.getContext('2d');
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.drawImage(image, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/png'));
+          });
+          image.src = reader.result;
+        });
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function updatePdfStats() {
+      if (!db || !storage) {
+        pdfCount.textContent = '0';
+        pdfSize.textContent = '0 KB';
+        usageCaption.textContent = 'Firebase is not configured';
+        updateUsageBar(0);
+        return;
+      }
+
+      try {
+        const snapshot = await getDocs(collection(db, 'history'));
+        const pdfRecords = snapshot.docs
+          .map((docSnapshot) => ({ id: docSnapshot.id, ...docSnapshot.data() }))
+          .filter((entry) => entry && (entry.source === 'prescription-pdf' || entry.type === 'prescription'));
+
+        pdfCount.textContent = String(pdfRecords.length);
+
+        let totalBytes = 0;
+        let resolvedFiles = 0;
+
+        await Promise.all(pdfRecords.map(async (entry) => {
+          const storagePath = String(entry.storagePath || '').trim();
+          if (!storagePath) {
+            return;
+          }
+
+          try {
+            const metadata = await getMetadata(ref(storage, storagePath));
+            totalBytes += Number(metadata.size || 0);
+            resolvedFiles += 1;
+          } catch (error) {
+            console.warn(`Unable to read PDF metadata for ${storagePath}: ${error.message}`);
+          }
+        }));
+
+        pdfSize.textContent = formatBytes(totalBytes);
+        updateUsageBar(totalBytes);
+
+        if (pdfRecords.length === 0) {
+          usageCaption.textContent = '0% of 5 GB free storage used';
+          return;
+        }
+
+        if (resolvedFiles === pdfRecords.length) {
+          return;
+        }
+        usageCaption.textContent = `${(totalBytes / FIREBASE_FREE_STORAGE_BYTES * 100).toFixed(totalBytes >= FIREBASE_FREE_STORAGE_BYTES * 0.1 ? 1 : 2)}% of 5 GB free storage used`;
+      } catch (error) {
+        console.warn(`Unable to load Firebase PDF stats: ${error.message}`);
+        pdfCount.textContent = '0';
+        pdfSize.textContent = '0 KB';
+        usageCaption.textContent = 'Firebase PDF usage could not be loaded';
+        updateUsageBar(0);
+      }
+    }
+
+    function closeMobileMenu() {
+      if (!menuToggle || !primaryNav) {
+        return;
+      }
+      menuToggle.setAttribute('aria-expanded', 'false');
+      primaryNav.classList.remove('is-open');
+    }
+
+    function toggleMobileMenu() {
+      if (!menuToggle || !primaryNav) {
+        return;
+      }
+      const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
+      menuToggle.setAttribute('aria-expanded', String(!isOpen));
+      primaryNav.classList.toggle('is-open', !isOpen);
+    }
+
+    if (menuToggle && primaryNav) {
+      menuToggle.addEventListener('click', toggleMobileMenu);
+      navLinks.forEach((link) => link.addEventListener('click', closeMobileMenu));
+      window.addEventListener('resize', () => {
+        if (window.innerWidth > 640) {
+          closeMobileMenu();
+        }
+      });
+    }
+
+    if (savePrintGapBtn && printGapSettingInput) {
+      updatePrintGapSettingStatus(getSavedPrintGapCm());
+      savePrintGapBtn.addEventListener('click', savePrintGapSetting);
+      printGapSettingInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          savePrintGapSetting();
+        }
+      });
+    }
+
+    loadBrandingSettings();
+
+    if (signatureFileInput) {
+      signatureFileInput.addEventListener('change', async () => {
+        const file = signatureFileInput.files?.[0];
+        if (!file) {
+          return;
+        }
+
+        if (!file.type.startsWith('image/')) {
+          if (brandingSettingStatus) {
+            brandingSettingStatus.textContent = 'Please choose a PNG, JPG, or WebP image.';
+          }
+          signatureFileInput.value = '';
+          return;
+        }
+
+        try {
+          const signatureDataUrl = await resizeSignatureImage(file);
+          const nextSettings = {
+            ...collectBrandingForm(),
+            signatureDataUrl
+          };
+          await saveBrandingSettings('Signature image saved to Firebase and this browser.', nextSettings);
+        } catch (error) {
+          if (brandingSettingStatus) {
+            brandingSettingStatus.textContent = error.message || 'Unable to save signature image.';
+          }
+        } finally {
+          signatureFileInput.value = '';
+        }
+      });
+    }
+
+    if (removeSignatureBtn) {
+      removeSignatureBtn.addEventListener('click', async () => {
+        const nextSettings = {
+          ...collectBrandingForm(),
+          signatureDataUrl: ''
+        };
+        try {
+          await saveBrandingSettings('Signature removed from Firebase and this browser.', nextSettings);
+        } catch (error) {
+          if (brandingSettingStatus) {
+            brandingSettingStatus.textContent = `Signature removed locally, but Firebase save failed: ${error.message}`;
+          }
+        }
+      });
+    }
+
+    if (saveBrandingBtn) {
+      saveBrandingBtn.addEventListener('click', async () => {
+        saveBrandingBtn.disabled = true;
+        try {
+          await saveBrandingSettings('Branding saved to Firebase for prescription preview and PDF.');
+        } catch (error) {
+          if (brandingSettingStatus) {
+            brandingSettingStatus.textContent = `Saved locally, but Firebase save failed: ${error.message}`;
+          }
+        } finally {
+          saveBrandingBtn.disabled = false;
+        }
+      });
+    }
+
+    if (resetBrandingBtn) {
+      resetBrandingBtn.addEventListener('click', async () => {
+        resetBrandingBtn.disabled = true;
+        try {
+          await saveBrandingSettings('Branding reset to default and saved to Firebase.', { ...DEFAULT_BRANDING });
+        } catch (error) {
+          cacheBrandingSettings({ ...DEFAULT_BRANDING });
+          populateBrandingForm({ ...DEFAULT_BRANDING });
+          if (brandingSettingStatus) {
+            brandingSettingStatus.textContent = `Reset locally, but Firebase save failed: ${error.message}`;
+          }
+        } finally {
+          resetBrandingBtn.disabled = false;
+        }
+      });
+    }
+
+    if (signOutBtn) {
+      signOutBtn.addEventListener('click', async () => {
+        signOutBtn.disabled = true;
+
+        try {
+          await fetch('/api/auth/logout', { method: 'POST' });
+        } catch (error) {
+          console.warn('Unable to call logout endpoint:', error);
+        }
+
+        document.cookie = `${ACCESS_COOKIE_NAME}=; Max-Age=0; Path=/; SameSite=Strict`;
+
+        const passwordPath = window.location.pathname.startsWith('/emr/kid/')
+          ? '/emr/kid/password.html'
+          : window.location.pathname.includes('/emr/') || window.location.pathname === '/emr/settings'
+            ? '/emr/password.html'
+            : '/password';
+
+        window.location.replace(passwordPath);
+      });
+    }
+
+    updatePdfStats();
+  </script>
+</body>
+</html>

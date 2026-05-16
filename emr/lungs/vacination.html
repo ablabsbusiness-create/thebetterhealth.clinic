@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redirecting to Vaccination</title>
+  <script type="module" src="./auth-guard.js"></script>
+  <script>
+    const nextUrl = new URL(window.location.href);
+    nextUrl.pathname = nextUrl.pathname.replace(/\/vacination\/?$/, '/vaccination');
+    window.location.replace(nextUrl.toString());
+  </script>
+</head>
+<body>
+  <p>Redirecting to <a id="vaccination-link" href="vaccination">Vaccination</a>...</p>
+  <script>
+    document.getElementById('vaccination-link').href = `vaccination${window.location.search || ''}`;
+  </script>
+</body>
+</html>

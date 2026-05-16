@@ -1,0 +1,81 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/emr",
+      "destination": "/index"
+    },
+    {
+      "source": "/emr/kid/:path*",
+      "destination": "/:path*"
+    },
+    {
+      "source": "/emr/password",
+      "destination": "/password"
+    },
+    {
+      "source": "/emr/index",
+      "destination": "/index"
+    },
+    {
+      "source": "/emr/clinci",
+      "destination": "/clinci"
+    },
+    {
+      "source": "/emr/new-patient",
+      "destination": "/new-patient"
+    },
+    {
+      "source": "/emr/growth-chart-dashboard",
+      "destination": "/growth-chart-dashboard"
+    },
+    {
+      "source": "/emr/prescription-growth-chart-dashboard",
+      "destination": "/prescription-growth-chart-dashboard"
+    },
+    {
+      "source": "/emr/prescription",
+      "destination": "/prescription"
+    },
+    {
+      "source": "/emr/preview",
+      "destination": "/preview"
+    },
+    {
+      "source": "/emr/rx",
+      "destination": "/rx"
+    },
+    {
+      "source": "/emr/pending-approvals",
+      "destination": "/pending-approvals"
+    },
+    {
+      "source": "/emr/reception-qr",
+      "destination": "/reception-qr"
+    },
+    {
+      "source": "/emr/intake",
+      "destination": "/intake"
+    },
+    {
+      "source": "/emr/settings",
+      "destination": "/settings"
+    },
+    {
+      "source": "/emr/vaccination",
+      "destination": "/vaccination"
+    },
+    {
+      "source": "/emr/vacination",
+      "destination": "/vacination"
+    },
+    {
+      "source": "/emr/search",
+      "destination": "/search"
+    },
+    {
+      "source": "/emr/:path*",
+      "destination": "/:path*"
+    }
+  ]
+}
