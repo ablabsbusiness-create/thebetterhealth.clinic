@@ -866,6 +866,8 @@
       prescription: `${CLINIC_FIREBASE_NAMESPACE}/prescription`
     };
     const CLINIC_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE;
+    const CLINIC_LOCAL_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE.replace(/\//g, ':');
+    const clinicStorageKey = (key) => `${CLINIC_LOCAL_STORAGE_PREFIX}:${key}`;
 
     const primaryNav = document.getElementById('primary-nav');
     const rxSheet = document.getElementById('rx-sheet');
@@ -874,12 +876,13 @@
     const printBtn = document.getElementById('print-btn');
     const printModeWithHeaderBtn = document.getElementById('print-mode-with-header');
     const printModeWithoutHeaderBtn = document.getElementById('print-mode-without-header');
-    const PRESCRIPTION_DRAFT_STORAGE_KEY = 'prescriptionDraft';
-    const CHART_RECORD_STORAGE_KEY = 'growthChartRecentRecords';
-    const LOCAL_PRESCRIPTION_HISTORY_KEY = 'savedPrescriptionHistory';
-    const PRINT_HEADER_MODE_STORAGE_KEY = 'previewPrintWithHeader';
-    const PRINT_HEADER_GAP_STORAGE_KEY = 'previewPrintHeaderGapCm';
-    const PRESCRIPTION_BRANDING_STORAGE_KEY = 'prescriptionBrandingSettings';
+    const PRESCRIPTION_DRAFT_STORAGE_KEY = clinicStorageKey('prescriptionDraft');
+    const CHART_RECORD_STORAGE_KEY = clinicStorageKey('growthChartRecentRecords');
+    const LOCAL_PRESCRIPTION_HISTORY_KEY = clinicStorageKey('savedPrescriptionHistory');
+    const PRINT_HEADER_MODE_STORAGE_KEY = clinicStorageKey('previewPrintWithHeader');
+    const PRINT_HEADER_GAP_STORAGE_KEY = clinicStorageKey('previewPrintHeaderGapCm');
+    const PRESCRIPTION_BRANDING_STORAGE_KEY = clinicStorageKey('prescriptionBrandingSettings');
+    const MEDICINE_DETAIL_STORAGE_KEY = clinicStorageKey('prescriptionMedicineDetails');
     const PRESCRIPTION_BRANDING_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'prescriptionBranding'];
     const DEFAULT_BRANDING = {
       clinicTitle: 'The Better Health Clinic',
@@ -1854,7 +1857,7 @@
     function clearPrescriptionLocalData() {
       localStorage.removeItem(PRESCRIPTION_DRAFT_STORAGE_KEY);
       localStorage.removeItem(CHART_RECORD_STORAGE_KEY);
-      localStorage.removeItem('prescriptionMedicineDetails');
+      localStorage.removeItem(MEDICINE_DETAIL_STORAGE_KEY);
     }
 
     function normalizeWhatsAppPhone(phone) {

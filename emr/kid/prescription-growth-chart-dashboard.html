@@ -2295,6 +2295,8 @@
       prescription: `${CLINIC_FIREBASE_NAMESPACE}/prescription`
     };
     const CLINIC_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE;
+    const CLINIC_LOCAL_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE.replace(/\//g, ':');
+    const clinicStorageKey = (key) => `${CLINIC_LOCAL_STORAGE_PREFIX}:${key}`;
 
     const metricInputs = {
       weight: document.getElementById('weight'),
@@ -2613,7 +2615,7 @@
     const GROWTH_CHART_DEBUG = new URLSearchParams(window.location.search).has('growthDebug')
       || localStorage.getItem('growthChartDebug') === '1';
     const CAN_USE_PYTHON_CHART_SERVICE = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-    const LOCAL_RECORD_KEY = 'growthChartRecentRecords';
+    const LOCAL_RECORD_KEY = clinicStorageKey('growthChartRecentRecords');
     const MAX_LOCAL_CHART_RECORDS = 8;
 
     async function loadSharedGrowthChartConfigs() {

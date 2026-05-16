@@ -855,6 +855,8 @@
       prescription: `${CLINIC_FIREBASE_NAMESPACE}/prescription`
     };
     const CLINIC_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE;
+    const CLINIC_LOCAL_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE.replace(/\//g, ':');
+    const clinicStorageKey = (key) => `${CLINIC_LOCAL_STORAGE_PREFIX}:${key}`;
 
     const menuToggle = document.getElementById('menu-toggle');
     const primaryNav = document.getElementById('primary-nav');
@@ -879,8 +881,8 @@
     const resetBrandingBtn = document.getElementById('reset-branding-btn');
     const brandingSettingStatus = document.getElementById('branding-setting-status');
     const FIREBASE_FREE_STORAGE_BYTES = 5 * 1024 * 1024 * 1024;
-    const PRINT_HEADER_GAP_STORAGE_KEY = 'previewPrintHeaderGapCm';
-    const PRESCRIPTION_BRANDING_STORAGE_KEY = 'prescriptionBrandingSettings';
+    const PRINT_HEADER_GAP_STORAGE_KEY = clinicStorageKey('previewPrintHeaderGapCm');
+    const PRESCRIPTION_BRANDING_STORAGE_KEY = clinicStorageKey('prescriptionBrandingSettings');
     const PRESCRIPTION_BRANDING_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'prescriptionBranding'];
     const ACCESS_COOKIE_NAME = 'clinic_session';
     const DEFAULT_BRANDING = {

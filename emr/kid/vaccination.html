@@ -801,6 +801,9 @@
       prescription: `${CLINIC_FIREBASE_NAMESPACE}/prescription`
     };
     const CLINIC_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE;
+    const CLINIC_LOCAL_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE.replace(/\//g, ':');
+    const clinicStorageKey = (key) => `${CLINIC_LOCAL_STORAGE_PREFIX}:${key}`;
+    const CLINIC_USER_NAME_STORAGE_KEY = clinicStorageKey('clinicUserName');
 
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
@@ -1105,7 +1108,7 @@
           <div class="vaccine-given-main">
             <h2>${escapeHtml(panelTitle)}</h2>
             <input type="hidden" data-modal-date value="${escapeHtml(selectedDate)}">
-            <input type="hidden" data-marked-by value="${escapeHtml(row.record.markedBy || localStorage.getItem('clinicUserName') || 'Clinic user')}">
+            <input type="hidden" data-marked-by value="${escapeHtml(row.record.markedBy || localStorage.getItem(CLINIC_USER_NAME_STORAGE_KEY) || 'Clinic user')}">
             <textarea class="vaccine-note" data-vaccine-notes placeholder="${escapeHtml(notePlaceholder)}">${escapeHtml(row.notes || '')}</textarea>
             <div class="vaccine-date-controls">
               <select data-calendar-year aria-label="Year">
@@ -1348,7 +1351,7 @@
       }, { merge: true });
 
       currentPatient = { ...currentPatient, vaccinationRecords };
-      localStorage.setItem('clinicUserName', markedBy);
+      localStorage.setItem(CLINIC_USER_NAME_STORAGE_KEY, markedBy);
       closeVaccineModal();
       statusNote.textContent = `${row.vaccine} marked as given.`;
       render();
@@ -1390,7 +1393,7 @@
       }, { merge: true });
 
       currentPatient = { ...currentPatient, vaccinationRecords };
-      localStorage.setItem('clinicUserName', markedBy);
+      localStorage.setItem(CLINIC_USER_NAME_STORAGE_KEY, markedBy);
       closeVaccineModal();
       statusNote.textContent = `${row.vaccine} due date saved.`;
       render();

@@ -1869,6 +1869,8 @@
       prescription: `${CLINIC_FIREBASE_NAMESPACE}/prescription`
     };
     const CLINIC_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE;
+    const CLINIC_LOCAL_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE.replace(/\//g, ':');
+    const clinicStorageKey = (key) => `${CLINIC_LOCAL_STORAGE_PREFIX}:${key}`;
 
     const searchInput = document.getElementById('search-input');
     const clearBtn = document.getElementById('clear-btn');
@@ -1883,8 +1885,8 @@
     const pdfPreviewFrame = document.getElementById('pdf-preview-frame');
     const pdfPreviewLink = document.getElementById('pdf-preview-link');
     const pdfPreviewClose = document.getElementById('pdf-preview-close');
-    const LOCAL_PRESCRIPTION_HISTORY_KEY = 'savedPrescriptionHistory';
-    const LOCAL_WORKLIST_QUEUE_KEY = 'patientWorklistQueueByDate';
+    const LOCAL_PRESCRIPTION_HISTORY_KEY = clinicStorageKey('savedPrescriptionHistory');
+    const LOCAL_WORKLIST_QUEUE_KEY = clinicStorageKey('patientWorklistQueueByDate');
 
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
@@ -2106,6 +2108,34 @@
       } catch (error) {
         console.warn(`Unable to clear local prescription history: ${error.message}`);
       }
+    }
+
+    async function getDocsWithLegacyFallback(collectionPath, legacyCollectionPath) {
+      try {
+        return {
+          snapshot: await getDocs(collection(db, collectionPath)),
+          usedLegacy: false
+        };
+      } catch (error) {
+        if (error?.code !== 'permission-denied' || !legacyCollectionPath) {
+          throw error;
+        }
+
+        console.warn(`Unable to load ${collectionPath}; falling back to ${legacyCollectionPath}: ${error.message}`);
+        return {
+          snapshot: await getDocs(collection(db, legacyCollectionPath)),
+          usedLegacy: true
+        };
+      }
+    }
+
+    function recordBelongsToCurrentClinic(record) {
+      const marker = String(record.clinicId || record.clinic || record.clinicNamespace || '').trim().toLowerCase();
+      if (!marker) {
+        return true;
+      }
+
+      return marker === 'lungs' || marker === CLINIC_FIREBASE_NAMESPACE.toLowerCase();
     }
 
     function setPrescriptionPreviewLoading(previewElement, message = 'Loading prescription preview...') {
@@ -3367,16 +3397,17 @@
       setStatus('Loading patients...');
 
       try {
-        const snapshot = await getDocs(collection(db, FIREBASE_COLLECTIONS.patients));
-        const historySnapshot = await getDocs(collection(db, FIREBASE_COLLECTIONS.history)).catch((error) => {
+        const { snapshot, usedLegacy: usedLegacyPatients } = await getDocsWithLegacyFallback(FIREBASE_COLLECTIONS.patients, 'patients');
+        const { snapshot: historySnapshot, usedLegacy: usedLegacyHistory } = await getDocsWithLegacyFallback(FIREBASE_COLLECTIONS.history, 'history').catch((error) => {
           console.warn(`Unable to load history records: ${error.message}`);
-          return { docs: [] };
+          return { snapshot: { docs: [] }, usedLegacy: false };
         });
         const remoteHistory = historySnapshot.docs
           .map((docSnapshot) => normalizePrescriptionEntry({
             id: docSnapshot.id,
             ...docSnapshot.data()
           }))
+          .filter((entry) => !usedLegacyHistory || recordBelongsToCurrentClinic(entry))
           .filter(Boolean);
         if (snapshot.empty && remoteHistory.length === 0) {
           clearLocalPrescriptionEntries();
@@ -3397,7 +3428,7 @@
         const patientRecords = snapshot.docs.map((docSnapshot) => ({
           id: docSnapshot.id,
           ...docSnapshot.data()
-        }));
+        })).filter((patient) => !usedLegacyPatients || recordBelongsToCurrentClinic(patient));
         patientRecords.forEach((patient) => {
           getPatientPrescriptionHistoryEntries(patient).forEach((entry, index) => {
             const key = entry.prescriptionSaveId
@@ -3498,6 +3529,9 @@
         }
 
         filterPatients();
+        if (usedLegacyPatients || usedLegacyHistory) {
+          setStatus('Showing patients from the older Firebase collections. Deploy Firestore rules to use separated clinic collections.', 'warning');
+        }
       } catch (error) {
         allPatients = [];
         allHistory = [];

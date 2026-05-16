@@ -1578,6 +1578,8 @@
       prescription: `${CLINIC_FIREBASE_NAMESPACE}/prescription`
     };
     const CLINIC_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE;
+    const CLINIC_LOCAL_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE.replace(/\//g, ':');
+    const clinicStorageKey = (key) => `${CLINIC_LOCAL_STORAGE_PREFIX}:${key}`;
 
     const menuToggle = document.getElementById('menu-toggle');
     const primaryNav = document.getElementById('primary-nav');
@@ -1624,11 +1626,11 @@
     let pendingAddMedicineResolve = null;
     const sectionDetailSlots = new Map();
     const DETAIL_SECTIONS = new Set(['Symptoms', 'Finding', 'Medication']);
-    const MEDICINE_DETAIL_STORAGE_KEY = 'prescriptionMedicineDetails';
-    const CUSTOM_TEMPLATE_STORAGE_KEY = 'prescriptionCustomTemplates';
-    const PRESCRIPTION_DRAFT_STORAGE_KEY = 'prescriptionDraft';
+    const MEDICINE_DETAIL_STORAGE_KEY = clinicStorageKey('prescriptionMedicineDetails');
+    const CUSTOM_TEMPLATE_STORAGE_KEY = clinicStorageKey('prescriptionCustomTemplates');
+    const PRESCRIPTION_DRAFT_STORAGE_KEY = clinicStorageKey('prescriptionDraft');
     const MEDICINE_DETAIL_TTL_MS = 10 * 60 * 1000;
-    const CHART_RECORD_STORAGE_KEY = 'growthChartRecentRecords';
+    const CHART_RECORD_STORAGE_KEY = clinicStorageKey('growthChartRecentRecords');
     const PRESCRIPTION_DRAFT_TTL_MS = 10 * 60 * 1000;
     const prescriptionTemplates = {
       Symptoms: ['Fever', 'Cold', 'Cough', 'Vomiting', 'Loose stools'],
