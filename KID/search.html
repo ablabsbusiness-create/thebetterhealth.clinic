@@ -1317,11 +1317,15 @@
       width: 100%;
       flex: 1;
       min-height: 0;
-      overflow-x: auto;
+      overflow: hidden;
       scroll-snap-type: x mandatory;
-      scrollbar-width: thin;
+      scrollbar-width: none;
       -webkit-overflow-scrolling: touch;
       touch-action: pan-x;
+    }
+
+    .prescription-list::-webkit-scrollbar {
+      display: none;
     }
 
     .prescription-carousel {
@@ -1446,8 +1450,8 @@
     }
 
     .prescription-preview-embed {
-      width: 100%;
-      height: 606px;
+      width: calc(100% + 22px);
+      height: 628px;
       border: 0;
       background: #fff;
       opacity: 0;
@@ -2866,7 +2870,7 @@
                         ${downloadUrl
                           ? `
                             <div class="prescription-preview-placeholder">Loading prescription preview...</div>
-                            <iframe class="prescription-preview-embed" data-preview-pdf-url="${cardUrl}" title="Prescription PDF preview ${index + 1}" loading="lazy"></iframe>
+                            <iframe class="prescription-preview-embed" data-preview-pdf-url="${cardUrl}" title="Prescription PDF preview ${index + 1}" loading="lazy" scrolling="no"></iframe>
                             <a class="prescription-preview-open-chip" href="${cardUrl}" target="_blank" rel="noopener noreferrer">Open prescription</a>
                           `
                           : '<div class="prescription-preview-placeholder is-error">Prescription PDF could not be loaded for this record.</div>'}
