@@ -2,11 +2,11 @@
   "cleanUrls": true,
   "rewrites": [
     {
-      "source": "/app",
+      "source": "/emr",
       "destination": "/index"
     },
     {
-      "source": "/app/:path*",
+      "source": "/emr/:path*",
       "destination": "/:path*"
     }
   ]

@@ -157,7 +157,7 @@ def render_chart(chart: dict) -> Image.Image:
 
 
 def main() -> None:
-    output_dir = Path("app/assets/iap-official-png")
+    output_dir = Path("emr/assets/iap-official-png")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     for chart in CHARTS:

@@ -89,7 +89,7 @@ function readRequestBody(req) {
 export default defineConfig({
   root: __dirname,
   envDir: __dirname,
-  base: '/app/',
+  base: '/emr/',
   resolve: {
     alias: {
       jspdf: resolve(__dirname, 'node_modules/jspdf/dist/jspdf.es.min.js')
