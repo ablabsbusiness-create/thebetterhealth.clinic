@@ -4,6 +4,7 @@ import { cpSync, existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import {
   buildClearedSessionCookie,
+  buildClientSessionCookie,
   buildLoginRedirect,
   buildSessionCookie,
   createSessionToken,
@@ -135,11 +136,6 @@ export default defineConfig({
                 return;
               }
 
-              if (!isAuthConfigured()) {
-                sendJson(res, 503, { error: 'Clinic access is not configured on the server.' });
-                return;
-              }
-
               let payload = {};
 
               try {
@@ -154,6 +150,13 @@ export default defineConfig({
 
               if (!submittedPassword || submittedPassword !== configuredPassword) {
                 sendJson(res, 401, { error: 'Incorrect password. Please try again.' });
+                return;
+              }
+
+              if (!isAuthConfigured()) {
+                sendJson(res, 200, { ok: true, mode: 'client-session' }, {
+                  'Set-Cookie': buildClientSessionCookie()
+                });
                 return;
               }
 
