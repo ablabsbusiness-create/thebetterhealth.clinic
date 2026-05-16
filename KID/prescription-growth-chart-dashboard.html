@@ -2362,6 +2362,8 @@
     let historyPageIndex = 0;
     let selectedMeasurementDateIso = '';
     let lastHistoryDebug = null;
+    let patientDetailsReady = false;
+    let patientDetailsLoading = false;
     const CHART_ASSET_VERSION = '2026-05-12-iap-who-no-ofc-5-18';
     const CHART_PREVIEW_VERSION = 'preview-rebuilt-2026-05-iap-no-ofc-5-18';
     const TEST_PAST_CHARTS_PATIENT_ID = 'TESTPAST001';
@@ -2742,11 +2744,40 @@
       chartPreviewStatus.textContent = message;
     }
 
+    function hasLoadedPatientDetails() {
+      const ageYearsValue = getAgeInYearsAtDate(dobInput.value, getSelectedMeasurementDate());
+      return Boolean(
+        patientIdInput.value.trim()
+        && childNameInput.value.trim()
+        && phoneInput.value.trim()
+        && dobInput.value
+        && form.elements.gender.value
+        && Number.isFinite(ageYearsValue)
+      );
+    }
+
+    function updatePatientDetailsGate(message = '') {
+      patientDetailsReady = hasLoadedPatientDetails();
+
+      if (generateBtn.textContent.trim() === 'Continue' || generateBtn.textContent.trim() === 'Making Chart...') {
+        return;
+      }
+
+      generateBtn.disabled = patientDetailsLoading || !patientDetailsReady;
+      generateBtn.textContent = patientDetailsLoading ? 'Loading Patient...' : 'Generate Chart';
+
+      if (message) {
+        statusNote.textContent = message;
+        statusNote.classList.add('visible');
+      }
+    }
+
     function updatePageMeta(patientRecord = null) {
       if (!patientRecord) {
         pageMetaChild.textContent = 'Child -';
         pageMetaParent.textContent = 'Age (years) -';
         pageMetaPhone.textContent = 'Ph -';
+        updatePatientDetailsGate();
         return;
       }
 
@@ -2755,6 +2786,7 @@
       pageMetaChild.textContent = `Child - ${patientRecord.childName || ''}`;
       pageMetaParent.textContent = `Age (years) - ${ageYearsLabel}`;
       pageMetaPhone.textContent = `Ph - ${patientRecord.phone || ''}`;
+      updatePatientDetailsGate();
     }
 
     function setChartPreviewMessage(message, tone = '') {
@@ -3607,6 +3639,7 @@
       const patientId = patientIdInput.value.trim().toUpperCase();
 
       if (!patientId) {
+        patientDetailsLoading = false;
         lastHistoryDebug = null;
         clearMeasurementInputs();
         childNameInput.value = '';
@@ -3618,16 +3651,21 @@
         setPatientHint('');
         updatePageMeta();
         setPatientGrowthHistory([]);
+        updatePatientDetailsGate('Open this page from a patient profile before generating charts.');
         return;
       }
 
       patientIdInput.value = patientId;
-      setPatientHint('');
+      patientDetailsReady = false;
+      patientDetailsLoading = true;
+      setPatientHint('Loading patient details...');
+      updatePatientDetailsGate('Loading patient details. Please wait until child, age, and phone are shown.');
 
       try {
         const patientRecord = await fetchPatientRecord(patientId);
 
         if (!patientRecord) {
+          patientDetailsLoading = false;
           clearMeasurementInputs();
           childNameInput.value = '';
           parentNameInput.value = '';
@@ -3638,12 +3676,16 @@
           setPatientHint('No patient record was found for that ID.');
           updatePageMeta();
           setPatientGrowthHistory([]);
+          updatePatientDetailsGate('Patient details could not be loaded, so charts cannot be generated yet.');
           return;
         }
 
         applyPatientRecord(patientRecord);
+        patientDetailsLoading = false;
         setPatientHint('');
+        updatePatientDetailsGate();
       } catch (error) {
+        patientDetailsLoading = false;
         lastHistoryDebug = {
           patientId,
           patientDocFound: false,
@@ -3657,6 +3699,7 @@
         setPatientHint(`Unable to load patient details: ${error.message}`);
         updatePageMeta();
         setPatientGrowthHistory([]);
+        updatePatientDetailsGate(`Unable to load patient details: ${error.message}`);
       }
     }
 
@@ -4838,6 +4881,7 @@
     drawBaseTemplate(null);
     renderPreviewGallery();
     updatePageMeta();
+    updatePatientDetailsGate('Loading patient details. Please wait until child, age, and phone are shown.');
     renderHistoryDrawer();
     renderMetricHistoryPanels();
     loadPatientIdFromUrl();
@@ -4916,6 +4960,11 @@
           ? `prescription?patientId=${encodeURIComponent(patientId)}`
           : 'prescription';
         window.location.href = targetUrl;
+        return;
+      }
+
+      if (patientDetailsLoading || !hasLoadedPatientDetails()) {
+        updatePatientDetailsGate('Patient details are still loading. Wait until Child, Age, and Ph are shown.');
         return;
       }
 
