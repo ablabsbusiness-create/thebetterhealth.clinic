@@ -6,9 +6,8 @@ from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 
 APP_DIR = Path(__file__).resolve().parents[1]
-KID_DIR = APP_DIR / "KID"
-if str(KID_DIR) not in sys.path:
-    sys.path.insert(0, str(KID_DIR))
+if str(APP_DIR) not in sys.path:
+    sys.path.insert(0, str(APP_DIR))
 
 from chart_plotting import ChartPlotError, generate_chart_package
 
@@ -23,14 +22,21 @@ class handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_GET(self) -> None:
-        self.send_json(200, {"ok": True, "message": "POST growth chart payloads here."})
+        self.send_json(200, {"ok": True, "message": "POST 0-5 growth chart payloads here."})
 
     def do_POST(self) -> None:
         try:
             body_length = int(self.headers.get("content-length", "0"))
             raw_body = self.rfile.read(body_length) if body_length > 0 else b"{}"
             payload = json.loads(raw_body.decode("utf-8"))
-            self.send_json(200, generate_chart_package(payload))
+            self.send_json(
+                200,
+                generate_chart_package(
+                    payload,
+                    template_filter=lambda key: "0to5" in key,
+                    filter_label="IAP 0-5 charts",
+                ),
+            )
         except ChartPlotError as exc:
             self.send_json(400, {"error": str(exc)})
         except json.JSONDecodeError:

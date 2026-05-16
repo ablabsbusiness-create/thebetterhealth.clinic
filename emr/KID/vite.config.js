@@ -14,10 +14,11 @@ import {
   isProtectedPath,
   normalizeAppPath,
   shouldUseAppBase
-} from './KID/lib/auth.js';
+} from './lib/auth.js';
 
-const repoRoot = resolve(__dirname, '..');
-const pythonChartRendererScript = resolve(__dirname, 'KID', 'scripts', 'render_growth_charts.py');
+const repoRoot = resolve(__dirname, '..', '..');
+const pythonChartRendererScript = resolve(__dirname, 'scripts', 'render_growth_charts.py');
+const nodeModulesRoot = existsSync(resolve(__dirname, 'node_modules')) ? __dirname : resolve(__dirname, '..');
 const pythonCommands = [
   ['python', [pythonChartRendererScript]],
   ['py', ['-3', pythonChartRendererScript]]
@@ -89,11 +90,11 @@ function readRequestBody(req) {
 export default defineConfig({
   root: __dirname,
   envDir: __dirname,
-  publicDir: resolve(__dirname, 'KID', 'public'),
+  publicDir: resolve(__dirname, 'public'),
   base: '/emr/',
   resolve: {
     alias: {
-      jspdf: resolve(__dirname, 'node_modules/jspdf/dist/jspdf.es.min.js')
+      jspdf: resolve(nodeModulesRoot, 'node_modules/jspdf/dist/jspdf.es.min.js')
     }
   },
   plugins: [
@@ -101,22 +102,21 @@ export default defineConfig({
       name: 'copy-growth-chart-assets',
       closeBundle() {
         const distRoot = resolve(__dirname, 'dist');
-        const distKidRoot = resolve(distRoot, 'KID');
-        const distAssets = resolve(distKidRoot, 'assets');
+        const distAssets = resolve(distRoot, 'assets');
         const chartAssetDirs = ['iap-official-png', 'who-official-png'];
 
         chartAssetDirs.forEach((dirName) => {
-          const sourceDir = resolve(__dirname, 'KID', 'assets', dirName);
+          const sourceDir = resolve(__dirname, 'assets', dirName);
 
           if (existsSync(sourceDir)) {
             cpSync(sourceDir, resolve(distAssets, dirName), { recursive: true });
           }
         });
 
-        const sharedChartConfig = resolve(__dirname, 'KID', 'growth_chart_config.json');
+        const sharedChartConfig = resolve(__dirname, 'growth_chart_config.json');
 
         if (existsSync(sharedChartConfig)) {
-          cpSync(sharedChartConfig, resolve(distKidRoot, 'growth_chart_config.json'));
+          cpSync(sharedChartConfig, resolve(distRoot, 'growth_chart_config.json'));
         }
       }
     },
@@ -242,22 +242,22 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        password: resolve(__dirname, 'KID', 'password.html'),
-        entryDashboard: resolve(__dirname, 'KID', 'index.html'),
-        dashboard: resolve(__dirname, 'KID', 'clinci.html'),
-        newPatient: resolve(__dirname, 'KID', 'new-patient.html'),
-        growthChart: resolve(__dirname, 'KID', 'growth-chart-dashboard.html'),
-        prescription: resolve(__dirname, 'KID', 'prescription.html'),
-        preview: resolve(__dirname, 'KID', 'preview.html'),
-        pendingApprovals: resolve(__dirname, 'KID', 'pending-approvals.html'),
-        receptionQr: resolve(__dirname, 'KID', 'reception-qr.html'),
-        intake: resolve(__dirname, 'KID', 'intake.html'),
-        rx: resolve(__dirname, 'KID', 'rx.html'),
-        settings: resolve(__dirname, 'KID', 'settings.html'),
-        prescriptionGrowthChart: resolve(__dirname, 'KID', 'prescription-growth-chart-dashboard.html'),
-        vaccination: resolve(__dirname, 'KID', 'vaccination.html'),
-        vacination: resolve(__dirname, 'KID', 'vacination.html'),
-        search: resolve(__dirname, 'KID', 'search.html')
+        password: resolve(__dirname, 'password.html'),
+        entryDashboard: resolve(__dirname, 'index.html'),
+        dashboard: resolve(__dirname, 'clinci.html'),
+        newPatient: resolve(__dirname, 'new-patient.html'),
+        growthChart: resolve(__dirname, 'growth-chart-dashboard.html'),
+        prescription: resolve(__dirname, 'prescription.html'),
+        preview: resolve(__dirname, 'preview.html'),
+        pendingApprovals: resolve(__dirname, 'pending-approvals.html'),
+        receptionQr: resolve(__dirname, 'reception-qr.html'),
+        intake: resolve(__dirname, 'intake.html'),
+        rx: resolve(__dirname, 'rx.html'),
+        settings: resolve(__dirname, 'settings.html'),
+        prescriptionGrowthChart: resolve(__dirname, 'prescription-growth-chart-dashboard.html'),
+        vaccination: resolve(__dirname, 'vaccination.html'),
+        vacination: resolve(__dirname, 'vacination.html'),
+        search: resolve(__dirname, 'search.html')
       }
     }
   }

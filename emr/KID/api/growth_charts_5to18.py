@@ -6,9 +6,8 @@ from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 
 APP_DIR = Path(__file__).resolve().parents[1]
-KID_DIR = APP_DIR / "KID"
-if str(KID_DIR) not in sys.path:
-    sys.path.insert(0, str(KID_DIR))
+if str(APP_DIR) not in sys.path:
+    sys.path.insert(0, str(APP_DIR))
 
 from chart_plotting import ChartPlotError, generate_chart_package
 

@@ -4,9 +4,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "predev": "node ./KID/scripts/ensure-iap-assets.mjs",
+    "predev": "node ./scripts/ensure-iap-assets.mjs",
     "dev": "vite",
-    "prebuild": "node ./KID/scripts/ensure-iap-assets.mjs",
+    "prebuild": "node ./scripts/ensure-iap-assets.mjs",
     "build": "vite build",
     "preview": "vite preview"
   },
