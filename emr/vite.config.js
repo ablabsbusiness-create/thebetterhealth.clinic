@@ -17,7 +17,7 @@ import {
 } from './lib/auth.js';
 
 const repoRoot = resolve(__dirname, '..');
-const pythonChartRendererScript = resolve(__dirname, 'scripts', 'render_growth_charts.py');
+const pythonChartRendererScript = resolve(__dirname, 'KID', 'scripts', 'render_growth_charts.py');
 const pythonCommands = [
   ['python', [pythonChartRendererScript]],
   ['py', ['-3', pythonChartRendererScript]]
@@ -100,21 +100,22 @@ export default defineConfig({
       name: 'copy-growth-chart-assets',
       closeBundle() {
         const distRoot = resolve(__dirname, 'dist');
-        const distAssets = resolve(distRoot, 'assets');
+        const distKidRoot = resolve(distRoot, 'KID');
+        const distAssets = resolve(distKidRoot, 'assets');
         const chartAssetDirs = ['iap-official-png', 'who-official-png'];
 
         chartAssetDirs.forEach((dirName) => {
-          const sourceDir = resolve(__dirname, 'assets', dirName);
+          const sourceDir = resolve(__dirname, 'KID', 'assets', dirName);
 
           if (existsSync(sourceDir)) {
             cpSync(sourceDir, resolve(distAssets, dirName), { recursive: true });
           }
         });
 
-        const sharedChartConfig = resolve(__dirname, 'growth_chart_config.json');
+        const sharedChartConfig = resolve(__dirname, 'KID', 'growth_chart_config.json');
 
         if (existsSync(sharedChartConfig)) {
-          cpSync(sharedChartConfig, resolve(distRoot, 'growth_chart_config.json'));
+          cpSync(sharedChartConfig, resolve(distKidRoot, 'growth_chart_config.json'));
         }
       }
     },
@@ -244,15 +245,15 @@ export default defineConfig({
         entryDashboard: resolve(__dirname, 'index.html'),
         dashboard: resolve(__dirname, 'clinci.html'),
         newPatient: resolve(__dirname, 'new-patient.html'),
-        growthChart: resolve(__dirname, 'growth-chart-dashboard.html'),
-        prescription: resolve(__dirname, 'prescription.html'),
-        preview: resolve(__dirname, 'preview.html'),
+        growthChart: resolve(__dirname, 'KID', 'growth-chart-dashboard.html'),
+        prescription: resolve(__dirname, 'KID', 'prescription.html'),
+        preview: resolve(__dirname, 'KID', 'preview.html'),
         pendingApprovals: resolve(__dirname, 'pending-approvals.html'),
         receptionQr: resolve(__dirname, 'reception-qr.html'),
         intake: resolve(__dirname, 'intake.html'),
-        rx: resolve(__dirname, 'rx.html'),
+        rx: resolve(__dirname, 'KID', 'rx.html'),
         settings: resolve(__dirname, 'settings.html'),
-        prescriptionGrowthChart: resolve(__dirname, 'prescription-growth-chart-dashboard.html'),
+        prescriptionGrowthChart: resolve(__dirname, 'KID', 'prescription-growth-chart-dashboard.html'),
         vaccination: resolve(__dirname, 'vaccination.html'),
         vacination: resolve(__dirname, 'vacination.html'),
         search: resolve(__dirname, 'search.html')

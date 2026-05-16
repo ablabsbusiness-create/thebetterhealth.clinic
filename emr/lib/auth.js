@@ -9,8 +9,11 @@ const PROTECTED_PATHS = new Set([
   '/clinci',
   '/new-patient',
   '/growth-chart-dashboard',
+  '/KID/growth-chart-dashboard',
   '/prescription',
+  '/KID/prescription',
   '/preview',
+  '/KID/preview',
   '/pending-approvals',
   '/reception-qr',
   '/search',
@@ -18,6 +21,7 @@ const PROTECTED_PATHS = new Set([
   '/vaccination',
   '/vacination',
   '/prescription-growth-chart-dashboard',
+  '/KID/prescription-growth-chart-dashboard',
   '/api/growth_charts'
 ]);
 
@@ -25,6 +29,7 @@ const PUBLIC_PATHS = new Set([
   '/password',
   '/intake',
   '/rx',
+  '/KID/rx',
   '/api/auth/login',
   '/api/auth/logout'
 ]);

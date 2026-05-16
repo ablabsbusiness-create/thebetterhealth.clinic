@@ -295,7 +295,7 @@
             approvedPatientId: patientId
           }, { merge: true });
         }
-        const vitalsUrl = `prescription-growth-chart-dashboard?patientId=${encodeURIComponent(patientId)}`;
+        const vitalsUrl = `KID/prescription-growth-chart-dashboard?patientId=${encodeURIComponent(patientId)}`;
         window.location.href = vitalsUrl;
         return;
       } catch (error) { setStatus(`Unable to approve this submission: ${error.message}`, 'error'); } finally { approveBtn.disabled = false; rejectBtn.disabled = false; }

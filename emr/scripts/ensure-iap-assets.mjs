@@ -6,8 +6,8 @@ const appDir = resolve(import.meta.dirname, '..');
 const repoRoot = resolve(appDir, '..');
 const generatorScript = resolve(repoRoot, 'scripts', 'generate_minimal_iap_pngs.py');
 const whoGeneratorScript = resolve(repoRoot, 'scripts', 'generate_official_who_pngs.py');
-const outputDir = resolve(appDir, 'assets', 'iap-official-png');
-const whoOutputDir = resolve(appDir, 'assets', 'who-official-png');
+const outputDir = resolve(appDir, 'KID', 'assets', 'iap-official-png');
+const whoOutputDir = resolve(appDir, 'KID', 'assets', 'who-official-png');
 
 const pythonCommands = [
   ['python', [generatorScript]],

@@ -6,6 +6,26 @@
       "destination": "/index"
     },
     {
+      "source": "/emr/growth-chart-dashboard",
+      "destination": "/KID/growth-chart-dashboard"
+    },
+    {
+      "source": "/emr/prescription-growth-chart-dashboard",
+      "destination": "/KID/prescription-growth-chart-dashboard"
+    },
+    {
+      "source": "/emr/prescription",
+      "destination": "/KID/prescription"
+    },
+    {
+      "source": "/emr/preview",
+      "destination": "/KID/preview"
+    },
+    {
+      "source": "/emr/rx",
+      "destination": "/KID/rx"
+    },
+    {
       "source": "/emr/:path*",
       "destination": "/:path*"
     }

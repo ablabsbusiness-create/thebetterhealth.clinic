@@ -4,9 +4,9 @@ import json
 import sys
 from pathlib import Path
 
-APP_DIR = Path(__file__).resolve().parents[1]
-if str(APP_DIR) not in sys.path:
-    sys.path.insert(0, str(APP_DIR))
+KID_DIR = Path(__file__).resolve().parents[1]
+if str(KID_DIR) not in sys.path:
+    sys.path.insert(0, str(KID_DIR))
 
 from chart_plotting import ChartPlotError, generate_chart_package
 

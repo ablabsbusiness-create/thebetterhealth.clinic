@@ -885,7 +885,7 @@
         console.log(savedToFirebase
           ? `Saved to Firebase with Patient ID ${autoPatientId}.`
           : `Patient ID ${autoPatientId} generated locally. Add Firebase config to store this in Firestore.`);
-        window.location.href = `prescription-growth-chart-dashboard?patientId=${encodeURIComponent(autoPatientId)}`;
+        window.location.href = `KID/prescription-growth-chart-dashboard?patientId=${encodeURIComponent(autoPatientId)}`;
       } catch (error) {
         console.error(`Firebase save failed: ${error.message}`);
         setSaveStatus(`Firebase save failed: ${error.message}. Publish Firestore rules and try again.`, 'error');
