@@ -989,7 +989,10 @@
           return cachedSettings;
         }
 
-        const firestoreSettings = cacheBrandingSettings(snapshot.data());
+        const firestoreSettings = cacheBrandingSettings({
+          ...snapshot.data(),
+          signatureDataUrl: snapshot.data().signatureDataUrl || cachedSettings.signatureDataUrl || ''
+        });
         populateBrandingForm(firestoreSettings);
         if (brandingSettingStatus) {
           brandingSettingStatus.textContent = 'Current branding: loaded from Firebase.';

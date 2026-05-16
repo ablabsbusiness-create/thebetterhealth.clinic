@@ -568,16 +568,16 @@
     }
 
     .signature-line {
-      width: 92px;
-      height: 20px;
+      width: 132px;
+      height: 42px;
       margin-bottom: 5px;
       border-bottom: 1px solid #111827;
     }
 
     .signature-image {
       display: block;
-      width: 112px;
-      max-height: 38px;
+      width: 150px;
+      height: 48px;
       margin-bottom: 5px;
       object-fit: contain;
       object-position: left bottom;
@@ -1020,7 +1020,10 @@
         if (!snapshot.exists()) {
           return cachedBranding;
         }
-        return cachePrescriptionBranding(snapshot.data());
+        return cachePrescriptionBranding({
+          ...snapshot.data(),
+          signatureDataUrl: snapshot.data().signatureDataUrl || cachedBranding.signatureDataUrl || ''
+        });
       } catch (error) {
         console.warn(`Unable to load prescription branding from Firebase: ${error.message}`);
         return cachedBranding;
