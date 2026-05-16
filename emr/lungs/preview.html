@@ -919,22 +919,7 @@
       yStart: 0.8617,
       yEnd: 0.117
     };
-    const chartTemplatePaths = {
-      girlsHeight0to5: 'assets/iap-official-png/girls-height-0-5-minimal.png',
-      boysHeight0to5: 'assets/iap-official-png/boys-height-0-5-minimal.png',
-      girlsWeight0to5: 'assets/iap-official-png/girls-weight-0-5-minimal.png',
-      boysWeight0to5: 'assets/iap-official-png/boys-weight-0-5-minimal.png',
-      girlsHead0to5: 'assets/iap-official-png/girls-head-0-5-minimal.png',
-      boysHead0to5: 'assets/iap-official-png/boys-head-0-5-minimal.png',
-      girlsBmi0to5: 'assets/iap-official-png/girls-bmi-0-5-minimal.png',
-      boysBmi0to5: 'assets/iap-official-png/boys-bmi-0-5-minimal.png',
-      girlsHeight5to18: 'assets/iap-official-png/girls-height-5-18-minimal.png',
-      boysHeight5to18: 'assets/iap-official-png/boys-height-5-18-minimal.png',
-      girlsWeight5to18: 'assets/iap-official-png/girls-weight-5-18-minimal.png',
-      boysWeight5to18: 'assets/iap-official-png/boys-weight-5-18-minimal.png',
-      girlsBmi5to18: 'assets/iap-official-png/girls-bmi-5-18-minimal.png',
-      boysBmi5to18: 'assets/iap-official-png/boys-bmi-5-18-minimal.png'
-    };
+    const chartTemplatePaths = {};
     const sharedGrowthChartConfig = await loadSharedGrowthChartConfig();
     const sharedGrowthCharts = sharedGrowthChartConfig.charts || [];
 
@@ -1371,54 +1356,13 @@
         return null;
       }
 
-      const hasChartPages = Array.isArray(record.chartPages) && record.chartPages.some((page) => page?.dataUrl);
-      const isCurrentChartFormat = record.chartFormatVersion === CHART_PREVIEW_VERSION
-        && record.chartPages?.every((page) => !page?.dataUrl || page.chartFormatVersion === CHART_PREVIEW_VERSION);
-
-      if (hasChartPages && isCurrentChartFormat) {
-        try {
-          const chartPages = [];
-          for (const page of record.chartPages.slice(0, 4)) {
-            chartPages.push(await prepareMiniChartPage(page));
-          }
-
-          return {
-            ...record,
-            chartPages,
-            chartFormatVersion: CHART_PREVIEW_VERSION
-          };
-        } catch (error) {
-          console.warn(`Unable to refresh existing chart previews: ${error.message}`);
-          return record;
-        }
-      }
-
-      const patientData = getChartPatientData(record);
-      const requests = buildFreshChartRequests(record);
-      if (!requests.length && hasChartPages) {
-        console.warn('Unable to rebuild chart previews because no matching chart requests could be inferred; using stored chart pages.');
-        return record;
-      }
-
-      if (!requests.length) {
-        return record;
-      }
-
-      try {
-        const chartPages = [];
-        for (const request of requests.slice(0, 4)) {
-          chartPages.push(await prepareMiniChartPage(await renderFreshChartPage(request, patientData)));
-        }
-
-        return {
-          ...record,
-          chartPages,
-          chartFormatVersion: CHART_PREVIEW_VERSION
-        };
-      } catch (error) {
-        console.warn(`Unable to rebuild chart previews: ${error.message}`);
-        return record;
-      }
+      return {
+        ...record,
+        charts: [],
+        selectedCharts: [],
+        chartPages: [],
+        chartFormatVersion: ''
+      };
     }
 
     function persistPreparedChartRecord(record) {
@@ -1620,21 +1564,7 @@
     }
 
     function renderMiniCharts(record) {
-      const pages = record?.chartPages || [];
-      if (!pages.length) {
-        return '<p class="empty-note">Growth chart preview is not available. Generate charts again, then continue to prescription.</p>';
-      }
-
-      return `
-        <div class="mini-chart-grid">
-          ${pages.slice(0, 4).map((page, index) => `
-            <div class="mini-chart-card">
-              <strong>${escapeHtml(chartTitle(page.label))}</strong>
-              <img data-chart-index="${index}" src="${escapeHtml(page.miniDataUrl || page.dataUrl)}" alt="${escapeHtml(page.label)} chart">
-            </div>
-          `).join('')}
-        </div>
-      `;
+      return '';
     }
 
     function buildPreviewHtml() {
@@ -1694,8 +1624,6 @@
             ? `<p>${escapeHtml(formatInstructionText(instructions))}</p>`
             : '<p class="empty-note">No instructions selected.</p>'}
         </section>
-
-        ${renderMiniCharts(chartRecord)}
 
         <footer class="rx-footer">
           <div>

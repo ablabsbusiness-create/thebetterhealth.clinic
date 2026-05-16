@@ -1281,8 +1281,8 @@
 
         document.cookie = `${ACCESS_COOKIE_NAME}=; Max-Age=0; Path=/; SameSite=Strict`;
 
-        const passwordPath = window.location.pathname.includes('/emr/') || window.location.pathname === '/emr/settings'
-          ? '/emr/password'
+        const passwordPath = window.location.pathname.startsWith('/emr/lungs/')
+          ? '/emr/lungs/password'
           : '/password';
 
         window.location.replace(passwordPath);

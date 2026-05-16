@@ -9,8 +9,8 @@
   }
 
   const nextPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-  const loginPath = window.location.pathname.startsWith('/emr/') || window.location.pathname === '/emr'
-    ? '/emr/password'
+  const loginPath = window.location.pathname.startsWith('/emr/lungs/') || window.location.pathname === '/emr/lungs'
+    ? '/emr/lungs/password'
     : '/password';
 
   window.location.replace(`${loginPath}?next=${encodeURIComponent(nextPath)}`);

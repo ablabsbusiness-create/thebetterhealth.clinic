@@ -1,4 +1,5 @@
 import {
+  buildClientSessionCookie,
   buildSessionCookie,
   createSessionToken,
   getAccessPassword,
@@ -48,11 +49,6 @@ export default async function handler(req, res) {
     return;
   }
 
-  if (!isAuthConfigured()) {
-    sendJson(res, 503, { error: 'Clinic access is not configured on the server.' });
-    return;
-  }
-
   let payload = {};
 
   try {
@@ -67,6 +63,13 @@ export default async function handler(req, res) {
 
   if (!submittedPassword || submittedPassword !== configuredPassword) {
     sendJson(res, 401, { error: 'Incorrect password. Please try again.' });
+    return;
+  }
+
+  if (!isAuthConfigured()) {
+    sendJson(res, 200, { ok: true, mode: 'client-session' }, {
+      'Set-Cookie': buildClientSessionCookie()
+    });
     return;
   }
 
