@@ -51,7 +51,7 @@ def download_image(url: str) -> Image.Image:
 
 
 def main() -> None:
-    output_dir = Path("emr/KID/assets/iap-official-bw")
+    output_dir = Path("KID/assets/iap-official-bw")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     for url, filename in CHARTS:
