@@ -492,26 +492,6 @@
       line-height: 1.25;
     }
 
-    .metric-chart-toggle {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      width: fit-content;
-      padding: 2px 6px;
-      border: 1px solid #cddbd1;
-      border-radius: 6px;
-      background: #ffffff;
-      color: #5f7167;
-      font-size: 9px;
-      font-weight: 600;
-    }
-
-    .metric-chart-toggle input {
-      width: 11px;
-      height: 11px;
-      accent-color: var(--brand);
-    }
-
     .metric-input-wrap {
       display: grid;
       gap: 4px;
@@ -1046,7 +1026,9 @@
       </div>
 
       <div class="topbar-actions">
-        <a class="nav-link" href="index">Back to Index</a>
+        <a class="nav-link" href="index">Index</a>
+        <a class="nav-link" href="search">Search</a>
+        <a class="nav-link" href="pending-approvals">Approvals</a>
         <a class="nav-link" href="settings">Settings</a>
         <div class="status-chip">
           <span class="status-dot"></span>
@@ -1116,11 +1098,6 @@
                 <div class="section-kicker">Step 2</div>
                 <h2 class="section-title">Vitals</h2>
               </div>
-              <div class="vitals-toolbar" aria-label="Vitals actions">
-                <span class="vitals-tool">Recorded date: Today</span>
-                <span class="vitals-tool">Add Measurement</span>
-                <span class="vitals-tool is-live">Autograph</span>
-              </div>
             </div>
 
             <div class="measurement-grid">
@@ -1128,7 +1105,6 @@
                 <div class="metric-meta">
                   <span class="metric-chip">Growth</span>
                   <label class="metric-title" for="weight">Weight (kg) <span class="required">*</span></label>
-                  <label class="metric-chart-toggle"><input type="checkbox" checked disabled> Chart</label>
                 </div>
                 <div class="metric-input-wrap">
                   <input id="weight" name="weight" type="number" min="0" step="0.1" placeholder="e.g. 12.4">
@@ -1140,7 +1116,6 @@
                 <div class="metric-meta">
                   <span class="metric-chip">Growth</span>
                   <label class="metric-title" for="height">Height (cm) <span class="required">*</span></label>
-                  <label class="metric-chart-toggle"><input type="checkbox" checked disabled> Chart</label>
                 </div>
                 <div class="metric-input-wrap">
                   <input id="height" name="height" type="number" min="0" step="0.1" placeholder="e.g. 88.0">
@@ -1152,7 +1127,6 @@
                 <div class="metric-meta">
                   <span class="metric-chip">Growth</span>
                   <label class="metric-title" for="head">OFC (cm) <span class="required">*</span></label>
-                  <label class="metric-chart-toggle"><input type="checkbox" checked disabled> Chart</label>
                 </div>
                 <div class="metric-input-wrap">
                   <input id="head" name="head" type="number" min="0" step="0.1" placeholder="e.g. 48.5">
@@ -1164,7 +1138,6 @@
                 <div class="metric-meta">
                   <span class="metric-chip">Vitals</span>
                   <label class="metric-title" for="spo2">SPO2 (%)</label>
-                  <label class="metric-chart-toggle"><input type="checkbox" disabled> Chart</label>
                 </div>
                 <div class="metric-input-wrap">
                   <input id="spo2" name="spo2" type="number" min="0" max="100" step="1" placeholder="e.g. 99">
@@ -1176,7 +1149,6 @@
                 <div class="metric-meta">
                   <span class="metric-chip">Vitals</span>
                   <label class="metric-title" for="pulse">Pulse (/min)</label>
-                  <label class="metric-chart-toggle"><input type="checkbox" disabled> Chart</label>
                 </div>
                 <div class="metric-input-wrap">
                   <input id="pulse" name="pulse" type="number" min="0" step="1" placeholder="e.g. 108">
@@ -1188,7 +1160,6 @@
                 <div class="metric-meta">
                   <span class="metric-chip">Vitals</span>
                   <label class="metric-title" for="systolic">Systolic (mmHg)</label>
-                  <label class="metric-chart-toggle"><input type="checkbox" disabled> Chart</label>
                 </div>
                 <div class="metric-input-wrap">
                   <input id="systolic" name="systolic" type="number" min="0" step="1" placeholder="e.g. 100">
@@ -1200,7 +1171,6 @@
                 <div class="metric-meta">
                   <span class="metric-chip">Vitals</span>
                   <label class="metric-title" for="diastolic">Diastolic (mmHg)</label>
-                  <label class="metric-chart-toggle"><input type="checkbox" disabled> Chart</label>
                 </div>
                 <div class="metric-input-wrap">
                   <input id="diastolic" name="diastolic" type="number" min="0" step="1" placeholder="e.g. 64">
@@ -1212,7 +1182,6 @@
                 <div class="metric-meta">
                   <span class="metric-chip">Vitals</span>
                   <label class="metric-title" for="temperature">Temp (C)</label>
-                  <label class="metric-chart-toggle"><input type="checkbox" disabled> Chart</label>
                 </div>
                 <div class="metric-input-wrap">
                   <input id="temperature" name="temperature" type="number" min="0" step="0.1" placeholder="e.g. 37.1">
@@ -1300,6 +1269,10 @@
     const primaryNav = document.getElementById('primary-nav');
     const navLinks = [...document.querySelectorAll('#primary-nav .nav-link')];
     const CHART_ASSET_VERSION = '2026-05-12-iap-who-no-ofc-5-18';
+
+    function presentElements(elements) {
+      return Object.values(elements).filter(Boolean);
+    }
 
     function versionedChartAssetPath(path) {
       return `${path}${path.includes('?') ? '&' : '?'}v=${CHART_ASSET_VERSION}`;
@@ -2344,11 +2317,13 @@
     }
 
     function closeMobileMenu() {
+      if (!menuToggle || !primaryNav) return;
       menuToggle.setAttribute('aria-expanded', 'false');
       primaryNav.classList.remove('is-open');
     }
 
     function toggleMobileMenu() {
+      if (!menuToggle || !primaryNav) return;
       const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
       menuToggle.setAttribute('aria-expanded', String(!isOpen));
       primaryNav.classList.toggle('is-open', !isOpen);
@@ -2376,7 +2351,7 @@
     dobInput.addEventListener('blur', normalizeDobInput);
     dobInput.addEventListener('change', updatePreview);
     dobInput.addEventListener('input', updatePreview);
-    Object.values(dobPartInputs).forEach((input) => {
+    presentElements(dobPartInputs).forEach((input) => {
       input.addEventListener('input', handleDobPartInput);
       input.addEventListener('change', () => {
         syncDobFromParts();
@@ -2385,11 +2360,13 @@
       });
       input.addEventListener('blur', normalizeDobInput);
     });
-    Object.values(metricInputs).forEach((input) => {
+    presentElements(metricInputs).forEach((input) => {
       input.addEventListener('input', updatePreview);
       input.addEventListener('change', updatePreview);
     });
-    menuToggle.addEventListener('click', toggleMobileMenu);
+    if (menuToggle) {
+      menuToggle.addEventListener('click', toggleMobileMenu);
+    }
     navLinks.forEach((link) => link.addEventListener('click', closeMobileMenu));
     window.addEventListener('resize', () => {
       if (window.innerWidth > 640) {

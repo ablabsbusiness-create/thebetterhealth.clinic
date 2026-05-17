@@ -1949,6 +1949,9 @@
       </div>
 
       <div class="topbar-actions">
+        <a class="nav-link" href="index">Index</a>
+        <a class="nav-link" href="search">Search</a>
+        <a class="nav-link" href="pending-approvals">Approvals</a>
         <a class="nav-link" href="settings">Settings</a>
         <div class="status-chip">
           <span class="status-dot"></span>
@@ -2285,7 +2288,7 @@
   <script type="module">
     import { jsPDF } from 'https://cdn.jsdelivr.net/npm/jspdf@3.0.3/+esm';
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
-    import { addDoc, arrayUnion, collection, doc, getDoc, getDocs, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { addDoc, arrayUnion, collection, doc, getDoc, getDocs, getFirestore, query, serverTimestamp, setDoc, where } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     import { getDownloadURL, getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
     const FIREBASE_COLLECTIONS = {
@@ -3293,6 +3296,36 @@
       return { patients: mergedPatients, historyByPatientId };
     }
 
+    async function loadHistoryEntriesForPatient(patientId) {
+      if (!db || !patientId) {
+        return [];
+      }
+
+      const normalizedPatientId = String(patientId || '').trim().toUpperCase();
+      try {
+        const historyQuery = query(
+          collection(db, FIREBASE_COLLECTIONS.history),
+          where('patientId', '==', normalizedPatientId)
+        );
+        const historySnapshot = await getDocs(historyQuery);
+        return historySnapshot.docs
+          .map((docSnapshot) => ({
+            id: docSnapshot.id,
+            ...docSnapshot.data()
+          }))
+          .filter((entry) => entry.type !== 'prescription' && entry.source !== 'prescription-pdf')
+          .sort((left, right) => getHistoryTimestamp(right) - getHistoryTimestamp(left));
+      } catch (error) {
+        console.warn(`Unable to load patient history quickly: ${error.message}`);
+        if (lastHistoryDebug) {
+          lastHistoryDebug.errorMessage = lastHistoryDebug.errorMessage
+            ? `${lastHistoryDebug.errorMessage}; patient history load failed: ${error.message}`
+            : `patient history load failed: ${error.message}`;
+        }
+        return [];
+      }
+    }
+
     function formatMetricValue(value, unit = '') {
       const cleanValue = String(value ?? '').trim();
       return cleanValue ? `${cleanValue}${unit ? ` ${unit}` : ''}` : '';
@@ -3575,25 +3608,51 @@
         return null;
       }
 
-      const patientSnapshot = await getDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId)).catch(() => null);
+      const [patientSnapshot, patientHistoryEntries] = await Promise.all([
+        getDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId)).catch(() => null),
+        loadHistoryEntriesForPatient(patientId)
+      ]);
       lastHistoryDebug.patientDocFound = !!(patientSnapshot && patientSnapshot.exists && patientSnapshot.exists());
-      const { patients: mergedPatients, historyByPatientId } = await loadMergedPatientsForDashboard();
-      lastHistoryDebug.historyMatchCount = (historyByPatientId.get(patientId) || []).length;
+      lastHistoryDebug.historyEntriesCount = patientHistoryEntries.length;
+      lastHistoryDebug.historyMatchCount = patientHistoryEntries.length;
 
-      const patientRecord = mergedPatients.find((entry) => String(entry.patientId || '').trim().toUpperCase() === patientId) || null;
+      const directPatientRecord = patientSnapshot && patientSnapshot.exists && patientSnapshot.exists()
+        ? { id: patientSnapshot.id, ...patientSnapshot.data() }
+        : null;
+      const patientRecord = directPatientRecord || (patientHistoryEntries[0] ? {
+        id: `history-${patientId}`,
+        patientId,
+        childName: patientHistoryEntries[0].childName || patientHistoryEntries[0].patientName || '',
+        parentName: patientHistoryEntries[0].parentName || '',
+        phone: patientHistoryEntries[0].phone || '',
+        gender: patientHistoryEntries[0].gender || '',
+        dob: patientHistoryEntries[0].dob || '',
+        fromHistoryOnly: true
+      } : null);
       lastHistoryDebug.mergedPatientFound = !!patientRecord;
 
       if (!patientRecord) {
         return null;
       }
 
+      const existingMeasurementHistory = Array.isArray(patientRecord.measurementHistory)
+        ? patientRecord.measurementHistory
+        : [];
+      const mergedMeasurementHistory = [...existingMeasurementHistory];
+      patientHistoryEntries.forEach((entry) => {
+        const entryKey = getHistoryEntryKey(entry);
+        const alreadyIncluded = mergedMeasurementHistory.some((candidate) => getHistoryEntryKey(candidate) === entryKey);
+        if (!alreadyIncluded) {
+          mergedMeasurementHistory.push(entry);
+        }
+      });
+      mergedMeasurementHistory.sort((left, right) => getHistoryTimestamp(right) - getHistoryTimestamp(left));
+
       const mergedPatientRecord = {
         ...patientRecord,
         patientId,
-        measurementHistory: Array.isArray(patientRecord.measurementHistory) && patientRecord.measurementHistory.length
-          ? patientRecord.measurementHistory
-          : historyByPatientId.get(patientId) || [],
-        lastMeasurementRecord: patientRecord.lastMeasurementRecord || (historyByPatientId.get(patientId) || [])[0] || null
+        measurementHistory: mergedMeasurementHistory,
+        lastMeasurementRecord: patientRecord.lastMeasurementRecord || mergedMeasurementHistory[0] || null
       };
 
       if ((!patientSnapshot || !patientSnapshot.exists()) && patientRecord) {
@@ -4909,4 +4968,3 @@
   </script>
 </body>
 </html>
-

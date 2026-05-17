@@ -867,17 +867,19 @@
     }
 
     .doctor-card .prescription-list {
-      max-height: 560px;
+      max-height: none;
     }
 
     .doctor-card .prescription-preview-surface {
       min-height: 520px;
+      height: 520px;
       border-radius: 12px;
     }
 
-    .doctor-card .prescription-preview-frame {
-      min-height: 520px;
-      height: 520px;
+    .doctor-card .prescription-preview-frame,
+    .doctor-card .prescription-preview-embed {
+      min-height: 0;
+      height: 100%;
     }
 
     .patient-snapshot {
@@ -1484,9 +1486,13 @@
       min-height: 0;
       overflow-x: auto;
       scroll-snap-type: x mandatory;
-      scrollbar-width: thin;
+      scrollbar-width: none;
       -webkit-overflow-scrolling: touch;
       touch-action: pan-x;
+    }
+
+    .prescription-list::-webkit-scrollbar {
+      display: none;
     }
 
     .prescription-carousel {
@@ -1530,8 +1536,8 @@
 
     .prescription-preview-card {
       display: grid;
-      grid-template-rows: auto minmax(0, 1fr);
-      gap: 6px;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      gap: 8px;
       flex: 0 0 100%;
       padding: 0;
       border-radius: 0;
@@ -1540,7 +1546,7 @@
       color: #fff;
       min-height: 100%;
       scroll-snap-align: start;
-      cursor: pointer;
+      cursor: default;
     }
 
     .prescription-date {
@@ -1564,17 +1570,20 @@
       position: relative;
       width: 100%;
       min-height: 606px;
+      height: 606px;
       border-radius: 22px;
       background: rgba(255, 255, 255, 0.92);
       overflow: hidden;
       display: grid;
       place-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: inset 0 0 0 1px rgba(22, 38, 29, 0.06);
     }
 
     .prescription-preview-frame {
       width: 100%;
-      height: auto;
-      min-height: 606px;
+      height: 100%;
+      min-height: 0;
       object-fit: contain;
       object-position: top center;
       background: rgba(255, 255, 255, 0.92);
@@ -1612,7 +1621,7 @@
 
     .prescription-preview-embed {
       width: 100%;
-      height: 606px;
+      height: 100%;
       border: 0;
       background: #fff;
       opacity: 0;
@@ -1624,15 +1633,13 @@
     }
 
     .prescription-preview-open-chip {
-      position: absolute;
-      right: 14px;
-      bottom: 14px;
-      z-index: 2;
+      position: static;
+      justify-self: center;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       min-height: 40px;
-      padding: 0 14px;
+      padding: 0 16px;
       border-radius: 999px;
       background: #102217;
       color: #fff;
@@ -1984,6 +1991,7 @@
 
       <div class="topbar-actions">
         <a class="nav-link" href="index">Index</a>
+        <a class="nav-link" href="new-patient">New Patient</a>
         <a class="nav-link" href="pending-approvals">Approvals</a>
         <a class="nav-link" href="settings">Settings</a>
       </div>
@@ -3198,6 +3206,7 @@
                         <div class="prescription-preview-placeholder">Preparing preview...</div>
                         <img class="prescription-preview-frame" data-preview-image-url="${cardPreviewUrl}" alt="Prescription preview ${index + 1}">
                       </div>
+                      ${downloadUrl ? `<a class="prescription-preview-open-chip" href="${cardUrl}" target="_blank" rel="noopener noreferrer">Open prescription</a>` : ''}
                     `
                     : `
                       <div class="prescription-preview-surface">
@@ -3205,10 +3214,10 @@
                           ? `
                             <div class="prescription-preview-placeholder">Loading prescription preview...</div>
                             <iframe class="prescription-preview-embed" data-preview-pdf-url="${cardUrl}" title="Prescription PDF preview ${index + 1}" loading="lazy"></iframe>
-                            <a class="prescription-preview-open-chip" href="${cardUrl}" target="_blank" rel="noopener noreferrer">Open prescription</a>
                           `
                           : '<div class="prescription-preview-placeholder is-error">Prescription PDF could not be loaded for this record.</div>'}
                       </div>
+                      ${downloadUrl ? `<a class="prescription-preview-open-chip" href="${cardUrl}" target="_blank" rel="noopener noreferrer">Open prescription</a>` : ''}
                     `}
                 </div>
               `;
@@ -3836,11 +3845,16 @@
       setStatus('Loading patients...');
 
       try {
-        const { snapshot, usedLegacy: usedLegacyPatients } = await getDocsWithLegacyFallback(FIREBASE_COLLECTIONS.patients, 'patients');
-        const { snapshot: historySnapshot, usedLegacy: usedLegacyHistory } = await getDocsWithLegacyFallback(FIREBASE_COLLECTIONS.history, 'history').catch((error) => {
-          console.warn(`Unable to load history records: ${error.message}`);
-          return { snapshot: { docs: [] }, usedLegacy: false };
-        });
+        const [
+          { snapshot, usedLegacy: usedLegacyPatients },
+          { snapshot: historySnapshot, usedLegacy: usedLegacyHistory }
+        ] = await Promise.all([
+          getDocsWithLegacyFallback(FIREBASE_COLLECTIONS.patients, 'patients'),
+          getDocsWithLegacyFallback(FIREBASE_COLLECTIONS.history, 'history').catch((error) => {
+            console.warn(`Unable to load history records: ${error.message}`);
+            return { snapshot: { docs: [] }, usedLegacy: false };
+          })
+        ]);
         const patientRecords = snapshot.docs.map((docSnapshot) => ({
           id: docSnapshot.id,
           ...docSnapshot.data()
@@ -3852,8 +3866,7 @@
           }))
           .filter((entry) => !usedLegacyHistory || recordBelongsToCurrentClinic(entry))
           .filter(Boolean);
-        const storageHistory = await getStoragePrescriptionEntriesForPatients(patientRecords);
-        if (snapshot.empty && remoteHistory.length === 0 && storageHistory.length === 0) {
+        if (snapshot.empty && remoteHistory.length === 0) {
           clearLocalPrescriptionEntries();
         }
 
@@ -3861,7 +3874,7 @@
           .map((entry) => normalizePrescriptionEntry(entry))
           .filter(Boolean);
         const mergedHistoryById = new Map();
-        [...remoteHistory, ...storageHistory, ...localHistory].forEach((entry, index) => {
+        [...remoteHistory, ...localHistory].forEach((entry, index) => {
           const key = entry.prescriptionSaveId
             || entry.id
             || getPrescriptionDownloadUrl(entry)
@@ -3971,6 +3984,31 @@
         if (usedLegacyPatients || usedLegacyHistory) {
           setStatus('Showing patients from older shared records. Ask support to finish separating clinic records.', 'warning');
         }
+        getStoragePrescriptionEntriesForPatients(patientRecords).then((storageHistory) => {
+          if (!storageHistory.length) {
+            return;
+          }
+
+          const existingHistoryById = new Map();
+          allHistory.forEach((entry, index) => {
+            const key = entry.prescriptionSaveId
+              || entry.id
+              || getPrescriptionDownloadUrl(entry)
+              || `${entry.patientId || 'history'}-${entry.createdAtIso || index}`;
+            existingHistoryById.set(key, entry);
+          });
+          storageHistory.forEach((entry, index) => {
+            const key = entry.prescriptionSaveId
+              || entry.id
+              || getPrescriptionDownloadUrl(entry)
+              || `${entry.patientId || 'storage'}-${entry.createdAtIso || index}`;
+            existingHistoryById.set(key, entry);
+          });
+          allHistory = [...existingHistoryById.values()];
+          filterPatients();
+        }).catch((error) => {
+          console.warn(`Unable to load prescription PDFs after patient list: ${error.message}`);
+        });
       } catch (error) {
         allPatients = [];
         allHistory = [];

@@ -542,6 +542,100 @@
       color: #102217;
     }
 
+    .storage-alert-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 22px;
+      background: rgba(13, 20, 16, 0.58);
+      backdrop-filter: blur(12px);
+    }
+
+    .storage-alert-modal.is-open {
+      display: flex;
+    }
+
+    .storage-alert-card {
+      width: min(520px, 100%);
+      padding: 24px;
+      border: 1px solid rgba(254, 202, 202, 0.8);
+      border-radius: 20px;
+      background: linear-gradient(180deg, #fff, #fff7f7);
+      box-shadow: 0 28px 80px rgba(82, 26, 26, 0.25);
+    }
+
+    .storage-alert-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .storage-alert-kicker {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: #fee2e2;
+      color: #991b1b;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .storage-alert-title {
+      margin: 12px 0 8px;
+      color: #7f1d1d;
+      font-size: 24px;
+      line-height: 1.08;
+    }
+
+    .storage-alert-copy {
+      margin: 0;
+      color: #5f3535;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .storage-alert-close {
+      width: 36px;
+      height: 36px;
+      border: 1px solid #fecaca;
+      border-radius: 10px;
+      background: #fff;
+      color: #7f1d1d;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .storage-alert-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .storage-whatsapp-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 18px;
+      border: 0;
+      border-radius: 12px;
+      background: #15803d;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 800;
+      text-decoration: none;
+      box-shadow: 0 14px 26px rgba(21, 128, 61, 0.22);
+    }
+
     .help-actions {
       display: flex;
       flex-wrap: wrap;
@@ -824,6 +918,9 @@
       </nav>
 
       <div class="topbar-actions">
+        <a class="nav-link" href="index">Index</a>
+        <a class="nav-link" href="search">Search</a>
+        <a class="nav-link" href="pending-approvals">Approvals</a>
         <a class="settings-shortcut" href="settings">Settings</a>
         <div class="status-chip">
           <span class="status-dot"></span>
@@ -945,6 +1042,25 @@
     <button id="cloud-save-popup-close" class="cloud-save-close" type="button" aria-label="Dismiss confirmation">x</button>
   </div>
 
+  <div id="storage-alert-modal" class="storage-alert-modal" aria-hidden="true">
+    <div class="storage-alert-card" role="dialog" aria-modal="true" aria-labelledby="storage-alert-title">
+      <div class="storage-alert-head">
+        <div>
+          <span class="storage-alert-kicker">Storage warning</span>
+          <h2 id="storage-alert-title" class="storage-alert-title">You are almost out of storage</h2>
+        </div>
+        <button id="storage-alert-close" class="storage-alert-close" type="button" aria-label="Close storage warning">x</button>
+      </div>
+      <p id="storage-alert-message" class="storage-alert-copy">
+        Storage is above 95%. New prescription PDFs might not save properly.
+      </p>
+      <div class="storage-alert-actions">
+        <a id="storage-alert-whatsapp" class="storage-whatsapp-btn" href="#" target="_blank" rel="noopener noreferrer">Message on WhatsApp</a>
+        <button class="setting-secondary" type="button" data-close-storage-alert>Close</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
     import { collection, doc, getDoc, getDocs, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
@@ -989,11 +1105,18 @@
     const cloudSavePopupTitle = document.getElementById('cloud-save-popup-title');
     const cloudSavePopupMessage = document.getElementById('cloud-save-popup-message');
     const cloudSavePopupClose = document.getElementById('cloud-save-popup-close');
+    const storageAlertModal = document.getElementById('storage-alert-modal');
+    const storageAlertClose = document.getElementById('storage-alert-close');
+    const storageAlertMessage = document.getElementById('storage-alert-message');
+    const storageAlertWhatsapp = document.getElementById('storage-alert-whatsapp');
     const FIREBASE_FREE_STORAGE_BYTES = 2.5 * 1024 * 1024 * 1024;
     const FIREBASE_STORAGE_LABEL = '2.5 GB';
     const COMBINED_FREE_STORAGE_BYTES = 5 * 1024 * 1024 * 1024;
     const COMBINED_STORAGE_LABEL = '5 GB';
     const COMBINED_CLINIC_STORAGE_PREFIXES = ['clinics/kid', 'clinics/lungs'];
+    const STORAGE_ALERT_THRESHOLD = 0.95;
+    const STORAGE_SUPPORT_PHONE = '917357397888';
+    const CLINIC_STORAGE_LABEL = CLINIC_FIREBASE_NAMESPACE.includes('/lungs') ? 'lungs clinic' : 'kid clinic';
     const PRINT_HEADER_GAP_STORAGE_KEY = clinicStorageKey('previewPrintHeaderGapCm');
     const PRESCRIPTION_BRANDING_STORAGE_KEY = clinicStorageKey('prescriptionBrandingSettings');
     const PRESCRIPTION_BRANDING_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'prescriptionBranding'];
@@ -1011,6 +1134,7 @@
       printHeaderGapCm: 0,
       signatureDataUrl: ''
     };
+    let storageAlertShown = false;
 
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
@@ -1076,6 +1200,38 @@
       const boundedPercent = Math.max(0, Math.min(rawPercent, 100));
       combinedUsageFill.style.width = `${boundedPercent}%`;
       combinedUsageCaption.textContent = `${rawPercent.toFixed(rawPercent >= 10 ? 1 : 2)}% of ${COMBINED_STORAGE_LABEL} free storage used`;
+    }
+
+    function openStorageAlert(byteCount) {
+      if (!storageAlertModal || storageAlertShown) {
+        return;
+      }
+
+      storageAlertShown = true;
+      const percent = (byteCount / FIREBASE_FREE_STORAGE_BYTES) * 100;
+      const message = `The ${CLINIC_STORAGE_LABEL} storage is ${percent.toFixed(1)}% full. New prescription PDFs might not save properly. Please increase storage or clear old PDFs.`;
+      storageAlertMessage.textContent = message;
+      const whatsappMessage = `The EMR ${CLINIC_STORAGE_LABEL} storage is almost full (${percent.toFixed(1)}%). Prescription PDFs might not save properly. Please help increase storage.`;
+      storageAlertWhatsapp.href = `https://wa.me/${STORAGE_SUPPORT_PHONE}?text=${encodeURIComponent(whatsappMessage)}`;
+      storageAlertModal.classList.add('is-open');
+      storageAlertModal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeStorageAlert() {
+      if (!storageAlertModal) {
+        return;
+      }
+
+      storageAlertModal.classList.remove('is-open');
+      storageAlertModal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+
+    function checkStorageAlert(byteCount) {
+      if (byteCount >= FIREBASE_FREE_STORAGE_BYTES * STORAGE_ALERT_THRESHOLD) {
+        openStorageAlert(byteCount);
+      }
     }
 
     function normalizePrintGapCm(value) {
@@ -1358,6 +1514,7 @@
         combinedPdfSize.textContent = formatBytes(combinedTotalBytes);
         updateUsageBar(totalBytes);
         updateCombinedUsageBar(combinedTotalBytes);
+        checkStorageAlert(totalBytes);
 
         if (pdfRefs.length === 0) {
           usageCaption.textContent = `0% of ${FIREBASE_STORAGE_LABEL} free storage used`;
@@ -1420,6 +1577,22 @@
         clearTimeout(cloudSavePopupTimer);
         cloudSavePopup.classList.remove('is-visible');
         cloudSavePopup.setAttribute('aria-hidden', 'true');
+      });
+    }
+
+    if (storageAlertClose) {
+      storageAlertClose.addEventListener('click', closeStorageAlert);
+    }
+
+    document.querySelectorAll('[data-close-storage-alert]').forEach((button) => {
+      button.addEventListener('click', closeStorageAlert);
+    });
+
+    if (storageAlertModal) {
+      storageAlertModal.addEventListener('click', (event) => {
+        if (event.target === storageAlertModal) {
+          closeStorageAlert();
+        }
       });
     }
 
