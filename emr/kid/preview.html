@@ -1836,7 +1836,7 @@
 
     async function savePrescriptionPdfToCloudStorage(pdfBlob, fileName, details, saveId) {
       if (!db) {
-        return { ok: false, reason: 'Firestore is not configured.' };
+        return { ok: false, reason: 'Online records are not configured.' };
       }
 
       const patientId = details.patientId || 'UNKNOWN';

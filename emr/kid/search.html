@@ -3603,13 +3603,13 @@
         if (allPatients.length === 0) {
           updateCount(0);
           renderPlaceholder('No patients have been saved yet.');
-          setStatus('No patients were found in the database.');
+          setStatus('No patients were found in online records.');
           return;
         }
 
         filterPatients();
         if (usedLegacyPatients || usedLegacyHistory) {
-          setStatus('Showing patients from older shared records. Update database rules to use separated clinic records.', 'warning');
+          setStatus('Showing patients from older shared records. Ask support to finish separating clinic records.', 'warning');
         }
       } catch (error) {
         allPatients = [];
