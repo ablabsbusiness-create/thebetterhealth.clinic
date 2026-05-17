@@ -3084,6 +3084,7 @@
       const prescriptions = getPrescriptionEntries(patientId);
       const latestPrescription = prescriptions[0] || null;
       const height = formatMissing(patient.height, 'Not saved');
+      const weight = formatMissing(patient.weight, 'Not saved');
       const phone = formatMissing(patient.phone || patient.mobileNumber, 'Not saved');
       const dob = formatDateDisplay(patient.dob);
       const gender = formatMissing(patient.gender, 'Not saved');
@@ -3096,6 +3097,7 @@
         ['Phone', phone],
         ['DOB', dob],
         ['Gender', gender],
+        ['Weight', weight],
         ['Height', height],
         ['Saved PDFs', String(prescriptions.length)]
       ];
@@ -3121,10 +3123,6 @@
       const gender = formatMissing(patient.gender, 'Gender not saved');
       const dob = formatDateDisplay(patient.dob);
       const phone = formatMissing(patient.phone, 'Phone not saved');
-      const visits = getPatientVisitEntriesForDate(patient, dateValue);
-      const prescriptions = getPrescriptionEntriesForDate(patientId, dateValue);
-      const hasAppointment = patientHasAppointmentOnDate(patient, dateValue);
-      const wasSeen = visits.length > 0 || prescriptions.length > 0;
       const isQueued = patientIsQueuedOnDate(patient, dateValue);
       const isActive = selectedPatientId === patientId;
       const parentNameValue = getSavedParentName(patient);
@@ -3152,7 +3150,6 @@
               </div>
             </div>
             ${idLineHtml}
-            ${!visits.length && wasSeen ? '<div class="worklist-item-note">Prescription saved on this date</div>' : ''}
           </div>
         </article>
       `;

@@ -683,6 +683,12 @@
             </div>
 
             <div class="field">
+              <label for="weight">Weight</label>
+              <input id="weight" name="weight" type="text" inputmode="decimal" placeholder="Enter weight">
+              <span class="field-hint">Optional. Add kg if available.</span>
+            </div>
+
+            <div class="field">
               <span class="field-label">Date of Birth <span class="required">*</span></span>
               <div class="dob-group">
                 <input id="dob-day" name="dobDay" type="text" inputmode="numeric" placeholder="DD" maxlength="2" required>
@@ -834,12 +840,14 @@
       const normalizedDob = parseDobInput(dobDayInput.value, dobMonthInput.value, dobYearInput.value);
       const patientName = newPatientForm.elements.parentName.value.trim();
       const height = newPatientForm.elements.height.value.trim();
+      const weight = newPatientForm.elements.weight.value.trim();
       const patientRecord = {
         patientId,
         childName: patientName,
         patientName,
         parentName: patientName,
         height,
+        weight,
         gender: newPatientForm.elements.gender.value,
         dob: normalizedDob,
         phone: newPatientForm.elements.mobileNumber.value.trim(),
