@@ -1415,6 +1415,15 @@
       });
     }
 
+    function formatValueWithUnit(value, unit) {
+      const raw = String(value || '').trim();
+      if (!raw) {
+        return '-';
+      }
+
+      return new RegExp(`\\b${unit}\\b`, 'i').test(raw) ? raw : `${raw} ${unit}`;
+    }
+
     function listText(values) {
       return values?.length ? values.join(', ') : '-';
     }
@@ -1591,7 +1600,7 @@
 
         <section class="patient-band">
           <div>
-            <div><strong>Name:</strong> ${escapeHtml(chartRecord?.childName || '-')}</div>
+            <div><strong>Name:</strong> ${escapeHtml(chartRecord?.patientName || chartRecord?.childName || '-')}</div>
             <div><strong>Age/Sex:</strong> ${escapeHtml(formatCompactAge(chartRecord?.age || '-'))} / ${escapeHtml(chartRecord?.gender || '-')}</div>
             <div><strong>Office ID:</strong> ${escapeHtml(patientId)}</div>
           </div>
@@ -1600,8 +1609,8 @@
             <div><strong>Mobile:</strong> ${escapeHtml(chartRecord?.phone || '-')}</div>
           </div>
           <div>
-            <div><strong>Weight:</strong> ${escapeHtml(chartRecord?.weight || '-')} kg</div>
-            <div><strong>Height:</strong> ${escapeHtml(chartRecord?.height || '-')} cm</div>
+            <div><strong>Weight:</strong> ${escapeHtml(formatValueWithUnit(chartRecord?.weight, 'kg'))}</div>
+            <div><strong>Height:</strong> ${escapeHtml(formatValueWithUnit(chartRecord?.height, 'cm'))}</div>
           </div>
         </section>
 
@@ -1727,6 +1736,7 @@
         draftId: draft?.draftId || '',
         patientId,
         childName: chartRecord?.childName || '',
+        patientName: chartRecord?.patientName || chartRecord?.childName || '',
         parentName: chartRecord?.parentName || '',
         phone: chartRecord?.phone || '',
         gender: chartRecord?.gender || '',
@@ -1746,7 +1756,7 @@
 
     async function savePrescriptionPdfToCloudStorage(pdfBlob, fileName, details, saveId) {
       if (!db) {
-        return { ok: false, reason: 'Firestore is not configured.' };
+        return { ok: false, reason: 'Online records are not configured.' };
       }
 
       const patientId = details.patientId || 'UNKNOWN';
@@ -1775,6 +1785,7 @@
         prescriptionSaveId: saveId,
         patientId,
         childName: details.childName || '',
+        patientName: details.patientName || details.childName || '',
         parentName: details.parentName || '',
         phone: details.phone || '',
         gender: details.gender || '',
@@ -1918,7 +1929,7 @@
         const branding = getPrescriptionBranding();
         const shortLink = buildShortPrescriptionLink(savedRecord.saveId) || savedRecord.downloadURL;
         const message = [
-          `Hello ${chartRecord?.childName || 'Patient'},`,
+          `Hello ${chartRecord?.patientName || chartRecord?.childName || 'Patient'},`,
           '',
           `You can see your prescription here:`,
           shortLink,

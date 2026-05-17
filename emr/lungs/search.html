@@ -926,6 +926,125 @@
       line-height: 1.45;
     }
 
+    .patient-snapshot-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .patient-edit-btn {
+      min-height: 38px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      color: var(--brand-strong);
+      font: inherit;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .patient-edit-btn:hover {
+      background: #f4faf5;
+    }
+
+    .patient-edit-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 22px;
+      background: rgba(11, 22, 16, 0.62);
+      backdrop-filter: blur(10px);
+    }
+
+    .patient-edit-modal.is-open {
+      display: flex;
+    }
+
+    .patient-edit-dialog {
+      width: min(520px, 100%);
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      border-radius: 18px;
+      background: #ffffff;
+      box-shadow: 0 30px 80px rgba(11, 22, 16, 0.28);
+      overflow: hidden;
+    }
+
+    .patient-edit-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      background: #f8fbf9;
+    }
+
+    .patient-edit-head strong {
+      font-size: 16px;
+    }
+
+    .patient-edit-close {
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .patient-edit-form {
+      display: grid;
+      gap: 14px;
+      padding: 18px;
+    }
+
+    .patient-edit-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .patient-edit-field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .patient-edit-field label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .patient-edit-field input {
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 0 12px;
+      color: var(--ink);
+      font: inherit;
+      font-size: 14px;
+    }
+
+    .patient-edit-status {
+      min-height: 20px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .patient-edit-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
     .doctor-empty-state {
       min-height: 420px;
       display: grid;
@@ -1904,6 +2023,40 @@
     </div>
   </div>
 
+  <div id="patient-edit-modal" class="patient-edit-modal" aria-hidden="true">
+    <div class="patient-edit-dialog" role="dialog" aria-modal="true" aria-labelledby="patient-edit-title">
+      <div class="patient-edit-head">
+        <strong id="patient-edit-title">Edit Patient Details</strong>
+        <button id="patient-edit-close" class="patient-edit-close" type="button" aria-label="Close patient editor">x</button>
+      </div>
+      <form id="patient-edit-form" class="patient-edit-form">
+        <div class="patient-edit-grid">
+          <div class="patient-edit-field">
+            <label for="patient-edit-name">Patient Name</label>
+            <input id="patient-edit-name" name="patientName" type="text" required>
+          </div>
+          <div class="patient-edit-field">
+            <label for="patient-edit-phone">Phone</label>
+            <input id="patient-edit-phone" name="phone" type="tel" inputmode="tel">
+          </div>
+          <div class="patient-edit-field">
+            <label for="patient-edit-height">Height (cm)</label>
+            <input id="patient-edit-height" name="height" type="text" inputmode="decimal" placeholder="cm">
+          </div>
+          <div class="patient-edit-field">
+            <label for="patient-edit-weight">Weight (kg)</label>
+            <input id="patient-edit-weight" name="weight" type="text" inputmode="decimal" placeholder="kg">
+          </div>
+        </div>
+        <div id="patient-edit-status" class="patient-edit-status"></div>
+        <div class="patient-edit-actions">
+          <button class="btn-secondary" type="button" data-close-patient-edit>Cancel</button>
+          <button class="btn-primary" type="submit">Save Details</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
     import { collection, doc, getDocs, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
@@ -1932,6 +2085,14 @@
     const pdfPreviewFrame = document.getElementById('pdf-preview-frame');
     const pdfPreviewLink = document.getElementById('pdf-preview-link');
     const pdfPreviewClose = document.getElementById('pdf-preview-close');
+    const patientEditModal = document.getElementById('patient-edit-modal');
+    const patientEditForm = document.getElementById('patient-edit-form');
+    const patientEditClose = document.getElementById('patient-edit-close');
+    const patientEditStatus = document.getElementById('patient-edit-status');
+    const patientEditName = document.getElementById('patient-edit-name');
+    const patientEditPhone = document.getElementById('patient-edit-phone');
+    const patientEditHeight = document.getElementById('patient-edit-height');
+    const patientEditWeight = document.getElementById('patient-edit-weight');
     const LOCAL_PRESCRIPTION_HISTORY_KEY = clinicStorageKey('savedPrescriptionHistory');
     const LOCAL_WORKLIST_QUEUE_KEY = clinicStorageKey('patientWorklistQueueByDate');
 
@@ -1961,6 +2122,7 @@
     const TEST_PAST_CHARTS_PATIENT_ID = 'TESTPAST001';
     const HISTORY_DEFAULT_VISIBLE_COUNT = 3;
     const HISTORY_PAGE_SIZE = 4;
+    let editingPatientId = '';
     function buildDemoMeasurementEntry(daysAgo, values) {
       const measuredAt = new Date();
       measuredAt.setHours(10, 15, 0, 0);
@@ -2049,8 +2211,7 @@
     }
 
     function getSavedParentName(patient) {
-      const value = String(patient?.parentName || '').trim();
-      return value && value.toLowerCase() !== 'parent not saved' ? value : '';
+      return '';
     }
 
     function escapeHtml(value = '') {
@@ -2576,12 +2737,22 @@
       return value && String(value).trim() ? `${value}${suffix}` : '';
     }
 
+    function formatValueWithUnit(value, unit) {
+      const raw = String(value || '').trim();
+      if (!raw) {
+        return 'Not saved';
+      }
+
+      return new RegExp(`\\b${unit}\\b`, 'i').test(raw) ? raw : `${raw} ${unit}`;
+    }
+
     function getPatientDisplayName(patient) {
       return (
-        patient.childName
+        patient.patientName
+        || patient.childName
         || [patient.firstName, patient.middleName, patient.lastName].filter(Boolean).join(' ').trim()
         || patient.patientId
-        || 'Unknown child'
+        || 'Unknown patient'
       );
     }
 
@@ -2591,6 +2762,7 @@
 
     function getPatientSearchText(patient) {
       return [
+        patient.patientName,
         patient.childName,
         patient.firstName,
         patient.middleName,
@@ -3083,8 +3255,8 @@
 
       const prescriptions = getPrescriptionEntries(patientId);
       const latestPrescription = prescriptions[0] || null;
-      const height = formatMissing(patient.height, 'Not saved');
-      const weight = formatMissing(patient.weight, 'Not saved');
+      const height = formatValueWithUnit(patient.height, 'cm');
+      const weight = formatValueWithUnit(patient.weight, 'kg');
       const phone = formatMissing(patient.phone || patient.mobileNumber, 'Not saved');
       const dob = formatDateDisplay(patient.dob);
       const gender = formatMissing(patient.gender, 'Not saved');
@@ -3104,6 +3276,9 @@
 
       return `
         <div class="patient-snapshot">
+          <div class="patient-snapshot-actions">
+            <button class="patient-edit-btn" type="button" data-edit-patient="${escapeHtml(patientId)}">Edit Details</button>
+          </div>
           <div class="patient-snapshot-grid">
             ${rows.map(([label, value]) => `
               <div class="patient-snapshot-item">
@@ -3183,7 +3358,7 @@
           <article class="result-card" data-patient-card="${patientId}">
             <div class="result-top">
               <button class="result-meta result-meta--child profile-trigger" type="button" data-open-profile="${patientId}" aria-expanded="${isExpanded ? 'true' : 'false'}">
-                <span class="result-meta-label">Child name</span>
+                <span class="result-meta-label">Patient name</span>
                 <div class="child-meta-head">
                   <div class="child-avatar">${childName.charAt(0).toUpperCase()}</div>
                   <div>
@@ -3372,6 +3547,73 @@
       document.body.style.overflow = '';
     }
 
+    function getPatientById(patientId) {
+      const normalizedId = getNormalizedPatientId(patientId);
+      return allPatients.find((patient) => getNormalizedPatientId(patient?.patientId) === normalizedId) || null;
+    }
+
+    function openPatientEditModal(patientId) {
+      const patient = getPatientById(patientId);
+      if (!patient || !patientEditModal || !patientEditForm) {
+        return;
+      }
+
+      editingPatientId = getNormalizedPatientId(patient.patientId || patientId);
+      patientEditName.value = getPatientDisplayName(patient) === 'Unknown patient' ? '' : getPatientDisplayName(patient);
+      patientEditPhone.value = patient.phone || patient.mobileNumber || '';
+      patientEditHeight.value = patient.height || '';
+      patientEditWeight.value = patient.weight || '';
+      patientEditStatus.textContent = '';
+      patientEditModal.classList.add('is-open');
+      patientEditModal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      patientEditName.focus();
+    }
+
+    function closePatientEditModal() {
+      if (!patientEditModal) {
+        return;
+      }
+
+      editingPatientId = '';
+      patientEditModal.classList.remove('is-open');
+      patientEditModal.setAttribute('aria-hidden', 'true');
+      if (!pdfPreviewModal.classList.contains('is-open')) {
+        document.body.style.overflow = '';
+      }
+    }
+
+    async function savePatientDetailsEdit() {
+      if (!db || !editingPatientId) {
+        throw new Error('Online saving is not available right now.');
+      }
+
+      const patientName = patientEditName.value.trim();
+      if (!patientName) {
+        throw new Error('Patient name is required.');
+      }
+
+      const phone = patientEditPhone.value.trim();
+      const nextDetails = {
+        childName: patientName,
+        patientName,
+        parentName: patientName,
+        phone,
+        mobileNumber: phone,
+        height: patientEditHeight.value.trim(),
+        weight: patientEditWeight.value.trim(),
+        updatedAt: serverTimestamp()
+      };
+
+      await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, editingPatientId), nextDetails, { merge: true });
+      allPatients = allPatients.map((patient) => (
+        getNormalizedPatientId(patient?.patientId) === editingPatientId
+          ? { ...patient, ...nextDetails, updatedAt: new Date().toISOString() }
+          : patient
+      ));
+      filterPatients();
+    }
+
     resultsPanel.addEventListener('input', (event) => {
       const target = event.target;
       if (!(target instanceof HTMLInputElement)) {
@@ -3442,6 +3684,7 @@
       const toggleHistoryPatientId = target.getAttribute('data-toggle-history-all');
       const historyPageStep = target.getAttribute('data-history-page-step');
       const historyPagePatientId = target.getAttribute('data-patient-id');
+      const editPatientId = target.closest('[data-edit-patient]')?.getAttribute('data-edit-patient');
       const openProfilePatientId = target.closest('[data-open-profile]')?.getAttribute('data-open-profile');
       const selectedWorklistPatientId = target.closest('[data-select-worklist-patient]')?.getAttribute('data-select-worklist-patient');
       const queuedPatientId = target.closest('[data-queue-patient]')?.getAttribute('data-queue-patient');
@@ -3464,6 +3707,11 @@
 
       if (dateTrigger) {
         openWorklistDatePicker(dateTrigger);
+        return;
+      }
+
+      if (editPatientId) {
+        openPatientEditModal(editPatientId);
         return;
       }
 
@@ -3536,6 +3784,37 @@
       historyShowAll[patientId] = true;
       filterPatients();
     });
+
+    if (patientEditClose) {
+      patientEditClose.addEventListener('click', closePatientEditModal);
+    }
+
+    document.querySelectorAll('[data-close-patient-edit]').forEach((button) => {
+      button.addEventListener('click', closePatientEditModal);
+    });
+
+    if (patientEditModal) {
+      patientEditModal.addEventListener('click', (event) => {
+        if (event.target === patientEditModal) {
+          closePatientEditModal();
+        }
+      });
+    }
+
+    if (patientEditForm) {
+      patientEditForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        patientEditStatus.textContent = 'Saving details...';
+
+        try {
+          await savePatientDetailsEdit();
+          patientEditStatus.textContent = 'Patient details saved.';
+          closePatientEditModal();
+        } catch (error) {
+          patientEditStatus.textContent = error.message || 'Unable to save patient details.';
+        }
+      });
+    }
 
     async function loadPatients() {
       if (!db) {
@@ -3747,6 +4026,11 @@
       }
     });
     window.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && patientEditModal?.classList.contains('is-open')) {
+        closePatientEditModal();
+        return;
+      }
+
       if (event.key === 'Escape' && pdfPreviewModal.classList.contains('is-open')) {
         closePrescriptionPreview();
       }

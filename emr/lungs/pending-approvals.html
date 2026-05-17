@@ -136,7 +136,7 @@
     <div class="workspace">
       <aside class="queue-panel">
         <div class="queue-head"><h2>Pending Queue</h2><p>Only submissions waiting for approval are shown here.</p></div>
-        <input id="queue-search" class="queue-search" type="search" placeholder="Search by child, parent, or phone">
+        <input id="queue-search" class="queue-search" type="search" placeholder="Search by patient name or phone">
         <div id="queue-list" class="queue-list"></div>
       </aside>
       <section class="review-panel">
@@ -144,8 +144,7 @@
         <div id="empty-state" class="empty-state">Choose a pending submission from the left to review it here. Approved patients will be created in the normal <code>patients</code> collection only after you accept them.</div>
         <form id="review-form" hidden novalidate>
           <div class="review-grid">
-            <div class="field"><label for="review-child-name">Child Name</label><input id="review-child-name" name="childName" type="text" required></div>
-            <div class="field"><label for="review-parent-name">Parent Name</label><input id="review-parent-name" name="parentName" type="text"></div>
+            <div class="field"><label for="review-child-name">Patient Name</label><input id="review-child-name" name="childName" type="text" required></div>
             <div class="field"><label for="review-phone">Phone Number</label><input id="review-phone" name="mobileNumber" type="tel" required></div>
             <div class="field"><label for="review-email">Email</label><input id="review-email" name="email" type="email"></div>
             <div class="field field-full"><span class="field-label">Date of Birth</span><div class="dob-group"><input id="review-dob-day" name="dobDay" type="text" inputmode="numeric" maxlength="2" placeholder="DD" required><input id="review-dob-month" name="dobMonth" type="text" inputmode="numeric" maxlength="2" placeholder="MM" required><input id="review-dob-year" name="dobYear" type="text" inputmode="numeric" maxlength="4" placeholder="YYYY" required></div></div>
@@ -188,7 +187,7 @@
     function splitDob(isoDate) { if (!isoDate || !/^\d{4}-\d{2}-\d{2}$/.test(isoDate)) return { day:'', month:'', year:'' }; const [year, month, day] = isoDate.split('-'); return { day, month, year }; }
     function formatDateDisplay(value) { if (!value) return 'No date'; const date = value?.toDate ? value.toDate() : new Date(value); if (Number.isNaN(date.getTime())) return 'No date'; return date.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }); }
     function formatDateTimeDisplay(value) { if (!value) return 'Unknown'; const date = value?.toDate ? value.toDate() : new Date(value); if (Number.isNaN(date.getTime())) return 'Unknown'; return date.toLocaleString('en-IN', { day:'numeric', month:'short', year:'numeric', hour:'numeric', minute:'2-digit' }); }
-    function getPendingSearchText(item) { return [item.childName, item.parentName, item.phone, item.mobileNumber, item.email].join(' ').toLowerCase(); }
+    function getPendingSearchText(item) { return [item.patientName, item.childName, item.phone, item.mobileNumber, item.email].join(' ').toLowerCase(); }
     function setStatus(message, tone = '') { statusNote.textContent = message; statusNote.className = `status-note${tone ? ` ${tone}` : ''}`; }
     function updateQueueCount(count = pendingItems.length) { queueCount.textContent = `${count} pending`; }
     function buildPatientId() { const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'; let suffix = ''; for (let index = 0; index < 3; index += 1) suffix += characters[Math.floor(Math.random() * characters.length)]; return `SX${suffix}`; }
@@ -201,15 +200,14 @@
       if (!items.length) { queueList.innerHTML = '<div class="empty-state">No pending submissions are waiting right now.</div>'; return; }
       queueList.innerHTML = items.map((item) => `
         <button class="queue-card${item.id === activePendingId ? ' is-active' : ''}" type="button" data-open-pending="${item.id}">
-          <div class="queue-card-top"><div><strong>${escapeHtml(item.childName || 'Unnamed child')}</strong><small>${escapeHtml(item.parentName || 'Parent not provided')}</small></div><span class="queue-badge">Pending</span></div>
+          <div class="queue-card-top"><div><strong>${escapeHtml(item.patientName || item.childName || 'Unnamed patient')}</strong><small>${escapeHtml(item.patientId || item.approvedPatientId || 'Awaiting approval')}</small></div><span class="queue-badge">Pending</span></div>
           <span>${escapeHtml(item.mobileNumber || item.phone || 'Phone not provided')}</span>
           <span>Submitted ${escapeHtml(formatDateTimeDisplay(item.submittedAt))}</span>
         </button>`).join('');
     }
     function loadPendingIntoForm(item) {
-      reviewForm.elements.childName.value = item.childName || '';
-      reviewForm.elements.parentName.value = item.parentName || '';
-      reviewForm.elements.mobileNumber.value = item.mobileNumber || item.phone || '';
+      reviewForm.elements.childName.value = item.patientName || item.childName || '';
+            reviewForm.elements.mobileNumber.value = item.mobileNumber || item.phone || '';
       reviewForm.elements.email.value = item.email || '';
       reviewForm.elements.bloodGroup.value = item.bloodGroup || '';
       reviewForm.elements.reviewedBy.value = item.reviewedBy || '';
@@ -219,7 +217,7 @@
       reviewForm.elements.dobMonth.value = dobParts.month;
       reviewForm.elements.dobYear.value = dobParts.year;
       [...reviewForm.querySelectorAll('input[name="gender"]')].forEach((radio) => { radio.checked = radio.value === item.gender; });
-      reviewStatus.textContent = `Editing ${item.childName || 'submission'} - submitted ${formatDateTimeDisplay(item.submittedAt)}`;
+      reviewStatus.textContent = `Editing ${item.patientName || item.childName || 'submission'} - submitted ${formatDateTimeDisplay(item.submittedAt)}`;
       emptyState.hidden = true;
       reviewForm.hidden = false;
       setStatus('');
@@ -263,7 +261,8 @@
       const patientRecord = {
         patientId,
         childName: reviewForm.elements.childName.value.trim(),
-        parentName: reviewForm.elements.parentName.value.trim(),
+        patientName: reviewForm.elements.childName.value.trim(),
+        parentName: reviewForm.elements.childName.value.trim(),
         gender: reviewForm.elements.gender.value,
         dob: normalizedDob,
         phone: reviewForm.elements.mobileNumber.value.trim(),
@@ -288,6 +287,7 @@
         if (activeItem.sourceCollection === 'pendingPatients') {
           await setDoc(doc(db, FIREBASE_COLLECTIONS.pendingPatients, activeItem.id), {
             childName: patientRecord.childName,
+            patientName: patientRecord.patientName,
             parentName: patientRecord.parentName,
             gender: patientRecord.gender,
             dob: patientRecord.dob,
@@ -335,4 +335,3 @@
   </script>
 </body>
 </html>
-

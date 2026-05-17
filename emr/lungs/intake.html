@@ -70,13 +70,8 @@
             <span class="field-hint">Use the main contact number for this patient.</span>
           </div>
           <div class="field">
-            <label for="parent-name">Parent Name</label>
-            <input id="parent-name" name="parentName" type="text" placeholder="Enter parent or guardian name">
-            <span class="field-hint">Leave blank only if not available.</span>
-          </div>
-          <div class="field">
-            <label for="child-name">Child Name <span class="required">*</span></label>
-            <input id="child-name" name="childName" type="text" placeholder="Enter child name" required>
+            <label for="child-name">Patient Name <span class="required">*</span></label>
+            <input id="child-name" name="childName" type="text" placeholder="Enter patient name" required>
             <span class="field-hint">Use the same spelling you want in clinic records.</span>
           </div>
           <div class="field">
@@ -86,7 +81,7 @@
               <input id="dob-month" name="dobMonth" type="text" inputmode="numeric" placeholder="MM" maxlength="2" required>
               <input id="dob-year" name="dobYear" type="text" inputmode="numeric" placeholder="YYYY" maxlength="4" required>
             </div>
-            <span class="field-hint">Enter the child date of birth carefully.</span>
+            <span class="field-hint">Enter the patient date of birth carefully.</span>
           </div>
           <div class="field">
             <span class="field-label">Gender <span class="required">*</span></span>
@@ -182,7 +177,8 @@
       submitBtn.disabled = true;
       submitBtn.textContent = 'Submitting...';
       setStatus('Sending your details to the clinic review queue...');
-      const payload = { childName: intakeForm.elements.childName.value.trim(), parentName: intakeForm.elements.parentName.value.trim(), gender: intakeForm.elements.gender.value, dob: normalizedDob, phone: intakeForm.elements.mobileNumber.value.trim(), mobileNumber: intakeForm.elements.mobileNumber.value.trim(), email: intakeForm.elements.email.value.trim(), bloodGroup: intakeForm.elements.bloodGroup.value.trim(), status: 'pending', decision: 'pending', submittedBy: 'qr-intake', submittedAt: serverTimestamp(), reviewedAt: null, reviewedBy: '', approvedPatientId: '', notes: '' };
+      const patientName = intakeForm.elements.childName.value.trim();
+      const payload = { childName: patientName, patientName, parentName: patientName, gender: intakeForm.elements.gender.value, dob: normalizedDob, phone: intakeForm.elements.mobileNumber.value.trim(), mobileNumber: intakeForm.elements.mobileNumber.value.trim(), email: intakeForm.elements.email.value.trim(), bloodGroup: intakeForm.elements.bloodGroup.value.trim(), status: 'pending', decision: 'pending', submittedBy: 'qr-intake', submittedAt: serverTimestamp(), reviewedAt: null, reviewedBy: '', approvedPatientId: '', notes: '' };
       try {
         let queueId = '';
         try {
@@ -196,6 +192,7 @@
           await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, fallbackPatientId), {
             patientId: fallbackPatientId,
             childName: payload.childName,
+            patientName: payload.patientName,
             parentName: payload.parentName,
             gender: payload.gender,
             dob: payload.dob,

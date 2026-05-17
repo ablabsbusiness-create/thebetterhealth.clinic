@@ -1506,7 +1506,7 @@
     const PRESCRIPTION_DRAFT_TTL_MS = 10 * 60 * 1000;
     const prescriptionTemplates = {
       Symptoms: ['Fever', 'Cold', 'Cough', 'Vomiting', 'Loose stools'],
-      Finding: ['Throat congestion', 'Wheeze', 'Pallor', 'Dehydrated', 'Active child'],
+      Finding: ['Throat congestion', 'Wheeze', 'Pallor', 'Dehydrated', 'Alert patient'],
       Notes: ['Follow up advised', 'Review after 3 days', 'Vitals stable', 'Parent counselled', 'Medication explained'],
       Diagnosis: ['Viral fever', 'URTI', 'Gastroenteritis', 'Allergic rhinitis', 'Observation advised'],
       Investigation: ['CBC', 'CRP', 'Urine routine', 'Chest X-ray', 'Dengue test'],
@@ -2178,6 +2178,52 @@
     function getActiveChartRecord() {
       const chartRecords = getRecentChartRecords();
       return chartRecords[0] || null;
+    }
+
+    function writePatientPrescriptionRecord(record) {
+      if (!record?.patientId) {
+        return;
+      }
+
+      const existingRecords = readLocalJson(CHART_RECORD_STORAGE_KEY, []);
+      const normalizedPatientId = String(record.patientId || '').toUpperCase();
+      const filteredRecords = existingRecords.filter((entry) => String(entry?.patientId || '').toUpperCase() !== normalizedPatientId);
+      filteredRecords.push(stripChartPageData(record));
+      localStorage.setItem(CHART_RECORD_STORAGE_KEY, JSON.stringify(filteredRecords.slice(-8)));
+    }
+
+    async function loadPatientRecordForPrescription() {
+      const patientId = getCurrentPatientId();
+      if (!patientId || !db) {
+        return getActiveChartRecord();
+      }
+
+      try {
+        const snapshot = await getDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId));
+        if (!snapshot.exists()) {
+          return getActiveChartRecord();
+        }
+
+        const patient = snapshot.data();
+        const record = {
+          ...patient,
+          patientId,
+          childName: patient.patientName || patient.childName || patient.parentName || patientId,
+          patientName: patient.patientName || patient.childName || patient.parentName || '',
+          parentName: patient.parentName || patient.patientName || '',
+          phone: patient.phone || patient.mobileNumber || '',
+          source: 'patient-record',
+          savedAt: new Date().toISOString(),
+          expiresAt: Date.now() + PRESCRIPTION_DRAFT_TTL_MS,
+          keepUntilPrescription: true,
+          chartPages: []
+        };
+        writePatientPrescriptionRecord(record);
+        return record;
+      } catch (error) {
+        console.warn(`Unable to load patient details for prescription: ${error.message}`);
+        return getActiveChartRecord();
+      }
     }
 
     function getPreviewTargetUrl() {
@@ -3036,6 +3082,7 @@
     async function initPrescriptionData() {
       loadMedicineDetailsFromStorage();
       cleanupExpiredMedicineDetails();
+      await loadPatientRecordForPrescription();
 
       const localTemplates = mergeWithSavedTemplates(prescriptionTemplates);
       Object.entries(localTemplates).forEach(([sectionName, items]) => {
