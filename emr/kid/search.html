@@ -1833,7 +1833,7 @@
       </div>
 
       <div class="search-row">
-        <input id="search-input" type="text" placeholder="Search by child name or phone number" autocomplete="off">
+        <input id="search-input" type="text" placeholder="Search by child name or phone number or patient id" autocomplete="off">
         <button id="clear-btn" class="btn-primary" type="button">Clear Search</button>
         <a id="new-patient-btn" class="btn-secondary" href="new-patient">New Patient</a>
       </div>
@@ -2562,6 +2562,12 @@
       const loweredSearchValue = rawSearchValue.trim().toLowerCase();
       if (!loweredSearchValue) {
         return true;
+      }
+
+      const normalizedPatientId = getNormalizedPatientId(patient.patientId);
+      const normalizedSearchPatientId = getNormalizedPatientId(rawSearchValue);
+      if (/^SX[A-Z0-9]+$/.test(normalizedSearchPatientId)) {
+        return normalizedPatientId === normalizedSearchPatientId;
       }
 
       const normalizedSearchValue = normalizeSearchValue(rawSearchValue);

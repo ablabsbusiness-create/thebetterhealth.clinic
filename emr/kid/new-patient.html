@@ -728,7 +728,7 @@
           </div>
 
           <button id="continue-btn" class="btn-primary" type="submit" form="new-patient-form">Continue</button>
-          <div id="save-status" class="save-status">Patient will be saved to Firestore before consult starts.</div>
+          <div id="save-status" class="save-status">Patient details will be saved before the consult starts.</div>
         </div>
       </div>
 
@@ -888,15 +888,15 @@
       try {
         const savedToCloudRecords = await savePatientToCloudRecords(autoPatientId);
         setSaveStatus(savedToCloudRecords
-          ? `Saved patient ${autoPatientId} to Firestore.`
-          : `Patient ${autoPatientId} generated locally, but Cloud records are not configured.`, savedToCloudRecords ? 'ready' : 'error');
+          ? `Patient details saved.`
+          : `Patient ID created, but online saving is not available.`, savedToCloudRecords ? 'ready' : 'error');
         console.log(savedToCloudRecords
           ? `Saved with Patient ID ${autoPatientId}.`
           : `Patient ID ${autoPatientId} generated locally. Configure cloud records to store this online.`);
         window.location.href = `prescription-growth-chart-dashboard?patientId=${encodeURIComponent(autoPatientId)}`;
       } catch (error) {
         console.error(`Cloud save failed: ${error.message}`);
-        setSaveStatus(`Cloud save failed: ${error.message}. Publish Firestore rules and try again.`, 'error');
+        setSaveStatus(`Unable to save patient details: ${error.message}. Please try again.`, 'error');
       } finally {
         continueBtn.disabled = false;
         continueBtn.textContent = 'Continue';

@@ -458,7 +458,7 @@
       font-weight: 600;
     }
 
-    .firebase-save-popup {
+    .cloud-save-popup {
       position: fixed;
       right: 24px;
       bottom: 24px;
@@ -480,20 +480,20 @@
       transition: opacity 0.2s ease, transform 0.2s ease;
     }
 
-    .firebase-save-popup.is-visible {
+    .cloud-save-popup.is-visible {
       opacity: 1;
       pointer-events: auto;
       transform: translateY(0) scale(1);
     }
 
-    .firebase-save-copy strong {
+    .cloud-save-copy strong {
       display: block;
       color: var(--ink);
       font-size: 16px;
       line-height: 1.2;
     }
 
-    .firebase-save-copy span {
+    .cloud-save-copy span {
       display: block;
       margin-top: 6px;
       color: var(--muted);
@@ -502,7 +502,7 @@
       line-height: 1.45;
     }
 
-    .firebase-save-close {
+    .cloud-save-close {
       width: 32px;
       height: 32px;
       border: 0;
@@ -515,7 +515,7 @@
       transition: background 0.16s ease, color 0.16s ease;
     }
 
-    .firebase-save-close:hover {
+    .cloud-save-close:hover {
       background: #e4ece6;
       color: #102217;
     }
@@ -905,12 +905,12 @@
     </section>
   </main>
 
-  <div id="firebase-save-popup" class="firebase-save-popup" role="status" aria-live="polite" aria-hidden="true">
-    <div class="firebase-save-copy">
-      <strong id="firebase-save-popup-title">Saved</strong>
-      <span id="firebase-save-popup-message">Your clinic setting was updated.</span>
+  <div id="cloud-save-popup" class="cloud-save-popup" role="status" aria-live="polite" aria-hidden="true">
+    <div class="cloud-save-copy">
+      <strong id="cloud-save-popup-title">Saved</strong>
+      <span id="cloud-save-popup-message">Your clinic setting was updated.</span>
     </div>
-    <button id="firebase-save-popup-close" class="firebase-save-close" type="button" aria-label="Dismiss confirmation">x</button>
+    <button id="cloud-save-popup-close" class="cloud-save-close" type="button" aria-label="Dismiss confirmation">x</button>
   </div>
 
   <script type="module">
@@ -950,10 +950,10 @@
     const saveBrandingBtn = document.getElementById('save-branding-btn');
     const resetBrandingBtn = document.getElementById('reset-branding-btn');
     const brandingSettingStatus = document.getElementById('branding-setting-status');
-    const firebaseSavePopup = document.getElementById('firebase-save-popup');
-    const firebaseSavePopupTitle = document.getElementById('firebase-save-popup-title');
-    const firebaseSavePopupMessage = document.getElementById('firebase-save-popup-message');
-    const firebaseSavePopupClose = document.getElementById('firebase-save-popup-close');
+    const cloudSavePopup = document.getElementById('cloud-save-popup');
+    const cloudSavePopupTitle = document.getElementById('cloud-save-popup-title');
+    const cloudSavePopupMessage = document.getElementById('cloud-save-popup-message');
+    const cloudSavePopupClose = document.getElementById('cloud-save-popup-close');
     const FIREBASE_FREE_STORAGE_BYTES = 2.5 * 1024 * 1024 * 1024;
     const FIREBASE_STORAGE_LABEL = '2.5 GB';
     const PRINT_HEADER_GAP_STORAGE_KEY = clinicStorageKey('previewPrintHeaderGapCm');
@@ -988,26 +988,26 @@
     const firebaseApp = firebaseConfigured ? initializeApp(firebaseConfig) : null;
     const db = firebaseApp ? getFirestore(firebaseApp) : null;
     const storage = firebaseApp ? getStorage(firebaseApp) : null;
-    let firebaseSavePopupTimer = null;
+    let cloudSavePopupTimer = null;
 
     function showCloudSavePopup(message, title = 'Saved') {
-      if (!firebaseSavePopup) {
+      if (!cloudSavePopup) {
         return;
       }
 
-      if (firebaseSavePopupTitle) {
-        firebaseSavePopupTitle.textContent = title;
+      if (cloudSavePopupTitle) {
+        cloudSavePopupTitle.textContent = title;
       }
-      if (firebaseSavePopupMessage) {
-        firebaseSavePopupMessage.textContent = message;
+      if (cloudSavePopupMessage) {
+        cloudSavePopupMessage.textContent = message;
       }
 
-      firebaseSavePopup.classList.add('is-visible');
-      firebaseSavePopup.setAttribute('aria-hidden', 'false');
-      clearTimeout(firebaseSavePopupTimer);
-      firebaseSavePopupTimer = setTimeout(() => {
-        firebaseSavePopup.classList.remove('is-visible');
-        firebaseSavePopup.setAttribute('aria-hidden', 'true');
+      cloudSavePopup.classList.add('is-visible');
+      cloudSavePopup.setAttribute('aria-hidden', 'false');
+      clearTimeout(cloudSavePopupTimer);
+      cloudSavePopupTimer = setTimeout(() => {
+        cloudSavePopup.classList.remove('is-visible');
+        cloudSavePopup.setAttribute('aria-hidden', 'true');
       }, 3800);
     }
 
@@ -1084,7 +1084,7 @@
           printHeaderGapCm: confirmedValue
         });
         updatePrintGapSettingStatus(confirmedValue, `Saved gap: ${confirmedValue.toFixed(1)} cm to cloud records`);
-        showCloudSavePopup(`Print without header gap saved as ${confirmedValue.toFixed(1)} cm.`);
+        showCloudSavePopup('Print gap saved.');
         return;
       }
 
@@ -1337,11 +1337,11 @@
       });
     }
 
-    if (firebaseSavePopupClose && firebaseSavePopup) {
-      firebaseSavePopupClose.addEventListener('click', () => {
-        clearTimeout(firebaseSavePopupTimer);
-        firebaseSavePopup.classList.remove('is-visible');
-        firebaseSavePopup.setAttribute('aria-hidden', 'true');
+    if (cloudSavePopupClose && cloudSavePopup) {
+      cloudSavePopupClose.addEventListener('click', () => {
+        clearTimeout(cloudSavePopupTimer);
+        cloudSavePopup.classList.remove('is-visible');
+        cloudSavePopup.setAttribute('aria-hidden', 'true');
       });
     }
 
@@ -1388,7 +1388,7 @@
             ...collectBrandingForm(),
             signatureDataUrl
           };
-          await saveBrandingSettings('Signature image saved to cloud records and this browser.', nextSettings);
+          await saveBrandingSettings('Signature updated.', nextSettings);
         } catch (error) {
           if (brandingSettingStatus) {
             brandingSettingStatus.textContent = error.message || 'Unable to save signature image.';
@@ -1406,7 +1406,7 @@
           signatureDataUrl: ''
         };
         try {
-          await saveBrandingSettings('Signature removed from cloud records and this browser.', nextSettings);
+          await saveBrandingSettings('Signature removed.', nextSettings);
         } catch (error) {
           if (brandingSettingStatus) {
             brandingSettingStatus.textContent = `Signature removed locally, but Cloud save failed: ${error.message}`;
@@ -1419,7 +1419,7 @@
       saveBrandingBtn.addEventListener('click', async () => {
         saveBrandingBtn.disabled = true;
         try {
-          await saveBrandingSettings('Branding saved to cloud records for prescription preview and PDF.');
+          await saveBrandingSettings('Settings saved.');
         } catch (error) {
           if (brandingSettingStatus) {
             brandingSettingStatus.textContent = `Saved locally, but Cloud save failed: ${error.message}`;
@@ -1434,7 +1434,7 @@
       resetBrandingBtn.addEventListener('click', async () => {
         resetBrandingBtn.disabled = true;
         try {
-          await saveBrandingSettings('Branding reset to default and saved to cloud records.', { ...DEFAULT_BRANDING });
+          await saveBrandingSettings('Settings reset.', { ...DEFAULT_BRANDING });
         } catch (error) {
           cacheBrandingSettings({ ...DEFAULT_BRANDING });
           populateBrandingForm({ ...DEFAULT_BRANDING });

@@ -671,15 +671,15 @@
             </div>
 
             <div class="field">
-              <label for="parent-name">Parent Name</label>
-              <input id="parent-name" name="parentName" type="text" placeholder="Enter parent name">
+              <label for="parent-name">Patient Name</label>
+              <input id="parent-name" name="parentName" type="text" placeholder="Enter patient name">
               <span class="field-hint">Leave blank if not available.</span>
             </div>
 
             <div class="field">
-              <label for="child-name">Child Name <span class="required">*</span></label>
-              <input id="child-name" name="childName" type="text" placeholder="Enter child name" required>
-              <span class="field-hint">Enter the child name used in clinic records.</span>
+              <label for="height">Height</label>
+              <input id="height" name="height" type="text" inputmode="decimal" placeholder="Enter height">
+              <span class="field-hint">Optional. Add cm if available.</span>
             </div>
 
             <div class="field">
@@ -728,7 +728,7 @@
           </div>
 
           <button id="continue-btn" class="btn-primary" type="submit" form="new-patient-form">Continue</button>
-          <div id="save-status" class="save-status">Patient will be saved to Firestore before consult starts.</div>
+          <div id="save-status" class="save-status">Patient details will be saved before the consult starts.</div>
         </div>
       </div>
 
@@ -832,10 +832,14 @@
 
     async function savePatientToCloudRecords(patientId) {
       const normalizedDob = parseDobInput(dobDayInput.value, dobMonthInput.value, dobYearInput.value);
+      const patientName = newPatientForm.elements.parentName.value.trim();
+      const height = newPatientForm.elements.height.value.trim();
       const patientRecord = {
         patientId,
-        childName: newPatientForm.elements.childName.value.trim(),
-        parentName: newPatientForm.elements.parentName.value.trim(),
+        childName: patientName,
+        patientName,
+        parentName: patientName,
+        height,
         gender: newPatientForm.elements.gender.value,
         dob: normalizedDob,
         phone: newPatientForm.elements.mobileNumber.value.trim(),
@@ -861,8 +865,8 @@
 
     const prefilledChildName = searchParams.get('childName') || '';
     const prefilledMobileNumber = searchParams.get('mobileNumber') || '';
-    if (prefilledChildName && !newPatientForm.elements.childName.value.trim()) {
-      newPatientForm.elements.childName.value = prefilledChildName.trim();
+    if (prefilledChildName && !newPatientForm.elements.parentName.value.trim()) {
+      newPatientForm.elements.parentName.value = prefilledChildName.trim();
     }
     if (prefilledMobileNumber && !newPatientForm.elements.mobileNumber.value.trim()) {
       newPatientForm.elements.mobileNumber.value = prefilledMobileNumber.trim();
@@ -888,15 +892,15 @@
       try {
         const savedToCloudRecords = await savePatientToCloudRecords(autoPatientId);
         setSaveStatus(savedToCloudRecords
-          ? `Saved patient ${autoPatientId} to Firestore.`
-          : `Patient ${autoPatientId} generated locally, but Cloud records are not configured.`, savedToCloudRecords ? 'ready' : 'error');
+          ? `Patient details saved.`
+          : `Patient ID created, but online saving is not available.`, savedToCloudRecords ? 'ready' : 'error');
         console.log(savedToCloudRecords
           ? `Saved with Patient ID ${autoPatientId}.`
           : `Patient ID ${autoPatientId} generated locally. Configure cloud records to store this online.`);
         window.location.href = `prescription?patientId=${encodeURIComponent(autoPatientId)}`;
       } catch (error) {
         console.error(`Cloud save failed: ${error.message}`);
-        setSaveStatus(`Cloud save failed: ${error.message}. Publish Firestore rules and try again.`, 'error');
+        setSaveStatus(`Unable to save patient details: ${error.message}. Please try again.`, 'error');
       } finally {
         continueBtn.disabled = false;
         continueBtn.textContent = 'Continue';
@@ -919,5 +923,3 @@
   </script>
 </body>
 </html>
-
-
