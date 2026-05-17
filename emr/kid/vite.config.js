@@ -250,6 +250,7 @@ export default defineConfig({
         dashboard: resolve(__dirname, 'clinci.html'),
         newPatient: resolve(__dirname, 'new-patient.html'),
         growthChart: resolve(__dirname, 'growth-chart-dashboard.html'),
+        growthChartPreview: resolve(__dirname, 'growth-chart-preview.html'),
         prescription: resolve(__dirname, 'prescription.html'),
         preview: resolve(__dirname, 'preview.html'),
         pendingApprovals: resolve(__dirname, 'pending-approvals.html'),

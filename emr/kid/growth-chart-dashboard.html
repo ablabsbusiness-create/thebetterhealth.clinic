@@ -1202,7 +1202,7 @@
           </div>
 
           <div class="template-status" id="chart-preview-status">
-            Add the available measurements, then click Generate Chart to prepare the matching IAP templates for PDF download.
+            Add the available measurements, then click Generate Chart to open the chart preview.
           </div>
 
           <div class="summary-box">
@@ -1216,8 +1216,6 @@
           <div class="action-box">
             <div class="btn-row">
               <button id="generate-btn" class="btn-primary" type="button">Generate Chart</button>
-              <button id="download-btn" class="btn-secondary" type="button" hidden>Preview PDF</button>
-              <button id="whatsapp-btn" class="btn-secondary" type="button" hidden>Send WhatsApp</button>
             </div>
             <div id="status-note" class="status-note">
               Chart actions are ready once patient details and measurements are complete.
@@ -1232,8 +1230,6 @@
   <canvas id="chart-canvas" class="template-canvas" width="1725" height="2367"></canvas>
 
   <script type="module">
-    import { jsPDF } from 'https://cdn.jsdelivr.net/npm/jspdf@3.0.3/+esm';
-
     const metricInputs = {
       weight: document.getElementById('weight'),
       height: document.getElementById('height'),
@@ -1249,8 +1245,6 @@
     const selectedCount = document.getElementById('selected-count');
     const selectedList = document.getElementById('selected-list');
     const generateBtn = document.getElementById('generate-btn');
-    const downloadBtn = document.getElementById('download-btn');
-    const whatsappBtn = document.getElementById('whatsapp-btn');
     const statusNote = document.getElementById('status-note');
     const chartCanvas = document.getElementById('chart-canvas');
     const chartContext = chartCanvas.getContext('2d');
@@ -1465,9 +1459,11 @@
     const templateImages = new Map();
     let generatedTemplates = [];
     let generatedPreviewPages = [];
-    let generatedPdfUrl = '';
     const CHART_RENDER_MAX_WIDTH = 760;
     const CHART_POINT_RADIUS = 7;
+    const GROWTH_CHART_PREVIEW_DB = 'kidGrowthChartPreviewDb';
+    const GROWTH_CHART_PREVIEW_STORE = 'previews';
+    const GROWTH_CHART_PREVIEW_SESSION_PREFIX = 'kidGrowthChartPreview:';
     const GROWTH_CHART_DEBUG = new URLSearchParams(window.location.search).has('growthDebug')
       || localStorage.getItem('growthChartDebug') === '1';
     const CAN_USE_PYTHON_CHART_SERVICE = ['localhost', '127.0.0.1'].includes(window.location.hostname);
@@ -1922,130 +1918,76 @@
       return result;
     }
 
-    function buildPdfBlobFromPreviewPages() {
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
-
-      generatedPreviewPages.forEach((preview, index) => {
-        if (index > 0) {
-          pdf.addPage('a4', 'portrait');
+    function openPreviewDb() {
+      return new Promise((resolve, reject) => {
+        if (!window.indexedDB) {
+          reject(new Error('Preview storage is unavailable.'));
+          return;
         }
 
-        const pageWidth = pdf.internal.pageSize.getWidth();
-        const pageHeight = pdf.internal.pageSize.getHeight();
-        const margin = 12;
-        const usableWidth = pageWidth - margin * 2;
-        const headerBottom = 42;
-        const footerTop = pageHeight - 13;
-        const usableHeight = footerTop - headerBottom - 4;
-        const imageWidth = preview.width || chartCanvas.width || 1725;
-        const imageHeight = preview.height || chartCanvas.height || 2367;
-        const scale = Math.min(usableWidth / imageWidth, usableHeight / imageHeight);
-        const renderWidth = imageWidth * scale;
-        const renderHeight = imageHeight * scale;
-        const renderX = margin + (usableWidth - renderWidth) / 2;
-        const childName = form.elements.childName.value.trim() || 'Growth Chart';
-        const parentName = form.elements.parentName.value.trim();
-        const dobLabel = formatDobForDisplay(parseDobValue(dobInput.value));
-        const vitalsSummary = getVitalsSummaryParts().join('   ');
-
-        pdf.setTextColor(22, 101, 52);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(13);
-        pdf.text('The Better Health Clinic', margin, 11);
-        pdf.setFontSize(9);
-        pdf.setFont('helvetica', 'normal');
-        pdf.setTextColor(80, 95, 87);
-        pdf.text('Growth Monitoring Portal', margin, 16);
-        pdf.text(`Child: ${childName}`, margin, 23);
-        pdf.text(`DOB: ${dobLabel || '-'}${parentName ? `   Parent: ${parentName}` : ''}`, margin, 28);
-        if (vitalsSummary) {
-          pdf.text(vitalsSummary, margin, 33);
-        }
-        pdf.setDrawColor(215, 226, 217);
-        pdf.line(margin, vitalsSummary ? 35 : 30, pageWidth - margin, vitalsSummary ? 35 : 30);
-
-        pdf.setTextColor(27, 42, 33);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(11);
-        pdf.text(preview.label, margin, vitalsSummary ? 42 : 37);
-        pdf.addImage(preview.dataUrl, 'PNG', renderX, vitalsSummary ? 45 : 40, renderWidth, renderHeight, undefined, 'FAST');
-
-        pdf.setDrawColor(215, 226, 217);
-        pdf.line(margin, footerTop, pageWidth - margin, footerTop);
-        pdf.setTextColor(96, 112, 103);
-        pdf.setFont('helvetica', 'normal');
-        pdf.setFontSize(8);
-        pdf.text('Generated for clinical review. Doctor confirms final interpretation.', margin, pageHeight - 7);
-        pdf.text(`Page ${index + 1} of ${generatedPreviewPages.length}`, pageWidth - margin, pageHeight - 7, { align: 'right' });
-      });
-
-      return pdf.output('blob');
-    }
-
-    function getBrandedPdfBlob() {
-      return buildPdfBlobFromPreviewPages();
-    }
-
-    function revokeGeneratedPdfUrl() {
-      if (generatedPdfUrl) {
-        URL.revokeObjectURL(generatedPdfUrl);
-        generatedPdfUrl = '';
-      }
-    }
-
-    function createBrandedPdfUrl() {
-      if (generatedPreviewPages.length === 0) {
-        return '';
-      }
-
-      revokeGeneratedPdfUrl();
-      generatedPdfUrl = URL.createObjectURL(getBrandedPdfBlob());
-      return generatedPdfUrl;
-    }
-
-    function openPdfPreview() {
-      const previewUrl = createBrandedPdfUrl();
-      if (!previewUrl) {
-        statusNote.textContent = 'Generate the available charts before previewing the PDF.';
-        statusNote.classList.add('visible');
-        return null;
-      }
-
-      window.open(generatedPdfUrl, '_blank', 'noopener');
-      return generatedPdfUrl;
-    }
-
-    async function sendPdfToWhatsApp() {
-      if (generatedPreviewPages.length === 0) {
-        statusNote.textContent = 'Generate the available charts before sending.';
-        statusNote.classList.add('visible');
-        return;
-      }
-
-      const childName = form.elements.childName.value.trim() || 'patient';
-      const fileName = `${childName.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') || 'growth-chart'}-growth-chart.pdf`;
-      const pdfFile = new File([getBrandedPdfBlob()], fileName, { type: 'application/pdf' });
-
-      if (navigator.canShare?.({ files: [pdfFile] }) && navigator.share) {
-        await navigator.share({
-          title: 'Growth chart PDF',
-          text: `Growth chart PDF for ${childName}`,
-          files: [pdfFile]
+        const request = indexedDB.open(GROWTH_CHART_PREVIEW_DB, 1);
+        request.addEventListener('upgradeneeded', () => {
+          const db = request.result;
+          if (!db.objectStoreNames.contains(GROWTH_CHART_PREVIEW_STORE)) {
+            db.createObjectStore(GROWTH_CHART_PREVIEW_STORE, { keyPath: 'id' });
+          }
         });
-        statusNote.textContent = 'PDF shared. Choose WhatsApp from the share sheet.';
-        statusNote.classList.add('visible');
-        return;
+        request.addEventListener('success', () => resolve(request.result));
+        request.addEventListener('error', () => reject(request.error || new Error('Preview storage failed.')));
+      });
+    }
+
+    async function saveGrowthChartPreview(payload) {
+      const id = window.crypto?.randomUUID ? window.crypto.randomUUID() : `growth-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+      const record = {
+        id,
+        ...payload,
+        savedAt: new Date().toISOString()
+      };
+
+      try {
+        const db = await openPreviewDb();
+        await new Promise((resolve, reject) => {
+          const transaction = db.transaction(GROWTH_CHART_PREVIEW_STORE, 'readwrite');
+          transaction.objectStore(GROWTH_CHART_PREVIEW_STORE).put(record);
+          transaction.addEventListener('complete', resolve);
+          transaction.addEventListener('error', () => reject(transaction.error || new Error('Preview could not be prepared.')));
+        });
+        db.close();
+      } catch (error) {
+        sessionStorage.setItem(`${GROWTH_CHART_PREVIEW_SESSION_PREFIX}${id}`, JSON.stringify(record));
       }
 
-      openPdfPreview();
-      const message = encodeURIComponent(`Growth chart PDF for ${childName} is ready. Please attach the opened PDF preview in WhatsApp.`);
-      window.open(`https://wa.me/?text=${message}`, '_blank', 'noopener');
-      statusNote.textContent = 'WhatsApp opened. Attach the PDF from the preview tab if your browser cannot share files directly.';
-      statusNote.classList.add('visible');
+      return id;
+    }
+
+    function buildGrowthChartPreviewPayload() {
+      return {
+        pages: generatedPreviewPages,
+        patient: {
+          childName: form.elements.childName.value.trim(),
+          parentName: form.elements.parentName.value.trim(),
+          gender: form.elements.gender.value,
+          dob: formatDobForDisplay(parseDobValue(dobInput.value)),
+          age: ageInput.value.trim()
+        },
+        vitals: getVitalsSummaryParts(),
+        generatedAt: new Date().toLocaleString('en-IN')
+      };
+    }
+
+    async function openGrowthChartPreview(previewWindow) {
+      if (generatedPreviewPages.length === 0) {
+        throw new Error('No chart could be made for preview.');
+      }
+
+      const previewId = await saveGrowthChartPreview(buildGrowthChartPreviewPayload());
+      const previewUrl = `growth-chart-preview?id=${encodeURIComponent(previewId)}`;
+      if (previewWindow) {
+        previewWindow.location.href = previewUrl;
+      } else {
+        window.open(previewUrl, '_blank', 'noopener');
+      }
     }
 
     function getPatientData() {
@@ -2223,7 +2165,6 @@
       const selectedValues = getSelectedCharts().map((option) => option.value);
       const patientData = getPatientData();
       generatedTemplates = buildTemplateRequests();
-      revokeGeneratedPdfUrl();
 
       if (generatedTemplates.length === 0) {
         setChartPreviewMessage('No matching IAP template could be selected for the entered age, gender, and chart combination.', 'warning');
@@ -2249,7 +2190,7 @@
           ? 'Python chart service is unavailable, so the chart was generated in browser mode.'
           : 'This deployment is using browser chart rendering.';
         setChartPreviewMessage(
-          `Generated ${generatedPreviewPages.length} chart${generatedPreviewPages.length === 1 ? '' : 's'} for PDF preview. ${fallbackNote}${warnings.length ? ` ${warnings.join(' ')}` : ''}`,
+          `Generated ${generatedPreviewPages.length} chart${generatedPreviewPages.length === 1 ? '' : 's'} for preview. ${fallbackNote}${warnings.length ? ` ${warnings.join(' ')}` : ''}`,
           'warning'
         );
         return;
@@ -2257,9 +2198,9 @@
 
       const warnings = buildWarnings(selectedValues, patientData);
       if (warnings.length > 0) {
-        setChartPreviewMessage(`Generated ${generatedPreviewPages.length} chart${generatedPreviewPages.length === 1 ? '' : 's'} for PDF preview. ${warnings.join(' ')}`, 'warning');
+        setChartPreviewMessage(`Generated ${generatedPreviewPages.length} chart${generatedPreviewPages.length === 1 ? '' : 's'} for preview. ${warnings.join(' ')}`, 'warning');
       } else {
-        setChartPreviewMessage(`Generated ${generatedPreviewPages.length} chart${generatedPreviewPages.length === 1 ? '' : 's'} for PDF preview.`, 'ready');
+        setChartPreviewMessage(`Generated ${generatedPreviewPages.length} chart${generatedPreviewPages.length === 1 ? '' : 's'} for preview.`, 'ready');
       }
     }
 
@@ -2308,12 +2249,6 @@
         pill.textContent = option.value;
         selectedList.appendChild(pill);
       });
-    }
-
-    function revealActions() {
-      downloadBtn.hidden = false;
-      whatsappBtn.hidden = false;
-      statusNote.classList.add('visible');
     }
 
     function closeMobileMenu() {
@@ -2374,20 +2309,6 @@
       }
     });
 
-    downloadBtn.addEventListener('click', () => {
-      if (openPdfPreview()) {
-        statusNote.textContent = `Opened PDF preview with ${generatedPreviewPages.length} chart${generatedPreviewPages.length === 1 ? '' : 's'}.`;
-        statusNote.classList.add('visible');
-      }
-    });
-
-    whatsappBtn.addEventListener('click', () => {
-      sendPdfToWhatsApp().catch((error) => {
-        statusNote.textContent = `Unable to share PDF: ${error.message}`;
-        statusNote.classList.add('visible');
-      });
-    });
-
     updateMeasurements();
     updatePreview();
     updateAge();
@@ -2408,19 +2329,21 @@
 
       const previewWindow = window.open('', '_blank', 'noopener');
       if (previewWindow) {
-        previewWindow.document.write('<!doctype html><title>Preparing growth chart PDF</title><body style="font-family:system-ui,sans-serif;padding:24px;">Preparing growth chart PDF...</body>');
+        previewWindow.document.write('<!doctype html><title>Preparing growth chart preview</title><body style="font-family:system-ui,sans-serif;padding:24px;">Preparing growth chart preview...</body>');
       }
 
-      revealActions();
-      await renderGeneratedChart();
-      const previewUrl = createBrandedPdfUrl();
-      if (previewWindow && previewUrl) {
-        previewWindow.location.href = previewUrl;
-      } else if (previewWindow && !previewUrl) {
-        previewWindow.close();
+      try {
+        await renderGeneratedChart();
+        await openGrowthChartPreview(previewWindow);
+        statusNote.textContent = `Chart preview prepared with ${generatedPreviewPages.length} page${generatedPreviewPages.length === 1 ? '' : 's'}. Nothing was saved.`;
+        statusNote.classList.add('visible');
+      } catch (error) {
+        if (previewWindow) {
+          previewWindow.close();
+        }
+        statusNote.textContent = error.message || 'Unable to prepare chart preview.';
+        statusNote.classList.add('visible');
       }
-      statusNote.textContent = `Chart set prepared. ${generatedPreviewPages.length} page${generatedPreviewPages.length === 1 ? '' : 's'} ready for PDF preview and WhatsApp sharing. Nothing was saved.`;
-      statusNote.classList.add('visible');
     });
   </script>
 </body>
