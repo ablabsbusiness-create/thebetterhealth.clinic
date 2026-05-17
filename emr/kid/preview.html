@@ -268,49 +268,8 @@
       text-decoration: none;
     }
 
-    .print-group {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .print-switch {
-      display: inline-flex;
-      align-items: center;
-      padding: 4px;
-      border-radius: 16px;
-      border: 1px solid var(--line);
-      background: #f8fbf9;
-      box-shadow: inset 0 1px 2px rgba(22, 38, 29, 0.04);
-    }
-
-    .print-switch-option {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 36px;
-      padding: 0 14px;
-      border: 0;
-      border-radius: 12px;
-      background: transparent;
-      color: var(--muted);
-      font: inherit;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
-    }
-
-    .print-switch-option.is-active {
-      background: #fff;
-      color: var(--brand-strong);
-      box-shadow: 0 8px 18px rgba(22, 38, 29, 0.08);
-    }
-
     .btn-primary:disabled,
-    .btn-secondary:disabled,
-    .btn-whatsapp:disabled {
+    .btn-secondary:disabled {
       opacity: 0.65;
       cursor: wait;
     }
@@ -325,12 +284,6 @@
       border: 1px solid var(--line);
       background: #fff;
       color: var(--brand-strong);
-    }
-
-    .btn-whatsapp {
-      background: #25d366;
-      color: #fff;
-      box-shadow: 0 12px 24px rgba(37, 211, 102, 0.18);
     }
 
     .document-stage {
@@ -839,14 +792,6 @@
         <div class="preview-actions">
           <a class="nav-link nav-enter-clinic" href="search">Enter Clinic</a>
           <button id="download-pdf-btn" class="btn-primary" type="button">Download PDF</button>
-          <button id="whatsapp-btn" class="btn-whatsapp" type="button">WhatsApp</button>
-          <div class="print-group">
-            <div class="print-switch" role="group" aria-label="Print mode">
-              <button id="print-mode-with-header" class="print-switch-option is-active" type="button" aria-pressed="true">With Header</button>
-              <button id="print-mode-without-header" class="print-switch-option" type="button" aria-pressed="false">Without Header</button>
-            </div>
-            <button id="print-btn" class="btn-secondary" type="button">Print</button>
-          </div>
         </div>
       </div>
       <div class="document-stage">
@@ -875,10 +820,6 @@
     const primaryNav = document.getElementById('primary-nav');
     const rxSheet = document.getElementById('rx-sheet');
     const downloadPdfBtn = document.getElementById('download-pdf-btn');
-    const whatsappBtn = document.getElementById('whatsapp-btn');
-    const printBtn = document.getElementById('print-btn');
-    const printModeWithHeaderBtn = document.getElementById('print-mode-with-header');
-    const printModeWithoutHeaderBtn = document.getElementById('print-mode-without-header');
     const PRESCRIPTION_DRAFT_STORAGE_KEY = clinicStorageKey('prescriptionDraft');
     const CHART_RECORD_STORAGE_KEY = clinicStorageKey('growthChartRecentRecords');
     const LOCAL_PRESCRIPTION_HISTORY_KEY = clinicStorageKey('savedPrescriptionHistory');
@@ -1958,33 +1899,6 @@
       localStorage.removeItem(MEDICINE_DETAIL_STORAGE_KEY);
     }
 
-    function normalizeWhatsAppPhone(phone) {
-      const digits = String(phone || '').replace(/\D/g, '');
-      if (digits.length === 10) {
-        return `91${digits}`;
-      }
-      return digits;
-    }
-
-    function openWhatsAppChat(phone, message) {
-      const normalizedPhone = normalizeWhatsAppPhone(phone);
-      const encodedMessage = encodeURIComponent(message);
-      const targetUrl = normalizedPhone
-        ? `https://wa.me/${normalizedPhone}?text=${encodedMessage}`
-        : `https://wa.me/?text=${encodedMessage}`;
-      window.open(targetUrl, '_blank', 'noopener,noreferrer');
-    }
-
-    function buildShortPrescriptionLink(saveId) {
-      if (!saveId) {
-        return '';
-      }
-
-      const url = new URL('rx', window.location.href);
-      url.searchParams.set('i', saveId);
-      return url.toString();
-    }
-
     downloadPdfBtn.addEventListener('click', async () => {
       downloadPdfBtn.disabled = true;
       downloadPdfBtn.textContent = 'Preparing...';
@@ -1998,36 +1912,6 @@
       } finally {
         downloadPdfBtn.disabled = false;
         downloadPdfBtn.textContent = 'Download PDF';
-      }
-    });
-
-    whatsappBtn.addEventListener('click', async () => {
-      whatsappBtn.disabled = true;
-      whatsappBtn.textContent = 'Opening...';
-
-      try {
-        const savedRecord = await ensurePrescriptionSaved();
-        const chartRecord = getCurrentChartRecord();
-        const branding = getPrescriptionBranding();
-        const shortLink = buildShortPrescriptionLink(savedRecord.saveId) || savedRecord.downloadURL;
-        const message = [
-          `Hello ${chartRecord?.childName || 'Patient'},`,
-          '',
-          `You can see your prescription here:`,
-          shortLink,
-          '',
-          `Patient ID: ${savedRecord.patientId || chartRecord?.patientId || '-'}`,
-          `Clinic: ${branding.clinicTitle || DEFAULT_BRANDING.clinicTitle}`,
-          '',
-          `Regards,`,
-          `AB Labs`
-        ].join('\n');
-        openWhatsAppChat(chartRecord?.phone || savedRecord.phone || '', message);
-      } catch (error) {
-        console.warn(`Unable to prepare WhatsApp prescription link: ${error.message}`);
-      } finally {
-        whatsappBtn.disabled = false;
-        whatsappBtn.textContent = 'WhatsApp';
       }
     });
 
@@ -2077,7 +1961,6 @@
       const safeGap = getSavedPrintGapCm();
       document.documentElement.style.setProperty('--preview-header-gap', `${safeGap}cm`);
       document.body.classList.toggle('preview-without-header', !printWithHeaderEnabled);
-      updatePrintModeButtons();
       if (refreshSavedPdf) {
         invalidateSavedPrescriptionCache();
         ensurePrescriptionSaved().catch((error) => {
@@ -2086,36 +1969,6 @@
       }
     }
 
-    function updatePrintModeButtons() {
-      printModeWithHeaderBtn.classList.toggle('is-active', printWithHeaderEnabled);
-      printModeWithHeaderBtn.setAttribute('aria-pressed', String(printWithHeaderEnabled));
-      printModeWithoutHeaderBtn.classList.toggle('is-active', !printWithHeaderEnabled);
-      printModeWithoutHeaderBtn.setAttribute('aria-pressed', String(!printWithHeaderEnabled));
-    }
-
-    function printPreview() {
-      const safeGap = getSavedPrintGapCm();
-      document.documentElement.style.setProperty('--print-header-gap', `${safeGap}cm`);
-      document.body.classList.toggle('print-with-header', printWithHeaderEnabled);
-      window.print();
-    }
-
-    window.addEventListener('afterprint', () => {
-      document.body.classList.remove('print-with-header');
-      document.documentElement.style.setProperty('--print-header-gap', '0cm');
-    });
-
-    printModeWithHeaderBtn.addEventListener('click', () => {
-      localStorage.setItem(PRINT_HEADER_MODE_STORAGE_KEY, 'true');
-      applySavedPreviewSettings(true);
-    });
-
-    printModeWithoutHeaderBtn.addEventListener('click', () => {
-      localStorage.setItem(PRINT_HEADER_MODE_STORAGE_KEY, 'false');
-      applySavedPreviewSettings(true);
-    });
-
-    printBtn.addEventListener('click', printPreview);
     applySavedPreviewSettings(false);
     window.addEventListener('storage', (event) => {
       if (event.key === PRINT_HEADER_MODE_STORAGE_KEY || event.key === PRINT_HEADER_GAP_STORAGE_KEY) {

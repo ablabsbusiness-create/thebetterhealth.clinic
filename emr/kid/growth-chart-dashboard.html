@@ -1976,18 +1976,14 @@
       };
     }
 
-    async function openGrowthChartPreview(previewWindow) {
+    async function openGrowthChartPreview() {
       if (generatedPreviewPages.length === 0) {
         throw new Error('No chart could be made for preview.');
       }
 
       const previewId = await saveGrowthChartPreview(buildGrowthChartPreviewPayload());
       const previewUrl = `growth-chart-preview?id=${encodeURIComponent(previewId)}`;
-      if (previewWindow) {
-        previewWindow.location.href = previewUrl;
-      } else {
-        window.open(previewUrl, '_blank', 'noopener');
-      }
+      window.location.href = previewUrl;
     }
 
     function getPatientData() {
@@ -2327,20 +2323,12 @@
         return;
       }
 
-      const previewWindow = window.open('', '_blank', 'noopener');
-      if (previewWindow) {
-        previewWindow.document.write('<!doctype html><title>Preparing growth chart preview</title><body style="font-family:system-ui,sans-serif;padding:24px;">Preparing growth chart preview...</body>');
-      }
-
       try {
         await renderGeneratedChart();
-        await openGrowthChartPreview(previewWindow);
+        await openGrowthChartPreview();
         statusNote.textContent = `Chart preview prepared with ${generatedPreviewPages.length} page${generatedPreviewPages.length === 1 ? '' : 's'}. Nothing was saved.`;
         statusNote.classList.add('visible');
       } catch (error) {
-        if (previewWindow) {
-          previewWindow.close();
-        }
         statusNote.textContent = error.message || 'Unable to prepare chart preview.';
         statusNote.classList.add('visible');
       }

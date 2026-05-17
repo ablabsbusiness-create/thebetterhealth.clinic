@@ -407,7 +407,6 @@
         </div>
         <div class="preview-actions">
           <button id="download-pdf-btn" class="btn-primary" type="button">Download PDF</button>
-          <button id="print-btn" class="btn-secondary" type="button">Print</button>
         </div>
       </div>
 
@@ -424,7 +423,6 @@
     const stage = document.getElementById('document-stage');
     const statusChip = document.getElementById('preview-status');
     const downloadPdfBtn = document.getElementById('download-pdf-btn');
-    const printBtn = document.getElementById('print-btn');
     let previewRecord = null;
 
     function escapeHtml(value) {
@@ -486,7 +484,6 @@
         </section>
       `;
       downloadPdfBtn.disabled = true;
-      printBtn.disabled = true;
     }
 
     function patientValue(value) {
@@ -615,10 +612,6 @@
         downloadPdfBtn.disabled = false;
         downloadPdfBtn.textContent = 'Download PDF';
       }
-    });
-
-    printBtn.addEventListener('click', () => {
-      window.print();
     });
 
     (async () => {
