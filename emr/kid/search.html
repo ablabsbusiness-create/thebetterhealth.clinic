@@ -1811,6 +1811,108 @@
       background: #f8fbf9;
       color: var(--brand-strong);
     }
+
+    .skeleton-shell {
+      display: grid;
+      grid-template-columns: 340px minmax(0, 1fr);
+      min-height: calc(100vh - 194px);
+      border-top: 1px solid var(--line);
+      background: #f4f7f5;
+    }
+
+    .skeleton-sidebar {
+      border-right: 1px solid var(--line);
+      background: #ffffff;
+    }
+
+    .skeleton-main {
+      padding: 24px 28px;
+    }
+
+    .skeleton-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .skeleton-tab {
+      height: 44px;
+      border-right: 1px solid var(--line);
+      background: #f8fbf9;
+    }
+
+    .skeleton-item {
+      padding: 18px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .skeleton-card {
+      border: 1px solid var(--line);
+      background: #ffffff;
+      padding: 18px;
+    }
+
+    .skeleton-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .skeleton-line,
+    .skeleton-pill,
+    .skeleton-block {
+      position: relative;
+      overflow: hidden;
+      border-radius: 8px;
+      background: #e8f0eb;
+    }
+
+    .skeleton-line::after,
+    .skeleton-pill::after,
+    .skeleton-block::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      transform: translateX(-100%);
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.72), transparent);
+      animation: skeleton-shimmer 1.2s ease-in-out infinite;
+    }
+
+    .skeleton-line {
+      height: 12px;
+      margin-bottom: 10px;
+    }
+
+    .skeleton-pill {
+      width: 66px;
+      height: 34px;
+      border-radius: 999px;
+    }
+
+    .skeleton-block {
+      height: 116px;
+    }
+
+    @keyframes skeleton-shimmer {
+      100% {
+        transform: translateX(100%);
+      }
+    }
+
+    @media (max-width: 760px) {
+      .skeleton-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .skeleton-sidebar {
+        border-right: 0;
+      }
+
+      .skeleton-grid {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 <body>
@@ -1896,6 +1998,8 @@
     const pdfPreviewClose = document.getElementById('pdf-preview-close');
     const LOCAL_PRESCRIPTION_HISTORY_KEY = clinicStorageKey('savedPrescriptionHistory');
     const LOCAL_WORKLIST_QUEUE_KEY = clinicStorageKey('patientWorklistQueueByDate');
+    const LOCAL_SEARCH_CACHE_KEY = clinicStorageKey('patientSearchCache');
+    const SEARCH_CACHE_TTL_MS = 2 * 60 * 1000;
 
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
@@ -2006,6 +2110,54 @@
       `;
     }
 
+    function renderSearchSkeleton() {
+      updateCount(0);
+      resultsPanel.innerHTML = `
+        <div class="skeleton-shell" aria-label="Loading patient records">
+          <aside class="skeleton-sidebar">
+            <div class="skeleton-tabs">
+              <div class="skeleton-tab"></div>
+              <div class="skeleton-tab"></div>
+            </div>
+            ${Array.from({ length: 4 }).map(() => `
+              <div class="skeleton-item">
+                <div class="skeleton-line" style="width: 62%;"></div>
+                <div class="skeleton-line" style="width: 46%;"></div>
+                <div class="skeleton-line" style="width: 34%; margin-bottom: 0;"></div>
+              </div>
+            `).join('')}
+          </aside>
+          <main class="skeleton-main">
+            <div style="display:flex; justify-content:space-between; gap:14px; align-items:center;">
+              <div style="min-width:0; flex:1;">
+                <div class="skeleton-line" style="width: 180px; height: 24px;"></div>
+                <div class="skeleton-line" style="width: 260px;"></div>
+              </div>
+              <div style="display:flex; gap:10px;">
+                <div class="skeleton-pill"></div>
+                <div class="skeleton-pill"></div>
+              </div>
+            </div>
+            <div class="skeleton-grid">
+              <div class="skeleton-card">
+                <div class="skeleton-line" style="width: 120px; height: 18px;"></div>
+                <div class="skeleton-grid">
+                  <div class="skeleton-block"></div>
+                  <div class="skeleton-block"></div>
+                  <div class="skeleton-block"></div>
+                  <div class="skeleton-block"></div>
+                </div>
+              </div>
+              <div class="skeleton-card">
+                <div class="skeleton-line" style="width: 140px; height: 18px;"></div>
+                <div class="skeleton-block" style="height: 310px;"></div>
+              </div>
+            </div>
+          </main>
+        </div>
+      `;
+    }
+
     function formatMissing(value, fallback = 'Not saved') {
       return value && String(value).trim() ? value : fallback;
     }
@@ -2053,6 +2205,48 @@
       } catch (error) {
         return fallback;
       }
+    }
+
+    function getSearchCache() {
+      const cache = readLocalJson(LOCAL_SEARCH_CACHE_KEY, null);
+      if (!cache || typeof cache !== 'object') {
+        return null;
+      }
+
+      const savedAt = Number(cache.savedAt || 0);
+      if (!savedAt || Date.now() - savedAt > SEARCH_CACHE_TTL_MS) {
+        return null;
+      }
+
+      return {
+        patients: Array.isArray(cache.patients) ? cache.patients : [],
+        history: Array.isArray(cache.history) ? cache.history : []
+      };
+    }
+
+    function saveSearchCache() {
+      try {
+        localStorage.setItem(LOCAL_SEARCH_CACHE_KEY, JSON.stringify({
+          savedAt: Date.now(),
+          patients: allPatients,
+          history: allHistory
+        }));
+      } catch (error) {
+        console.warn(`Unable to keep recent patient list: ${error.message}`);
+      }
+    }
+
+    function showSearchCache() {
+      const cache = getSearchCache();
+      if (!cache || cache.patients.length === 0) {
+        return false;
+      }
+
+      allPatients = cache.patients;
+      allHistory = cache.history;
+      filterPatients();
+      setStatus('Showing recent records while updating...');
+      return true;
     }
 
     function getQueueState() {
@@ -3466,23 +3660,31 @@
     });
 
     async function loadPatients() {
+      const showedCache = showSearchCache();
+      if (!showedCache) {
+        renderSearchSkeleton();
+      }
       if (!db) {
-        allPatients = [];
-        allHistory = [];
-        filterPatients();
+        if (!showedCache) {
+          allPatients = [];
+          allHistory = [];
+          filterPatients();
+        }
         setStatus('Cloud records are not configured, so no patient data is available.', 'warning');
         return;
       }
 
       if (navigator.onLine === false) {
-        allPatients = [];
-        allHistory = [];
-        filterPatients();
+        if (!showedCache) {
+          allPatients = [];
+          allHistory = [];
+          filterPatients();
+        }
         setStatus('Internet is disconnected, so live patient data is unavailable.', 'warning');
         return;
       }
 
-      setStatus('Loading patients...');
+      setStatus(showedCache ? 'Updating records...' : 'Loading patients...');
 
       try {
         const [
@@ -3612,6 +3814,7 @@
         });
 
         allPatients = mergedPatients.sort(sortByPatientName);
+        saveSearchCache();
 
         if (allPatients.length === 0) {
           updateCount(0);
@@ -3645,14 +3848,17 @@
             existingHistoryById.set(key, entry);
           });
           allHistory = [...existingHistoryById.values()];
+          saveSearchCache();
           filterPatients();
         }).catch((error) => {
           console.warn(`Unable to load prescription PDFs after patient list: ${error.message}`);
         });
       } catch (error) {
-        allPatients = [];
-        allHistory = [];
-        filterPatients();
+        if (!showedCache) {
+          allPatients = [];
+          allHistory = [];
+          filterPatients();
+        }
         setStatus(`Unable to load patient records: ${error.message}.`, 'warning');
       }
     }

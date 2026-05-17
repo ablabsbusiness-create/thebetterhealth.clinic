@@ -246,6 +246,93 @@
       margin-top: 4px;
     }
 
+    .dashboard-skeleton[hidden] {
+      display: none;
+    }
+
+    .dashboard-skeleton {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .grid.is-loading {
+      display: none;
+    }
+
+    .skeleton-card {
+      border: 1px solid rgba(215, 226, 217, 0.95);
+      border-radius: var(--radius-lg);
+      background: rgba(255, 255, 255, 0.84);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    .skeleton-table {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .skeleton-row {
+      display: grid;
+      grid-template-columns: 190px minmax(0, 1fr);
+      gap: 14px;
+      align-items: center;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #f8fbf9;
+    }
+
+    .skeleton-line,
+    .skeleton-block,
+    .skeleton-pill {
+      position: relative;
+      overflow: hidden;
+      border-radius: 8px;
+      background: #e8f0eb;
+    }
+
+    .skeleton-line::after,
+    .skeleton-block::after,
+    .skeleton-pill::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      transform: translateX(-100%);
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.72), transparent);
+      animation: skeleton-shimmer 1.2s ease-in-out infinite;
+    }
+
+    .skeleton-line {
+      height: 12px;
+      margin-bottom: 8px;
+    }
+
+    .skeleton-pill {
+      width: 90px;
+      height: 30px;
+      border-radius: 999px;
+    }
+
+    .skeleton-block {
+      height: 42px;
+    }
+
+    @keyframes skeleton-shimmer {
+      100% {
+        transform: translateX(100%);
+      }
+    }
+
+    @media (max-width: 920px) {
+      .dashboard-skeleton {
+        grid-template-columns: 1fr;
+      }
+    }
+
     .page-intro > div:first-child {
       min-width: 0;
     }
@@ -1974,7 +2061,45 @@
       </div>
     </section>
 
-    <div class="grid">
+    <div id="dashboard-skeleton" class="dashboard-skeleton" hidden aria-label="Loading patient growth chart data">
+      <section class="skeleton-card">
+        <div class="skeleton-line" style="width: 120px; height: 18px;"></div>
+        <div class="skeleton-line" style="width: 260px;"></div>
+        <div class="skeleton-table">
+          <div class="skeleton-row">
+            <div><div class="skeleton-line" style="width: 90px;"></div><div class="skeleton-line" style="width: 130px; margin-bottom: 0;"></div></div>
+            <div class="skeleton-block"></div>
+          </div>
+          <div class="skeleton-row">
+            <div><div class="skeleton-line" style="width: 90px;"></div><div class="skeleton-line" style="width: 130px; margin-bottom: 0;"></div></div>
+            <div class="skeleton-block"></div>
+          </div>
+          <div class="skeleton-row">
+            <div><div class="skeleton-line" style="width: 90px;"></div><div class="skeleton-line" style="width: 130px; margin-bottom: 0;"></div></div>
+            <div class="skeleton-block"></div>
+          </div>
+          <div class="skeleton-row">
+            <div><div class="skeleton-line" style="width: 90px;"></div><div class="skeleton-line" style="width: 130px; margin-bottom: 0;"></div></div>
+            <div class="skeleton-block"></div>
+          </div>
+          <div class="skeleton-row">
+            <div><div class="skeleton-line" style="width: 90px;"></div><div class="skeleton-line" style="width: 130px; margin-bottom: 0;"></div></div>
+            <div class="skeleton-block"></div>
+          </div>
+        </div>
+      </section>
+      <aside class="skeleton-card">
+        <div class="skeleton-line" style="width: 120px; height: 18px;"></div>
+        <div class="skeleton-block" style="height: 74px; margin: 18px 0;"></div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <div class="skeleton-pill"></div>
+          <div class="skeleton-pill"></div>
+        </div>
+        <div class="skeleton-block" style="height: 220px; margin-top: 18px;"></div>
+      </aside>
+    </div>
+
+    <div id="dashboard-grid" class="grid">
       <main class="form-card">
         <form id="chart-form" novalidate>
           <section class="section">
@@ -2320,6 +2445,8 @@
     const generateBtn = document.getElementById('generate-btn');
     const downloadBtn = document.getElementById('download-btn');
     const statusNote = document.getElementById('status-note');
+    const dashboardSkeleton = document.getElementById('dashboard-skeleton');
+    const dashboardGrid = document.getElementById('dashboard-grid');
     const chartCanvas = document.getElementById('chart-canvas');
     const chartContext = chartCanvas.getContext('2d');
     chartContext.imageSmoothingEnabled = true;
@@ -2379,6 +2506,15 @@
     const CHART_PREVIEW_VERSION = 'preview-rebuilt-2026-05-iap-no-ofc-5-18';
     const TEST_PAST_CHARTS_PATIENT_ID = 'TESTPAST001';
 
+    function setDashboardLoading(isLoading) {
+      if (dashboardSkeleton) {
+        dashboardSkeleton.hidden = !isLoading;
+      }
+      if (dashboardGrid) {
+        dashboardGrid.classList.toggle('is-loading', isLoading);
+      }
+    }
+
     function buildDemoMeasurementEntry(daysAgo, values) {
       const measuredAt = new Date();
       measuredAt.setHours(10, 15, 0, 0);
@@ -2422,6 +2558,48 @@
 
     function versionedChartAssetPath(path) {
       return `${path}${path.includes('?') ? '&' : '?'}v=${CHART_ASSET_VERSION}`;
+    }
+
+    function getPatientDetailCacheKey(patientId) {
+      return `${LOCAL_PATIENT_DETAIL_CACHE_PREFIX}:${String(patientId || '').trim().toUpperCase()}`;
+    }
+
+    function readPatientDetailCache(patientId) {
+      try {
+        const raw = localStorage.getItem(getPatientDetailCacheKey(patientId));
+        if (!raw) {
+          return null;
+        }
+
+        const cache = JSON.parse(raw);
+        if (!cache || typeof cache !== 'object') {
+          return null;
+        }
+
+        const savedAt = Number(cache.savedAt || 0);
+        if (!savedAt || Date.now() - savedAt > PATIENT_DETAIL_CACHE_TTL_MS) {
+          return null;
+        }
+
+        return cache.record || null;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function savePatientDetailCache(patientId, record) {
+      if (!patientId || !record) {
+        return;
+      }
+
+      try {
+        localStorage.setItem(getPatientDetailCacheKey(patientId), JSON.stringify({
+          savedAt: Date.now(),
+          record
+        }));
+      } catch (error) {
+        console.warn(`Unable to keep recent patient details: ${error.message}`);
+      }
     }
 
     const templateLibrary = {
@@ -2619,6 +2797,8 @@
       || localStorage.getItem('growthChartDebug') === '1';
     const CAN_USE_PYTHON_CHART_SERVICE = ['localhost', '127.0.0.1'].includes(window.location.hostname);
     const LOCAL_RECORD_KEY = clinicStorageKey('growthChartRecentRecords');
+    const LOCAL_PATIENT_DETAIL_CACHE_PREFIX = clinicStorageKey('patientDetailCache');
+    const PATIENT_DETAIL_CACHE_TTL_MS = 5 * 60 * 1000;
     const MAX_LOCAL_CHART_RECORDS = 8;
 
     async function loadSharedGrowthChartConfigs() {
@@ -3669,6 +3849,7 @@
         ? mergedPatientRecord.measurementHistory.length
         : 0;
 
+      savePatientDetailCache(patientId, mergedPatientRecord);
       return mergedPatientRecord;
     }
 
@@ -3676,6 +3857,7 @@
       const patientId = patientIdInput.value.trim().toUpperCase();
 
       if (!patientId) {
+        setDashboardLoading(false);
         lastHistoryDebug = null;
         clearMeasurementInputs();
         childNameInput.value = '';
@@ -3692,6 +3874,12 @@
 
       patientIdInput.value = patientId;
       setPatientHint('');
+      const cachedPatientRecord = readPatientDetailCache(patientId);
+      if (cachedPatientRecord) {
+        applyPatientRecord(cachedPatientRecord);
+        setPatientHint('Showing recent details while updating...');
+      }
+      setDashboardLoading(!cachedPatientRecord);
 
       try {
         const patientRecord = await fetchPatientRecord(patientId);
@@ -3723,9 +3911,15 @@
           finalMeasurementHistoryCount: 0,
           errorMessage: error.message
         };
-        setPatientHint(`Unable to load patient details: ${error.message}`);
-        updatePageMeta();
-        setPatientGrowthHistory([]);
+        if (cachedPatientRecord) {
+          setPatientHint('Could not update just now. Showing recent details.');
+        } else {
+          setPatientHint(`Unable to load patient details: ${error.message}`);
+          updatePageMeta();
+          setPatientGrowthHistory([]);
+        }
+      } finally {
+        setDashboardLoading(false);
       }
     }
 
