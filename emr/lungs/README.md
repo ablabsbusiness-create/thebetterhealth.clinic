@@ -10,7 +10,7 @@ Static multi-page clinic app built with Vite.
 npm install
 ```
 
-2. Create a `.env` file from `.env.example` and fill in the Firebase values.
+2. Create a `.env` file from `.env.example` and fill in the cloud service values.
 
 3. Start the dev server:
 

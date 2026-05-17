@@ -3382,7 +3382,7 @@
         allPatients = [];
         allHistory = [];
         filterPatients();
-        setStatus('Firebase is not configured, so no patient data is available.', 'warning');
+        setStatus('Cloud records are not configured, so no patient data is available.', 'warning');
         return;
       }
 
@@ -3530,13 +3530,13 @@
 
         filterPatients();
         if (usedLegacyPatients || usedLegacyHistory) {
-          setStatus('Showing patients from the older Firebase collections. Deploy Firestore rules to use separated clinic collections.', 'warning');
+          setStatus('Showing patients from older shared records. Update database rules to use separated clinic records.', 'warning');
         }
       } catch (error) {
         allPatients = [];
         allHistory = [];
         filterPatients();
-        setStatus(`Unable to load Firebase patients: ${error.message}.`, 'warning');
+        setStatus(`Unable to load patient records: ${error.message}.`, 'warning');
       }
     }
 

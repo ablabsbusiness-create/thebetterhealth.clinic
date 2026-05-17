@@ -99,8 +99,8 @@
 
       const configured = Object.values(firebaseConfig).every(Boolean);
       if (!configured) {
-        title.textContent = 'Firebase Not Ready';
-        message.textContent = 'Prescription link cannot open because Firebase is not configured.';
+        title.textContent = 'Prescription Link Not Ready';
+        message.textContent = 'Prescription link cannot open because Cloud records are not configured.';
         return;
       }
 

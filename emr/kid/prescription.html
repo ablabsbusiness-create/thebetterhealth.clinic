@@ -2971,7 +2971,7 @@
 
     async function ensurePrescriptionCollection() {
       if (!db) {
-        statusChip.textContent = 'Firebase config missing';
+        statusChip.textContent = 'Cloud sync unavailable';
         statusChip.classList.add('is-warning');
         return prescriptionTemplates;
       }
@@ -3236,7 +3236,7 @@
           bindCardSelection(card, items);
         });
       } catch (error) {
-        statusChip.textContent = 'Firebase sync failed';
+        statusChip.textContent = 'Cloud sync failed';
         statusChip.classList.add('is-warning');
         console.error(`Prescription collection sync failed: ${error.message}`);
 

@@ -1006,7 +1006,7 @@
           signatureDataUrl: snapshot.data().signatureDataUrl || cachedBranding.signatureDataUrl || ''
         });
       } catch (error) {
-        console.warn(`Unable to load prescription branding from Firebase: ${error.message}`);
+        console.warn(`Unable to load prescription branding from cloud records: ${error.message}`);
         return cachedBranding;
       }
     }
@@ -1744,7 +1744,7 @@
       };
     }
 
-    async function savePrescriptionPdfToFirebase(pdfBlob, fileName, details, saveId) {
+    async function savePrescriptionPdfToCloudStorage(pdfBlob, fileName, details, saveId) {
       if (!db) {
         return { ok: false, reason: 'Firestore is not configured.' };
       }
@@ -1826,7 +1826,7 @@
         const saveId = details.draftId || fallbackSaveId;
         const fileName = `${saveId}.pdf`;
         const pdfBlob = pdf.output('blob');
-        const saveResult = await savePrescriptionPdfToFirebase(pdfBlob, fileName, {
+        const saveResult = await savePrescriptionPdfToCloudStorage(pdfBlob, fileName, {
           ...details,
           patientId,
           childName,

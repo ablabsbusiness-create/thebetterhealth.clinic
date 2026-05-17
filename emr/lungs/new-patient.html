@@ -830,7 +830,7 @@
       return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     }
 
-    async function savePatientToFirebase(patientId) {
+    async function savePatientToCloudRecords(patientId) {
       const normalizedDob = parseDobInput(dobDayInput.value, dobMonthInput.value, dobYearInput.value);
       const patientRecord = {
         patientId,
@@ -886,17 +886,17 @@
       continueBtn.textContent = 'Saving...';
 
       try {
-        const savedToFirebase = await savePatientToFirebase(autoPatientId);
-        setSaveStatus(savedToFirebase
+        const savedToCloudRecords = await savePatientToCloudRecords(autoPatientId);
+        setSaveStatus(savedToCloudRecords
           ? `Saved patient ${autoPatientId} to Firestore.`
-          : `Patient ${autoPatientId} generated locally, but Firebase is not configured.`, savedToFirebase ? 'ready' : 'error');
-        console.log(savedToFirebase
-          ? `Saved to Firebase with Patient ID ${autoPatientId}.`
-          : `Patient ID ${autoPatientId} generated locally. Add Firebase config to store this in Firestore.`);
+          : `Patient ${autoPatientId} generated locally, but Cloud records are not configured.`, savedToCloudRecords ? 'ready' : 'error');
+        console.log(savedToCloudRecords
+          ? `Saved with Patient ID ${autoPatientId}.`
+          : `Patient ID ${autoPatientId} generated locally. Configure cloud records to store this online.`);
         window.location.href = `prescription?patientId=${encodeURIComponent(autoPatientId)}`;
       } catch (error) {
-        console.error(`Firebase save failed: ${error.message}`);
-        setSaveStatus(`Firebase save failed: ${error.message}. Publish Firestore rules and try again.`, 'error');
+        console.error(`Cloud save failed: ${error.message}`);
+        setSaveStatus(`Cloud save failed: ${error.message}. Publish Firestore rules and try again.`, 'error');
       } finally {
         continueBtn.disabled = false;
         continueBtn.textContent = 'Continue';

@@ -463,19 +463,20 @@
       right: 24px;
       bottom: 24px;
       z-index: 80;
-      width: min(420px, calc(100vw - 32px));
+      width: min(390px, calc(100vw - 32px));
       display: grid;
-      grid-template-columns: 44px minmax(0, 1fr) auto;
-      gap: 14px;
-      align-items: start;
-      padding: 18px;
-      border: 1px solid rgba(22, 101, 52, 0.2);
-      border-radius: 18px;
-      background: rgba(255, 255, 255, 0.96);
-      box-shadow: 0 22px 48px rgba(22, 38, 29, 0.22);
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 16px;
+      align-items: center;
+      padding: 16px 16px 16px 18px;
+      border: 1px solid rgba(22, 101, 52, 0.14);
+      border-left: 5px solid #16a34a;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.98);
+      box-shadow: 0 18px 44px rgba(22, 38, 29, 0.18);
       opacity: 0;
       pointer-events: none;
-      transform: translateY(18px) scale(0.98);
+      transform: translateY(14px) scale(0.98);
       transition: opacity 0.2s ease, transform 0.2s ease;
     }
 
@@ -485,22 +486,10 @@
       transform: translateY(0) scale(1);
     }
 
-    .firebase-save-icon {
-      width: 44px;
-      height: 44px;
-      display: grid;
-      place-items: center;
-      border-radius: 14px;
-      background: #dcfce7;
-      color: #166534;
-      font-size: 26px;
-      font-weight: 800;
-    }
-
     .firebase-save-copy strong {
       display: block;
       color: var(--ink);
-      font-size: 17px;
+      font-size: 16px;
       line-height: 1.2;
     }
 
@@ -509,7 +498,7 @@
       margin-top: 6px;
       color: var(--muted);
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 500;
       line-height: 1.45;
     }
 
@@ -518,11 +507,17 @@
       height: 32px;
       border: 0;
       border-radius: 10px;
-      background: #eef4ef;
-      color: var(--ink);
+      background: #f1f5f2;
+      color: #334238;
       font: inherit;
       font-weight: 800;
       cursor: pointer;
+      transition: background 0.16s ease, color 0.16s ease;
+    }
+
+    .firebase-save-close:hover {
+      background: #e4ece6;
+      color: #102217;
     }
 
     .help-actions {
@@ -911,9 +906,8 @@
   </main>
 
   <div id="firebase-save-popup" class="firebase-save-popup" role="status" aria-live="polite" aria-hidden="true">
-    <div class="firebase-save-icon">OK</div>
     <div class="firebase-save-copy">
-      <strong id="firebase-save-popup-title">Saved to Firebase</strong>
+      <strong id="firebase-save-popup-title">Saved</strong>
       <span id="firebase-save-popup-message">Your clinic setting was updated.</span>
     </div>
     <button id="firebase-save-popup-close" class="firebase-save-close" type="button" aria-label="Dismiss confirmation">x</button>
@@ -996,7 +990,7 @@
     const storage = firebaseApp ? getStorage(firebaseApp) : null;
     let firebaseSavePopupTimer = null;
 
-    function showFirebaseSavePopup(message, title = 'Saved to Firebase') {
+    function showCloudSavePopup(message, title = 'Saved') {
       if (!firebaseSavePopup) {
         return;
       }
@@ -1089,8 +1083,8 @@
           ...readBrandingSettings(),
           printHeaderGapCm: confirmedValue
         });
-        updatePrintGapSettingStatus(confirmedValue, `Saved gap: ${confirmedValue.toFixed(1)} cm to Firebase`);
-        showFirebaseSavePopup(`Print without header gap saved as ${confirmedValue.toFixed(1)} cm.`);
+        updatePrintGapSettingStatus(confirmedValue, `Saved gap: ${confirmedValue.toFixed(1)} cm to cloud records`);
+        showCloudSavePopup(`Print without header gap saved as ${confirmedValue.toFixed(1)} cm.`);
         return;
       }
 
@@ -1125,8 +1119,8 @@
       if (!db) {
         if (brandingSettingStatus) {
           brandingSettingStatus.textContent = localStorage.getItem(PRESCRIPTION_BRANDING_STORAGE_KEY)
-            ? 'Current branding: loaded from this browser. Firebase is not configured.'
-            : 'Current branding: default clinic header and footer. Firebase is not configured.';
+            ? 'Current branding: loaded from this browser. Cloud records are not configured.'
+            : 'Current branding: default clinic header and footer. Cloud records are not configured.';
         }
         return cachedSettings;
       }
@@ -1148,13 +1142,13 @@
         updatePrintGapSettingStatus(normalizePrintGapCm(firestoreSettings.printHeaderGapCm));
         populateBrandingForm(firestoreSettings);
         if (brandingSettingStatus) {
-          brandingSettingStatus.textContent = 'Current branding: loaded from Firebase.';
+          brandingSettingStatus.textContent = 'Current branding: loaded from cloud records.';
         }
         return firestoreSettings;
       } catch (error) {
         console.warn(`Unable to load branding settings: ${error.message}`);
         if (brandingSettingStatus) {
-          brandingSettingStatus.textContent = 'Current branding: using this browser cache because Firebase could not be loaded.';
+          brandingSettingStatus.textContent = 'Current branding: using this browser cache because cloud records could not be loaded.';
         }
         return cachedSettings;
       }
@@ -1213,13 +1207,13 @@
           ...nextSettings,
           updatedAt: serverTimestamp()
         }, { merge: true });
-        showFirebaseSavePopup(message);
-      } else if (message.includes('Firebase')) {
+        showCloudSavePopup(message);
+      } else if (message.includes('cloud records')) {
         message = message
-          .replace(' to Firebase and this browser', ' in this browser')
-          .replace(' from Firebase and this browser', ' from this browser')
-          .replace(' and saved to Firebase', '')
-          .replace(' to Firebase', '');
+          .replace(' to cloud records and this browser', ' in this browser')
+          .replace(' from cloud records and this browser', ' from this browser')
+          .replace(' and saved to cloud records', '')
+          .replace(' to cloud records', '');
       }
 
       if (brandingSettingStatus) {
@@ -1269,7 +1263,7 @@
       if (!db || !storage) {
         pdfCount.textContent = '0';
         pdfSize.textContent = '0 KB';
-        usageCaption.textContent = 'Firebase is not configured';
+        usageCaption.textContent = 'Cloud records are not configured';
         updateUsageBar(0);
         return;
       }
@@ -1308,10 +1302,10 @@
         }
         usageCaption.textContent = `${(totalBytes / FIREBASE_FREE_STORAGE_BYTES * 100).toFixed(totalBytes >= FIREBASE_FREE_STORAGE_BYTES * 0.1 ? 1 : 2)}% of ${FIREBASE_STORAGE_LABEL} free storage used`;
       } catch (error) {
-        console.warn(`Unable to load Firebase PDF stats: ${error.message}`);
+        console.warn(`Unable to load PDF stats: ${error.message}`);
         pdfCount.textContent = '0';
         pdfSize.textContent = '0 KB';
-        usageCaption.textContent = 'Firebase PDF usage could not be loaded';
+        usageCaption.textContent = 'PDF usage could not be loaded';
         updateUsageBar(0);
       }
     }
@@ -1358,7 +1352,7 @@
         try {
           await savePrintGapSetting();
         } catch (error) {
-          updatePrintGapSettingStatus(getSavedPrintGapCm(), `Saved locally, but Firebase save failed: ${error.message}`);
+          updatePrintGapSettingStatus(getSavedPrintGapCm(), `Saved locally, but Cloud save failed: ${error.message}`);
         } finally {
           savePrintGapBtn.disabled = false;
         }
@@ -1394,7 +1388,7 @@
             ...collectBrandingForm(),
             signatureDataUrl
           };
-          await saveBrandingSettings('Signature image saved to Firebase and this browser.', nextSettings);
+          await saveBrandingSettings('Signature image saved to cloud records and this browser.', nextSettings);
         } catch (error) {
           if (brandingSettingStatus) {
             brandingSettingStatus.textContent = error.message || 'Unable to save signature image.';
@@ -1412,10 +1406,10 @@
           signatureDataUrl: ''
         };
         try {
-          await saveBrandingSettings('Signature removed from Firebase and this browser.', nextSettings);
+          await saveBrandingSettings('Signature removed from cloud records and this browser.', nextSettings);
         } catch (error) {
           if (brandingSettingStatus) {
-            brandingSettingStatus.textContent = `Signature removed locally, but Firebase save failed: ${error.message}`;
+            brandingSettingStatus.textContent = `Signature removed locally, but Cloud save failed: ${error.message}`;
           }
         }
       });
@@ -1425,10 +1419,10 @@
       saveBrandingBtn.addEventListener('click', async () => {
         saveBrandingBtn.disabled = true;
         try {
-          await saveBrandingSettings('Branding saved to Firebase for prescription preview and PDF.');
+          await saveBrandingSettings('Branding saved to cloud records for prescription preview and PDF.');
         } catch (error) {
           if (brandingSettingStatus) {
-            brandingSettingStatus.textContent = `Saved locally, but Firebase save failed: ${error.message}`;
+            brandingSettingStatus.textContent = `Saved locally, but Cloud save failed: ${error.message}`;
           }
         } finally {
           saveBrandingBtn.disabled = false;
@@ -1440,12 +1434,12 @@
       resetBrandingBtn.addEventListener('click', async () => {
         resetBrandingBtn.disabled = true;
         try {
-          await saveBrandingSettings('Branding reset to default and saved to Firebase.', { ...DEFAULT_BRANDING });
+          await saveBrandingSettings('Branding reset to default and saved to cloud records.', { ...DEFAULT_BRANDING });
         } catch (error) {
           cacheBrandingSettings({ ...DEFAULT_BRANDING });
           populateBrandingForm({ ...DEFAULT_BRANDING });
           if (brandingSettingStatus) {
-            brandingSettingStatus.textContent = `Reset locally, but Firebase save failed: ${error.message}`;
+            brandingSettingStatus.textContent = `Reset locally, but Cloud save failed: ${error.message}`;
           }
         } finally {
           resetBrandingBtn.disabled = false;

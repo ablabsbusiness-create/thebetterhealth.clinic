@@ -178,7 +178,7 @@
       const normalizedDob = parseDobInput(dobDayInput.value, dobMonthInput.value, dobYearInput.value);
       if (!normalizedDob) { dobYearInput.setCustomValidity('Please enter a valid date of birth.'); dobYearInput.reportValidity(); return; }
       dobYearInput.setCustomValidity('');
-      if (!db) { setStatus('Firebase is not configured right now. Please tell the clinic staff.', 'error'); return; }
+      if (!db) { setStatus('Cloud records are not configured right now. Please tell the clinic staff.', 'error'); return; }
       submitBtn.disabled = true;
       submitBtn.textContent = 'Submitting...';
       setStatus('Sending your details to the clinic review queue...');

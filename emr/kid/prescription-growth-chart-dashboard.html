@@ -3780,7 +3780,7 @@
 
     async function saveHistoryRecord() {
       if (!db) {
-        return { ok: false, reason: 'Firebase is not configured.' };
+        return { ok: false, reason: 'Cloud records are not configured.' };
       }
 
       const now = new Date();
@@ -3861,9 +3861,9 @@
       return { ok: true };
     }
 
-    async function uploadPdfToFirebase(pdfBlob) {
+    async function uploadPdfToCloudStorage(pdfBlob) {
       if (!storage) {
-        return { ok: false, reason: 'Firebase Storage is not configured.' };
+        return { ok: false, reason: 'Cloud storage is not configured.' };
       }
 
       const patientId = patientIdInput.value.trim().toUpperCase() || 'UNKNOWN';
@@ -3891,14 +3891,14 @@
         : buildPdfBlobFromPreviewPages();
     }
 
-    async function uploadLatestChartPdfToFirebase() {
+    async function uploadLatestChartPdfToCloudStorage() {
       if (!generatedPreviewPages.length) {
         latestChartPdfUploadResult = null;
         return { ok: false, reason: 'No generated chart PDF is available.' };
       }
 
       const pdfBlob = buildCurrentChartPdfBlob();
-      latestChartPdfUploadResult = await uploadPdfToFirebase(pdfBlob).catch((error) => ({
+      latestChartPdfUploadResult = await uploadPdfToCloudStorage(pdfBlob).catch((error) => ({
         ok: false,
         reason: error.message
       }));

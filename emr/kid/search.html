@@ -1861,6 +1861,7 @@
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
     import { collection, doc, getDocs, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { getDownloadURL, getMetadata, getStorage, listAll, ref } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
     const FIREBASE_COLLECTIONS = {
       patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
@@ -1900,7 +1901,9 @@
     };
 
     const firebaseConfigured = Object.values(firebaseConfig).every(Boolean);
-    const db = firebaseConfigured ? getFirestore(initializeApp(firebaseConfig)) : null;
+    const firebaseApp = firebaseConfigured ? initializeApp(firebaseConfig) : null;
+    const db = firebaseApp ? getFirestore(firebaseApp) : null;
+    const storage = firebaseApp ? getStorage(firebaseApp) : null;
     let allPatients = [];
     let allHistory = [];
     const historyDateFilters = {};
@@ -2290,6 +2293,79 @@
           };
         })
         .filter(Boolean);
+    }
+
+    async function getStoragePrescriptionEntriesForPatient(patient) {
+      if (!storage || !patient) {
+        return [];
+      }
+
+      const patientId = getNormalizedPatientId(patient.patientId || patient.id || '');
+      if (!patientId || patientId === 'ID NOT SAVED') {
+        return [];
+      }
+
+      try {
+        const folderRef = ref(storage, `${CLINIC_STORAGE_PREFIX}/prescriptions/${patientId}`);
+        const folder = await listAll(folderRef);
+        const pdfRefs = folder.items.filter((itemRef) => itemRef.name.toLowerCase().endsWith('.pdf'));
+
+        return (await Promise.all(pdfRefs.map(async (itemRef) => {
+          const [downloadURL, metadata] = await Promise.all([
+            getDownloadURL(itemRef),
+            getMetadata(itemRef).catch(() => ({}))
+          ]);
+          const createdAtIso = metadata.timeCreated || metadata.updated || '';
+          const id = metadata.fullPath || itemRef.fullPath || `${patientId}-${itemRef.name}`;
+
+          return normalizePrescriptionEntry({
+            id,
+            prescriptionSaveId: id,
+            patientId,
+            childName: getPatientDisplayName(patient),
+            phone: patient.phone || '',
+            downloadURL,
+            storagePath: metadata.fullPath || itemRef.fullPath || '',
+            fileName: metadata.name || itemRef.name,
+            createdAtIso,
+            createdAtDisplay: createdAtIso ? '' : itemRef.name,
+            source: 'prescription-pdf',
+            type: 'prescription'
+          }, patient, patientId);
+        }))).filter(Boolean);
+      } catch (error) {
+        console.warn(`Unable to load prescription PDFs for ${patientId}: ${error.message}`);
+        return [];
+      }
+    }
+
+    async function getStoragePrescriptionEntriesForPatients(patients) {
+      if (!storage || !Array.isArray(patients) || patients.length === 0) {
+        return [];
+      }
+
+      const seenIds = new Set();
+      const uniquePatients = patients.filter((patient) => {
+        const patientId = getNormalizedPatientId(patient?.patientId || patient?.id || '');
+        if (!patientId || seenIds.has(patientId)) {
+          return false;
+        }
+        seenIds.add(patientId);
+        return true;
+      });
+
+      const chunks = [];
+      for (let index = 0; index < uniquePatients.length; index += 8) {
+        chunks.push(uniquePatients.slice(index, index + 8));
+      }
+
+      const entries = [];
+      for (const chunk of chunks) {
+        const chunkEntries = await Promise.all(chunk.map((patient) => getStoragePrescriptionEntriesForPatient(patient)));
+        entries.push(...chunkEntries.flat());
+      }
+
+      return entries;
     }
 
     function renderPrescriptionPreviewImage(imageElement) {
@@ -3090,8 +3166,6 @@
       const phone = selectedPatient ? formatMissing(selectedPatient.phone, 'Phone not saved') : '';
       const gender = selectedPatient ? formatMissing(selectedPatient.gender, 'Gender not saved') : '';
       const dob = selectedPatient ? formatDateDisplay(selectedPatient.dob) : '';
-      const prescriptionEntries = selectedPatientIdValue ? getPrescriptionEntries(selectedPatientIdValue) : [];
-      const hasPrescriptionEntries = prescriptionEntries.length > 0;
 
       resultsPanel.innerHTML = `
         <div class="results-dashboard">
@@ -3145,7 +3219,7 @@
                 </div>
               </div>
 
-              <div class="doctor-detail-grid ${hasPrescriptionEntries ? '' : 'is-single'}">
+              <div class="doctor-detail-grid">
                 <div class="doctor-detail-stack">
                   <section class="doctor-card">
                     <div class="doctor-card-head">
@@ -3157,16 +3231,14 @@
                   </section>
                 </div>
 
-                ${hasPrescriptionEntries ? `
-                  <section class="doctor-card">
-                    <div class="doctor-card-head">
-                      <h3>Past Prescriptions</h3>
-                    </div>
-                    <div class="doctor-card-body">
-                      ${renderPrescriptionListHtml(selectedPatientIdValue)}
-                    </div>
-                  </section>
-                ` : ''}
+                <section class="doctor-card">
+                  <div class="doctor-card-head">
+                    <h3>Past Prescriptions</h3>
+                  </div>
+                  <div class="doctor-card-body">
+                    ${renderPrescriptionListHtml(selectedPatientIdValue)}
+                  </div>
+                </section>
               </div>
             ` : `
               <div class="doctor-empty-state">Select a patient from the left list.</div>
@@ -3383,7 +3455,7 @@
         allPatients = [];
         allHistory = [];
         filterPatients();
-        setStatus('Firebase is not configured, so no patient data is available.', 'warning');
+        setStatus('Cloud records are not configured, so no patient data is available.', 'warning');
         return;
       }
 
@@ -3403,6 +3475,10 @@
           console.warn(`Unable to load history records: ${error.message}`);
           return { snapshot: { docs: [] }, usedLegacy: false };
         });
+        const patientRecords = snapshot.docs.map((docSnapshot) => ({
+          id: docSnapshot.id,
+          ...docSnapshot.data()
+        })).filter((patient) => !usedLegacyPatients || recordBelongsToCurrentClinic(patient));
         const remoteHistory = historySnapshot.docs
           .map((docSnapshot) => normalizePrescriptionEntry({
             id: docSnapshot.id,
@@ -3410,7 +3486,8 @@
           }))
           .filter((entry) => !usedLegacyHistory || recordBelongsToCurrentClinic(entry))
           .filter(Boolean);
-        if (snapshot.empty && remoteHistory.length === 0) {
+        const storageHistory = await getStoragePrescriptionEntriesForPatients(patientRecords);
+        if (snapshot.empty && remoteHistory.length === 0 && storageHistory.length === 0) {
           clearLocalPrescriptionEntries();
         }
 
@@ -3418,18 +3495,13 @@
           .map((entry) => normalizePrescriptionEntry(entry))
           .filter(Boolean);
         const mergedHistoryById = new Map();
-        [...remoteHistory, ...localHistory].forEach((entry, index) => {
+        [...remoteHistory, ...storageHistory, ...localHistory].forEach((entry, index) => {
           const key = entry.prescriptionSaveId
             || entry.id
             || getPrescriptionDownloadUrl(entry)
             || `${entry.patientId || 'history'}-${entry.createdAtIso || index}`;
           mergedHistoryById.set(key, entry);
         });
-
-        const patientRecords = snapshot.docs.map((docSnapshot) => ({
-          id: docSnapshot.id,
-          ...docSnapshot.data()
-        })).filter((patient) => !usedLegacyPatients || recordBelongsToCurrentClinic(patient));
         patientRecords.forEach((patient) => {
           getPatientPrescriptionHistoryEntries(patient).forEach((entry, index) => {
             const key = entry.prescriptionSaveId
@@ -3531,13 +3603,13 @@
 
         filterPatients();
         if (usedLegacyPatients || usedLegacyHistory) {
-          setStatus('Showing patients from the older Firebase collections. Deploy Firestore rules to use separated clinic collections.', 'warning');
+          setStatus('Showing patients from older shared records. Update database rules to use separated clinic records.', 'warning');
         }
       } catch (error) {
         allPatients = [];
         allHistory = [];
         filterPatients();
-        setStatus(`Unable to load Firebase patients: ${error.message}.`, 'warning');
+        setStatus(`Unable to load patient records: ${error.message}.`, 'warning');
       }
     }
 
