@@ -288,6 +288,28 @@
       font-weight: 600;
     }
 
+    .combined-usage {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .combined-usage-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .combined-usage-label span:last-child {
+      color: var(--ink);
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
     .setting-card {
       grid-column: 1 / -1;
     }
@@ -828,6 +850,16 @@
             <div id="usage-fill" class="usage-meter-fill"></div>
           </div>
           <div id="usage-caption" class="usage-caption">0% of 2.5 GB free storage used</div>
+          <div class="combined-usage">
+            <div class="combined-usage-label">
+              <span>Kid + Lungs Total</span>
+              <span id="combined-pdf-size">Loading...</span>
+            </div>
+            <div class="usage-meter" aria-hidden="true">
+              <div id="combined-usage-fill" class="usage-meter-fill"></div>
+            </div>
+            <div id="combined-usage-caption" class="usage-caption">Loading combined usage...</div>
+          </div>
         </article>
 
         <article class="stat-card setting-card">
@@ -935,6 +967,9 @@
     const pdfSize = document.getElementById('pdf-size');
     const usageFill = document.getElementById('usage-fill');
     const usageCaption = document.getElementById('usage-caption');
+    const combinedPdfSize = document.getElementById('combined-pdf-size');
+    const combinedUsageFill = document.getElementById('combined-usage-fill');
+    const combinedUsageCaption = document.getElementById('combined-usage-caption');
     const printGapSettingInput = document.getElementById('print-gap-setting-input');
     const savePrintGapBtn = document.getElementById('save-print-gap-btn');
     const signOutBtn = document.getElementById('sign-out-btn');
@@ -956,6 +991,9 @@
     const cloudSavePopupClose = document.getElementById('cloud-save-popup-close');
     const FIREBASE_FREE_STORAGE_BYTES = 2.5 * 1024 * 1024 * 1024;
     const FIREBASE_STORAGE_LABEL = '2.5 GB';
+    const COMBINED_FREE_STORAGE_BYTES = 5 * 1024 * 1024 * 1024;
+    const COMBINED_STORAGE_LABEL = '5 GB';
+    const COMBINED_CLINIC_STORAGE_PREFIXES = ['clinics/kid', 'clinics/lungs'];
     const PRINT_HEADER_GAP_STORAGE_KEY = clinicStorageKey('previewPrintHeaderGapCm');
     const PRESCRIPTION_BRANDING_STORAGE_KEY = clinicStorageKey('prescriptionBrandingSettings');
     const PRESCRIPTION_BRANDING_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'prescriptionBranding'];
@@ -1030,6 +1068,14 @@
       const boundedPercent = Math.max(0, Math.min(rawPercent, 100));
       usageFill.style.width = `${boundedPercent}%`;
       usageCaption.textContent = `${rawPercent.toFixed(rawPercent >= 10 ? 1 : 2)}% of ${FIREBASE_STORAGE_LABEL} free storage used`;
+    }
+
+    function updateCombinedUsageBar(byteCount) {
+      const safeBytes = Number.isFinite(byteCount) && byteCount > 0 ? byteCount : 0;
+      const rawPercent = (safeBytes / COMBINED_FREE_STORAGE_BYTES) * 100;
+      const boundedPercent = Math.max(0, Math.min(rawPercent, 100));
+      combinedUsageFill.style.width = `${boundedPercent}%`;
+      combinedUsageCaption.textContent = `${rawPercent.toFixed(rawPercent >= 10 ? 1 : 2)}% of ${COMBINED_STORAGE_LABEL} free storage used`;
     }
 
     function normalizePrintGapCm(value) {
@@ -1264,7 +1310,10 @@
         pdfCount.textContent = '0';
         pdfSize.textContent = '0 KB';
         usageCaption.textContent = 'Cloud records are not configured';
+        combinedPdfSize.textContent = '0 KB';
+        combinedUsageCaption.textContent = 'Cloud records are not configured';
         updateUsageBar(0);
+        updateCombinedUsageBar(0);
         return;
       }
 
@@ -1273,11 +1322,17 @@
           ...(await collectPdfStorageRefs(`${CLINIC_STORAGE_PREFIX}/prescriptions`)),
           ...(await collectPdfStorageRefs(`${CLINIC_STORAGE_PREFIX}/chart-pdfs`))
         ];
+        const combinedPdfRefs = (await Promise.all(COMBINED_CLINIC_STORAGE_PREFIXES.flatMap((prefix) => [
+          collectPdfStorageRefs(`${prefix}/prescriptions`),
+          collectPdfStorageRefs(`${prefix}/chart-pdfs`)
+        ]))).flat();
 
         pdfCount.textContent = String(pdfRefs.length);
 
         let totalBytes = 0;
         let resolvedFiles = 0;
+        let combinedTotalBytes = 0;
+        let combinedResolvedFiles = 0;
 
         await Promise.all(pdfRefs.map(async (storageRef) => {
           try {
@@ -1289,24 +1344,47 @@
           }
         }));
 
+        await Promise.all(combinedPdfRefs.map(async (storageRef) => {
+          try {
+            const metadata = await getMetadata(storageRef);
+            combinedTotalBytes += Number(metadata.size || 0);
+            combinedResolvedFiles += 1;
+          } catch (error) {
+            console.warn(`Unable to read combined PDF metadata for ${storageRef.fullPath}: ${error.message}`);
+          }
+        }));
+
         pdfSize.textContent = formatBytes(totalBytes);
+        combinedPdfSize.textContent = formatBytes(combinedTotalBytes);
         updateUsageBar(totalBytes);
+        updateCombinedUsageBar(combinedTotalBytes);
 
         if (pdfRefs.length === 0) {
           usageCaption.textContent = `0% of ${FIREBASE_STORAGE_LABEL} free storage used`;
-          return;
         }
 
-        if (resolvedFiles === pdfRefs.length) {
+        if (combinedPdfRefs.length === 0) {
+          combinedUsageCaption.textContent = `0% of ${COMBINED_STORAGE_LABEL} free storage used`;
+        }
+
+        if (resolvedFiles === pdfRefs.length && combinedResolvedFiles === combinedPdfRefs.length) {
           return;
         }
-        usageCaption.textContent = `${(totalBytes / FIREBASE_FREE_STORAGE_BYTES * 100).toFixed(totalBytes >= FIREBASE_FREE_STORAGE_BYTES * 0.1 ? 1 : 2)}% of ${FIREBASE_STORAGE_LABEL} free storage used`;
+        if (resolvedFiles !== pdfRefs.length) {
+          usageCaption.textContent = `${(totalBytes / FIREBASE_FREE_STORAGE_BYTES * 100).toFixed(totalBytes >= FIREBASE_FREE_STORAGE_BYTES * 0.1 ? 1 : 2)}% of ${FIREBASE_STORAGE_LABEL} free storage used`;
+        }
+        if (combinedResolvedFiles !== combinedPdfRefs.length) {
+          combinedUsageCaption.textContent = `${(combinedTotalBytes / COMBINED_FREE_STORAGE_BYTES * 100).toFixed(combinedTotalBytes >= COMBINED_FREE_STORAGE_BYTES * 0.1 ? 1 : 2)}% of ${COMBINED_STORAGE_LABEL} free storage used`;
+        }
       } catch (error) {
         console.warn(`Unable to load PDF stats: ${error.message}`);
         pdfCount.textContent = '0';
         pdfSize.textContent = '0 KB';
         usageCaption.textContent = 'PDF usage could not be loaded';
+        combinedPdfSize.textContent = '0 KB';
+        combinedUsageCaption.textContent = 'Combined PDF usage could not be loaded';
         updateUsageBar(0);
+        updateCombinedUsageBar(0);
       }
     }
 
