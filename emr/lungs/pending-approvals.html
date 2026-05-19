@@ -131,48 +131,7 @@
     code { font-family:'IBM Plex Mono',monospace; font-size:12px; }
     @media (max-width:960px) { .workspace { grid-template-columns:1fr; } .queue-panel { position:static; max-height:none; } }
     @media (max-width:720px) { .review-grid { grid-template-columns:1fr; } .page-intro,.review-head,.review-actions { flex-direction:column; align-items:stretch; } }
-  
-    /* Shared top navigation button style. */
-    .topbar-actions {
-      margin-left: auto;
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
 
-    .topbar-actions .nav-link,
-    .topbar-actions .settings-shortcut,
-    .topbar-actions .btn-secondary,
-    .topbar-actions .btn-primary {
-      min-height: 38px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 16px;
-      border: 1px solid var(--line);
-      border-radius: 9px;
-      background: #ffffff;
-      color: var(--brand-strong);
-      box-shadow: none;
-      font: inherit;
-      font-size: 13px;
-      font-weight: 700;
-      line-height: 1;
-      text-decoration: none;
-      white-space: nowrap;
-    }
-
-    .topbar-actions .nav-link:hover,
-    .topbar-actions .nav-link.active,
-    .topbar-actions .settings-shortcut:hover,
-    .topbar-actions .btn-secondary:hover,
-    .topbar-actions .btn-primary:hover {
-      border-color: #b9cabe;
-      background: #f8fbf9;
-      color: var(--brand-strong);
-    }
   </style>
 </head>
 <body>
@@ -181,11 +140,11 @@
       <div class="brand"><div class="brand-mark">PA</div><div class="brand-copy"><strong>The Better Health Clinic</strong><span>Pending Intake Approvals</span></div></div>
       <nav id="primary-nav" class="nav-links" aria-label="Primary">
         <a class="nav-link" href="index">Dashboard</a>
-        <a class="nav-link" href="search">Search Patients</a>
+        <a class="nav-link" href="search">Enter Clinic</a>
         <a class="nav-link active" href="pending-approvals">Approvals</a>
         <a class="nav-link" href="settings">Settings</a>
       </nav>
-      <div class="topbar-actions"><a class="nav-link" href="index">Index</a><a class="btn-secondary" href="search">Search Patients</a><a class="nav-link" href="settings">Settings</a><div class="status-chip"><span class="status-dot"></span>Doctor review queue</div></div>
+      
     </div>
   </header>
   <div class="page-shell">

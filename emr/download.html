@@ -275,6 +275,10 @@
       line-height: 1.55;
     }
 
+    .install-note strong {
+      color: var(--brand-strong);
+    }
+
     @media (max-width: 820px) {
       .hero,
       .steps {
@@ -295,12 +299,13 @@
         <h1>Install the clinic EMR for quick access.</h1>
         <p class="lead">Use this page to install the EMR on your phone, tablet, or desktop. If your browser does not show the install prompt, open the menu and choose Add to Home Screen or Install app.</p>
         <div class="actions">
-          <button class="button" id="install-button" type="button" disabled>Install EMR App</button>
+          <button class="button" id="install-button" type="button">Install EMR App</button>
           <a class="button secondary" href="/emr/kid/password.html">Open Kids EMR</a>
           <a class="button secondary" href="/emr/lungs/password.html">Open Lungs EMR</a>
-          <a class="button secondary" href="/emr/site.webmanifest" download>Download Manifest</a>
+          <a class="button secondary" href="https://www.thebetterhealth.clinic/emr/download/">Open Live Install Page</a>
+          <button class="button secondary" id="shortcut-button" type="button">Download Shortcut</button>
         </div>
-        <p class="install-note" id="install-note">Install button will activate when the browser allows app installation. Chrome and Edge usually show it after the page finishes loading.</p>
+        <p class="install-note" id="install-note">Install works from the live HTTPS website. If you opened this from a local file, use Open Live Install Page first.</p>
       </div>
 
       <div class="panel phone" aria-label="EMR app preview">
@@ -352,30 +357,53 @@
   <script>
     let deferredPrompt;
     const installButton = document.getElementById('install-button');
+    const shortcutButton = document.getElementById('shortcut-button');
     const installNote = document.getElementById('install-note');
+    const liveUrl = 'https://www.thebetterhealth.clinic/emr/download/';
+
+    if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+      navigator.serviceWorker.register('/emr/sw.js', { scope: '/emr/' }).catch(() => {});
+    }
 
     window.addEventListener('beforeinstallprompt', (event) => {
       event.preventDefault();
       deferredPrompt = event;
-      installButton.disabled = false;
       installNote.textContent = 'Your browser is ready. Tap Install EMR App to add it to this device.';
     });
 
     installButton.addEventListener('click', async () => {
+      if (window.location.protocol === 'file:') {
+        installNote.innerHTML = '<strong>Local file cannot install apps.</strong> Open the live HTTPS install page, then tap Install EMR App again.';
+        window.open(liveUrl, '_blank', 'noopener');
+        return;
+      }
+
       if (!deferredPrompt) {
-        installNote.textContent = 'If the install prompt is not available, use your browser menu and choose Add to Home Screen or Install app.';
+        installNote.innerHTML = '<strong>Install prompt is not available yet.</strong> In Chrome or Edge, open the browser menu and choose Install app. On iPhone, use Share, then Add to Home Screen.';
         return;
       }
 
       deferredPrompt.prompt();
       await deferredPrompt.userChoice;
       deferredPrompt = null;
-      installButton.disabled = true;
       installNote.textContent = 'If installation completed, open Better EMR from your device home screen or app list.';
     });
 
+    shortcutButton.addEventListener('click', () => {
+      const shortcut = `[InternetShortcut]\r\nURL=${liveUrl}\r\n`;
+      const blob = new Blob([shortcut], { type: 'application/internet-shortcut' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'Better EMR.url';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      installNote.textContent = 'Shortcut downloaded. Open it to go directly to the live EMR install page.';
+    });
+
     if (window.matchMedia('(display-mode: standalone)').matches) {
-      installButton.disabled = true;
       installNote.textContent = 'The EMR app is already running in installed app mode on this device.';
     }
   </script>

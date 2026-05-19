@@ -151,36 +151,31 @@
     .nav-links {
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin-left: 10px;
-      flex-wrap: wrap;
+      gap: 6px;
+      margin-left: auto;
       min-width: 0;
     }
 
     .nav-link {
+      min-height: 44px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 10px 14px;
+      padding: 0 18px;
       border-radius: 999px;
-      color: var(--muted);
+      color: #5f6f66;
       text-decoration: none;
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 800;
+      white-space: nowrap;
       transition: background 0.18s ease, color 0.18s ease;
     }
 
     .nav-link:hover,
     .nav-link.active {
-      background: var(--brand-soft);
-      color: var(--brand-strong);
+      background: #dcfce7;
+      color: #14532d;
     }
-
-    .menu-toggle,
-    .nav-links {
-      display: none !important;
-    }
-
     .menu-toggle {
       display: none;
       align-items: center;
@@ -1994,150 +1989,7 @@
         border-radius: 18px;
       }
     }
-  
-    /* Shared top navigation button style. */
-    .topbar-actions {
-      margin-left: auto;
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
 
-    .topbar-actions .nav-link,
-    .topbar-actions .settings-shortcut,
-    .topbar-actions .btn-secondary,
-    .topbar-actions .btn-primary {
-      min-height: 38px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 16px;
-      border: 1px solid var(--line);
-      border-radius: 9px;
-      background: #ffffff;
-      color: var(--brand-strong);
-      box-shadow: none;
-      font: inherit;
-      font-size: 13px;
-      font-weight: 700;
-      line-height: 1;
-      text-decoration: none;
-      white-space: nowrap;
-    }
-
-    .topbar-actions .nav-link:hover,
-    .topbar-actions .nav-link.active,
-    .topbar-actions .settings-shortcut:hover,
-    .topbar-actions .btn-secondary:hover,
-    .topbar-actions .btn-primary:hover {
-      border-color: #b9cabe;
-      background: #f8fbf9;
-      color: var(--brand-strong);
-    }
-
-    .skeleton-shell {
-      display: grid;
-      grid-template-columns: 340px minmax(0, 1fr);
-      min-height: calc(100vh - 194px);
-      border-top: 1px solid var(--line);
-      background: #f4f7f5;
-    }
-
-    .skeleton-sidebar {
-      border-right: 1px solid var(--line);
-      background: #ffffff;
-    }
-
-    .skeleton-main {
-      padding: 24px 28px;
-    }
-
-    .skeleton-tabs {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .skeleton-tab {
-      height: 44px;
-      border-right: 1px solid var(--line);
-      background: #f8fbf9;
-    }
-
-    .skeleton-item {
-      padding: 18px 16px;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .skeleton-card {
-      border: 1px solid var(--line);
-      background: #ffffff;
-      padding: 18px;
-    }
-
-    .skeleton-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
-      margin-top: 18px;
-    }
-
-    .skeleton-line,
-    .skeleton-pill,
-    .skeleton-block {
-      position: relative;
-      overflow: hidden;
-      border-radius: 8px;
-      background: #e8f0eb;
-    }
-
-    .skeleton-line::after,
-    .skeleton-pill::after,
-    .skeleton-block::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      transform: translateX(-100%);
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.72), transparent);
-      animation: skeleton-shimmer 1.2s ease-in-out infinite;
-    }
-
-    .skeleton-line {
-      height: 12px;
-      margin-bottom: 10px;
-    }
-
-    .skeleton-pill {
-      width: 66px;
-      height: 34px;
-      border-radius: 999px;
-    }
-
-    .skeleton-block {
-      height: 116px;
-    }
-
-    @keyframes skeleton-shimmer {
-      100% {
-        transform: translateX(100%);
-      }
-    }
-
-    @media (max-width: 760px) {
-      .skeleton-shell {
-        grid-template-columns: 1fr;
-      }
-
-      .skeleton-sidebar {
-        border-right: 0;
-      }
-
-      .skeleton-grid {
-        grid-template-columns: 1fr;
-      }
-    }
   </style>
 </head>
 <body>
@@ -2151,12 +2003,14 @@
         </div>
       </div>
 
-      <div class="topbar-actions">
-        <a class="nav-link" href="index">Index</a>
-        <a class="nav-link" href="new-patient">New Patient</a>
+      
+      <nav id="primary-nav" class="nav-links" aria-label="Primary">
+        <a class="nav-link" href="index">Dashboard</a>
+        <a class="nav-link active" href="search">Enter Clinic</a>
         <a class="nav-link" href="pending-approvals">Approvals</a>
         <a class="nav-link" href="settings">Settings</a>
-      </div>
+      </nav>
+
 
     </div>
   </header>

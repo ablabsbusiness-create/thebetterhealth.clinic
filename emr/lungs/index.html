@@ -147,29 +147,30 @@
     .nav-links {
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin-left: 10px;
-      flex-wrap: wrap;
+      gap: 6px;
+      margin-left: auto;
       min-width: 0;
     }
 
     .nav-link {
+      min-height: 44px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 10px 14px;
+      padding: 0 18px;
       border-radius: 999px;
-      color: var(--muted);
+      color: #5f6f66;
       text-decoration: none;
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 800;
+      white-space: nowrap;
       transition: background 0.18s ease, color 0.18s ease;
     }
 
     .nav-link:hover,
     .nav-link.active {
-      background: var(--brand-soft);
-      color: var(--brand-strong);
+      background: #dcfce7;
+      color: #14532d;
     }
 
     .menu-toggle {
@@ -212,35 +213,7 @@
     .menu-toggle[aria-expanded="true"] .menu-toggle-bar:nth-child(3) {
       transform: translateY(-6px) rotate(-45deg);
     }
-
-    .topbar-actions {
-      margin-left: auto;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .settings-shortcut {
-      display: none;
-      align-items: center;
-      justify-content: center;
-      min-height: 42px;
-      padding: 0 16px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.9);
-      color: var(--brand-strong);
-      text-decoration: none;
-      font-size: 12px;
-      font-weight: 700;
-      box-shadow: 0 10px 22px rgba(22, 38, 29, 0.08);
-    }
-
-    .settings-shortcut:hover {
-      background: var(--brand-soft);
-    }
-
-    .status-chip {
+.status-chip {
       display: inline-flex;
       align-items: center;
       gap: 8px;
@@ -515,48 +488,7 @@
         min-height: 40px;
       }
     }
-  
-    /* Shared top navigation button style. */
-    .topbar-actions {
-      margin-left: auto;
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
 
-    .topbar-actions .nav-link,
-    .topbar-actions .settings-shortcut,
-    .topbar-actions .btn-secondary,
-    .topbar-actions .btn-primary {
-      min-height: 38px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 16px;
-      border: 1px solid var(--line);
-      border-radius: 9px;
-      background: #ffffff;
-      color: var(--brand-strong);
-      box-shadow: none;
-      font: inherit;
-      font-size: 13px;
-      font-weight: 700;
-      line-height: 1;
-      text-decoration: none;
-      white-space: nowrap;
-    }
-
-    .topbar-actions .nav-link:hover,
-    .topbar-actions .nav-link.active,
-    .topbar-actions .settings-shortcut:hover,
-    .topbar-actions .btn-secondary:hover,
-    .topbar-actions .btn-primary:hover {
-      border-color: #b9cabe;
-      background: #f8fbf9;
-      color: var(--brand-strong);
-    }
   </style>
 </head>
 <body>
@@ -592,15 +524,7 @@
         <a class="nav-link" href="settings">Settings</a>
       </nav>
 
-      <div class="topbar-actions">
-        <a class="nav-link" href="search">Search</a>
-        <a class="nav-link" href="pending-approvals">Approvals</a>
-        <a class="settings-shortcut" href="settings">Settings</a>
-        <div class="status-chip">
-          <span class="status-dot"></span>
-          Clinic access active
-        </div>
-      </div>
+      
     </div>
   </header>
 
