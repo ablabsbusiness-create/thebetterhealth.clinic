@@ -1299,6 +1299,10 @@
 <div class="relative">
 <div class="absolute inset-0 bg-brand-orange opacity-10 rounded-5xl rotate-2 pointer-events-none"></div>
 <img alt="Dr. Chaitanya Sravanthi in a respiratory consultation room" class="relative rounded-5xl w-full h-80 md:h-[460px] object-cover shadow-card" src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=900&amp;auto=format&amp;fit=crop&amp;q=80"/>
+<div class="absolute -bottom-6 -right-4 lg:-right-8 bg-white rounded-3xl px-6 py-4 shadow-card text-center">
+<div class="text-3xl font-bold text-brand-green font-heading">14+</div>
+<div class="text-sm text-gray-500 font-semibold">Years of Experience</div>
+</div>
 </div>
 </div>
 <div class="fade-in">
@@ -1308,22 +1312,26 @@
 <div class="relative lg:hidden mb-6">
 <div class="absolute inset-0 bg-brand-orange opacity-10 rounded-5xl rotate-2 pointer-events-none"></div>
 <img alt="Dr. Chaitanya Sravanthi in a respiratory consultation room" class="relative rounded-5xl w-full h-72 object-cover shadow-card" src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=900&amp;auto=format&amp;fit=crop&amp;q=80"/>
+<div class="absolute -bottom-5 right-4 bg-white rounded-3xl px-5 py-3 shadow-card text-center">
+<div class="text-2xl font-bold text-brand-green font-heading">14+</div>
+<div class="text-xs text-gray-500 font-semibold">Years of Experience</div>
+</div>
 </div>
 <h2 class="text-3xl md:text-4xl font-bold text-brand-dark mb-5">Meet Dr. Chaitanya Sravanthi R</h2>
 <p class="text-gray-600 leading-relaxed mb-4">Dr. Chaitanya Sravanthi R is a Consultant Pulmonologist and Sleep Specialist practicing at Fortis Hospital Bannerghatta Road and The Better Lungs Clinic @ The Better Health.Clinic, previously known as Shree Akshaya Clinic - Chest Care Centre.</p>
 <p class="text-gray-600 leading-relaxed mb-8">Her work spans asthma, COPD, tuberculosis, interstitial lung disease, recurrent respiratory infections, pneumonia, post-COVID lung complications, allergic rhinitis, pulmonary hypertension, lung cancer, smoking cessation, and sleep-related breathing disorders.</p>
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
 <div class="bg-brand-cream rounded-3xl p-5 shadow-soft">
-<div class="text-2xl font-bold text-brand-green font-heading mb-1">14+</div>
-<div class="text-sm font-semibold text-brand-dark">Years of clinical experience</div>
+<div class="text-2xl font-bold text-brand-green font-heading mb-1">Relief</div>
+<div class="text-sm font-semibold text-brand-dark">Asthma, COPD, cough and allergy care</div>
 </div>
 <div class="bg-brand-cream rounded-3xl p-5 shadow-soft">
-<div class="text-2xl font-bold text-brand-orange font-heading mb-1">KMC</div>
-<div class="text-sm font-semibold text-brand-dark">106760</div>
+<div class="text-2xl font-bold text-brand-orange font-heading mb-1">Sleep</div>
+<div class="text-sm font-semibold text-brand-dark">Sleep apnea and breathing disorder support</div>
 </div>
 <div class="bg-brand-cream rounded-3xl p-5 shadow-soft">
-<div class="text-2xl font-bold text-brand-green font-heading mb-1">MD, DNB</div>
-<div class="text-sm font-semibold text-brand-dark">Pulmonology and TB/Respiratory Diseases</div>
+<div class="text-2xl font-bold text-brand-green font-heading mb-1">Clarity</div>
+<div class="text-sm font-semibold text-brand-dark">Evidence-based plans with clear follow-up</div>
 </div>
 </div>
 <div class="mt-10">
@@ -1984,13 +1992,16 @@
       const dotsWrap = carousel.querySelector('[data-gallery-dots]');
       if (!track || !slides.length || !prevButton || !nextButton || !dotsWrap) return;
 
+      let activeGalleryIndex = 0;
+      let programmaticScrollUntil = 0;
+
       const dots = slides.map((_, index) => {
         const dot = document.createElement('button');
         dot.className = 'gallery-carousel-dot';
         dot.type = 'button';
         dot.setAttribute('aria-label', `Go to gallery item ${index + 1}`);
         dot.addEventListener('click', () => {
-          slides[index].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+          goToSlide(index);
         });
         dotsWrap.appendChild(dot);
         return dot;
@@ -2008,25 +2019,37 @@
         }, 0);
       };
 
-      const updateDots = () => {
-        const activeIndex = getActiveIndex();
+      const updateDots = (forcedIndex) => {
+        const activeIndex = typeof forcedIndex === 'number' ? forcedIndex : getActiveIndex();
+        activeGalleryIndex = activeIndex;
         dots.forEach((dot, index) => {
           dot.classList.toggle('is-active', index === activeIndex);
           dot.setAttribute('aria-current', index === activeIndex ? 'true' : 'false');
         });
       };
 
-      const scrollToOffset = (direction) => {
-        const firstSlide = slides[0];
-        const gap = slides[1] ? slides[1].offsetLeft - firstSlide.offsetLeft - firstSlide.offsetWidth : 0;
-        track.scrollBy({ left: direction * (firstSlide.offsetWidth + gap), behavior: 'smooth' });
+      const goToSlide = (targetIndex) => {
+        activeGalleryIndex = targetIndex;
+        programmaticScrollUntil = Date.now() + 700;
+        const inlinePosition = targetIndex === 0 ? 'start' : targetIndex === slides.length - 1 ? 'end' : 'center';
+        slides[targetIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: inlinePosition });
+        updateDots(targetIndex);
       };
 
-      prevButton.addEventListener('click', () => scrollToOffset(-1));
-      nextButton.addEventListener('click', () => scrollToOffset(1));
-      track.addEventListener('scroll', () => window.requestAnimationFrame(updateDots), { passive: true });
+      const scrollToSlide = (direction) => {
+        const targetIndex = (activeGalleryIndex + direction + slides.length) % slides.length;
+        goToSlide(targetIndex);
+      };
+
+      prevButton.addEventListener('click', () => scrollToSlide(-1));
+      nextButton.addEventListener('click', () => scrollToSlide(1));
+      track.addEventListener('scroll', () => {
+        window.requestAnimationFrame(() => {
+          if (Date.now() >= programmaticScrollUntil) updateDots();
+        });
+      }, { passive: true });
       window.addEventListener('resize', updateDots);
-      updateDots();
+      updateDots(0);
     });
 
     const heroName = document.getElementById('hero-name');

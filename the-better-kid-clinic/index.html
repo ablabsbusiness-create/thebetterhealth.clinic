@@ -891,7 +891,7 @@
 <div class="text-xs text-gray-500">Reassuring for families</div>
 </div>
 </div>
-<div class="mt-10 fade-in">
+<div class="mt-10 fade-in flex justify-center">
 <a class="section-open-link inline-flex items-center gap-2 border-2 border-brand-green text-brand-green hover:bg-brand-green hover:text-white font-bold px-7 py-3.5 rounded-full transition-colors" href="./about"> Open About Page </a>
 </div>
 </div>
@@ -1352,13 +1352,16 @@
       const dotsWrap = carousel.querySelector('[data-gallery-dots]');
       if (!track || !slides.length || !prevButton || !nextButton || !dotsWrap) return;
 
+      let activeGalleryIndex = 0;
+      let programmaticScrollUntil = 0;
+
       const dots = slides.map((_, index) => {
         const dot = document.createElement('button');
         dot.className = 'gallery-carousel-dot';
         dot.type = 'button';
         dot.setAttribute('aria-label', `Go to gallery item ${index + 1}`);
         dot.addEventListener('click', () => {
-          slides[index].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+          goToSlide(index);
         });
         dotsWrap.appendChild(dot);
         return dot;
@@ -1376,25 +1379,37 @@
         }, 0);
       };
 
-      const updateDots = () => {
-        const activeIndex = getActiveIndex();
+      const updateDots = (forcedIndex) => {
+        const activeIndex = typeof forcedIndex === 'number' ? forcedIndex : getActiveIndex();
+        activeGalleryIndex = activeIndex;
         dots.forEach((dot, index) => {
           dot.classList.toggle('is-active', index === activeIndex);
           dot.setAttribute('aria-current', index === activeIndex ? 'true' : 'false');
         });
       };
 
-      const scrollToOffset = (direction) => {
-        const firstSlide = slides[0];
-        const gap = slides[1] ? slides[1].offsetLeft - firstSlide.offsetLeft - firstSlide.offsetWidth : 0;
-        track.scrollBy({ left: direction * (firstSlide.offsetWidth + gap), behavior: 'smooth' });
+      const goToSlide = (targetIndex) => {
+        activeGalleryIndex = targetIndex;
+        programmaticScrollUntil = Date.now() + 700;
+        const inlinePosition = targetIndex === 0 ? 'start' : targetIndex === slides.length - 1 ? 'end' : 'center';
+        slides[targetIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: inlinePosition });
+        updateDots(targetIndex);
       };
 
-      prevButton.addEventListener('click', () => scrollToOffset(-1));
-      nextButton.addEventListener('click', () => scrollToOffset(1));
-      track.addEventListener('scroll', () => window.requestAnimationFrame(updateDots), { passive: true });
+      const scrollToSlide = (direction) => {
+        const targetIndex = (activeGalleryIndex + direction + slides.length) % slides.length;
+        goToSlide(targetIndex);
+      };
+
+      prevButton.addEventListener('click', () => scrollToSlide(-1));
+      nextButton.addEventListener('click', () => scrollToSlide(1));
+      track.addEventListener('scroll', () => {
+        window.requestAnimationFrame(() => {
+          if (Date.now() >= programmaticScrollUntil) updateDots();
+        });
+      }, { passive: true });
       window.addEventListener('resize', updateDots);
-      updateDots();
+      updateDots(0);
     });
 
     const GOOGLE_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwwVvDnpY1lFhda10gTMyHTTRyypvhwhRlVdQ9EDazX-txmc_HIhi3qzMPOm3HCf6tB5w/exec';
