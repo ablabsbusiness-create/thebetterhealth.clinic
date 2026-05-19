@@ -273,16 +273,19 @@
       position: relative;
     }
     .gallery-carousel-track {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      display: flex;
       gap: 1rem;
-      overflow: visible;
-      padding: 0;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      scrollbar-width: none;
+      padding: 0.25rem 0.25rem 1rem;
     }
     .gallery-carousel-track::-webkit-scrollbar {
       display: none;
     }
     .gallery-carousel-track > article {
+      flex: 0 0 calc((100% - 2rem) / 3);
       min-width: 0;
       scroll-snap-align: start;
       border: 1px solid rgba(46, 125, 107, 0.1);
@@ -291,27 +294,15 @@
       position: relative;
       isolation: isolate;
     }
-    .gallery-carousel-track > article:first-child {
-      grid-column: span 2;
-    }
-    .gallery-carousel-track > article:last-child {
-      grid-column: span 2;
-    }
     .gallery-carousel-track > article img {
-      height: 14rem;
+      height: 15.5rem;
       min-height: 0;
-    }
-    .gallery-carousel-track > article:first-child img {
-      height: 20rem;
     }
     .gallery-carousel-track > article > div {
       background: linear-gradient(180deg, #ffffff 0%, #fffaf4 100%);
     }
-    .gallery-carousel-track > article:first-child > div {
-      padding: 1.5rem;
-    }
     .gallery-carousel-actions {
-      display: none;
+      display: flex;
     }
     .gallery-carousel-control {
       width: 2.85rem;
@@ -347,28 +338,14 @@
     }
     @media (max-width: 1023px) {
       .gallery-carousel-track {
-        display: flex;
         gap: 1.1rem;
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        scroll-behavior: smooth;
-        padding: 0.25rem 0.25rem 1rem;
-        scrollbar-width: none;
       }
       .gallery-carousel-track > article {
         flex: 0 0 calc((100% - 1.1rem) / 2);
       }
-      .gallery-carousel-track > article:first-child,
-      .gallery-carousel-track > article:last-child {
-        grid-column: auto;
-        grid-row: auto;
-      }
       .gallery-carousel-track > article img,
       .gallery-carousel-track > article:first-child img {
         height: 15.5rem;
-      }
-      .gallery-carousel-actions {
-        display: flex;
       }
     }
     @media (max-width: 767px) {
@@ -2013,17 +1990,20 @@
         dot.type = 'button';
         dot.setAttribute('aria-label', `Go to gallery item ${index + 1}`);
         dot.addEventListener('click', () => {
-          slides[index].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+          slides[index].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
         });
         dotsWrap.appendChild(dot);
         return dot;
       });
 
       const getActiveIndex = () => {
-        const trackLeft = track.getBoundingClientRect().left;
+        const trackBox = track.getBoundingClientRect();
+        const trackCenter = trackBox.left + (trackBox.width / 2);
         return slides.reduce((closestIndex, slide, index) => {
-          const currentDistance = Math.abs(slide.getBoundingClientRect().left - trackLeft);
-          const closestDistance = Math.abs(slides[closestIndex].getBoundingClientRect().left - trackLeft);
+          const slideBox = slide.getBoundingClientRect();
+          const closestBox = slides[closestIndex].getBoundingClientRect();
+          const currentDistance = Math.abs((slideBox.left + slideBox.width / 2) - trackCenter);
+          const closestDistance = Math.abs((closestBox.left + closestBox.width / 2) - trackCenter);
           return currentDistance < closestDistance ? index : closestIndex;
         }, 0);
       };
