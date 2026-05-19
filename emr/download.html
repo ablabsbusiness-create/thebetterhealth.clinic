@@ -300,12 +300,8 @@
         <p class="lead">Use this page to install the EMR on your phone, tablet, or desktop. If your browser does not show the install prompt, open the menu and choose Add to Home Screen or Install app.</p>
         <div class="actions">
           <button class="button" id="install-button" type="button">Install EMR App</button>
-          <a class="button secondary" href="/emr/kid/password.html">Open Kids EMR</a>
-          <a class="button secondary" href="/emr/lungs/password.html">Open Lungs EMR</a>
-          <a class="button secondary" href="https://www.thebetterhealth.clinic/emr/download/">Open Live Install Page</a>
-          <button class="button secondary" id="shortcut-button" type="button">Download Shortcut</button>
         </div>
-        <p class="install-note" id="install-note">Install works from the live HTTPS website. If you opened this from a local file, use Open Live Install Page first.</p>
+        <p class="install-note" id="install-note">Install works only from the live HTTPS website in Chrome or Edge. It will not install from a local file or the Codex in-app browser.</p>
       </div>
 
       <div class="panel phone" aria-label="EMR app preview">
@@ -357,7 +353,6 @@
   <script>
     let deferredPrompt;
     const installButton = document.getElementById('install-button');
-    const shortcutButton = document.getElementById('shortcut-button');
     const installNote = document.getElementById('install-note');
     const liveUrl = 'https://www.thebetterhealth.clinic/emr/download/';
 
@@ -379,7 +374,7 @@
       }
 
       if (!deferredPrompt) {
-        installNote.innerHTML = '<strong>Install prompt is not available yet.</strong> In Chrome or Edge, open the browser menu and choose Install app. On iPhone, use Share, then Add to Home Screen.';
+        installNote.innerHTML = '<strong>Install prompt is not available in this browser.</strong> Copy the live link and open it in normal Chrome or Edge. If the prompt still does not appear, use the browser menu and choose Install app. On iPhone, use Share, then Add to Home Screen.';
         return;
       }
 
@@ -387,20 +382,6 @@
       await deferredPrompt.userChoice;
       deferredPrompt = null;
       installNote.textContent = 'If installation completed, open Better EMR from your device home screen or app list.';
-    });
-
-    shortcutButton.addEventListener('click', () => {
-      const shortcut = `[InternetShortcut]\r\nURL=${liveUrl}\r\n`;
-      const blob = new Blob([shortcut], { type: 'application/internet-shortcut' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'Better EMR.url';
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      URL.revokeObjectURL(url);
-      installNote.textContent = 'Shortcut downloaded. Open it to go directly to the live EMR install page.';
     });
 
     if (window.matchMedia('(display-mode: standalone)').matches) {
