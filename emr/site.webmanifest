@@ -1,0 +1,22 @@
+{
+  "name": "The Better Health Clinic EMR",
+  "short_name": "Better EMR",
+  "description": "Clinic EMR for The Better Health Clinic pediatric and pulmonology workflows.",
+  "start_url": "/emr/password/",
+  "scope": "/emr/",
+  "display": "standalone",
+  "background_color": "#eef4ef",
+  "theme_color": "#166534",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "32x32",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": [
+    "medical",
+    "productivity"
+  ]
+}

@@ -1,0 +1,25 @@
+# The Better Health Clinic
+
+> The Better Health Clinic is a Bengaluru clinic with dedicated pediatric and pulmonology care pages.
+
+## Public Pages
+
+- [The Better Health Clinic](https://www.thebetterhealth.clinic/)
+- [The Better Kids Clinic](https://www.thebetterhealth.clinic/the-better-kid-clinic/)
+- [About Dr. Gunda Srinivas](https://www.thebetterhealth.clinic/the-better-kid-clinic/about/)
+- [Kids Clinic Services](https://www.thebetterhealth.clinic/the-better-kid-clinic/services/)
+- [Kids Clinic Reviews](https://www.thebetterhealth.clinic/the-better-kid-clinic/testimonials/)
+- [Contact The Better Kids Clinic](https://www.thebetterhealth.clinic/the-better-kid-clinic/contact/)
+- [The Better Lungs Clinic](https://www.thebetterhealth.clinic/the-better-lungs-clinic/)
+- [About Dr. Chaitanya Sravanthi R](https://www.thebetterhealth.clinic/the-better-lungs-clinic/about/)
+- [Lungs Clinic Services](https://www.thebetterhealth.clinic/the-better-lungs-clinic/services/)
+- [Lungs Clinic Reviews](https://www.thebetterhealth.clinic/the-better-lungs-clinic/testimonials/)
+- [Contact The Better Lungs Clinic](https://www.thebetterhealth.clinic/the-better-lungs-clinic/contact/)
+
+## Clinic Details
+
+The Better Health.Clinic is located at #155, 2nd Cross, 1st stage, Arekere MICO Layout, Off Bannerghatta Road, Bengaluru - 560076. Landmark: adjacent to Little Millenium Pre-School.
+
+The Better Kids Clinic is led by Dr. Gunda Srinivas, Consultant - Pediatric Emergency Medicine & Pediatrics. Appointment number: 9686183999.
+
+The Better Lungs Clinic is led by Dr. Chaitanya Sravanthi R, Consultant Pulmonologist & Sleep Specialist. Appointment number: 9513988840.
