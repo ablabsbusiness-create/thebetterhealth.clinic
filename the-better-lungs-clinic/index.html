@@ -1181,7 +1181,7 @@
 <p class="text-xl md:text-2xl text-gray-600 leading-relaxed">with expert chest care</p>
 <div class="mt-2 mb-3 flex items-center justify-center">
 <div class="name-slot">
-<span class="name-stage font-heading text-brand-green" id="hero-name">Breathe</span>
+<span class="name-stage font-heading text-brand-green" id="hero-name"></span>
 </div>
 </div>
 <p class="text-base md:text-lg text-gray-500 leading-relaxed max-w-xl mx-auto">Dr. Chaitanya Sravanthi R offers calm, evidence-based respiratory and sleep care with 14+ years of experience across asthma, COPD, TB, ILD, sleep apnea, chronic cough, and post-COVID lung concerns.</p>
@@ -1512,9 +1512,9 @@
 </article>
 </div>
 <div class="gallery-carousel-actions mt-6 items-center justify-center gap-4">
-<button aria-label="Previous blog article" class="gallery-carousel-control" data-gallery-prev type="button">&#8249;</button>
+<button aria-label="Previous blog article" class="gallery-carousel-control" data-gallery-prev type="button"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
 <div aria-label="Blog slide position" class="flex items-center gap-2" data-gallery-dots></div>
-<button aria-label="Next blog article" class="gallery-carousel-control" data-gallery-next type="button">&#8250;</button>
+<button aria-label="Next blog article" class="gallery-carousel-control" data-gallery-next type="button"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
 </div>
 </div>
 <div class="mt-10 text-center fade-in"><a class="section-open-link inline-flex items-center gap-2 border-2 border-brand-green text-brand-green hover:bg-brand-green hover:text-white font-bold px-7 py-3.5 rounded-full transition-colors" href="./blog/">View All Blogs</a></div>
@@ -1561,9 +1561,9 @@
 </article>
 </div>
 <div class="gallery-carousel-actions mt-6 items-center justify-center gap-4">
-<button aria-label="Previous gallery item" class="gallery-carousel-control" data-gallery-prev type="button">&#8249;</button>
+<button aria-label="Previous gallery item" class="gallery-carousel-control" data-gallery-prev type="button"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
 <div aria-label="Gallery slide position" class="flex items-center justify-center gap-2" data-gallery-dots></div>
-<button aria-label="Next gallery item" class="gallery-carousel-control" data-gallery-next type="button">&#8250;</button>
+<button aria-label="Next gallery item" class="gallery-carousel-control" data-gallery-next type="button"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
 </div>
 </div>
 </div>
@@ -1604,9 +1604,9 @@
 <article class="hover-lift bg-brand-cream rounded-4xl shadow-soft"><div class="p-7 h-full flex flex-col gap-4"><div class="stars text-lg">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p class="text-gray-600 leading-relaxed text-sm flex-1">"She identified the allergic cough trigger quickly, avoided unnecessary tests, relieved our tension, and gave confidence."</p><div class="text-xs font-bold uppercase tracking-wide text-gray-500">Verified Patient Review</div></div></article>
 </div>
 <div class="gallery-carousel-actions mt-6 items-center justify-center gap-4">
-<button aria-label="Previous testimonial" class="gallery-carousel-control" data-gallery-prev type="button">&#8249;</button>
+<button aria-label="Previous testimonial" class="gallery-carousel-control" data-gallery-prev type="button"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
 <div aria-label="Testimonial slide position" class="flex items-center gap-2" data-gallery-dots></div>
-<button aria-label="Next testimonial" class="gallery-carousel-control" data-gallery-next type="button">&#8250;</button>
+<button aria-label="Next testimonial" class="gallery-carousel-control" data-gallery-next type="button"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
 </div>
 </div>
 <div class="mt-12 text-center fade-in">
@@ -2087,8 +2087,18 @@
         updateCarouselState(nextIndex);
       };
 
-      const getPreviousIndex = () => (isAtStart() || activeGalleryIndex <= 0 ? slides.length - 1 : activeGalleryIndex - 1);
-      const getNextIndex = () => (isAtEnd() || activeGalleryIndex >= slides.length - 1 ? 0 : activeGalleryIndex + 1);
+      const getLiveIndex = () => {
+        updateCarouselState();
+        return activeGalleryIndex;
+      };
+      const getPreviousIndex = () => {
+        const currentIndex = getLiveIndex();
+        return isAtStart() || currentIndex <= 0 ? slides.length - 1 : currentIndex - 1;
+      };
+      const getNextIndex = () => {
+        const currentIndex = getLiveIndex();
+        return isAtEnd() || currentIndex >= slides.length - 1 ? 0 : currentIndex + 1;
+      };
 
       const queueStateUpdate = () => {
         if (scrollFrame) return;
@@ -2121,6 +2131,10 @@
     let heroNameIndex = 0;
 
     if (heroName) {
+      const typeDelay = 95;
+      const wordHoldDelay = 1100;
+      heroName.textContent = '';
+
       const typeHeroName = (name, onDone) => {
         let charIndex = 0;
         heroName.textContent = '';
@@ -2131,7 +2145,7 @@
             clearInterval(typer);
             if (onDone) onDone();
           }
-        }, 95);
+        }, typeDelay);
       };
 
       const loopHeroNames = () => {
@@ -2140,11 +2154,11 @@
           setTimeout(() => {
             heroNameIndex = (heroNameIndex + 1) % heroNames.length;
             loopHeroNames();
-          }, 1100);
+          }, wordHoldDelay);
         });
       };
 
-      loopHeroNames();
+      window.requestAnimationFrame(loopHeroNames);
     }
 
   </script>

@@ -1244,9 +1244,9 @@
           </article>
         </div>
         <div class="gallery-carousel-actions mt-6 items-center justify-center gap-4">
-          <button aria-label="Previous gallery item" class="gallery-carousel-control" data-gallery-prev type="button">&#8249;</button>
+          <button aria-label="Previous gallery item" class="gallery-carousel-control" data-gallery-prev type="button"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
           <div aria-label="Gallery slide position" class="flex items-center justify-center gap-2" data-gallery-dots></div>
-          <button aria-label="Next gallery item" class="gallery-carousel-control" data-gallery-next type="button">&#8250;</button>
+          <button aria-label="Next gallery item" class="gallery-carousel-control" data-gallery-next type="button"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
         </div>
       </div>
     </div>
@@ -1395,9 +1395,9 @@
           </article>
         </div>
         <div class="gallery-carousel-actions mt-6 items-center justify-center gap-4">
-          <button aria-label="Previous review" class="gallery-carousel-control" data-gallery-prev type="button">&#8249;</button>
+          <button aria-label="Previous review" class="gallery-carousel-control" data-gallery-prev type="button"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
           <div aria-label="Review slide position" class="flex items-center gap-2" data-gallery-dots></div>
-          <button aria-label="Next review" class="gallery-carousel-control" data-gallery-next type="button">&#8250;</button>
+          <button aria-label="Next review" class="gallery-carousel-control" data-gallery-next type="button"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
         </div>
       </div>
     </div>
@@ -1702,8 +1702,18 @@
         updateCarouselState(nextIndex);
       };
 
-      const getPreviousIndex = () => (isAtStart() || activeGalleryIndex <= 0 ? slides.length - 1 : activeGalleryIndex - 1);
-      const getNextIndex = () => (isAtEnd() || activeGalleryIndex >= slides.length - 1 ? 0 : activeGalleryIndex + 1);
+      const getLiveIndex = () => {
+        updateCarouselState();
+        return activeGalleryIndex;
+      };
+      const getPreviousIndex = () => {
+        const currentIndex = getLiveIndex();
+        return isAtStart() || currentIndex <= 0 ? slides.length - 1 : currentIndex - 1;
+      };
+      const getNextIndex = () => {
+        const currentIndex = getLiveIndex();
+        return isAtEnd() || currentIndex >= slides.length - 1 ? 0 : currentIndex + 1;
+      };
 
       const queueStateUpdate = () => {
         if (scrollFrame) return;
