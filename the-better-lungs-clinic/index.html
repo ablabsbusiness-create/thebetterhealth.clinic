@@ -2062,8 +2062,14 @@
         }, 0);
       };
 
+      const getMaxScroll = () => Math.max(0, track.scrollWidth - track.clientWidth);
+      const isAtStart = () => track.scrollLeft <= 2;
+      const isAtEnd = () => track.scrollLeft >= getMaxScroll() - 2;
+
       const updateCarouselState = (forcedIndex) => {
-        const activeIndex = clampIndex(typeof forcedIndex === 'number' ? forcedIndex : getActiveIndex());
+        let activeIndex = clampIndex(typeof forcedIndex === 'number' ? forcedIndex : getActiveIndex());
+        if (typeof forcedIndex !== 'number' && isAtEnd()) activeIndex = slides.length - 1;
+        if (typeof forcedIndex !== 'number' && isAtStart()) activeIndex = 0;
         activeGalleryIndex = activeIndex;
         dots.forEach((dot, index) => {
           dot.classList.toggle('is-active', index === activeIndex);
@@ -2081,6 +2087,9 @@
         updateCarouselState(nextIndex);
       };
 
+      const getPreviousIndex = () => (isAtStart() || activeGalleryIndex <= 0 ? slides.length - 1 : activeGalleryIndex - 1);
+      const getNextIndex = () => (isAtEnd() || activeGalleryIndex >= slides.length - 1 ? 0 : activeGalleryIndex + 1);
+
       const queueStateUpdate = () => {
         if (scrollFrame) return;
         scrollFrame = window.requestAnimationFrame(() => {
@@ -2089,17 +2098,17 @@
         });
       };
 
-      prevButton.addEventListener('click', () => goToSlide(activeGalleryIndex - 1));
-      nextButton.addEventListener('click', () => goToSlide(activeGalleryIndex + 1));
+      prevButton.addEventListener('click', () => goToSlide(getPreviousIndex()));
+      nextButton.addEventListener('click', () => goToSlide(getNextIndex()));
       track.addEventListener('scroll', queueStateUpdate, { passive: true });
       track.addEventListener('keydown', (event) => {
         if (event.key === 'ArrowLeft') {
           event.preventDefault();
-          goToSlide(activeGalleryIndex - 1);
+          goToSlide(getPreviousIndex());
         }
         if (event.key === 'ArrowRight') {
           event.preventDefault();
-          goToSlide(activeGalleryIndex + 1);
+          goToSlide(getNextIndex());
         }
       });
       window.addEventListener('resize', () => goToSlide(activeGalleryIndex));
