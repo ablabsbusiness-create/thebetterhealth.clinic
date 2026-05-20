@@ -114,4 +114,28 @@
     <changefreq>monthly</changefreq>
     <priority>0.65</priority>
   </url>
+  <url>
+    <loc>https://www.thebetterhealth.clinic/the-better-kid-clinic/blog/newborn-care-first-month/</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://www.thebetterhealth.clinic/the-better-kid-clinic/blog/child-asthma-allergy-cough/</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://www.thebetterhealth.clinic/the-better-lungs-clinic/blog/pulmonary-function-test-pft/</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://www.thebetterhealth.clinic/the-better-lungs-clinic/blog/smoking-cessation-lung-health/</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
 </urlset>

@@ -1545,6 +1545,7 @@
       });
 
       const clampIndex = (index) => Math.max(0, Math.min(slides.length - 1, index));
+      const loopIndex = (index) => (index + slides.length) % slides.length;
 
       const getTargetScrollLeft = (targetIndex) => {
         const slide = slides[targetIndex];
@@ -1570,14 +1571,14 @@
           dot.classList.toggle('is-active', index === activeIndex);
           dot.setAttribute('aria-current', index === activeIndex ? 'true' : 'false');
         });
-        prevButton.disabled = activeIndex === 0;
-        nextButton.disabled = activeIndex === slides.length - 1;
-        prevButton.setAttribute('aria-disabled', prevButton.disabled ? 'true' : 'false');
-        nextButton.setAttribute('aria-disabled', nextButton.disabled ? 'true' : 'false');
+        prevButton.disabled = false;
+        nextButton.disabled = false;
+        prevButton.setAttribute('aria-disabled', 'false');
+        nextButton.setAttribute('aria-disabled', 'false');
       };
 
       const goToSlide = (targetIndex) => {
-        const nextIndex = clampIndex(targetIndex);
+        const nextIndex = loopIndex(targetIndex);
         track.scrollTo({ left: getTargetScrollLeft(nextIndex), behavior: reducedMotion ? 'auto' : 'smooth' });
         updateCarouselState(nextIndex);
       };
