@@ -579,6 +579,13 @@
     }
     .float-a { animation: floatA 4s ease-in-out infinite; }
     .float-b { animation: floatB 5s ease-in-out infinite 0.8s; }
+    .pretty-emoji {
+      width: 3.9rem;
+      height: 3.9rem;
+      display: block;
+      object-fit: contain;
+      filter: drop-shadow(0 10px 18px rgba(28,25,23,0.12));
+    }
     @keyframes lungBreath {
       0%, 100% {
         transform: translateY(0) scale(1);
@@ -605,7 +612,6 @@
       width: 4.2rem;
       height: 4.2rem;
       margin-bottom: 1rem;
-      font-size: 3rem;
       animation: lungBreath 4.8s ease-in-out infinite;
       transform-origin: center;
     }
@@ -809,7 +815,9 @@
         <!-- Card 1 - Children's Specialist -->
         <div class="spec-card teal">
           <span class="card-glow"></span>
-          <div class="float-a text-5xl mb-4"><i class="fa-solid fa-baby"></i></div>
+          <div class="float-a mb-4" aria-hidden="true">
+            <img class="pretty-emoji" src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f476.svg" alt="" loading="eager" />
+          </div>
           <h2 class="font-serif font-bold text-2xl text-stone-900 mb-1">Children's Specialist</h2>
           <p class="text-teal-700 text-sm font-semibold mb-1">(Pediatrician)</p>
           <p class="text-stone-800 text-sm font-semibold mb-1">Dr. Gunda Srinivas</p>
@@ -826,7 +834,9 @@
         <!-- Card 2 - Chest Physician -->
         <div class="spec-card sky">
           <span class="card-glow"></span>
-          <div class="lung-emoji" aria-hidden="true"><i class="fa-solid fa-lungs"></i></div>
+          <div class="lung-emoji" aria-hidden="true">
+            <img class="pretty-emoji" src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1fac1.svg" alt="" loading="eager" />
+          </div>
           <h2 class="font-serif font-bold text-2xl text-stone-900 mb-1">Chest Physician</h2>
           <p class="text-blue-700 text-sm font-semibold mb-1">(Pulmonologist)</p>
           <p class="text-stone-800 text-sm font-semibold mb-1">Dr. Chaitanya Sravanthi R</p>
@@ -1270,18 +1280,6 @@
               <div class="mt-5 text-sm font-semibold text-stone-500">Verified Patient Review</div>
             </div>
           </article>
-          <article class="why-card"><div class="p-7 h-full flex flex-col"><div class="text-sm font-bold uppercase tracking-[0.18em]" style="color:var(--accent-teal);">Review text pending</div><p class="text-stone-500 text-base leading-relaxed mt-4 flex-1">Review text pending.</p><div class="mt-5 text-sm font-semibold text-stone-500">Review text pending</div></div></article>
-          <article class="why-card"><div class="p-7 h-full flex flex-col"><div class="text-sm font-bold uppercase tracking-[0.18em]" style="color:var(--accent-blue);">Review text pending</div><p class="text-stone-500 text-base leading-relaxed mt-4 flex-1">Review text pending.</p><div class="mt-5 text-sm font-semibold text-stone-500">Review text pending</div></div></article>
-          <article class="why-card"><div class="p-7 h-full flex flex-col"><div class="text-sm font-bold uppercase tracking-[0.18em]" style="color:var(--accent-gold);">Review text pending</div><p class="text-stone-500 text-base leading-relaxed mt-4 flex-1">Review text pending.</p><div class="mt-5 text-sm font-semibold text-stone-500">Review text pending</div></div></article>
-          <article class="why-card"><div class="p-7 h-full flex flex-col"><div class="text-sm font-bold uppercase tracking-[0.18em]" style="color:var(--accent-teal);">Review text pending</div><p class="text-stone-500 text-base leading-relaxed mt-4 flex-1">Review text pending.</p><div class="mt-5 text-sm font-semibold text-stone-500">Review text pending</div></div></article>
-          <article class="why-card"><div class="p-7 h-full flex flex-col"><div class="text-sm font-bold uppercase tracking-[0.18em]" style="color:var(--accent-blue);">Review text pending</div><p class="text-stone-500 text-base leading-relaxed mt-4 flex-1">Review text pending.</p><div class="mt-5 text-sm font-semibold text-stone-500">Review text pending</div></div></article>
-          <article class="why-card"><div class="p-7 h-full flex flex-col"><div class="text-sm font-bold uppercase tracking-[0.18em]" style="color:var(--accent-gold);">Review text pending</div><p class="text-stone-500 text-base leading-relaxed mt-4 flex-1">Review text pending.</p><div class="mt-5 text-sm font-semibold text-stone-500">Review text pending</div></div></article>
-          <article class="why-card"><div class="p-7 h-full flex flex-col"><div class="text-sm font-bold uppercase tracking-[0.18em]" style="color:var(--accent-teal);">Review text pending</div><p class="text-stone-500 text-base leading-relaxed mt-4 flex-1">Review text pending.</p><div class="mt-5 text-sm font-semibold text-stone-500">Review text pending</div></div></article>
-          <article class="why-card"><div class="p-7 h-full flex flex-col"><div class="text-sm font-bold uppercase tracking-[0.18em]" style="color:var(--accent-blue);">Review text pending</div><p class="text-stone-500 text-base leading-relaxed mt-4 flex-1">Review text pending.</p><div class="mt-5 text-sm font-semibold text-stone-500">Review text pending</div></div></article>
-          <article class="why-card"><div class="p-7 h-full flex flex-col"><div class="text-sm font-bold uppercase tracking-[0.18em]" style="color:var(--accent-gold);">Review text pending</div><p class="text-stone-500 text-base leading-relaxed mt-4 flex-1">Review text pending.</p><div class="mt-5 text-sm font-semibold text-stone-500">Review text pending</div></div></article>
-          <article class="why-card"><div class="p-7 h-full flex flex-col"><div class="text-sm font-bold uppercase tracking-[0.18em]" style="color:var(--accent-teal);">Review text pending</div><p class="text-stone-500 text-base leading-relaxed mt-4 flex-1">Review text pending.</p><div class="mt-5 text-sm font-semibold text-stone-500">Review text pending</div></div></article>
-          <article class="why-card"><div class="p-7 h-full flex flex-col"><div class="text-sm font-bold uppercase tracking-[0.18em]" style="color:var(--accent-blue);">Review text pending</div><p class="text-stone-500 text-base leading-relaxed mt-4 flex-1">Review text pending.</p><div class="mt-5 text-sm font-semibold text-stone-500">Review text pending</div></div></article>
-          <article class="why-card"><div class="p-7 h-full flex flex-col"><div class="text-sm font-bold uppercase tracking-[0.18em]" style="color:var(--accent-gold);">Review text pending</div><p class="text-stone-500 text-base leading-relaxed mt-4 flex-1">Review text pending.</p><div class="mt-5 text-sm font-semibold text-stone-500">Review text pending</div></div></article>
         </div>
         <div class="gallery-carousel-actions mt-6 items-center justify-center gap-4">
           <button aria-label="Previous review" class="gallery-carousel-control" data-gallery-prev type="button">&#8249;</button>
@@ -1620,4 +1618,5 @@
 
 </body>
 </html>
+
 
