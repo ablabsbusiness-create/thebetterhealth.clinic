@@ -6,6 +6,7 @@
   
   <title>The Better Health Clinic | Kids &amp; Lung Specialist Care in Bengaluru</title>
   <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <meta name="description" content="The Better Health Clinic in Arekere MICO Layout, Bengaluru offers pediatric care by Dr. Gunda Srinivas and lung care by Dr. Chaitanya Sravanthi R." />
   <link rel="canonical" href="https://www.thebetterhealth.clinic/" />
   <meta property="og:type" content="website" />
@@ -235,9 +236,15 @@
       border: 1.5px solid rgba(200,169,126,0.2);
       border-radius: 1.5rem;
       padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
       transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
       position: relative;
       overflow: hidden;
+    }
+    .spec-card > a {
+      margin-top: auto;
     }
     .spec-card::before {
       content: '';
@@ -356,6 +363,99 @@
     .why-card:hover {
       transform: translateY(-4px);
       box-shadow: 0 16px 40px rgba(28,25,23,0.10);
+    }
+    .gallery-carousel {
+      position: relative;
+      max-width: 100%;
+      overflow: hidden;
+    }
+    .gallery-carousel-track {
+      display: flex;
+      gap: 1rem;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      scrollbar-width: none;
+      padding: 0.25rem 0.25rem 1rem;
+      overscroll-behavior-x: contain;
+      -webkit-overflow-scrolling: touch;
+    }
+    .gallery-carousel-track::-webkit-scrollbar {
+      display: none;
+    }
+    .gallery-carousel-track > article {
+      flex: 0 0 calc((100% - 2rem) / 3);
+      min-width: 0;
+      scroll-snap-align: start;
+      border: 1px solid rgba(200,169,126,0.22);
+      border-radius: 0.75rem;
+      box-shadow: 0 18px 45px rgba(28,25,23,0.09);
+      position: relative;
+      isolation: isolate;
+      display: flex;
+      transform: translateZ(0);
+    }
+    .gallery-carousel-track > article img {
+      height: 15.5rem;
+      min-height: 0;
+    }
+    .gallery-carousel-track > article > div {
+      background: linear-gradient(180deg, #ffffff 0%, #fffaf4 100%);
+    }
+    .gallery-carousel-actions {
+      display: flex;
+    }
+    .gallery-carousel-control {
+      width: 2.85rem;
+      height: 2.85rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: #ffffff;
+      color: var(--accent-dark);
+      box-shadow: 0 12px 30px rgba(28,25,23,0.10);
+      border: 1px solid rgba(200,169,126,0.28);
+      font-size: 1.45rem;
+      font-weight: 900;
+      line-height: 1;
+      transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+    }
+    .gallery-carousel-control:hover {
+      transform: translateY(-2px);
+      background: var(--accent-dark);
+      color: #ffffff;
+    }
+    .gallery-carousel-control:disabled {
+      opacity: 0.38;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .gallery-carousel-control:focus-visible,
+    .gallery-carousel-dot:focus-visible {
+      outline: 3px solid rgba(200,169,126,0.45);
+      outline-offset: 3px;
+    }
+    .gallery-carousel-dot {
+      width: 0.7rem;
+      height: 0.7rem;
+      border-radius: 999px;
+      background: rgba(168,132,79,0.28);
+      transition: width 0.2s ease, background 0.2s ease;
+      cursor: pointer;
+    }
+    .gallery-carousel-dot.is-active {
+      width: 1.65rem;
+      background: var(--accent-dark);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .gallery-carousel-track {
+        scroll-behavior: auto;
+      }
+      .gallery-carousel-control,
+      .gallery-carousel-dot {
+        transition: none;
+      }
     }
     .child-section {
       position: relative;
@@ -590,6 +690,34 @@
       transition: background 0.2s, border-color 0.2s;
     }
     .btn-outline-warm:hover { background: rgba(200,169,126,0.12); border-color: var(--accent-beige); }
+    @media (max-width: 1023px) {
+      .gallery-carousel-track {
+        gap: 1.1rem;
+      }
+      .gallery-carousel-track > article {
+        flex: 0 0 calc((100% - 1.1rem) / 2);
+      }
+    }
+    @media (max-width: 767px) {
+      .gallery-carousel-track {
+        gap: 0.95rem;
+        padding-left: 1.1rem;
+        padding-right: 1.1rem;
+        scroll-padding-inline: 1.1rem;
+        margin-left: -1.1rem;
+        margin-right: -1.1rem;
+      }
+      .gallery-carousel-track > article {
+        flex: 0 0 min(82vw, 21rem);
+      }
+      .gallery-carousel-track > article img {
+        height: 14.5rem;
+      }
+      .gallery-carousel-control {
+        width: 2.55rem;
+        height: 2.55rem;
+      }
+    }
   </style>
 </head>
 <body class="antialiased">
@@ -681,7 +809,7 @@
         <!-- Card 1 - Children's Specialist -->
         <div class="spec-card teal">
           <span class="card-glow"></span>
-          <div class="float-a text-5xl mb-4">👶</div>
+          <div class="float-a text-5xl mb-4"><i class="fa-solid fa-baby"></i></div>
           <h2 class="font-serif font-bold text-2xl text-stone-900 mb-1">Children's Specialist</h2>
           <p class="text-teal-700 text-sm font-semibold mb-1">(Pediatrician)</p>
           <p class="text-stone-800 text-sm font-semibold mb-1">Dr. Gunda Srinivas</p>
@@ -698,7 +826,7 @@
         <!-- Card 2 - Chest Physician -->
         <div class="spec-card sky">
           <span class="card-glow"></span>
-          <div class="lung-emoji" aria-hidden="true">🫁</div>
+          <div class="lung-emoji" aria-hidden="true"><i class="fa-solid fa-lungs"></i></div>
           <h2 class="font-serif font-bold text-2xl text-stone-900 mb-1">Chest Physician</h2>
           <p class="text-blue-700 text-sm font-semibold mb-1">(Pulmonologist)</p>
           <p class="text-stone-800 text-sm font-semibold mb-1">Dr. Chaitanya Sravanthi R</p>
@@ -803,52 +931,52 @@
 
         <!-- Service cards -->
         <div class="why-card child-card hover-lift fade-up delay-1">
-          <div class="text-3xl mb-3">💉</div>
-          <h3 class="font-semibold text-stone-900 mb-1.5">Vaccinations</h3>
-          <p class="text-stone-500 text-sm leading-relaxed">Complete immunisation schedules for infants and children as per national guidelines.</p>
+          <div class="text-3xl mb-3"><i class="fa-solid fa-syringe"></i></div>
+          <h3 class="font-semibold text-stone-900 mb-1.5">Consultations & Vaccinations</h3>
+          <p class="text-stone-500 text-sm leading-relaxed">In-person and online pediatric consultations with complete vaccination support.</p>
           <div class="mt-3 flex flex-wrap gap-1.5">
-            <span class="service-chip"><span class="dot-sm" style="background:#2D7B6F;"></span>Infant shots</span>
-            <span class="service-chip"><span class="dot-sm" style="background:#2D7B6F;"></span>Booster doses</span>
+            <span class="service-chip"><span class="dot-sm" style="background:#2D7B6F;"></span>All vaccines</span>
+            <span class="service-chip"><span class="dot-sm" style="background:#2D7B6F;"></span>Online consults</span>
           </div>
         </div>
 
         <div class="why-card child-card hover-lift fade-up delay-2">
-          <div class="text-3xl mb-3">🌡️</div>
-          <h3 class="font-semibold text-stone-900 mb-1.5">Child Fever & Infections</h3>
-          <p class="text-stone-500 text-sm leading-relaxed">Prompt diagnosis and treatment for fever, viral infections, and seasonal illnesses.</p>
+          <div class="text-3xl mb-3"><i class="fa-solid fa-temperature-high"></i></div>
+          <h3 class="font-semibold text-stone-900 mb-1.5">Deep Consultations</h3>
+          <p class="text-stone-500 text-sm leading-relaxed">Detailed review, recovery guidance, and handholding for child health concerns.</p>
           <div class="mt-3 flex flex-wrap gap-1.5">
-            <span class="service-chip"><span class="dot-sm" style="background:#2D7B6F;"></span>Fever care</span>
-            <span class="service-chip"><span class="dot-sm" style="background:#2D7B6F;"></span>Viral illness</span>
+            <span class="service-chip"><span class="dot-sm" style="background:#2D7B6F;"></span>Recovery support</span>
+            <span class="service-chip"><span class="dot-sm" style="background:#2D7B6F;"></span>Handholding</span>
           </div>
         </div>
 
         <div class="why-card child-card hover-lift fade-up delay-3">
-          <div class="text-3xl mb-3">📈</div>
-          <h3 class="font-semibold text-stone-900 mb-1.5">Growth Monitoring</h3>
-          <p class="text-stone-500 text-sm leading-relaxed">Track height, weight, and developmental milestones with our specialist paediatricians.</p>
+          <div class="text-3xl mb-3"><i class="fa-solid fa-chart-line"></i></div>
+          <h3 class="font-semibold text-stone-900 mb-1.5">Newborn & Growth Monitoring</h3>
+          <p class="text-stone-500 text-sm leading-relaxed">Newborn care with height, weight, and developmental milestone tracking.</p>
           <div class="mt-3 flex flex-wrap gap-1.5">
-            <span class="service-chip"><span class="dot-sm" style="background:#2D7B6F;"></span>Milestone check</span>
-            <span class="service-chip"><span class="dot-sm" style="background:#2D7B6F;"></span>BMI tracking</span>
+            <span class="service-chip"><span class="dot-sm" style="background:#2D7B6F;"></span>Newborn care</span>
+            <span class="service-chip"><span class="dot-sm" style="background:#2D7B6F;"></span>Milestones</span>
           </div>
         </div>
 
         <div class="why-card child-card hover-lift fade-up delay-1">
-          <div class="text-3xl mb-3">🤗</div>
-          <h3 class="font-semibold text-stone-900 mb-1.5">Nutrition Guidance</h3>
-          <p class="text-stone-500 text-sm leading-relaxed">Personalised dietary advice for optimal growth, immunity, and childhood development.</p>
+          <div class="text-3xl mb-3"><i class="fa-solid fa-hand-holding-heart"></i></div>
+          <h3 class="font-semibold text-stone-900 mb-1.5">Asthma & Allergies</h3>
+          <p class="text-stone-500 text-sm leading-relaxed">Child-focused asthma, allergy, cough, and breathing concern evaluation.</p>
           <div class="mt-3 flex flex-wrap gap-1.5">
-            <span class="service-chip"><span class="dot-sm" style="background:#2D7B6F;"></span>Diet plans</span>
-            <span class="service-chip"><span class="dot-sm" style="background:#2D7B6F;"></span>Infant feeding</span>
+            <span class="service-chip"><span class="dot-sm" style="background:#2D7B6F;"></span>Asthma</span>
+            <span class="service-chip"><span class="dot-sm" style="background:#2D7B6F;"></span>Allergies</span>
           </div>
         </div>
 
         <div class="why-card child-card hover-lift fade-up delay-2">
-          <div class="text-3xl mb-3">🩺</div>
-          <h3 class="font-semibold text-stone-900 mb-1.5">Regular Checkups</h3>
-          <p class="text-stone-500 text-sm leading-relaxed">Routine health screenings and well-child visits to ensure your child's continued wellness.</p>
+          <div class="text-3xl mb-3"><i class="fa-solid fa-stethoscope"></i></div>
+          <h3 class="font-semibold text-stone-900 mb-1.5">Remote Monitoring & PFT</h3>
+          <p class="text-stone-500 text-sm leading-relaxed">Remote monitoring, continued guidance, and pulmonary function testing support.</p>
           <div class="mt-3 flex flex-wrap gap-1.5">
-            <span class="service-chip"><span class="dot-sm" style="background:#2D7B6F;"></span>Annual exam</span>
-            <span class="service-chip"><span class="dot-sm" style="background:#2D7B6F;"></span>School check</span>
+            <span class="service-chip"><span class="dot-sm" style="background:#2D7B6F;"></span>Remote care</span>
+            <span class="service-chip"><span class="dot-sm" style="background:#2D7B6F;"></span>PFT</span>
           </div>
         </div>
 
@@ -908,52 +1036,52 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
 
         <div class="why-card lung-card hover-lift fade-up delay-1">
-          <div class="text-3xl mb-3">🌬️</div>
-          <h3 class="font-semibold text-stone-900 mb-1.5">Asthma Care</h3>
-          <p class="text-stone-500 text-sm leading-relaxed">Long-term asthma management with personalised action plans to reduce flare-ups.</p>
+          <div class="text-3xl mb-3"><i class="fa-solid fa-wind"></i></div>
+          <h3 class="font-semibold text-stone-900 mb-1.5">Consultations & 2nd Opinions</h3>
+          <p class="text-stone-500 text-sm leading-relaxed">In-person and online lung consultations, including second opinions.</p>
           <div class="mt-3 flex flex-wrap gap-1.5">
-            <span class="service-chip"><span class="dot-sm" style="background:#3B82C4;"></span>Diagnosis</span>
-            <span class="service-chip"><span class="dot-sm" style="background:#3B82C4;"></span>Inhaler therapy</span>
+            <span class="service-chip"><span class="dot-sm" style="background:#3B82C4;"></span>Consults</span>
+            <span class="service-chip"><span class="dot-sm" style="background:#3B82C4;"></span>2nd opinions</span>
           </div>
         </div>
 
         <div class="why-card lung-card hover-lift fade-up delay-2">
-          <div class="text-3xl mb-3">😤</div>
-          <h3 class="font-semibold text-stone-900 mb-1.5">Breathing Difficulty</h3>
-          <p class="text-stone-500 text-sm leading-relaxed">Assessment and treatment of breathlessness, shortness of breath, and lung obstruction.</p>
+          <div class="text-3xl mb-3"><i class="fa-solid fa-head-side-cough"></i></div>
+          <h3 class="font-semibold text-stone-900 mb-1.5">PFT & Sleep Study</h3>
+          <p class="text-stone-500 text-sm leading-relaxed">Pulmonary function testing and Level 3 sleep study support.</p>
           <div class="mt-3 flex flex-wrap gap-1.5">
-            <span class="service-chip"><span class="dot-sm" style="background:#3B82C4;"></span>Spirometry</span>
-            <span class="service-chip"><span class="dot-sm" style="background:#3B82C4;"></span>COPD</span>
+            <span class="service-chip"><span class="dot-sm" style="background:#3B82C4;"></span>PFT</span>
+            <span class="service-chip"><span class="dot-sm" style="background:#3B82C4;"></span>Sleep study</span>
           </div>
         </div>
 
         <div class="why-card lung-card hover-lift fade-up delay-3">
-          <div class="text-3xl mb-3">🤧</div>
-          <h3 class="font-semibold text-stone-900 mb-1.5">Allergy Management</h3>
-          <p class="text-stone-500 text-sm leading-relaxed">Identify and manage respiratory allergies including dust, pollen, mold, and pet dander.</p>
+          <div class="text-3xl mb-3"><i class="fa-solid fa-allergies"></i></div>
+          <h3 class="font-semibold text-stone-900 mb-1.5">Adult Vaccines & Smoking Cessation</h3>
+          <p class="text-stone-500 text-sm leading-relaxed">Adult vaccination guidance and smoking cessation programs.</p>
           <div class="mt-3 flex flex-wrap gap-1.5">
-            <span class="service-chip"><span class="dot-sm" style="background:#3B82C4;"></span>Allergy tests</span>
-            <span class="service-chip"><span class="dot-sm" style="background:#3B82C4;"></span>Immunotherapy</span>
+            <span class="service-chip"><span class="dot-sm" style="background:#3B82C4;"></span>Vaccines</span>
+            <span class="service-chip"><span class="dot-sm" style="background:#3B82C4;"></span>Quit smoking</span>
           </div>
         </div>
 
         <div class="why-card lung-card hover-lift fade-up delay-1">
-          <div class="text-3xl mb-3">🫁</div>
-          <h3 class="font-semibold text-stone-900 mb-1.5">Chronic Cough</h3>
-          <p class="text-stone-500 text-sm leading-relaxed">Thorough evaluation of persistent cough lasting more than 3 weeks - finding root causes.</p>
+          <div class="text-3xl mb-3"><i class="fa-solid fa-lungs"></i></div>
+          <h3 class="font-semibold text-stone-900 mb-1.5">Home Oxygen & BIPAP/CPAP</h3>
+          <p class="text-stone-500 text-sm leading-relaxed">Home oxygen and home BIPAP/CPAP services for respiratory support.</p>
           <div class="mt-3 flex flex-wrap gap-1.5">
-            <span class="service-chip"><span class="dot-sm" style="background:#3B82C4;"></span>Root cause</span>
-            <span class="service-chip"><span class="dot-sm" style="background:#3B82C4;"></span>Targeted therapy</span>
+            <span class="service-chip"><span class="dot-sm" style="background:#3B82C4;"></span>Home oxygen</span>
+            <span class="service-chip"><span class="dot-sm" style="background:#3B82C4;"></span>BIPAP/CPAP</span>
           </div>
         </div>
 
         <div class="why-card lung-card hover-lift fade-up delay-2">
-          <div class="text-3xl mb-3">🫀</div>
-          <h3 class="font-semibold text-stone-900 mb-1.5">Chest Consultation</h3>
-          <p class="text-stone-500 text-sm leading-relaxed">Comprehensive chest pain and pulmonary evaluation, including X-ray interpretation and CT review.</p>
+          <div class="text-3xl mb-3"><i class="fa-solid fa-heart-pulse"></i></div>
+          <h3 class="font-semibold text-stone-900 mb-1.5">Rehab, Lab Tests & Dispensary</h3>
+          <p class="text-stone-500 text-sm leading-relaxed">Pulmonary rehabilitation, physiotherapy, lab tests, and dispensary services.</p>
           <div class="mt-3 flex flex-wrap gap-1.5">
-            <span class="service-chip"><span class="dot-sm" style="background:#3B82C4;"></span>Chest X-ray</span>
-            <span class="service-chip"><span class="dot-sm" style="background:#3B82C4;"></span>CT review</span>
+            <span class="service-chip"><span class="dot-sm" style="background:#3B82C4;"></span>Rehab</span>
+            <span class="service-chip"><span class="dot-sm" style="background:#3B82C4;"></span>Lab tests</span>
           </div>
         </div>
 
@@ -1008,25 +1136,25 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
 
         <div class="why-card text-center fade-up delay-1">
-          <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl" style="background:rgba(45,123,111,0.1);">🩺</div>
+          <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl" style="background:rgba(45,123,111,0.1);"><i class="fa-solid fa-stethoscope"></i></div>
           <h3 class="font-semibold text-stone-900 mb-2">Experienced Doctors</h3>
           <p class="text-stone-500 text-sm leading-relaxed">Board-certified specialists with years of clinical experience in their respective fields.</p>
         </div>
 
         <div class="why-card text-center fade-up delay-2">
-          <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl" style="background:rgba(59,130,196,0.1);">🏥</div>
+          <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl" style="background:rgba(59,130,196,0.1);"><i class="fa-solid fa-hospital"></i></div>
           <h3 class="font-semibold text-stone-900 mb-2">Two Dedicated Branches</h3>
           <p class="text-stone-500 text-sm leading-relaxed">Separate specialised wings for pediatric and pulmonology care - no compromise.</p>
         </div>
 
         <div class="why-card text-center fade-up delay-3">
-          <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl" style="background:rgba(200,169,126,0.15);">📅</div>
+          <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl" style="background:rgba(200,169,126,0.15);"><i class="fa-solid fa-calendar-check"></i></div>
           <h3 class="font-semibold text-stone-900 mb-2">Easy Appointment Booking</h3>
           <p class="text-stone-500 text-sm leading-relaxed">Book over phone or WhatsApp - we respond fast and confirm same day.</p>
         </div>
 
         <div class="why-card text-center fade-up delay-4">
-          <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl" style="background:rgba(45,123,111,0.08);">🤝</div>
+          <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl" style="background:rgba(45,123,111,0.08);"><i class="fa-solid fa-handshake"></i></div>
           <h3 class="font-semibold text-stone-900 mb-2">Patient-Friendly Care</h3>
           <p class="text-stone-500 text-sm leading-relaxed">We listen first. Every patient receives personalised attention in a calm, welcoming environment.</p>
         </div>
@@ -1057,40 +1185,45 @@
         </p>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+      <div aria-label="Clinic gallery carousel" class="gallery-carousel fade-up delay-1" data-gallery-carousel>
+        <div class="gallery-carousel-track" data-gallery-track>
+          <article class="bg-white overflow-hidden hover-lift">
+            <img src="https://images.unsplash.com/photo-1584515933487-779824d29309?w=900&auto=format&fit=crop&q=80" alt="Doctor consulting with a child and parent" class="w-full object-cover" />
+            <div class="p-5">
+              <h3 class="font-semibold text-stone-900 text-lg">Pediatric Consultations</h3>
+              <p class="text-stone-500 text-sm mt-2 leading-relaxed">Gentle child-focused care with parent-friendly explanations.</p>
+            </div>
+          </article>
 
-        <div class="specialty-card overflow-hidden fade-up delay-1">
-          <img src="https://images.unsplash.com/photo-1584515933487-779824d29309?w=900&auto=format&fit=crop&q=80" alt="Doctor consulting with a child and parent" class="w-full h-64 object-cover" />
-          <div class="p-5">
-            <h3 class="font-semibold text-stone-900 text-lg">Pediatric Consultations</h3>
-            <p class="text-stone-500 text-sm mt-2 leading-relaxed">Gentle child-focused care with parent-friendly explanations.</p>
-          </div>
+          <article class="bg-white overflow-hidden hover-lift">
+            <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=900&auto=format&fit=crop&q=80" alt="Clinic reception and waiting space" class="w-full object-cover" />
+            <div class="p-5">
+              <h3 class="font-semibold text-stone-900 text-lg">Welcoming Spaces</h3>
+              <p class="text-stone-500 text-sm mt-2 leading-relaxed">Clean, calm waiting areas designed to reduce stress before the visit begins.</p>
+            </div>
+          </article>
+
+          <article class="bg-white overflow-hidden hover-lift">
+            <img src="https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?w=900&auto=format&fit=crop&q=80" alt="Chest specialist review and breathing care" class="w-full object-cover" />
+            <div class="p-5">
+              <h3 class="font-semibold text-stone-900 text-lg">Respiratory Reviews</h3>
+              <p class="text-stone-500 text-sm mt-2 leading-relaxed">Clear chest and breathing assessments with practical treatment guidance.</p>
+            </div>
+          </article>
+
+          <article class="bg-white overflow-hidden hover-lift">
+            <img src="https://images.unsplash.com/photo-1516549655169-df83a0774514?w=900&auto=format&fit=crop&q=80" alt="Healthcare team helping patient" class="w-full object-cover" />
+            <div class="p-5">
+              <h3 class="font-semibold text-stone-900 text-lg">Supportive Team Care</h3>
+              <p class="text-stone-500 text-sm mt-2 leading-relaxed">From booking to follow-up, every step is handled with warmth and clarity.</p>
+            </div>
+          </article>
         </div>
-
-        <div class="specialty-card overflow-hidden fade-up delay-2">
-          <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=900&auto=format&fit=crop&q=80" alt="Clinic reception and waiting space" class="w-full h-64 object-cover" />
-          <div class="p-5">
-            <h3 class="font-semibold text-stone-900 text-lg">Welcoming Spaces</h3>
-            <p class="text-stone-500 text-sm mt-2 leading-relaxed">Clean, calm waiting areas designed to reduce stress before the visit begins.</p>
-          </div>
+        <div class="gallery-carousel-actions mt-6 items-center justify-center gap-4">
+          <button aria-label="Previous gallery item" class="gallery-carousel-control" data-gallery-prev type="button">&#8249;</button>
+          <div aria-label="Gallery slide position" class="flex items-center justify-center gap-2" data-gallery-dots></div>
+          <button aria-label="Next gallery item" class="gallery-carousel-control" data-gallery-next type="button">&#8250;</button>
         </div>
-
-        <div class="specialty-card overflow-hidden fade-up delay-3">
-          <img src="https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?w=900&auto=format&fit=crop&q=80" alt="Chest specialist review and breathing care" class="w-full h-64 object-cover" />
-          <div class="p-5">
-            <h3 class="font-semibold text-stone-900 text-lg">Respiratory Reviews</h3>
-            <p class="text-stone-500 text-sm mt-2 leading-relaxed">Clear chest and breathing assessments with practical treatment guidance.</p>
-          </div>
-        </div>
-
-        <div class="specialty-card overflow-hidden fade-up delay-4">
-          <img src="https://images.unsplash.com/photo-1516549655169-df83a0774514?w=900&auto=format&fit=crop&q=80" alt="Healthcare team helping patient" class="w-full h-64 object-cover" />
-          <div class="p-5">
-            <h3 class="font-semibold text-stone-900 text-lg">Supportive Team Care</h3>
-            <p class="text-stone-500 text-sm mt-2 leading-relaxed">From booking to follow-up, every step is handled with warmth and clarity.</p>
-          </div>
-        </div>
-
       </div>
     </div>
   </section>
@@ -1114,41 +1247,47 @@
         </h2>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-
-        <div class="why-card fade-up delay-1">
-          <div class="text-sm font-bold uppercase tracking-[0.18em]" style="color:var(--accent-teal);">5 star care</div>
-          <p class="text-stone-600 text-base leading-relaxed mt-4">
-            "Dr. Gunda made our child feel comfortable from the first few minutes. The consultation felt calm, clear, and genuinely caring."
-          </p>
-          <div class="mt-5">
-            <div class="font-semibold text-stone-900">Meera S.</div>
-            <div class="text-sm text-stone-500">Parent review</div>
-          </div>
+      <div aria-label="Patient reviews carousel" class="gallery-carousel fade-up delay-1" data-gallery-carousel>
+        <div class="gallery-carousel-track" data-gallery-track>
+          <article class="why-card">
+            <div class="p-7 h-full flex flex-col">
+              <div class="text-sm font-bold uppercase tracking-[0.18em]" style="color:var(--accent-teal);">5 star care</div>
+              <p class="text-stone-600 text-base leading-relaxed mt-4 flex-1">"Dr. Gunda made our child feel comfortable from the first few minutes. The consultation felt calm, clear, and genuinely caring."</p>
+              <div class="mt-5 text-sm font-semibold text-stone-500">Verified Patient Review</div>
+            </div>
+          </article>
+          <article class="why-card">
+            <div class="p-7 h-full flex flex-col">
+              <div class="text-sm font-bold uppercase tracking-[0.18em]" style="color:var(--accent-blue);">Breathing support</div>
+              <p class="text-stone-600 text-base leading-relaxed mt-4 flex-1">"The chest consultation was thorough but easy to understand. We finally got practical answers instead of confusion."</p>
+              <div class="mt-5 text-sm font-semibold text-stone-500">Verified Patient Review</div>
+            </div>
+          </article>
+          <article class="why-card">
+            <div class="p-7 h-full flex flex-col">
+              <div class="text-sm font-bold uppercase tracking-[0.18em]" style="color:var(--accent-gold);">Smooth experience</div>
+              <p class="text-stone-600 text-base leading-relaxed mt-4 flex-1">"From booking to follow-up, the team was responsive and kind. It felt like a clinic that really respects patients' time."</p>
+              <div class="mt-5 text-sm font-semibold text-stone-500">Verified Patient Review</div>
+            </div>
+          </article>
+          <article class="why-card"><div class="p-7 h-full flex flex-col"><div class="text-sm font-bold uppercase tracking-[0.18em]" style="color:var(--accent-teal);">Review text pending</div><p class="text-stone-500 text-base leading-relaxed mt-4 flex-1">Review text pending.</p><div class="mt-5 text-sm font-semibold text-stone-500">Review text pending</div></div></article>
+          <article class="why-card"><div class="p-7 h-full flex flex-col"><div class="text-sm font-bold uppercase tracking-[0.18em]" style="color:var(--accent-blue);">Review text pending</div><p class="text-stone-500 text-base leading-relaxed mt-4 flex-1">Review text pending.</p><div class="mt-5 text-sm font-semibold text-stone-500">Review text pending</div></div></article>
+          <article class="why-card"><div class="p-7 h-full flex flex-col"><div class="text-sm font-bold uppercase tracking-[0.18em]" style="color:var(--accent-gold);">Review text pending</div><p class="text-stone-500 text-base leading-relaxed mt-4 flex-1">Review text pending.</p><div class="mt-5 text-sm font-semibold text-stone-500">Review text pending</div></div></article>
+          <article class="why-card"><div class="p-7 h-full flex flex-col"><div class="text-sm font-bold uppercase tracking-[0.18em]" style="color:var(--accent-teal);">Review text pending</div><p class="text-stone-500 text-base leading-relaxed mt-4 flex-1">Review text pending.</p><div class="mt-5 text-sm font-semibold text-stone-500">Review text pending</div></div></article>
+          <article class="why-card"><div class="p-7 h-full flex flex-col"><div class="text-sm font-bold uppercase tracking-[0.18em]" style="color:var(--accent-blue);">Review text pending</div><p class="text-stone-500 text-base leading-relaxed mt-4 flex-1">Review text pending.</p><div class="mt-5 text-sm font-semibold text-stone-500">Review text pending</div></div></article>
+          <article class="why-card"><div class="p-7 h-full flex flex-col"><div class="text-sm font-bold uppercase tracking-[0.18em]" style="color:var(--accent-gold);">Review text pending</div><p class="text-stone-500 text-base leading-relaxed mt-4 flex-1">Review text pending.</p><div class="mt-5 text-sm font-semibold text-stone-500">Review text pending</div></div></article>
+          <article class="why-card"><div class="p-7 h-full flex flex-col"><div class="text-sm font-bold uppercase tracking-[0.18em]" style="color:var(--accent-teal);">Review text pending</div><p class="text-stone-500 text-base leading-relaxed mt-4 flex-1">Review text pending.</p><div class="mt-5 text-sm font-semibold text-stone-500">Review text pending</div></div></article>
+          <article class="why-card"><div class="p-7 h-full flex flex-col"><div class="text-sm font-bold uppercase tracking-[0.18em]" style="color:var(--accent-blue);">Review text pending</div><p class="text-stone-500 text-base leading-relaxed mt-4 flex-1">Review text pending.</p><div class="mt-5 text-sm font-semibold text-stone-500">Review text pending</div></div></article>
+          <article class="why-card"><div class="p-7 h-full flex flex-col"><div class="text-sm font-bold uppercase tracking-[0.18em]" style="color:var(--accent-gold);">Review text pending</div><p class="text-stone-500 text-base leading-relaxed mt-4 flex-1">Review text pending.</p><div class="mt-5 text-sm font-semibold text-stone-500">Review text pending</div></div></article>
+          <article class="why-card"><div class="p-7 h-full flex flex-col"><div class="text-sm font-bold uppercase tracking-[0.18em]" style="color:var(--accent-teal);">Review text pending</div><p class="text-stone-500 text-base leading-relaxed mt-4 flex-1">Review text pending.</p><div class="mt-5 text-sm font-semibold text-stone-500">Review text pending</div></div></article>
+          <article class="why-card"><div class="p-7 h-full flex flex-col"><div class="text-sm font-bold uppercase tracking-[0.18em]" style="color:var(--accent-blue);">Review text pending</div><p class="text-stone-500 text-base leading-relaxed mt-4 flex-1">Review text pending.</p><div class="mt-5 text-sm font-semibold text-stone-500">Review text pending</div></div></article>
+          <article class="why-card"><div class="p-7 h-full flex flex-col"><div class="text-sm font-bold uppercase tracking-[0.18em]" style="color:var(--accent-gold);">Review text pending</div><p class="text-stone-500 text-base leading-relaxed mt-4 flex-1">Review text pending.</p><div class="mt-5 text-sm font-semibold text-stone-500">Review text pending</div></div></article>
         </div>
-
-        <div class="why-card fade-up delay-2">
-          <div class="text-sm font-bold uppercase tracking-[0.18em]" style="color:var(--accent-blue);">Breathing support</div>
-          <p class="text-stone-600 text-base leading-relaxed mt-4">
-            "The chest consultation was thorough but easy to understand. We finally got practical answers instead of confusion."
-          </p>
-          <div class="mt-5">
-            <div class="font-semibold text-stone-900">Rohit K.</div>
-            <div class="text-sm text-stone-500">Respiratory care review</div>
-          </div>
+        <div class="gallery-carousel-actions mt-6 items-center justify-center gap-4">
+          <button aria-label="Previous review" class="gallery-carousel-control" data-gallery-prev type="button">&#8249;</button>
+          <div aria-label="Review slide position" class="flex items-center gap-2" data-gallery-dots></div>
+          <button aria-label="Next review" class="gallery-carousel-control" data-gallery-next type="button">&#8250;</button>
         </div>
-
-        <div class="why-card fade-up delay-3">
-          <div class="text-sm font-bold uppercase tracking-[0.18em]" style="color:var(--accent-gold);">Smooth experience</div>
-          <p class="text-stone-600 text-base leading-relaxed mt-4">
-            "From booking to follow-up, the team was responsive and kind. It felt like a clinic that really respects patients' time."
-          </p>
-          <div class="mt-5">
-            <div class="font-semibold text-stone-900">Anjali R.</div>
-            <div class="text-sm text-stone-500">General clinic review</div>
-          </div>
-        </div>
-
       </div>
     </div>
   </section>
@@ -1178,7 +1317,7 @@
       <div class="grid md:grid-cols-2 gap-6 lg:gap-8">
         <div class="rounded-[2rem] border border-white/10 bg-white/6 backdrop-blur-xl shadow-2xl p-7 md:p-8 text-left">
           <div class="flex items-center gap-3 mb-5">
-            <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl" style="background:rgba(45,123,111,0.18);">👶</div>
+            <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl" style="background:rgba(45,123,111,0.18);"><i class="fa-solid fa-baby"></i></div>
             <div>
               <div class="text-white font-bold text-xl">The Better Kids Clinic</div>
               <div class="text-teal-200 text-sm font-medium">Children's specialist care</div>
@@ -1188,7 +1327,7 @@
           <div class="space-y-3 text-stone-300 text-sm md:text-base leading-relaxed">
             <div class="flex gap-3">
               <svg class="w-5 h-5 text-teal-300 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-              <span>118, 5th Cross, Bannerghatta Rd, Omkar Nagar, Arekere, Bengaluru, Karnataka 560076</span>
+              <span>The Better Health.Clinic, #155, 2nd Cross, 1st stage, Arekere MICO Layout, Off Bannerghatta road, Bengaluru - 560076 (Landmark: adjacent to Little Millenium Pre-School)</span>
             </div>
             <div class="flex gap-3">
               <svg class="w-5 h-5 text-teal-300 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21L8.5 10.5s1 2 3 4 4 3 4 3l1.1-1.724a1 1 0 011.21-.502l4.493 1.498A1 1 0 0121 17.72V21a2 2 0 01-2 2C7.716 23 1 16.284 1 9a2 2 0 012-2z"/></svg>
@@ -1196,7 +1335,7 @@
             </div>
             <div class="flex gap-3">
               <svg class="w-5 h-5 text-teal-300 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 6v6l4 2"/></svg>
-              <span>Mon - Sat | 9:00 AM - 7:00 PM</span>
+              <span>Mon-Sat | 8:30 AM-10:00 AM &amp; 6:30 PM-8:30 PM</span>
             </div>
           </div>
 
@@ -1214,7 +1353,7 @@
 
         <div class="rounded-[2rem] border border-white/10 bg-white/6 backdrop-blur-xl shadow-2xl p-7 md:p-8 text-left">
           <div class="flex items-center gap-3 mb-5">
-            <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl" style="background:rgba(59,130,196,0.18);">🫁</div>
+            <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl" style="background:rgba(59,130,196,0.18);"><i class="fa-solid fa-lungs"></i></div>
             <div>
               <div class="text-white font-bold text-xl">The Better Lungs Clinic</div>
               <div class="text-sky-200 text-sm font-medium">Pulmonology and chest care</div>
@@ -1224,7 +1363,7 @@
           <div class="space-y-3 text-stone-300 text-sm md:text-base leading-relaxed">
             <div class="flex gap-3">
               <svg class="w-5 h-5 text-sky-300 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-              <span>118, 5th Cross, Bannerghatta Rd, Omkar Nagar, Arekere, Bengaluru, Karnataka 560076</span>
+              <span>The Better Health.Clinic, #155, 2nd Cross, 1st stage, Arekere MICO Layout, Off Bannerghatta road, Bengaluru - 560076 (Landmark: adjacent to Little Millenium Pre-School)</span>
             </div>
             <div class="flex gap-3">
               <svg class="w-5 h-5 text-sky-300 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21L8.5 10.5s1 2 3 4 4 3 4 3l1.1-1.724a1 1 0 011.21-.502l4.493 1.498A1 1 0 0121 17.72V21a2 2 0 01-2 2C7.716 23 1 16.284 1 9a2 2 0 012-2z"/></svg>
@@ -1232,7 +1371,7 @@
             </div>
             <div class="flex gap-3">
               <svg class="w-5 h-5 text-sky-300 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 6v6l4 2"/></svg>
-              <span>Mon - Sat | 9:00 AM - 7:00 PM</span>
+              <span>Mon-Sat | 2:00 PM-3:30 PM &amp; 6:00 PM-7:30 PM</span>
             </div>
           </div>
 
@@ -1291,13 +1430,13 @@
         <!-- Branch 1 - Child -->
         <div>
           <div class="flex items-center gap-2 mb-4">
-            <div class="w-7 h-7 rounded-lg flex items-center justify-center text-sm" style="background:rgba(45,123,111,0.2);">👶</div>
+            <div class="w-7 h-7 rounded-lg flex items-center justify-center text-sm" style="background:rgba(45,123,111,0.2);"><i class="fa-solid fa-baby"></i></div>
             <h4 class="font-semibold text-white text-sm">The Better Kids Clinic</h4>
           </div>
           <ul class="space-y-2.5 text-sm text-stone-500">
             <li class="flex gap-2">
               <svg class="w-4 h-4 text-stone-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-              <span>118, 5th Cross, Bannerghatta Rd, Omkar Nagar, Arekere, Bengaluru, Karnataka 560076</span>
+              <span>The Better Health.Clinic, #155, 2nd Cross, 1st stage, Arekere MICO Layout, Off Bannerghatta road, Bengaluru - 560076 (Landmark: adjacent to Little Millenium Pre-School)</span>
             </li>
             <li class="flex gap-2">
               <svg class="w-4 h-4 text-stone-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21L8.5 10.5s1 2 3 4 4 3 4 3l1.1-1.724a1 1 0 011.21-.502l4.493 1.498A1 1 0 0121 17.72V21a2 2 0 01-2 2C7.716 23 1 16.284 1 9a2 2 0 012-2z"/></svg>
@@ -1305,7 +1444,7 @@
             </li>
             <li class="flex gap-2">
               <svg class="w-4 h-4 text-stone-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 6v6l4 2"/></svg>
-              <span>Sat 6:00-7:30 PM | Mon, Tue, Thu, Fri 2:30-3:30 PM &amp; 6:00-7:30 PM</span>
+              <span>Mon-Sat | 8:30 AM-10:00 AM &amp; 6:30 PM-8:30 PM</span>
             </li>
           </ul>
         </div>
@@ -1313,13 +1452,13 @@
         <!-- Branch 2 - Lung -->
         <div>
           <div class="flex items-center gap-2 mb-4">
-            <div class="w-7 h-7 rounded-lg flex items-center justify-center text-sm" style="background:rgba(59,130,196,0.2);">🫁</div>
+            <div class="w-7 h-7 rounded-lg flex items-center justify-center text-sm" style="background:rgba(59,130,196,0.2);"><i class="fa-solid fa-lungs"></i></div>
             <h4 class="font-semibold text-white text-sm">The Better Lungs Clinic</h4>
           </div>
           <ul class="space-y-2.5 text-sm text-stone-500">
             <li class="flex gap-2">
               <svg class="w-4 h-4 text-stone-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-              <span>118, 5th Cross, Bannerghatta Rd, Omkar Nagar, Arekere, Bengaluru, Karnataka 560076</span>
+              <span>The Better Health.Clinic, #155, 2nd Cross, 1st stage, Arekere MICO Layout, Off Bannerghatta road, Bengaluru - 560076 (Landmark: adjacent to Little Millenium Pre-School)</span>
             </li>
             <li class="flex gap-2">
               <svg class="w-4 h-4 text-stone-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21L8.5 10.5s1 2 3 4 4 3 4 3l1.1-1.724a1 1 0 011.21-.502l4.493 1.498A1 1 0 0121 17.72V21a2 2 0 01-2 2C7.716 23 1 16.284 1 9a2 2 0 012-2z"/></svg>
@@ -1327,7 +1466,7 @@
             </li>
             <li class="flex gap-2">
               <svg class="w-4 h-4 text-stone-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 6v6l4 2"/></svg>
-              <span>Sat 6:00-7:30 PM | Mon, Tue, Thu, Fri 2:30-3:30 PM &amp; 6:00-7:30 PM</span>
+              <span>Mon-Sat | 2:00 PM-3:30 PM &amp; 6:00 PM-7:30 PM</span>
             </li>
           </ul>
         </div>
@@ -1337,7 +1476,7 @@
       <!-- Bottom bar -->
       <div class="flex flex-col sm:flex-row justify-between items-center gap-3 pt-7 text-xs text-stone-600">
         <span>© 2026 The Better Health Clinic. All rights reserved.</span>
-        <a href="https://aadityabhatnagar.online/" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:9px;min-height:36px;padding:5px 7px 5px 14px;border:1px solid rgba(255,255,255,0.18);border-radius:999px;background:rgba(255,255,255,0.055);color:rgba(255,255,255,0.84);text-decoration:none;font-weight:800;line-height:1;letter-spacing:0;box-shadow:0 8px 20px rgba(0,0,0,0.16);" onmouseover="this.style.background='rgba(255,255,255,0.11)';this.style.color='rgba(255,255,255,0.96)'" onmouseout="this.style.background='rgba(255,255,255,0.055)';this.style.color='rgba(255,255,255,0.84)'"><span style="white-space:nowrap;font-size:13px;">Degined by Ab Labs</span><span style="width:28px;height:28px;border-radius:999px;background:rgba(255,255,255,0.96);display:inline-flex;align-items:center;justify-content:center;overflow:hidden;flex:0 0 auto;"><img src="assets/ab-labs-logo.png" alt="Ab Labs logo" style="width:21px;height:21px;object-fit:contain;display:block;" loading="lazy"></span></a>
+        <a href="https://aadityabhatnagar.online/" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:9px;min-height:36px;padding:5px 7px 5px 14px;border:1px solid rgba(255,255,255,0.18);border-radius:999px;background:rgba(255,255,255,0.055);color:rgba(255,255,255,0.84);text-decoration:none;font-weight:800;line-height:1;letter-spacing:0;box-shadow:0 8px 20px rgba(0,0,0,0.16);" onmouseover="this.style.background='rgba(255,255,255,0.11)';this.style.color='rgba(255,255,255,0.96)'" onmouseout="this.style.background='rgba(255,255,255,0.055)';this.style.color='rgba(255,255,255,0.84)'"><span style="white-space:nowrap;font-size:13px;">Designed by Ab Labs</span><span style="width:28px;height:28px;border-radius:999px;background:rgba(255,255,255,0.96);display:inline-flex;align-items:center;justify-content:center;overflow:hidden;flex:0 0 auto;"><img src="assets/ab-labs-logo.png" alt="Ab Labs logo" style="width:21px;height:21px;object-fit:contain;display:block;" loading="lazy"></span></a>
       </div>
 
     </div>
@@ -1376,6 +1515,100 @@
     }, { threshold: 0.12 });
 
     document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+    // -- Gallery carousel controls
+    document.querySelectorAll('[data-gallery-carousel]').forEach((carousel) => {
+      const track = carousel.querySelector('[data-gallery-track]');
+      const slides = Array.from(track ? track.children : []);
+      const prevButton = carousel.querySelector('[data-gallery-prev]');
+      const nextButton = carousel.querySelector('[data-gallery-next]');
+      const dotsWrap = carousel.querySelector('[data-gallery-dots]');
+      if (!track || !slides.length || !prevButton || !nextButton || !dotsWrap) return;
+
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const carouselLabel = carousel.getAttribute('aria-label') || 'Carousel';
+      let activeGalleryIndex = 0;
+      let scrollFrame = 0;
+
+      carousel.setAttribute('role', 'region');
+      carousel.setAttribute('aria-label', carouselLabel);
+      track.setAttribute('tabindex', '0');
+      track.setAttribute('aria-live', 'polite');
+      dotsWrap.textContent = '';
+
+      const dots = slides.map((_, index) => {
+        const dot = document.createElement('button');
+        dot.className = 'gallery-carousel-dot';
+        dot.type = 'button';
+        dot.setAttribute('aria-label', `Go to ${carouselLabel.toLowerCase()} item ${index + 1}`);
+        dot.addEventListener('click', () => goToSlide(index));
+        dotsWrap.appendChild(dot);
+        return dot;
+      });
+
+      const clampIndex = (index) => Math.max(0, Math.min(slides.length - 1, index));
+
+      const getTargetScrollLeft = (targetIndex) => {
+        const slide = slides[targetIndex];
+        const slideStart = slide.offsetLeft - track.offsetLeft;
+        const maxScroll = track.scrollWidth - track.clientWidth;
+        return Math.max(0, Math.min(maxScroll, slideStart));
+      };
+
+      const getActiveIndex = () => {
+        const trackStart = track.scrollLeft;
+        return slides.reduce((closestIndex, slide, index) => {
+          const slideStart = slide.offsetLeft - track.offsetLeft;
+          const closestSlide = slides[closestIndex];
+          const closestStart = closestSlide.offsetLeft - track.offsetLeft;
+          return Math.abs(slideStart - trackStart) < Math.abs(closestStart - trackStart) ? index : closestIndex;
+        }, 0);
+      };
+
+      const updateCarouselState = (forcedIndex) => {
+        const activeIndex = clampIndex(typeof forcedIndex === 'number' ? forcedIndex : getActiveIndex());
+        activeGalleryIndex = activeIndex;
+        dots.forEach((dot, index) => {
+          dot.classList.toggle('is-active', index === activeIndex);
+          dot.setAttribute('aria-current', index === activeIndex ? 'true' : 'false');
+        });
+        prevButton.disabled = activeIndex === 0;
+        nextButton.disabled = activeIndex === slides.length - 1;
+        prevButton.setAttribute('aria-disabled', prevButton.disabled ? 'true' : 'false');
+        nextButton.setAttribute('aria-disabled', nextButton.disabled ? 'true' : 'false');
+      };
+
+      const goToSlide = (targetIndex) => {
+        const nextIndex = clampIndex(targetIndex);
+        track.scrollTo({ left: getTargetScrollLeft(nextIndex), behavior: reducedMotion ? 'auto' : 'smooth' });
+        updateCarouselState(nextIndex);
+      };
+
+      const queueStateUpdate = () => {
+        if (scrollFrame) return;
+        scrollFrame = window.requestAnimationFrame(() => {
+          scrollFrame = 0;
+          updateCarouselState();
+        });
+      };
+
+      prevButton.addEventListener('click', () => goToSlide(activeGalleryIndex - 1));
+      nextButton.addEventListener('click', () => goToSlide(activeGalleryIndex + 1));
+      track.addEventListener('scroll', queueStateUpdate, { passive: true });
+      track.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowLeft') {
+          event.preventDefault();
+          goToSlide(activeGalleryIndex - 1);
+        }
+        if (event.key === 'ArrowRight') {
+          event.preventDefault();
+          goToSlide(activeGalleryIndex + 1);
+        }
+      });
+      window.addEventListener('resize', () => goToSlide(activeGalleryIndex));
+      track.scrollLeft = 0;
+      updateCarouselState(0);
+    });
 
     // -- Hero elements appear on load
     window.addEventListener('load', () => {

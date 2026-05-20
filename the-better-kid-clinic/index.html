@@ -7,6 +7,7 @@
 
   <title>The Better Kids Clinic | Pediatrician in South Bengaluru</title>
   <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <meta name="description" content="The Better Kids Clinic by Dr. Gunda Srinivas offers child health consultations, newborn care, vaccinations, asthma care, growth monitoring, and pediatric emergency guidance." />
   <link rel="canonical" href="https://www.thebetterhealth.clinic/the-better-kid-clinic/" />
   <meta property="og:type" content="website" />
@@ -260,6 +261,8 @@
     }
     .gallery-carousel {
       position: relative;
+      max-width: 100%;
+      overflow: hidden;
     }
     .gallery-carousel-track {
       display: flex;
@@ -269,6 +272,8 @@
       scroll-behavior: smooth;
       scrollbar-width: none;
       padding: 0.25rem 0.25rem 1rem;
+      overscroll-behavior-x: contain;
+      -webkit-overflow-scrolling: touch;
     }
     .gallery-carousel-track::-webkit-scrollbar {
       display: none;
@@ -282,6 +287,8 @@
       box-shadow: 0 18px 45px rgba(28, 78, 67, 0.1);
       position: relative;
       isolation: isolate;
+      display: flex;
+      transform: translateZ(0);
     }
     .gallery-carousel-track > article img {
       height: 15.5rem;
@@ -314,16 +321,36 @@
       background: #2E7D6B;
       color: #ffffff;
     }
+    .gallery-carousel-control:disabled {
+      opacity: 0.38;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .gallery-carousel-control:focus-visible,
+    .gallery-carousel-dot:focus-visible {
+      outline: 3px solid rgba(46, 125, 107, 0.32);
+      outline-offset: 3px;
+    }
     .gallery-carousel-dot {
-      width: 0.55rem;
-      height: 0.55rem;
+      width: 0.7rem;
+      height: 0.7rem;
       border-radius: 999px;
       background: rgba(46, 125, 107, 0.24);
       transition: width 0.2s ease, background 0.2s ease;
+      cursor: pointer;
     }
     .gallery-carousel-dot.is-active {
       width: 1.65rem;
       background: #2E7D6B;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .gallery-carousel-track {
+        scroll-behavior: auto;
+      }
+      .gallery-carousel-control,
+      .gallery-carousel-dot {
+        transition: none;
+      }
     }
     @media (max-width: 1023px) {
       .gallery-carousel-track {
@@ -707,7 +734,7 @@
 </div>
 </a> <!-- Desktop Nav -->
 <nav class="hidden lg:flex items-center gap-8 text-sm font-semibold text-brand-dark">
-<a class="hover:text-brand-green transition-colors" href="#home">Home</a> <a class="hover:text-brand-green transition-colors" href="#services">Services</a> <a class="hover:text-brand-green transition-colors" href="#about">About</a> <a class="hover:text-brand-green transition-colors" href="#gallery">Gallery</a> <a class="hover:text-brand-green transition-colors" href="#testimonials">Testimonials</a> <a class="hover:text-brand-green transition-colors" href="#contact">Contact</a> <a class="bg-brand-orange hover:bg-brand-orange-dark text-white font-bold px-5 py-2.5 rounded-full transition-colors shadow-orange" href="#contact"> Book Appointment </a>
+<a class="hover:text-brand-green transition-colors" href="#home">Home</a> <a class="hover:text-brand-green transition-colors" href="#services">Services</a> <a class="hover:text-brand-green transition-colors" href="#about">About</a> <a class="hover:text-brand-green transition-colors" href="#gallery">Gallery</a> <a class="hover:text-brand-green transition-colors" href="#testimonials">Testimonials</a> <a class="hover:text-brand-green transition-colors" href="./blog/">Blog</a> <a class="bg-brand-orange hover:bg-brand-orange-dark text-white font-bold px-5 py-2.5 rounded-full transition-colors shadow-orange" href="#contact"> Book Appointment </a>
 </nav>
 <!-- Mobile Hamburger -->
 <button aria-label="Toggle menu" class="lg:hidden p-2 rounded-xl hover:bg-brand-cream transition-colors" id="menu-btn">
@@ -719,7 +746,7 @@
 <!-- Mobile Menu -->
 <div class="lg:hidden border-t border-gray-100 bg-white px-4 pb-4" id="mobile-menu">
 <nav class="flex flex-col gap-3 pt-4 text-sm font-semibold text-brand-dark">
-<a class="py-2 hover:text-brand-green transition-colors" href="#home" onclick="closeMobileMenu()">Home</a> <a class="py-2 hover:text-brand-green transition-colors" href="#services" onclick="closeMobileMenu()">Services</a> <a class="py-2 hover:text-brand-green transition-colors" href="#about" onclick="closeMobileMenu()">About</a> <a class="py-2 hover:text-brand-green transition-colors" href="#gallery" onclick="closeMobileMenu()">Gallery</a> <a class="py-2 hover:text-brand-green transition-colors" href="#testimonials" onclick="closeMobileMenu()">Testimonials</a> <a class="py-2 hover:text-brand-green transition-colors" href="#contact" onclick="closeMobileMenu()">Contact</a> <a class="bg-brand-orange text-white font-bold px-5 py-3 rounded-full text-center mt-2" href="#contact" onclick="closeMobileMenu()"> Book Appointment </a>
+<a class="py-2 hover:text-brand-green transition-colors" href="#home" onclick="closeMobileMenu()">Home</a> <a class="py-2 hover:text-brand-green transition-colors" href="#services" onclick="closeMobileMenu()">Services</a> <a class="py-2 hover:text-brand-green transition-colors" href="#about" onclick="closeMobileMenu()">About</a> <a class="py-2 hover:text-brand-green transition-colors" href="#gallery" onclick="closeMobileMenu()">Gallery</a> <a class="py-2 hover:text-brand-green transition-colors" href="#testimonials" onclick="closeMobileMenu()">Testimonials</a> <a class="py-2 hover:text-brand-green transition-colors" href="./blog/" onclick="closeMobileMenu()">Blog</a> <a class="bg-brand-orange text-white font-bold px-5 py-3 rounded-full text-center mt-2" href="#contact" onclick="closeMobileMenu()"> Book Appointment </a>
 </nav>
 </div>
 </header>
@@ -792,8 +819,8 @@
 <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </div>
-<div class="font-bold text-brand-dark text-sm md:text-base">Regular Checkups</div>
-<div class="text-xs text-gray-500">Routine well-child exams</div>
+<div class="font-bold text-brand-dark text-sm md:text-base">Consultations</div>
+<div class="text-xs text-gray-500">In-person and online care</div>
 </div>
 <!-- Card 2 -->
 <div class="hover-lift fade-in bg-brand-cream rounded-3xl p-5 flex flex-col items-center text-center gap-3 cursor-default" style="animation-delay:.1s">
@@ -802,8 +829,8 @@
 <path d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </div>
-<div class="font-bold text-brand-dark text-sm md:text-base">Vaccination Care</div>
-<div class="text-xs text-gray-500">Complete immunization plans</div>
+<div class="font-bold text-brand-dark text-sm md:text-base">All Vaccinations</div>
+<div class="text-xs text-gray-500">Complete vaccine support</div>
 </div>
 <!-- Card 3 -->
 <div class="hover-lift fade-in bg-brand-cream rounded-3xl p-5 flex flex-col items-center text-center gap-3 cursor-default" style="animation-delay:.2s">
@@ -822,8 +849,8 @@
 <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </div>
-<div class="font-bold text-brand-dark text-sm md:text-base">Child Wellness</div>
-<div class="text-xs text-gray-500">Nutrition &amp; holistic health</div>
+<div class="font-bold text-brand-dark text-sm md:text-base">Asthma, Allergies &amp; PFT</div>
+<div class="text-xs text-gray-500">Breathing care and testing</div>
 </div>
 </div>
 </div>
@@ -924,12 +951,12 @@
 <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </div>
-<h3 class="text-lg font-bold text-brand-dark mb-2">Preventive Care</h3>
-<p class="text-sm text-gray-500 mb-4 leading-relaxed">Proactive health monitoring to keep your child healthy at every stage.</p>
+<h3 class="text-lg font-bold text-brand-dark mb-2">Consultations &amp; Recovery Handholding</h3>
+<p class="text-sm text-gray-500 mb-4 leading-relaxed">In-person and online pediatric consultations with detailed guidance till recovery.</p>
 <ul class="text-sm text-gray-600 space-y-1.5 mb-5 flex-1">
-<li class="flex gap-2"><span class="text-brand-green font-bold">✓</span> Annual well-child visits</li>
-<li class="flex gap-2"><span class="text-brand-green font-bold">✓</span> Developmental screenings</li>
-<li class="flex gap-2"><span class="text-brand-green font-bold">✓</span> Nutrition counseling</li>
+<li class="flex gap-2"><span class="text-brand-green font-bold"><i class="fa-solid fa-check"></i></span> Annual well-child visits</li>
+<li class="flex gap-2"><span class="text-brand-green font-bold"><i class="fa-solid fa-check"></i></span> Developmental screenings</li>
+<li class="flex gap-2"><span class="text-brand-green font-bold"><i class="fa-solid fa-check"></i></span> Nutrition counseling</li>
 </ul>
 <a class="mt-auto text-brand-green font-bold text-sm hover:underline flex items-center gap-1" href="#contact"> Learn More 
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
@@ -946,12 +973,12 @@
 <path d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </div>
-<h3 class="text-lg font-bold text-brand-dark mb-2">Vaccination &amp; Immunization</h3>
-<p class="text-sm text-gray-500 mb-4 leading-relaxed">Complete immunization schedules as per IAP guidelines for lifelong protection.</p>
+<h3 class="text-lg font-bold text-brand-dark mb-2">Newborn Care &amp; Vaccinations</h3>
+<p class="text-sm text-gray-500 mb-4 leading-relaxed">Newborn care and all vaccinations with gentle, child-friendly support.</p>
 <ul class="text-sm text-gray-600 space-y-1.5 mb-5 flex-1">
-<li class="flex gap-2"><span class="text-brand-orange font-bold">✓</span> Newborn to teen vaccines</li>
-<li class="flex gap-2"><span class="text-brand-orange font-bold">✓</span> IAP-approved schedule</li>
-<li class="flex gap-2"><span class="text-brand-orange font-bold">✓</span> Gentle, pain-reducing technique</li>
+<li class="flex gap-2"><span class="text-brand-orange font-bold"><i class="fa-solid fa-check"></i></span> Newborn to teen vaccines</li>
+<li class="flex gap-2"><span class="text-brand-orange font-bold"><i class="fa-solid fa-check"></i></span> IAP-approved schedule</li>
+<li class="flex gap-2"><span class="text-brand-orange font-bold"><i class="fa-solid fa-check"></i></span> Gentle, pain-reducing technique</li>
 </ul>
 <a class="mt-auto text-brand-green font-bold text-sm hover:underline flex items-center gap-1" href="#contact"> Learn More 
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
@@ -968,12 +995,12 @@
 <path d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </div>
-<h3 class="text-lg font-bold text-brand-dark mb-2">Growth &amp; Development</h3>
-<p class="text-sm text-gray-500 mb-4 leading-relaxed">Track your child's physical and cognitive development with expert precision.</p>
+<h3 class="text-lg font-bold text-brand-dark mb-2">Growth Monitoring</h3>
+<p class="text-sm text-gray-500 mb-4 leading-relaxed">Track your child's growth and milestones with clear pediatric follow-up.</p>
 <ul class="text-sm text-gray-600 space-y-1.5 mb-5 flex-1">
-<li class="flex gap-2"><span class="text-brand-green font-bold">✓</span> Height &amp; weight charting</li>
-<li class="flex gap-2"><span class="text-brand-green font-bold">✓</span> Milestone assessments</li>
-<li class="flex gap-2"><span class="text-brand-green font-bold">✓</span> Early intervention support</li>
+<li class="flex gap-2"><span class="text-brand-green font-bold"><i class="fa-solid fa-check"></i></span> Height &amp; weight charting</li>
+<li class="flex gap-2"><span class="text-brand-green font-bold"><i class="fa-solid fa-check"></i></span> Milestone assessments</li>
+<li class="flex gap-2"><span class="text-brand-green font-bold"><i class="fa-solid fa-check"></i></span> Early intervention support</li>
 </ul>
 <a class="mt-auto text-brand-green font-bold text-sm hover:underline flex items-center gap-1" href="#contact"> Learn More 
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
@@ -990,12 +1017,12 @@
 <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </div>
-<h3 class="text-lg font-bold text-brand-dark mb-2">Pediatric Consultation</h3>
-<p class="text-sm text-gray-500 mb-4 leading-relaxed">Expert diagnosis and care for every childhood illness, from fever to allergies.</p>
+<h3 class="text-lg font-bold text-brand-dark mb-2">Asthma, Allergies, Remote Monitoring &amp; PFT</h3>
+<p class="text-sm text-gray-500 mb-4 leading-relaxed">Asthma and allergy care with remote monitoring, handholding, and pulmonary function testing.</p>
 <ul class="text-sm text-gray-600 space-y-1.5 mb-5 flex-1">
-<li class="flex gap-2"><span class="text-rose-400 font-bold">✓</span> Fever &amp; infections</li>
-<li class="flex gap-2"><span class="text-rose-400 font-bold">✓</span> Allergies &amp; asthma</li>
-<li class="flex gap-2"><span class="text-rose-400 font-bold">✓</span> Newborn &amp; infant care</li>
+<li class="flex gap-2"><span class="text-rose-400 font-bold"><i class="fa-solid fa-check"></i></span> Fever &amp; infections</li>
+<li class="flex gap-2"><span class="text-rose-400 font-bold"><i class="fa-solid fa-check"></i></span> Allergies &amp; asthma</li>
+<li class="flex gap-2"><span class="text-rose-400 font-bold"><i class="fa-solid fa-check"></i></span> Newborn &amp; infant care</li>
 </ul>
 <a class="mt-auto text-brand-green font-bold text-sm hover:underline flex items-center gap-1" href="#contact"> Learn More 
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
@@ -1010,38 +1037,34 @@
 </div>
 </section>
 <!-- ══════════════════════════════════════════
-       SPECIAL OFFER / TRUST CARD
-  ══════════════════════════════════════════ -->
-<section class="py-16 bg-white">
-<div class="max-w-5xl mx-auto px-4">
-<div class="fade-in relative bg-gradient-to-br from-brand-green to-brand-green-dark rounded-5xl overflow-hidden p-8 md:p-12 flex flex-col md:flex-row items-center gap-8 shadow-card">
-<!-- Decorative circles -->
-<div class="absolute top-0 right-0 w-56 h-56 bg-white opacity-5 rounded-full translate-x-1/3 -translate-y-1/3 pointer-events-none"></div>
-<div class="absolute bottom-0 left-0 w-40 h-40 bg-white opacity-5 rounded-full -translate-x-1/4 translate-y-1/4 pointer-events-none"></div>
-<div class="absolute top-1/2 right-1/4 w-24 h-24 bg-brand-orange opacity-10 rounded-full pointer-events-none"></div>
-<!-- Doctor image -->
-<div class="relative flex-shrink-0">
-<div class="w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden border-4 border-white/30 shadow-lg">
-<img alt="Dr. Gunda Srinivas - Pediatric Specialist" class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=400&amp;auto=format&amp;fit=crop&amp;q=80"/>
-</div>
-<div class="absolute -bottom-1 -right-1 bg-brand-orange text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">15% OFF</div>
-</div>
-<!-- Text -->
-<div class="text-center md:text-left text-white flex-1">
-<div class="text-sm font-bold text-white/70 mb-2 uppercase tracking-widest">Limited Time Offer</div>
-<h2 class="text-2xl md:text-3xl font-bold mb-3">First Visit Discount - Get 15% Off</h2>
-<p class="text-white/80 mb-6 leading-relaxed max-w-lg">Book your child's first consultation with Dr. Gunda Srinivas today and receive 15% off on all services. Give your little one the best start in life.</p>
-<a class="offer-cta-button inline-flex items-center gap-2 bg-brand-orange hover:bg-brand-orange-dark text-white font-bold px-7 py-3.5 rounded-full shadow-orange transition-colors" href="#contact"> Book First Visit
-       <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24">
-<path d="M17 8l4 4m0 0l-4 4m4-4H3" stroke-linecap="round" stroke-linejoin="round"></path>
-</svg> </a>
-</div>
-</div>
-</div>
-</section>
-<!-- ══════════════════════════════════════════
        GALLERY SECTION
   ══════════════════════════════════════════ -->
+<section class="bg-white py-20" id="blog-preview">
+<div class="max-w-6xl mx-auto px-4">
+<div class="text-center mb-12 fade-in">
+<div class="inline-flex items-center gap-2 bg-brand-cream rounded-full px-4 py-1.5 shadow-soft mb-4">
+<span class="w-2 h-2 rounded-full bg-brand-orange inline-block"></span> <span class="text-sm font-bold text-brand-green tracking-wide">Blog</span>
+</div>
+<h2 class="text-3xl md:text-4xl font-bold text-brand-dark mb-3">Child Health Articles</h2>
+<p class="text-gray-500 max-w-2xl mx-auto">Simple pediatric guidance for parents from The Better Kids Clinic.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<article class="hover-lift fade-in bg-brand-cream rounded-4xl overflow-hidden shadow-soft flex flex-col">
+<div class="h-32 bg-white flex items-center justify-center"><div class="w-14 h-14 rounded-2xl bg-brand-green text-white flex items-center justify-center text-2xl"><i class="fa-solid fa-temperature-high"></i></div></div>
+<div class="p-6 flex flex-col flex-1"><div class="text-xs font-bold uppercase tracking-wide text-brand-green">Child Fever / May 20, 2026</div><h3 class="mt-3 text-lg font-bold text-brand-dark">Fever in Children: When Should Parents Worry?</h3><p class="mt-2 text-sm text-gray-500 leading-relaxed flex-1">A parent-friendly guide to fever warning signs, home care, and when to book a pediatric review.</p><a class="mt-5 text-brand-green font-bold text-sm hover:underline" href="./blog/fever-in-children/">Read More</a></div>
+</article>
+<article class="hover-lift fade-in bg-brand-cream rounded-4xl overflow-hidden shadow-soft flex flex-col" style="animation-delay:.08s">
+<div class="h-32 bg-white flex items-center justify-center"><div class="w-14 h-14 rounded-2xl bg-brand-orange text-white flex items-center justify-center text-2xl"><i class="fa-solid fa-syringe"></i></div></div>
+<div class="p-6 flex flex-col flex-1"><div class="text-xs font-bold uppercase tracking-wide text-brand-green">Vaccinations / May 20, 2026</div><h3 class="mt-3 text-lg font-bold text-brand-dark">Vaccination Schedule: Why Timely Vaccines Matter</h3><p class="mt-2 text-sm text-gray-500 leading-relaxed flex-1">Why timely vaccines and boosters matter for children, with practical tips for parents.</p><a class="mt-5 text-brand-green font-bold text-sm hover:underline" href="./blog/vaccination-schedule/">Read More</a></div>
+</article>
+<article class="hover-lift fade-in bg-brand-cream rounded-4xl overflow-hidden shadow-soft flex flex-col" style="animation-delay:.16s">
+<div class="h-32 bg-white flex items-center justify-center"><div class="w-14 h-14 rounded-2xl bg-brand-green text-white flex items-center justify-center text-2xl"><i class="fa-solid fa-chart-line"></i></div></div>
+<div class="p-6 flex flex-col flex-1"><div class="text-xs font-bold uppercase tracking-wide text-brand-green">Growth Monitoring / May 20, 2026</div><h3 class="mt-3 text-lg font-bold text-brand-dark">Growth Monitoring: Why Regular Checkups Are Important</h3><p class="mt-2 text-sm text-gray-500 leading-relaxed flex-1">How regular growth checks help track development, nutrition, and early concerns.</p><a class="mt-5 text-brand-green font-bold text-sm hover:underline" href="./blog/growth-monitoring/">Read More</a></div>
+</article>
+</div>
+<div class="mt-10 text-center fade-in"><a class="section-open-link inline-flex items-center gap-2 border-2 border-brand-green text-brand-green hover:bg-brand-green hover:text-white font-bold px-7 py-3.5 rounded-full transition-colors" href="./blog/">View All Blogs</a></div>
+</div>
+</section>
 <section class="bg-brand-cream py-20 overflow-hidden" id="gallery">
 <div class="max-w-6xl mx-auto px-4">
 <div class="text-center mb-12 fade-in">
@@ -1051,7 +1074,7 @@
 <h2 class="text-3xl md:text-4xl font-bold text-brand-dark mb-3">A warmer look inside the clinic</h2>
 <p class="text-gray-500 max-w-2xl mx-auto">A quick look at the gentle, family-friendly spaces and moments that shape the experience at The Better Kids Clinic.</p>
 </div>
-<div class="gallery-carousel" data-gallery-carousel>
+<div aria-label="Kids clinic gallery carousel" class="gallery-carousel" data-gallery-carousel>
 <div class="gallery-carousel-track" data-gallery-track>
 <article class="hover-lift fade-in bg-white rounded-5xl overflow-hidden shadow-soft">
 <img alt="Pediatric consultation room" class="w-full h-64 object-cover" src="https://images.unsplash.com/photo-1584515933487-779824d29309?w=900&amp;auto=format&amp;fit=crop&amp;q=80"/>
@@ -1104,42 +1127,28 @@
 <p class="text-gray-500 max-w-md mx-auto">Real stories from parents who trust us with the health of their most precious ones.</p>
 </div>
 <!-- Cards -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-<!-- Testimonial 1 -->
-<div class="hover-lift fade-in bg-brand-cream rounded-4xl p-7 shadow-soft flex flex-col gap-4">
-<div class="stars text-lg">★★★★★</div>
-<p class="text-gray-600 leading-relaxed text-sm flex-1">"Dr. Gunda is polite, understands both children and parent concerns, recommends the right treatment, and follows up after the visit."</p>
-<div class="flex items-center gap-3 mt-2">
-<img alt="Reshma R - 5-star Google review for Dr. Gunda" class="w-12 h-12 rounded-full object-cover border-2 border-white shadow-soft" src="https://images.unsplash.com/photo-1494790108755-2616b612b977?w=200&amp;auto=format&amp;fit=crop&amp;q=80"/>
-<div>
-<div class="font-bold text-brand-dark text-sm">Reshma R</div>
-<div class="text-xs text-gray-500">5-star Google review</div>
+<div aria-label="Kids clinic testimonials carousel" class="gallery-carousel fade-in" data-gallery-carousel>
+<div class="gallery-carousel-track" data-gallery-track>
+<article class="hover-lift bg-brand-cream rounded-4xl shadow-soft"><div class="p-7 h-full flex flex-col gap-4"><div class="stars text-lg"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div><p class="text-gray-600 leading-relaxed text-sm flex-1">"Dr. Gunda is polite, understands both children and parent concerns, recommends the right treatment, and follows up after the visit."</p><div class="text-xs font-bold uppercase tracking-wide text-gray-500">Verified Patient Review</div></div></article>
+<article class="hover-lift bg-brand-cream rounded-4xl shadow-soft"><div class="p-7 h-full flex flex-col gap-4"><div class="stars text-lg"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div><p class="text-gray-600 leading-relaxed text-sm flex-1">"Dr. Gunda patiently diagnoses the issue, explains it clearly, and prescribes the correct medicines for the child."</p><div class="text-xs font-bold uppercase tracking-wide text-gray-500">Verified Patient Review</div></div></article>
+<article class="hover-lift bg-brand-cream rounded-4xl shadow-soft"><div class="p-7 h-full flex flex-col gap-4"><div class="stars text-lg"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div><p class="text-gray-600 leading-relaxed text-sm flex-1">"Dr. Gunda examines carefully, explains with patience, and gives families confidence through a calm clinic experience."</p><div class="text-xs font-bold uppercase tracking-wide text-gray-500">Verified Patient Review</div></div></article>
+<article class="hover-lift bg-brand-cream rounded-4xl shadow-soft"><div class="p-7 h-full flex flex-col gap-4"><div class="stars text-lg"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div><p class="text-gray-600 leading-relaxed text-sm flex-1">"Dr. Srinivas treats children with great care and patience, listens to every concern, and explains things clearly."</p><div class="text-xs font-bold uppercase tracking-wide text-gray-500">Verified Patient Review</div></div></article>
+<article class="hover-lift bg-brand-cream rounded-4xl shadow-soft"><div class="p-7 h-full flex flex-col gap-4"><div class="stars text-lg"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div><p class="text-gray-600 leading-relaxed text-sm flex-1">"The doctor was thorough during an urgent stomach illness visit and helped the family feel reassured quickly."</p><div class="text-xs font-bold uppercase tracking-wide text-gray-500">Verified Patient Review</div></div></article>
+<article class="hover-lift bg-brand-cream rounded-4xl shadow-soft"><div class="p-7 h-full flex flex-col gap-4"><div class="stars text-lg"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div><p class="text-gray-600 leading-relaxed text-sm flex-1">"The family has trusted Dr. Srinivas for years and appreciates his humble, child-friendly way of treating kids."</p><div class="text-xs font-bold uppercase tracking-wide text-gray-500">Verified Patient Review</div></div></article>
+<article class="hover-lift bg-brand-cream rounded-4xl shadow-soft"><div class="p-7 h-full flex flex-col gap-4"><div class="stars text-lg"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div><p class="text-gray-600 leading-relaxed text-sm flex-1">"A new parent appreciated that the treatment worked well and that the doctor gave confidence during early baby care."</p><div class="text-xs font-bold uppercase tracking-wide text-gray-500">Verified Patient Review</div></div></article>
+<article class="hover-lift bg-brand-cream rounded-4xl shadow-soft"><div class="p-7 h-full flex flex-col gap-4"><div class="stars text-lg"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div><p class="text-gray-600 leading-relaxed text-sm flex-1">"Dr. Srinivas is friendly with kids, gives enough time, and supports families through WhatsApp updates after visits."</p><div class="text-xs font-bold uppercase tracking-wide text-gray-500">Verified Patient Review</div></div></article>
+<article class="hover-lift bg-brand-cream rounded-4xl shadow-soft"><div class="p-7 h-full flex flex-col gap-4"><div class="stars text-lg"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div><p class="text-gray-600 leading-relaxed text-sm flex-1">"Dr. Gunda listens patiently, asks questions before diagnosis, handles children gently, and follows up on recovery."</p><div class="text-xs font-bold uppercase tracking-wide text-gray-500">Verified Patient Review</div></div></article>
+<article class="hover-lift bg-brand-cream rounded-4xl shadow-soft"><div class="p-7 h-full flex flex-col gap-4"><div class="text-xs font-bold uppercase tracking-wide text-brand-green">Review text pending</div><p class="text-gray-500 leading-relaxed text-sm flex-1">Review text pending.</p><div class="text-xs font-bold uppercase tracking-wide text-gray-500">Review text pending</div></div></article>
+<article class="hover-lift bg-brand-cream rounded-4xl shadow-soft"><div class="p-7 h-full flex flex-col gap-4"><div class="text-xs font-bold uppercase tracking-wide text-brand-green">Review text pending</div><p class="text-gray-500 leading-relaxed text-sm flex-1">Review text pending.</p><div class="text-xs font-bold uppercase tracking-wide text-gray-500">Review text pending</div></div></article>
+<article class="hover-lift bg-brand-cream rounded-4xl shadow-soft"><div class="p-7 h-full flex flex-col gap-4"><div class="text-xs font-bold uppercase tracking-wide text-brand-green">Review text pending</div><p class="text-gray-500 leading-relaxed text-sm flex-1">Review text pending.</p><div class="text-xs font-bold uppercase tracking-wide text-gray-500">Review text pending</div></div></article>
+<article class="hover-lift bg-brand-cream rounded-4xl shadow-soft"><div class="p-7 h-full flex flex-col gap-4"><div class="text-xs font-bold uppercase tracking-wide text-brand-green">Review text pending</div><p class="text-gray-500 leading-relaxed text-sm flex-1">Review text pending.</p><div class="text-xs font-bold uppercase tracking-wide text-gray-500">Review text pending</div></div></article>
+<article class="hover-lift bg-brand-cream rounded-4xl shadow-soft"><div class="p-7 h-full flex flex-col gap-4"><div class="text-xs font-bold uppercase tracking-wide text-brand-green">Review text pending</div><p class="text-gray-500 leading-relaxed text-sm flex-1">Review text pending.</p><div class="text-xs font-bold uppercase tracking-wide text-gray-500">Review text pending</div></div></article>
+<article class="hover-lift bg-brand-cream rounded-4xl shadow-soft"><div class="p-7 h-full flex flex-col gap-4"><div class="text-xs font-bold uppercase tracking-wide text-brand-green">Review text pending</div><p class="text-gray-500 leading-relaxed text-sm flex-1">Review text pending.</p><div class="text-xs font-bold uppercase tracking-wide text-gray-500">Review text pending</div></div></article>
 </div>
-</div>
-</div>
-<!-- Testimonial 2 -->
-<div class="hover-lift fade-in bg-brand-cream rounded-4xl p-7 shadow-soft flex flex-col gap-4" style="animation-delay:.12s">
-<div class="stars text-lg">★★★★★</div>
-<p class="text-gray-600 leading-relaxed text-sm flex-1">"Dr. Gunda patiently diagnoses the issue, explains it clearly, and prescribes the correct medicines for the child."</p>
-<div class="flex items-center gap-3 mt-2">
-<img alt="Swaroop N - 5-star Google review for Dr. Gunda" class="w-12 h-12 rounded-full object-cover border-2 border-white shadow-soft" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&amp;auto=format&amp;fit=crop&amp;q=80"/>
-<div>
-<div class="font-bold text-brand-dark text-sm">Swaroop N</div>
-<div class="text-xs text-gray-500">5-star Google review</div>
-</div>
-</div>
-</div>
-<!-- Testimonial 3 -->
-<div class="hover-lift fade-in bg-brand-cream rounded-4xl p-7 shadow-soft flex flex-col gap-4" style="animation-delay:.24s">
-<div class="stars text-lg">★★★★★</div>
-<p class="text-gray-600 leading-relaxed text-sm flex-1">"Dr. Gunda examines carefully, explains with patience, and gives families confidence through a calm clinic experience."</p>
-<div class="flex items-center gap-3 mt-2">
-<img alt="Pranjali Kanade - 5-star Google review for Dr. Gunda" class="w-12 h-12 rounded-full object-cover border-2 border-white shadow-soft" src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&amp;auto=format&amp;fit=crop&amp;q=80"/>
-<div>
-<div class="font-bold text-brand-dark text-sm">Pranjali Kanade</div>
-<div class="text-xs text-gray-500">5-star Google review</div>
-</div>
-</div>
+<div class="gallery-carousel-actions mt-6 items-center justify-center gap-4">
+<button aria-label="Previous testimonial" class="gallery-carousel-control" data-gallery-prev type="button">&#8249;</button>
+<div aria-label="Testimonial slide position" class="flex items-center gap-2" data-gallery-dots></div>
+<button aria-label="Next testimonial" class="gallery-carousel-control" data-gallery-next type="button">&#8250;</button>
 </div>
 </div>
 <div class="mt-12 text-center fade-in">
@@ -1161,7 +1170,7 @@
 <div class="rounded-[2rem] overflow-hidden shadow-xl border border-white bg-white min-h-[340px]" style="min-height:360px;height:360px;padding:0;overflow:hidden;border-radius:2rem;"><iframe allowfullscreen="" class="w-full h-full border-0" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q=The%20Better%20Health.Clinic%2C%20%23155%2C%202nd%20Cross%2C%201st%20stage%2C%20Arekere%20MICO%20Layout%2C%20Off%20Bannerghatta%20road%2C%20Bengaluru%20560076&output=embed" style="border:0;width:100%;height:100%;display:block;"></iframe></div>
 <div class="bg-white rounded-[2rem] shadow-xl border border-gray-100 p-5 md:p-7 space-y-4">
 <a class="flex items-center gap-4 p-4 rounded-3xl bg-[#f3faf8] border border-brand-green/10" href="tel:9686183999">
-<div class="w-14 h-14 rounded-2xl bg-brand-green text-white flex items-center justify-center text-2xl shadow-md shrink-0">☎</div>
+<div class="w-14 h-14 rounded-2xl bg-brand-green text-white flex items-center justify-center text-2xl shadow-md shrink-0"><i class="fa-solid fa-phone"></i></div>
 <div>
 <p class="text-xs uppercase tracking-widest text-gray-400 font-extrabold">Call Us</p>
 <p class="text-xl md:text-2xl font-bold text-gray-900 call-number">9686183999</p>
@@ -1169,7 +1178,7 @@
 </a>
 <div class="p-4 rounded-3xl bg-[#fff7f2] border border-brand-orange/10">
 <div class="flex items-center gap-4 mb-4">
-<div class="w-14 h-14 rounded-2xl bg-brand-orange text-white flex items-center justify-center text-2xl shadow-md shrink-0">🕒</div>
+<div class="w-14 h-14 rounded-2xl bg-brand-orange text-white flex items-center justify-center text-2xl shadow-md shrink-0"><i class="fa-solid fa-clock"></i></div>
 <div>
 <p class="text-xs uppercase tracking-widest text-gray-400 font-extrabold">Clinic Timings</p>
 </div>
@@ -1213,7 +1222,7 @@
 <div class="font-heading font-bold text-lg leading-tight">The Better Kids Clinic</div>
 </div>
 </div>
-<p class="text-white/70 text-sm leading-relaxed mb-5">Providing compassionate, expert pediatric care in a warm and welcoming environment since 2010.</p>
+<p class="text-white/70 text-sm leading-relaxed mb-5">Providing compassionate, expert pediatric care with 18+ years of clinical experience.</p>
 <!-- Social Icons -->
 <div class="flex gap-3">
 <a aria-label="Facebook" class="w-9 h-9 bg-white/10 hover:bg-white/25 rounded-xl flex items-center justify-center transition-colors" href="./contact">
@@ -1239,6 +1248,7 @@
 <li><a class="hover:text-white transition-colors" href="./services">Services</a></li>
 <li><a class="hover:text-white transition-colors" href="./about">About</a></li>
 <li><a class="hover:text-white transition-colors" href="./testimonials">Testimonials</a></li>
+<li><a class="hover:text-white transition-colors" href="./blog/">Blog</a></li>
 <li><a class="hover:text-white transition-colors" href="./contact">Book Appointment</a></li>
 </ul>
 </div>
@@ -1246,11 +1256,12 @@
 <div>
 <h4 class="font-bold text-white mb-5 text-sm uppercase tracking-wider">Services</h4>
 <ul class="space-y-3 text-sm text-white/70">
-<li><a class="hover:text-white transition-colors" href="./services">Preventive Care</a></li>
-<li><a class="hover:text-white transition-colors" href="./services">Vaccination &amp; Immunization</a></li>
+<li><a class="hover:text-white transition-colors" href="./services">Consultations &amp; Recovery Handholding</a></li>
+<li><a class="hover:text-white transition-colors" href="./services">Newborn Care</a></li>
 <li><a class="hover:text-white transition-colors" href="./services">Growth Monitoring</a></li>
-<li><a class="hover:text-white transition-colors" href="./services">Pediatric Consultation</a></li>
-<li><a class="hover:text-white transition-colors" href="./services">Child Wellness</a></li>
+<li><a class="hover:text-white transition-colors" href="./services">Asthma &amp; Allergies</a></li>
+<li><a class="hover:text-white transition-colors" href="./services">Remote Monitoring</a></li>
+<li><a class="hover:text-white transition-colors" href="./services">All Vaccinations &amp; PFT</a></li>
 </ul>
 </div>
 <!-- Contact -->
@@ -1293,7 +1304,7 @@
 </div>
 </div>
     <div style="margin-top:24px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.12);display:flex;justify-content:center;font-size:12px;">
-      <a href="https://aadityabhatnagar.online/" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:9px;min-height:36px;padding:5px 7px 5px 14px;border:1px solid rgba(255,255,255,0.18);border-radius:999px;background:rgba(255,255,255,0.055);color:rgba(255,255,255,0.84);text-decoration:none;font-weight:800;line-height:1;letter-spacing:0;box-shadow:0 8px 20px rgba(0,0,0,0.16);" onmouseover="this.style.background='rgba(255,255,255,0.11)';this.style.color='rgba(255,255,255,0.96)'" onmouseout="this.style.background='rgba(255,255,255,0.055)';this.style.color='rgba(255,255,255,0.84)'"><span style="white-space:nowrap;font-size:13px;">Degined by Ab Labs</span><span style="width:28px;height:28px;border-radius:999px;background:rgba(255,255,255,0.96);display:inline-flex;align-items:center;justify-content:center;overflow:hidden;flex:0 0 auto;"><img src="../assets/ab-labs-logo.png" alt="Ab Labs logo" style="width:21px;height:21px;object-fit:contain;display:block;" loading="lazy"></span></a>
+      <a href="https://aadityabhatnagar.online/" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:9px;min-height:36px;padding:5px 7px 5px 14px;border:1px solid rgba(255,255,255,0.18);border-radius:999px;background:rgba(255,255,255,0.055);color:rgba(255,255,255,0.84);text-decoration:none;font-weight:800;line-height:1;letter-spacing:0;box-shadow:0 8px 20px rgba(0,0,0,0.16);" onmouseover="this.style.background='rgba(255,255,255,0.11)';this.style.color='rgba(255,255,255,0.96)'" onmouseout="this.style.background='rgba(255,255,255,0.055)';this.style.color='rgba(255,255,255,0.84)'"><span style="white-space:nowrap;font-size:13px;">Designed by Ab Labs</span><span style="width:28px;height:28px;border-radius:999px;background:rgba(255,255,255,0.96);display:inline-flex;align-items:center;justify-content:center;overflow:hidden;flex:0 0 auto;"><img src="../assets/ab-labs-logo.png" alt="Ab Labs logo" style="width:21px;height:21px;object-fit:contain;display:block;" loading="lazy"></span></a>
     </div>
   </footer>
 <!-- ══════════════════════════════════════════
@@ -1352,64 +1363,89 @@
       const dotsWrap = carousel.querySelector('[data-gallery-dots]');
       if (!track || !slides.length || !prevButton || !nextButton || !dotsWrap) return;
 
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const carouselLabel = carousel.getAttribute('aria-label') || 'Carousel';
       let activeGalleryIndex = 0;
-      let programmaticScrollUntil = 0;
+      let scrollFrame = 0;
+
+      carousel.setAttribute('role', 'region');
+      carousel.setAttribute('aria-label', carouselLabel);
+      track.setAttribute('tabindex', '0');
+      track.setAttribute('aria-live', 'polite');
+      dotsWrap.textContent = '';
 
       const dots = slides.map((_, index) => {
         const dot = document.createElement('button');
         dot.className = 'gallery-carousel-dot';
         dot.type = 'button';
-        dot.setAttribute('aria-label', `Go to gallery item ${index + 1}`);
-        dot.addEventListener('click', () => {
-          goToSlide(index);
-        });
+        dot.setAttribute('aria-label', `Go to ${carouselLabel.toLowerCase()} item ${index + 1}`);
+        dot.addEventListener('click', () => goToSlide(index));
         dotsWrap.appendChild(dot);
         return dot;
       });
 
+      const clampIndex = (index) => Math.max(0, Math.min(slides.length - 1, index));
+
+      const getTargetScrollLeft = (targetIndex) => {
+        const slide = slides[targetIndex];
+        const slideStart = slide.offsetLeft - track.offsetLeft;
+        const maxScroll = track.scrollWidth - track.clientWidth;
+        return Math.max(0, Math.min(maxScroll, slideStart));
+      };
+
       const getActiveIndex = () => {
-        const trackBox = track.getBoundingClientRect();
-        const trackCenter = trackBox.left + (trackBox.width / 2);
+        const trackStart = track.scrollLeft;
         return slides.reduce((closestIndex, slide, index) => {
-          const slideBox = slide.getBoundingClientRect();
-          const closestBox = slides[closestIndex].getBoundingClientRect();
-          const currentDistance = Math.abs((slideBox.left + slideBox.width / 2) - trackCenter);
-          const closestDistance = Math.abs((closestBox.left + closestBox.width / 2) - trackCenter);
-          return currentDistance < closestDistance ? index : closestIndex;
+          const slideStart = slide.offsetLeft - track.offsetLeft;
+          const closestSlide = slides[closestIndex];
+          const closestStart = closestSlide.offsetLeft - track.offsetLeft;
+          return Math.abs(slideStart - trackStart) < Math.abs(closestStart - trackStart) ? index : closestIndex;
         }, 0);
       };
 
-      const updateDots = (forcedIndex) => {
-        const activeIndex = typeof forcedIndex === 'number' ? forcedIndex : getActiveIndex();
+      const updateCarouselState = (forcedIndex) => {
+        const activeIndex = clampIndex(typeof forcedIndex === 'number' ? forcedIndex : getActiveIndex());
         activeGalleryIndex = activeIndex;
         dots.forEach((dot, index) => {
           dot.classList.toggle('is-active', index === activeIndex);
           dot.setAttribute('aria-current', index === activeIndex ? 'true' : 'false');
         });
+        prevButton.disabled = activeIndex === 0;
+        nextButton.disabled = activeIndex === slides.length - 1;
+        prevButton.setAttribute('aria-disabled', prevButton.disabled ? 'true' : 'false');
+        nextButton.setAttribute('aria-disabled', nextButton.disabled ? 'true' : 'false');
       };
 
       const goToSlide = (targetIndex) => {
-        activeGalleryIndex = targetIndex;
-        programmaticScrollUntil = Date.now() + 700;
-        const inlinePosition = targetIndex === 0 ? 'start' : targetIndex === slides.length - 1 ? 'end' : 'center';
-        slides[targetIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: inlinePosition });
-        updateDots(targetIndex);
+        const nextIndex = clampIndex(targetIndex);
+        track.scrollTo({ left: getTargetScrollLeft(nextIndex), behavior: reducedMotion ? 'auto' : 'smooth' });
+        updateCarouselState(nextIndex);
       };
 
-      const scrollToSlide = (direction) => {
-        const targetIndex = (activeGalleryIndex + direction + slides.length) % slides.length;
-        goToSlide(targetIndex);
-      };
-
-      prevButton.addEventListener('click', () => scrollToSlide(-1));
-      nextButton.addEventListener('click', () => scrollToSlide(1));
-      track.addEventListener('scroll', () => {
-        window.requestAnimationFrame(() => {
-          if (Date.now() >= programmaticScrollUntil) updateDots();
+      const queueStateUpdate = () => {
+        if (scrollFrame) return;
+        scrollFrame = window.requestAnimationFrame(() => {
+          scrollFrame = 0;
+          updateCarouselState();
         });
-      }, { passive: true });
-      window.addEventListener('resize', updateDots);
-      updateDots(0);
+      };
+
+      prevButton.addEventListener('click', () => goToSlide(activeGalleryIndex - 1));
+      nextButton.addEventListener('click', () => goToSlide(activeGalleryIndex + 1));
+      track.addEventListener('scroll', queueStateUpdate, { passive: true });
+      track.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowLeft') {
+          event.preventDefault();
+          goToSlide(activeGalleryIndex - 1);
+        }
+        if (event.key === 'ArrowRight') {
+          event.preventDefault();
+          goToSlide(activeGalleryIndex + 1);
+        }
+      });
+      window.addEventListener('resize', () => goToSlide(activeGalleryIndex));
+      track.scrollLeft = 0;
+      updateCarouselState(0);
     });
 
     const GOOGLE_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwwVvDnpY1lFhda10gTMyHTTRyypvhwhRlVdQ9EDazX-txmc_HIhi3qzMPOm3HCf6tB5w/exec';
