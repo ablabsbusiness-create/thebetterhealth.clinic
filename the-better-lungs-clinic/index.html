@@ -434,9 +434,25 @@
         height: 2.65rem;
       }
       #testimonials .gallery-carousel-actions {
+        display: grid;
+        grid-template-columns: 2.65rem minmax(0, 1fr) 2.65rem;
+        align-items: center;
         position: relative;
         z-index: 5;
         margin-top: 1.15rem;
+      }
+      #testimonials [data-gallery-dots] {
+        min-width: 0;
+        justify-content: center;
+        flex-wrap: wrap;
+        row-gap: 0.4rem;
+      }
+      #testimonials .gallery-carousel-dot {
+        width: 0.52rem;
+        height: 0.52rem;
+      }
+      #testimonials .gallery-carousel-dot.is-active {
+        width: 1.12rem;
       }
       #testimonials .gallery-carousel-control {
         background: #2E7D6B;
@@ -1406,9 +1422,6 @@
 <!-- Service Card 1 -->
 <div class="hover-lift fade-in bg-white rounded-4xl overflow-hidden shadow-card flex flex-col">
 <div class="p-6 flex flex-col flex-1">
-<div class="w-11 h-11 bg-teal-50 rounded-2xl flex items-center justify-center mb-4">
-<svg class="w-6 h-6 text-brand-green" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 12h4l2-6 4 12 2-6h4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-</div>
 <h3 class="text-lg font-bold text-brand-dark mb-1">Consultations</h3>
 <div class="text-xs font-bold uppercase tracking-wide text-brand-green mb-3">In person and online</div>
 <p class="text-sm text-gray-500 mb-4 leading-relaxed">Pulmonology consultations for cough, breathlessness, asthma, allergies, infections, and other lung concerns.</p>
@@ -1426,9 +1439,6 @@
 <!-- Service Card 2 -->
 <div class="hover-lift fade-in bg-white rounded-4xl overflow-hidden shadow-card flex flex-col" style="animation-delay:.1s">
 <div class="p-6 flex flex-col flex-1">
-<div class="w-11 h-11 bg-orange-50 rounded-2xl flex items-center justify-center mb-4">
-<svg class="w-6 h-6 text-brand-orange" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-</div>
 <h3 class="text-lg font-bold text-brand-dark mb-1">2nd Opinions</h3>
 <div class="text-xs font-bold uppercase tracking-wide text-brand-green mb-3">In person and online</div>
 <p class="text-sm text-gray-500 mb-4 leading-relaxed">Second opinions for respiratory reports, ongoing symptoms, diagnosis review, and treatment plans.</p>
@@ -1446,9 +1456,6 @@
 <!-- Service Card 3 -->
 <div class="hover-lift fade-in bg-white rounded-4xl overflow-hidden shadow-card flex flex-col" style="animation-delay:.2s">
 <div class="p-6 flex flex-col flex-1">
-<div class="w-11 h-11 bg-teal-50 rounded-2xl flex items-center justify-center mb-4">
-<svg class="w-6 h-6 text-brand-green" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 14l-7 7m0 0l-7-7m7 7V3" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-</div>
 <h3 class="text-lg font-bold text-brand-dark mb-1">Adult Vaccinations</h3>
 <div class="text-xs font-bold uppercase tracking-wide text-brand-green mb-3">Adult vaccine guidance</div>
 <p class="text-sm text-gray-500 mb-4 leading-relaxed">Adult vaccination guidance for respiratory-risk prevention and long-term protection.</p>
@@ -1466,9 +1473,6 @@
 <!-- Service Card 4 -->
 <div class="hover-lift fade-in bg-white rounded-4xl overflow-hidden shadow-card flex flex-col" style="animation-delay:.3s">
 <div class="p-6 flex flex-col flex-1">
-<div class="w-11 h-11 bg-rose-50 rounded-2xl flex items-center justify-center mb-4">
-<svg class="w-6 h-6 text-rose-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18.364 18.364A9 9 0 115.636 5.636m12.728 12.728L5.636 5.636" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-</div>
 <h3 class="text-lg font-bold text-brand-dark mb-1">Smoking Cessation Programs</h3>
 <div class="text-xs font-bold uppercase tracking-wide text-brand-green mb-3">Quit-smoking support</div>
 <p class="text-sm text-gray-500 mb-4 leading-relaxed">Structured support to quit smoking, reduce cough risk, and protect long-term lung health.</p>
@@ -2044,6 +2048,8 @@
       const carouselLabel = carousel.getAttribute('aria-label') || 'Carousel';
       let activeGalleryIndex = 0;
       let scrollFrame = 0;
+      let autoScrollTimer = 0;
+      const shouldAutoScroll = carouselLabel.toLowerCase().includes('testimonial') && !reducedMotion && slides.length > 1;
 
       carousel.setAttribute('role', 'region');
       carousel.setAttribute('aria-label', carouselLabel);
@@ -2110,6 +2116,15 @@
         track.scrollTo({ left: getTargetScrollLeft(nextIndex), behavior: reducedMotion ? 'auto' : 'smooth' });
         updateCarouselState(nextIndex);
       };
+      const startAutoScroll = () => {
+        if (!shouldAutoScroll || autoScrollTimer) return;
+        autoScrollTimer = window.setInterval(() => goToSlide(getNextIndex()), 4500);
+      };
+      const stopAutoScroll = () => {
+        if (!autoScrollTimer) return;
+        window.clearInterval(autoScrollTimer);
+        autoScrollTimer = 0;
+      };
 
       const getLiveIndex = () => {
         updateCarouselState();
@@ -2134,6 +2149,12 @@
 
       prevButton.addEventListener('click', () => goToSlide(getPreviousIndex()));
       nextButton.addEventListener('click', () => goToSlide(getNextIndex()));
+      carousel.addEventListener('mouseenter', stopAutoScroll);
+      carousel.addEventListener('mouseleave', startAutoScroll);
+      carousel.addEventListener('focusin', stopAutoScroll);
+      carousel.addEventListener('focusout', startAutoScroll);
+      carousel.addEventListener('touchstart', stopAutoScroll, { passive: true });
+      carousel.addEventListener('touchend', startAutoScroll, { passive: true });
       track.addEventListener('scroll', queueStateUpdate, { passive: true });
       track.addEventListener('keydown', (event) => {
         if (event.key === 'ArrowLeft') {
@@ -2148,6 +2169,7 @@
       window.addEventListener('resize', () => goToSlide(activeGalleryIndex));
       track.scrollLeft = 0;
       updateCarouselState(0);
+      startAutoScroll();
     });
 
     const heroName = document.getElementById('hero-name');
