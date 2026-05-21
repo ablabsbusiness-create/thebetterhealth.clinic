@@ -414,11 +414,13 @@
       }
       .gallery-carousel-track {
         gap: 1rem;
-        padding: 0.25rem 1rem 1rem 0.1rem;
-        margin-right: -1rem;
+        padding: 0.25rem max(1rem, calc((100% - min(86vw, 21rem)) / 2)) 1rem;
+        margin-right: 0;
+        scroll-padding-inline: max(1rem, calc((100% - min(86vw, 21rem)) / 2));
       }
       .gallery-carousel-track > article {
         flex-basis: min(86vw, 21rem);
+        scroll-snap-align: center;
       }
       .gallery-carousel-track > article img,
       .gallery-carousel-track > article:first-child img {
@@ -430,6 +432,22 @@
       .gallery-carousel-control {
         width: 2.65rem;
         height: 2.65rem;
+      }
+      #testimonials .gallery-carousel-actions {
+        position: relative;
+        z-index: 5;
+        margin-top: 1.15rem;
+      }
+      #testimonials .gallery-carousel-control {
+        background: #2E7D6B;
+        color: #ffffff;
+        border-color: rgba(46, 125, 107, 0.9);
+        box-shadow: 0 12px 28px rgba(28, 78, 67, 0.22);
+        opacity: 1;
+      }
+      #testimonials .gallery-carousel-control:hover {
+        background: #246757;
+        color: #ffffff;
       }
       .hero-cta-wrap {
         width: 100%;
@@ -1361,7 +1379,7 @@
 <div class="text-sm font-semibold text-brand-dark">Evidence-based plans with clear follow-up</div>
 </div>
 </div>
-<div class="mt-10">
+<div class="mt-10 text-center">
 <a class="section-open-link inline-flex items-center gap-2 border-2 border-brand-green text-brand-green hover:bg-brand-green hover:text-white font-bold px-7 py-3.5 rounded-full transition-colors" href="./about"> Open About Page </a>
 </div>
 </div>
@@ -2053,17 +2071,22 @@
       const getTargetScrollLeft = (targetIndex) => {
         const slide = slides[targetIndex];
         const slideStart = slide.offsetLeft - track.offsetLeft;
+        const shouldCenter = window.matchMedia('(max-width: 767px)').matches;
+        const centeredStart = slideStart - ((track.clientWidth - slide.offsetWidth) / 2);
         const maxScroll = track.scrollWidth - track.clientWidth;
-        return Math.max(0, Math.min(maxScroll, slideStart));
+        return Math.max(0, Math.min(maxScroll, shouldCenter ? centeredStart : slideStart));
       };
 
       const getActiveIndex = () => {
-        const trackStart = track.scrollLeft;
+        const shouldCenter = window.matchMedia('(max-width: 767px)').matches;
+        const trackMarker = shouldCenter ? track.scrollLeft + (track.clientWidth / 2) : track.scrollLeft;
         return slides.reduce((closestIndex, slide, index) => {
           const slideStart = slide.offsetLeft - track.offsetLeft;
+          const slideMarker = shouldCenter ? slideStart + (slide.offsetWidth / 2) : slideStart;
           const closestSlide = slides[closestIndex];
           const closestStart = closestSlide.offsetLeft - track.offsetLeft;
-          return Math.abs(slideStart - trackStart) < Math.abs(closestStart - trackStart) ? index : closestIndex;
+          const closestMarker = shouldCenter ? closestStart + (closestSlide.offsetWidth / 2) : closestStart;
+          return Math.abs(slideMarker - trackMarker) < Math.abs(closestMarker - trackMarker) ? index : closestIndex;
         }, 0);
       };
 
