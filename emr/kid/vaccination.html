@@ -856,61 +856,76 @@
     let historyKey = '';
     let modalMode = 'given';
 
-    const vaccineSchedule = [
+    const routineVaccineSchedule = [
       { key: 'birth-bcg', milestone: 'Birth', vaccine: 'BCG', months: 0, days: 0 },
-      { key: 'birth-opv0', milestone: 'Birth', vaccine: 'OPV 0', months: 0, days: 0 },
-      { key: 'birth-hepb', milestone: 'Birth', vaccine: 'Hepatitis B Birth Dose', months: 0, days: 0 },
-      { key: '6w-dpt1', milestone: '6 weeks', vaccine: 'DPT 1', months: 0, days: 42 },
-      { key: '6w-penta1', milestone: '6 weeks', vaccine: 'Hepatitis B 2', months: 0, days: 42 },
-      { key: '6w-opv1', milestone: '6 weeks', vaccine: 'OPV 1', months: 0, days: 42 },
+      { key: 'birth-opv', milestone: 'Birth', vaccine: 'OPV', months: 0, days: 0 },
+      { key: 'birth-hepb1', milestone: 'Birth', vaccine: 'Hep B-1 Birth Dose', months: 0, days: 0 },
+      { key: '6w-dtap1', milestone: '6 weeks', vaccine: 'DTwP/DTaP 1', months: 0, days: 42 },
       { key: '6w-ipv1', milestone: '6 weeks', vaccine: 'IPV 1', months: 0, days: 42 },
       { key: '6w-hib1', milestone: '6 weeks', vaccine: 'Hib 1', months: 0, days: 42 },
+      { key: '6w-hepb2', milestone: '6 weeks', vaccine: 'Hep B-2', months: 0, days: 42 },
       { key: '6w-rota1', milestone: '6 weeks', vaccine: 'Rotavirus 1', months: 0, days: 42 },
       { key: '6w-pcv1', milestone: '6 weeks', vaccine: 'PCV 1', months: 0, days: 42 },
-      { key: '10w-dpt2', milestone: '10 weeks', vaccine: 'DPT 2', months: 0, days: 70 },
-      { key: '10w-penta2', milestone: '10 weeks', vaccine: 'Hepatitis B 3', months: 0, days: 70 },
-      { key: '10w-opv2', milestone: '10 weeks', vaccine: 'OPV 2', months: 0, days: 70 },
+      { key: '10w-dtap2', milestone: '10 weeks', vaccine: 'DTwP/DTaP 2', months: 0, days: 70 },
       { key: '10w-ipv2', milestone: '10 weeks', vaccine: 'IPV 2', months: 0, days: 70 },
       { key: '10w-hib2', milestone: '10 weeks', vaccine: 'Hib 2', months: 0, days: 70 },
+      { key: '10w-hepb3', milestone: '10 weeks', vaccine: 'Hep B-3', months: 0, days: 70 },
       { key: '10w-rota2', milestone: '10 weeks', vaccine: 'Rotavirus 2', months: 0, days: 70 },
       { key: '10w-pcv2', milestone: '10 weeks', vaccine: 'PCV 2', months: 0, days: 70 },
-      { key: '14w-dpt3', milestone: '14 weeks', vaccine: 'DPT 3', months: 0, days: 98 },
-      { key: '14w-penta3', milestone: '14 weeks', vaccine: 'Hepatitis B 4', months: 0, days: 98 },
-      { key: '14w-opv3', milestone: '14 weeks', vaccine: 'OPV 3', months: 0, days: 98 },
+      { key: '14w-dtap3', milestone: '14 weeks', vaccine: 'DTwP/DTaP 3', months: 0, days: 98 },
       { key: '14w-ipv3', milestone: '14 weeks', vaccine: 'IPV 3', months: 0, days: 98 },
       { key: '14w-hib3', milestone: '14 weeks', vaccine: 'Hib 3', months: 0, days: 98 },
+      { key: '14w-hepb4', milestone: '14 weeks', vaccine: 'Hep B-4', months: 0, days: 98 },
       { key: '14w-rota3', milestone: '14 weeks', vaccine: 'Rotavirus 3', months: 0, days: 98 },
       { key: '14w-pcv3', milestone: '14 weeks', vaccine: 'PCV 3', months: 0, days: 98 },
-      { key: '6m-influenza1', milestone: '6 months', vaccine: 'Influenza Dose 1', months: 6, days: 0 },
-      { key: '7m-influenza2', milestone: '7 months', vaccine: 'Influenza Dose 2', months: 7, days: 0 },
+      { key: '6m-influenza1', milestone: '6 months', vaccine: 'Influenza IIV 1', months: 6, days: 0 },
+      { key: '7m-influenza2', milestone: '7 months', vaccine: 'Influenza IIV 2', months: 7, days: 0 },
+      { key: '6m-typhoid', milestone: '6-9 months', vaccine: 'Typhoid Conjugate', months: 6, days: 0 },
       { key: '9m-mr1', milestone: '9 months', vaccine: 'MMR 1', months: 9, days: 0 },
-      { key: '9m-typhoid', milestone: '9 months', vaccine: 'Typhoid Conjugate', months: 9, days: 0 },
       { key: '12m-hepa1', milestone: '12 months', vaccine: 'Hepatitis A 1', months: 12, days: 0 },
-      { key: '12m-je1', milestone: '12 months', vaccine: 'JE Dose 1', months: 12, days: 0 },
-      { key: '13m-je2', milestone: '13 months', vaccine: 'JE Dose 2', months: 13, days: 0 },
-      { key: '15m-mmr1', milestone: '15 months', vaccine: 'MMR 2', months: 15, days: 0 },
+      { key: '15m-mmr2', milestone: '15 months', vaccine: 'MMR 2', months: 15, days: 0 },
       { key: '15m-varicella1', milestone: '15 months', vaccine: 'Varicella 1', months: 15, days: 0 },
-      { key: '16m-pcv-booster', milestone: '15 months', vaccine: 'PCV Booster', months: 15, days: 0 },
-      { key: '18m-dpt-booster1', milestone: '16-18 months', vaccine: 'DPT Booster 1', months: 18, days: 0 },
-      { key: '18m-opv-booster', milestone: '16-18 months', vaccine: 'IPV Booster 1', months: 18, days: 0 },
-      { key: '18m-hib-booster', milestone: '16-18 months', vaccine: 'Hib Booster', months: 18, days: 0 },
+      { key: '15m-pcv-booster', milestone: '15 months', vaccine: 'PCV Booster', months: 15, days: 0 },
+      { key: '16m-dtap-booster1', milestone: '16-18 months', vaccine: 'DTwP/DTaP Booster 1', months: 16, days: 0 },
+      { key: '16m-hib-booster1', milestone: '16-18 months', vaccine: 'Hib Booster 1', months: 16, days: 0 },
+      { key: '16m-ipv-booster1', milestone: '16-18 months', vaccine: 'IPV Booster 1', months: 16, days: 0 },
       { key: '18m-varicella2', milestone: '18-19 months', vaccine: 'Varicella 2', months: 18, days: 0 },
       { key: '18m-hepa2', milestone: '18-19 months', vaccine: 'Hepatitis A 2', months: 18, days: 0 },
-      { key: '2y-meningococcal1', milestone: '2 years', vaccine: 'Meningococcal Dose 1', months: 24, days: 0 },
-      { key: '2y-cholera1', milestone: '2 years', vaccine: 'Cholera Dose 1', months: 24, days: 0 },
-      { key: '2y-cholera2', milestone: '2 years', vaccine: 'Cholera Dose 2', months: 24, days: 14 },
-      { key: '4y-dpt-booster2', milestone: '4-6 years', vaccine: 'DPT Booster 2', months: 48, days: 0 },
-      { key: '4y-opv-booster2', milestone: '4-6 years', vaccine: 'IPV Booster 2', months: 48, days: 0 },
+      { key: '4y-dtap-booster2', milestone: '4-6 years', vaccine: 'DTwP/DTaP Booster 2', months: 48, days: 0 },
+      { key: '4y-ipv-booster2', milestone: '4-6 years', vaccine: 'IPV Booster 2', months: 48, days: 0 },
       { key: '4y-mmr3', milestone: '4-6 years', vaccine: 'MMR 3', months: 48, days: 0 },
-      { key: '6y-meningococcal2', milestone: '6 years', vaccine: 'Meningococcal Dose 2', months: 72, days: 0 },
       { key: '10y-tdap', milestone: '10 years', vaccine: 'Tdap', months: 120, days: 0 },
-      { key: '10y-hpv1', milestone: '9-14 years', vaccine: 'HPV 1', months: 120, days: 0 },
-      { key: '10y-hpv2', milestone: '9-14 years', vaccine: 'HPV 2', months: 126, days: 0 },
       { key: '15y-hpv-booster1', milestone: '15-18 years', vaccine: 'HPV 1', months: 180, days: 0 },
       { key: '15y-hpv-booster2', milestone: '15-18 years', vaccine: 'HPV 2', months: 182, days: 0 },
       { key: '15y-hpv-booster3', milestone: '15-18 years', vaccine: 'HPV 3', months: 186, days: 0 },
-      { key: '15y-td', milestone: '16-18 years', vaccine: 'Td', months: 192, days: 0 }
+      { key: '16y-td-tdap', milestone: '16-18 years', vaccine: 'Td/Tdap', months: 192, days: 0 }
     ];
+
+    function getVaccineSchedule(patient) {
+      const gender = String(patient?.gender || patient?.sex || '').trim().toLowerCase();
+      const hpvSchedule = [];
+
+      if (gender === 'female' || gender === 'girl') {
+        hpvSchedule.push({ key: '9y-hpv-single', milestone: '9-up to 15 years', vaccine: 'HPV Single Dose', months: 108, days: 0 });
+      } else if (gender === 'male' || gender === 'boy') {
+        hpvSchedule.push(
+          { key: '9y-hpv1', milestone: '9-up to 15 years', vaccine: 'HPV 1', months: 108, days: 0 },
+          { key: '9y-hpv2', milestone: '9-up to 15 years', vaccine: 'HPV 2', months: 114, days: 0 }
+        );
+      } else {
+        hpvSchedule.push(
+          { key: '9y-hpv1', milestone: '9-up to 15 years', vaccine: 'HPV 1', months: 108, days: 0 },
+          { key: '9y-hpv2', milestone: '9-up to 15 years', vaccine: 'HPV 2', months: 114, days: 0 }
+        );
+      }
+
+      const insertBeforeIndex = routineVaccineSchedule.findIndex((item) => item.key === '10y-tdap');
+      return [
+        ...routineVaccineSchedule.slice(0, insertBeforeIndex),
+        ...hpvSchedule,
+        ...routineVaccineSchedule.slice(insertBeforeIndex)
+      ];
+    }
 
     function escapeHtml(value) {
       return String(value ?? '')
@@ -968,7 +983,7 @@
 
     function buildRows(patient) {
       const recordsByKey = getRecordsByKey(patient);
-      return vaccineSchedule.map((item) => {
+      return getVaccineSchedule(patient).map((item) => {
         const record = recordsByKey.get(item.key) || {};
         const dueDate = record.dueDate || addToDob(patient?.dob || '', item.months, item.days);
         return {
@@ -1006,16 +1021,13 @@
       if (value.includes('typhoid')) return 'Typhoid';
       if (value.includes('mmr') || value === 'mr 1') return 'MMR';
       if (value.includes('opv') || value.includes('ipv')) return 'Polio';
-      if (value.includes('dpt') || value.includes('tdap') || value === 'td') return 'DTaP/Tdap/Td';
+      if (value.includes('dtwp') || value.includes('dtap') || value.includes('dpt') || value.includes('tdap') || value === 'td' || value === 'td/tdap') return 'DTaP/Tdap/Td';
       if (value.includes('bcg')) return 'BCG';
-      if (value.includes('hepatitis b')) return 'Hepatitis B';
+      if (value.includes('hepatitis b') || value.includes('hep b')) return 'Hepatitis B';
       if (value.includes('hib')) return 'Hib';
       if (value.includes('rotavirus')) return 'Rotavirus';
       if (value.includes('pcv')) return 'PCV';
       if (value.includes('influenza')) return 'Influenza';
-      if (value.includes('meningococcal')) return 'Meningococcal';
-      if (value.includes('cholera')) return 'Cholera';
-      if (value === 'je dose 1' || value === 'je dose 2' || value.startsWith('je ')) return 'JE';
       if (value.includes('hepatitis a')) return 'Hepatitis A';
       if (value.includes('varicella')) return 'Varicella';
       if (value.includes('hpv')) return 'HPV';
@@ -1023,12 +1035,12 @@
       return vaccineName.replace(/\s+\d+$/, '');
     }
 
-    function getMilestones() {
-      return [...new Map(vaccineSchedule.map((item) => [item.milestone, item])).keys()];
+    function getMilestones(rows) {
+      return [...new Map(rows.map((item) => [item.milestone, item])).keys()];
     }
 
-    function getVaccineGroups() {
-      return [...new Set(vaccineSchedule.map((item) => getVaccineGroup(item.vaccine)))];
+    function getVaccineGroups(rows) {
+      return [...new Set(rows.map((item) => getVaccineGroup(item.vaccine)))];
     }
 
     function getCurrentMilestone(rows, milestones) {
@@ -1057,9 +1069,6 @@
         'Hepatitis A': ['Havrix', 'Avaxim', 'Biovac A'],
         'Hepatitis B': ['Engerix B', 'Genevac B', 'Revac B', 'Shanvac B'],
         'Varicella': ['Varilrix', 'Varivax'],
-        'Meningococcal': ['Menactra', 'Menveo', 'Nimenrix'],
-        'Cholera': ['Dukoral', 'Shanchol'],
-        'JE': ['Jenvac', 'JEEV', 'IXIARO'],
         'HPV': ['Gardasil 9', 'Gardasil 4', 'Cervarix']
       };
       return brandsByGroup[group] || [row.vaccine];
@@ -1247,8 +1256,8 @@
     }
 
     function scheduleGridHtml(rows) {
-      const milestones = getMilestones();
-      const vaccineGroups = getVaccineGroups();
+      const milestones = getMilestones(rows);
+      const vaccineGroups = getVaccineGroups(rows);
       const currentMilestone = getCurrentMilestone(rows, milestones);
 
       return `
@@ -1296,7 +1305,9 @@
       const rows = buildRows(currentPatient);
       updateSummary(rows);
       document.title = `${getPatientName(currentPatient)} Vaccination`;
-      backToProfileLink.href = `search?patientId=${encodeURIComponent(currentPatient.patientId || '')}`;
+      if (backToProfileLink) {
+        backToProfileLink.href = `search?patientId=${encodeURIComponent(currentPatient.patientId || '')}`;
+      }
       tablesRoot.innerHTML = [
         historyPanelHtml(getRowByKey(historyKey)),
         scheduleGridHtml(rows)
