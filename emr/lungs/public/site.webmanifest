@@ -2,7 +2,7 @@
   "name": "The Better Lungs Clinic EMR",
   "short_name": "Lungs EMR",
   "description": "Standalone EMR web app for The Better Lungs Clinic pulmonology workflows.",
-  "start_url": "/emr/lungs/password/",
+  "start_url": "/emr/lungs/password.html",
   "scope": "/emr/lungs/",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui", "browser"],
