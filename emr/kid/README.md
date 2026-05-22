@@ -1,6 +1,6 @@
-# The Better Health Clinic App
+# The Better Kids Clinic EMR
 
-Static multi-page clinic app built with Vite.
+Standalone Vite web app for The Better Kids Clinic EMR.
 
 ## Local development
 
@@ -20,12 +20,16 @@ npm run dev
 
 ## Vercel deployment
 
-Deploy this project as a Vite static site on Vercel. The app now lives in the repository's `emr` folder, and it is configured to be served from `/emr`, so the public URL will be `https://thebetterhealth.clinic/emr`.
+Deploy this folder as its own Vercel project. It is configured to be served from `/emr/kid`, so the public URL is:
+
+```bash
+https://www.thebetterhealth.clinic/emr/kid/
+```
 
 Set the Vercel Root Directory to:
 
 ```bash
-emr
+emr/kid
 ```
 
 Set these environment variables in the Vercel project settings before deploying:
@@ -41,12 +45,6 @@ Set these environment variables in the Vercel project settings before deploying:
 - `CLINIC_SESSION_SECRET`
 
 `CLINIC_ACCESS_PASSWORD` is the actual clinic login password. `CLINIC_SESSION_SECRET` should be a long random secret used to sign the secure session cookie.
-
-You can copy them from:
-
-```bash
-emr/.env.vercel.example
-```
 
 Build command:
 
