@@ -321,10 +321,28 @@
     const installButton = document.getElementById('install-button');
     const installNote = document.getElementById('install-note');
     const liveUrl = 'https://www.thebetterhealth.clinic/emr/kid/download';
+    const refreshKey = 'kids-emr-install-refresh';
 
-    if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
-      navigator.serviceWorker.register('/emr/kid/sw.js', { scope: '/emr/kid/' }).catch(() => {});
+    async function prepareInstall() {
+      if (!('serviceWorker' in navigator) || !window.location.protocol.startsWith('http')) {
+        return;
+      }
+
+      try {
+        await navigator.serviceWorker.register('/emr/kid/sw.js', { scope: '/emr/kid/' });
+        await navigator.serviceWorker.ready;
+
+        if (!navigator.serviceWorker.controller && !sessionStorage.getItem(refreshKey)) {
+          sessionStorage.setItem(refreshKey, '1');
+          installNote.textContent = 'Preparing Kids EMR install. This page will refresh once, then tap Install Kids EMR again.';
+          window.setTimeout(() => window.location.reload(), 700);
+        }
+      } catch {
+        installNote.innerHTML = '<strong>Install setup is not ready.</strong> Refresh this page once, then try Install Kids EMR again.';
+      }
     }
+
+    prepareInstall();
 
     window.addEventListener('beforeinstallprompt', (event) => {
       event.preventDefault();
@@ -340,7 +358,14 @@
       }
 
       if (!deferredPrompt) {
-        installNote.innerHTML = '<strong>Install prompt is not available in this browser.</strong> Open this page in normal Chrome or Edge. On iPhone, use Share, then Add to Home Screen.';
+        if ('serviceWorker' in navigator && !navigator.serviceWorker.controller && !sessionStorage.getItem(refreshKey)) {
+          sessionStorage.setItem(refreshKey, '1');
+          installNote.textContent = 'Preparing Kids EMR install. Refreshing once now.';
+          window.setTimeout(() => window.location.reload(), 500);
+          return;
+        }
+
+        installNote.innerHTML = '<strong>Install prompt is not showing yet.</strong> In Chrome or Edge, click the install icon in the address bar or open the browser menu and choose Install app. On Android, use menu then Add to Home screen. On iPhone, use Share then Add to Home Screen.';
         return;
       }
 
