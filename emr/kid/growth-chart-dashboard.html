@@ -1274,7 +1274,7 @@
     const menuToggle = document.getElementById('menu-toggle');
     const primaryNav = document.getElementById('primary-nav');
     const navLinks = [...document.querySelectorAll('#primary-nav .nav-link')];
-    const CHART_ASSET_VERSION = '2026-05-12-iap-who-no-ofc-5-18';
+    const CHART_ASSET_VERSION = '2026-05-22-growth-recalibrated';
 
     function presentElements(elements) {
       return Object.values(elements).filter(Boolean);
@@ -1294,7 +1294,7 @@
             shortLabel: 'Ht',
             color: '#dc2626',
             x: { source: 'ageMonths', min: 0, max: 60, start: 0.1731, end: 0.8269 },
-            y: { source: 'height', min: 45, max: 130, start: 0.8617, end: 0.117 }
+            y: { source: 'height', min: 40, max: 120, start: 0.8617, end: 0.117 }
           }
         }
       },
@@ -1307,7 +1307,7 @@
             shortLabel: 'Ht',
             color: '#dc2626',
             x: { source: 'ageMonths', min: 0, max: 60, start: 0.1731, end: 0.8269 },
-            y: { source: 'height', min: 45, max: 130, start: 0.8617, end: 0.117 }
+            y: { source: 'height', min: 40, max: 120, start: 0.8617, end: 0.117 }
           }
         }
       },
@@ -1346,7 +1346,7 @@
             shortLabel: 'HC',
             color: '#059669',
             x: { source: 'ageMonths', min: 0, max: 60, start: 0.1731, end: 0.8269 },
-            y: { source: 'head', min: 35, max: 55, start: 0.8617, end: 0.117 }
+            y: { source: 'head', min: 30, max: 55, start: 0.8617, end: 0.117 }
           }
         }
       },
@@ -1359,7 +1359,7 @@
             shortLabel: 'HC',
             color: '#059669',
             x: { source: 'ageMonths', min: 0, max: 60, start: 0.1731, end: 0.8269 },
-            y: { source: 'head', min: 35, max: 55, start: 0.8617, end: 0.117 }
+            y: { source: 'head', min: 30, max: 55, start: 0.8617, end: 0.117 }
           }
         }
       },
@@ -1372,7 +1372,7 @@
             shortLabel: 'BMI',
             color: '#7c3aed',
             x: { source: 'ageMonths', min: 0, max: 60, start: 0.1731, end: 0.8269 },
-            y: { source: 'bmi', min: 10, max: 22, start: 0.8617, end: 0.117 }
+            y: { source: 'bmi', min: 10, max: 25, start: 0.8617, end: 0.117 }
           }
         }
       },
@@ -1385,7 +1385,7 @@
             shortLabel: 'BMI',
             color: '#7c3aed',
             x: { source: 'ageMonths', min: 0, max: 60, start: 0.1731, end: 0.8269 },
-            y: { source: 'bmi', min: 10, max: 22, start: 0.8617, end: 0.117 }
+            y: { source: 'bmi', min: 10, max: 25, start: 0.8617, end: 0.117 }
           }
         }
       },
@@ -1398,7 +1398,7 @@
             shortLabel: 'Ht',
             color: '#dc2626',
             x: { source: 'ageYears', min: 5, max: 18, start: 0.1731, end: 0.8269 },
-            y: { source: 'height', min: 80, max: 180, start: 0.8617, end: 0.117 }
+            y: { source: 'height', min: 60, max: 180, start: 0.8617, end: 0.117 }
           }
         }
       },
@@ -1411,7 +1411,7 @@
             shortLabel: 'Ht',
             color: '#dc2626',
             x: { source: 'ageYears', min: 5, max: 18, start: 0.1731, end: 0.8269 },
-            y: { source: 'height', min: 85, max: 190, start: 0.8617, end: 0.117 }
+            y: { source: 'height', min: 60, max: 210, start: 0.8617, end: 0.117 }
           }
         }
       },
@@ -1424,7 +1424,7 @@
             shortLabel: 'Wt',
             color: '#2563eb',
             x: { source: 'ageYears', min: 5, max: 18, start: 0.1731, end: 0.8269 },
-            y: { source: 'weight', min: 0, max: 75, start: 0.8617, end: 0.117 }
+            y: { source: 'weight', min: 10, max: 80, start: 0.8617, end: 0.117 }
           }
         }
       },
@@ -1437,7 +1437,7 @@
             shortLabel: 'Wt',
             color: '#2563eb',
             x: { source: 'ageYears', min: 5, max: 18, start: 0.1731, end: 0.8269 },
-            y: { source: 'weight', min: 0, max: 90, start: 0.8617, end: 0.117 }
+            y: { source: 'weight', min: 0, max: 100, start: 0.8617, end: 0.117 }
           }
         }
       },
@@ -1450,7 +1450,7 @@
             shortLabel: 'BMI',
             color: '#7c3aed',
             x: { source: 'ageYears', min: 5, max: 18, start: 0.1731, end: 0.8269 },
-            y: { source: 'bmi', min: 10, max: 35, start: 0.8617, end: 0.117 }
+            y: { source: 'bmi', min: 10, max: 30, start: 0.8617, end: 0.117 }
           }
         }
       },
@@ -1463,7 +1463,7 @@
             shortLabel: 'BMI',
             color: '#7c3aed',
             x: { source: 'ageYears', min: 5, max: 18, start: 0.1731, end: 0.8269 },
-            y: { source: 'bmi', min: 10, max: 35, start: 0.8617, end: 0.117 }
+            y: { source: 'bmi', min: 10, max: 30, start: 0.8617, end: 0.117 }
           }
         }
       }
@@ -1891,24 +1891,8 @@
       drawBaseTemplate(image);
     }
 
-    function getPythonChartEndpoint(payload) {
-      const templateKeys = Array.isArray(payload?.templateRequests)
-        ? payload.templateRequests.map((template) => String(template?.key || '')).filter(Boolean)
-        : [];
-
-      if (templateKeys.length === 0) {
-        return '/api/growth_charts';
-      }
-
-      if (templateKeys.every((key) => key.includes('0to5'))) {
-        return '/api/growth_charts_0to5';
-      }
-
-      if (templateKeys.every((key) => key.includes('5to18'))) {
-        return '/api/growth_charts_5to18';
-      }
-
-      throw new Error('Requested charts span multiple age bands, so a single IAP chart API could not be chosen.');
+    function getPythonChartEndpoint() {
+      return '/api/growth_charts';
     }
 
     async function requestPythonGeneratedCharts(payload) {

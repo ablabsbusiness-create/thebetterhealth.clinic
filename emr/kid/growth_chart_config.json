@@ -1,6 +1,6 @@
 {
   "version": "preview-rebuilt-2026-05-iap-no-ofc-5-18",
-  "assetVersion": "2026-05-12-iap-who-no-ofc-5-18",
+  "assetVersion": "2026-05-22-growth-recalibrated",
   "charts": [
     {
       "chartId": "boys-height-0-5",
@@ -13,16 +13,16 @@
       "dataKey": "height",
       "xMin": 0,
       "xMax": 60,
-      "yMin": 45,
+      "yMin": 40,
       "yMax": 120,
       "xUnit": "months",
       "yUnit": "cm",
-      "backgroundImage": "assets/who-official-png/boys-height-0-5-who.png",
+      "backgroundImage": "assets/iap-official-png/boys-height-0-5-minimal.png",
       "plotArea": {
-        "left": 0.0351,
-        "top": 0,
-        "right": 0.9701,
-        "bottom": 0.9325
+        "left": 0.1731,
+        "top": 0.117,
+        "right": 0.8269,
+        "bottom": 0.8617
       },
       "percentileLabels": [
         "P3",
@@ -50,16 +50,16 @@
       "dataKey": "height",
       "xMin": 0,
       "xMax": 60,
-      "yMin": 45,
+      "yMin": 40,
       "yMax": 120,
       "xUnit": "months",
       "yUnit": "cm",
-      "backgroundImage": "assets/who-official-png/girls-height-0-5-who.png",
+      "backgroundImage": "assets/iap-official-png/girls-height-0-5-minimal.png",
       "plotArea": {
-        "left": 0.0351,
-        "top": 0,
-        "right": 0.9701,
-        "bottom": 0.9325
+        "left": 0.1731,
+        "top": 0.117,
+        "right": 0.8269,
+        "bottom": 0.8617
       },
       "percentileLabels": [
         "P3",
@@ -87,16 +87,16 @@
       "dataKey": "weight",
       "xMin": 0,
       "xMax": 60,
-      "yMin": 2,
-      "yMax": 24,
+      "yMin": 0,
+      "yMax": 25,
       "xUnit": "months",
       "yUnit": "kg",
-      "backgroundImage": "assets/who-official-png/boys-weight-0-5-who.png",
+      "backgroundImage": "assets/iap-official-png/boys-weight-0-5-minimal.png",
       "plotArea": {
-        "left": 0.0351,
-        "top": 0,
-        "right": 0.9701,
-        "bottom": 0.9325
+        "left": 0.1731,
+        "top": 0.117,
+        "right": 0.8269,
+        "bottom": 0.8617
       },
       "percentileLabels": [
         "P3",
@@ -124,16 +124,16 @@
       "dataKey": "weight",
       "xMin": 0,
       "xMax": 60,
-      "yMin": 2,
-      "yMax": 24,
+      "yMin": 0,
+      "yMax": 25,
       "xUnit": "months",
       "yUnit": "kg",
-      "backgroundImage": "assets/who-official-png/girls-weight-0-5-who.png",
+      "backgroundImage": "assets/iap-official-png/girls-weight-0-5-minimal.png",
       "plotArea": {
-        "left": 0.0351,
-        "top": 0,
-        "right": 0.9701,
-        "bottom": 0.9325
+        "left": 0.1731,
+        "top": 0.117,
+        "right": 0.8269,
+        "bottom": 0.8617
       },
       "percentileLabels": [
         "P3",
@@ -162,15 +162,15 @@
       "xMin": 0,
       "xMax": 60,
       "yMin": 10,
-      "yMax": 21,
+      "yMax": 25,
       "xUnit": "months",
       "yUnit": "kg/m2",
-      "backgroundImage": "assets/who-official-png/boys-bmi-0-5-who.png",
+      "backgroundImage": "assets/iap-official-png/boys-bmi-0-5-minimal.png",
       "plotArea": {
-        "left": 0.0351,
-        "top": 0,
-        "right": 0.9701,
-        "bottom": 0.9325
+        "left": 0.1731,
+        "top": 0.117,
+        "right": 0.8269,
+        "bottom": 0.8617
       },
       "percentileLabels": [
         "P3",
@@ -199,15 +199,15 @@
       "xMin": 0,
       "xMax": 60,
       "yMin": 10,
-      "yMax": 21,
+      "yMax": 25,
       "xUnit": "months",
       "yUnit": "kg/m2",
-      "backgroundImage": "assets/who-official-png/girls-bmi-0-5-who.png",
+      "backgroundImage": "assets/iap-official-png/girls-bmi-0-5-minimal.png",
       "plotArea": {
-        "left": 0.0351,
-        "top": 0,
-        "right": 0.9701,
-        "bottom": 0.9325
+        "left": 0.1731,
+        "top": 0.117,
+        "right": 0.8269,
+        "bottom": 0.8617
       },
       "percentileLabels": [
         "P3",
@@ -235,16 +235,16 @@
       "dataKey": "head",
       "xMin": 0,
       "xMax": 60,
-      "yMin": 32,
-      "yMax": 54,
+      "yMin": 30,
+      "yMax": 55,
       "xUnit": "months",
       "yUnit": "cm",
-      "backgroundImage": "assets/who-official-png/boys-ofc-0-5-who.png",
+      "backgroundImage": "assets/iap-official-png/boys-head-0-5-minimal.png",
       "plotArea": {
-        "left": 0.0372,
-        "top": 0,
-        "right": 0.9668,
-        "bottom": 0.9274
+        "left": 0.1731,
+        "top": 0.117,
+        "right": 0.8269,
+        "bottom": 0.8617
       },
       "percentileLabels": [
         "P3",
@@ -272,16 +272,16 @@
       "dataKey": "head",
       "xMin": 0,
       "xMax": 60,
-      "yMin": 32,
-      "yMax": 52,
+      "yMin": 30,
+      "yMax": 55,
       "xUnit": "months",
       "yUnit": "cm",
-      "backgroundImage": "assets/who-official-png/girls-ofc-0-5-who.png",
+      "backgroundImage": "assets/iap-official-png/girls-head-0-5-minimal.png",
       "plotArea": {
-        "left": 0.0372,
-        "top": 0,
-        "right": 0.9668,
-        "bottom": 0.9274
+        "left": 0.1731,
+        "top": 0.117,
+        "right": 0.8269,
+        "bottom": 0.8617
       },
       "percentileLabels": [
         "P3",
@@ -309,8 +309,8 @@
       "dataKey": "height",
       "xMin": 5,
       "xMax": 18,
-      "yMin": 85,
-      "yMax": 190,
+      "yMin": 60,
+      "yMax": 210,
       "xUnit": "years",
       "yUnit": "cm",
       "backgroundImage": "assets/iap-official-png/boys-height-5-18-minimal.png",
@@ -346,7 +346,7 @@
       "dataKey": "height",
       "xMin": 5,
       "xMax": 18,
-      "yMin": 80,
+      "yMin": 60,
       "yMax": 180,
       "xUnit": "years",
       "yUnit": "cm",
@@ -384,7 +384,7 @@
       "xMin": 5,
       "xMax": 18,
       "yMin": 0,
-      "yMax": 90,
+      "yMax": 100,
       "xUnit": "years",
       "yUnit": "kg",
       "backgroundImage": "assets/iap-official-png/boys-weight-5-18-minimal.png",
@@ -420,8 +420,8 @@
       "dataKey": "weight",
       "xMin": 5,
       "xMax": 18,
-      "yMin": 0,
-      "yMax": 75,
+      "yMin": 10,
+      "yMax": 80,
       "xUnit": "years",
       "yUnit": "kg",
       "backgroundImage": "assets/iap-official-png/girls-weight-5-18-minimal.png",
@@ -458,7 +458,7 @@
       "xMin": 5,
       "xMax": 18,
       "yMin": 10,
-      "yMax": 35,
+      "yMax": 30,
       "xUnit": "years",
       "yUnit": "kg/m2",
       "backgroundImage": "assets/iap-official-png/boys-bmi-5-18-minimal.png",
@@ -499,7 +499,7 @@
       "xMin": 5,
       "xMax": 18,
       "yMin": 10,
-      "yMax": 35,
+      "yMax": 30,
       "xUnit": "years",
       "yUnit": "kg/m2",
       "backgroundImage": "assets/iap-official-png/girls-bmi-5-18-minimal.png",

@@ -122,7 +122,7 @@ CHARTS = [
 
 Y_AXIS = {
     "bmi": ["35", "25", "20", "15", "10"],
-    "bmi_small": ["22", "18", "14", "10"],
+    "bmi_small": ["25", "20", "15", "10"],
     "extended_bmi": ["45", "35", "25", "15"],
     "waist": ["95", "80", "65", "50"],
 }
@@ -145,7 +145,7 @@ PERCENTILES = {
 
 IAP_2015_PERCENTILES = {
     ("Boys", "height"): {
-        "axis": {"x_min": 5, "x_max": 18, "y_min": 85, "y_max": 190},
+        "axis": {"x_min": 5, "x_max": 18, "y_min": 60, "y_max": 210},
         "columns": ["P3", "P10", "P25", "P50", "P75", "P90", "P97"],
         "rows": [
             (5.0, 99.0, 102.3, 105.6, 108.9, 112.4, 115.9, 119.4),
@@ -178,7 +178,7 @@ IAP_2015_PERCENTILES = {
         ],
     },
     ("Boys", "weight"): {
-        "axis": {"x_min": 5, "x_max": 18, "y_min": 0, "y_max": 90},
+        "axis": {"x_min": 5, "x_max": 18, "y_min": 0, "y_max": 100},
         "columns": ["P3", "P10", "P25", "P50", "P75", "P90", "P97"],
         "rows": [
             (5.0, 13.2, 14.3, 15.6, 17.1, 19.0, 21.3, 24.2),
@@ -211,7 +211,7 @@ IAP_2015_PERCENTILES = {
         ],
     },
     ("Boys", "bmi"): {
-        "axis": {"x_min": 5, "x_max": 18, "y_min": 10, "y_max": 35},
+        "axis": {"x_min": 5, "x_max": 18, "y_min": 10, "y_max": 30},
         "columns": ["P3", "P5", "P10", "P25", "P50", "AE23", "AE27"],
         "rows": [
             (5.0, 12.1, 12.4, 12.8, 13.6, 14.7, 15.7, 17.5),
@@ -246,7 +246,7 @@ IAP_2015_PERCENTILES = {
 }
 
 IAP_2015_PERCENTILES[("Girls", "height")] = {
-    "axis": {"x_min": 5, "x_max": 18, "y_min": 80, "y_max": 180},
+    "axis": {"x_min": 5, "x_max": 18, "y_min": 60, "y_max": 180},
     "columns": IAP_2015_PERCENTILES[("Boys", "height")]["columns"],
     "rows": [
         (5.0, 97.2, 100.5, 103.9, 107.5, 111.3, 115.2, 119.3),
@@ -280,7 +280,7 @@ IAP_2015_PERCENTILES[("Girls", "height")] = {
 }
 
 IAP_2015_PERCENTILES[("Girls", "weight")] = {
-    "axis": {"x_min": 5, "x_max": 18, "y_min": 0, "y_max": 75},
+    "axis": {"x_min": 5, "x_max": 18, "y_min": 10, "y_max": 80},
     "columns": IAP_2015_PERCENTILES[("Boys", "weight")]["columns"],
     "rows": [
         (5.0, 12.3, 13.4, 14.8, 16.4, 18.5, 21.3, 25.0),
@@ -314,7 +314,7 @@ IAP_2015_PERCENTILES[("Girls", "weight")] = {
 }
 
 IAP_2015_PERCENTILES[("Girls", "bmi")] = {
-    "axis": {"x_min": 5, "x_max": 18, "y_min": 10, "y_max": 35},
+    "axis": {"x_min": 5, "x_max": 18, "y_min": 10, "y_max": 30},
     "columns": IAP_2015_PERCENTILES[("Boys", "bmi")]["columns"],
     "rows": [
         (5.0, 11.9, 12.1, 12.5, 13.3, 14.3, 15.5, 18.0),
@@ -414,22 +414,35 @@ def get_y_labels(panel: dict) -> list[str]:
     age_mode = panel["age_mode"]
     sex = panel.get("sex", "")
 
+    if kind == "height" and age_mode == "months" and sex == "Girls":
+        return ["120", "100", "80", "60", "40"]
     if kind == "height" and age_mode == "months":
-        return ["130", "110", "90", "70", "45"]
+        return ["120", "100", "80", "60", "40"]
     if kind == "height" and sex == "Boys":
-        return ["185", "160", "135", "110", "85"]
+        return ["210", "180", "150", "120", "90", "60"]
     if kind == "height":
-        return ["180", "155", "130", "105", "80"]
+        return ["180", "150", "120", "90", "60"]
     if kind == "weight" and age_mode == "months":
         return ["25", "20", "15", "10", "5", "0"]
     if kind == "weight" and sex == "Boys":
-        return ["90", "75", "50", "25", "0"]
+        return ["100", "80", "60", "40", "20", "0"]
     if kind == "weight":
-        return ["75", "50", "25", "0"]
+        return ["80", "60", "40", "20", "10"]
+    if kind == "head" and age_mode == "months" and sex == "Girls":
+        return ["55", "50", "45", "40", "35", "30"]
     if kind == "head":
-        return ["55", "50", "45", "40", "35"]
+        return ["55", "50", "45", "40", "35", "30"]
     if kind == "weight_for_height":
         return ["28", "21", "14", "7", "0"]
+
+    if kind == "bmi" and sex == "Boys" and age_mode == "years":
+        return ["30", "20", "10"]
+
+    if kind == "bmi" and sex == "Girls" and age_mode == "years":
+        return ["30", "25", "20", "15", "10"]
+
+    if kind == "bmi_small" and age_mode == "months" and sex == "Girls":
+        return ["25", "20", "15", "10"]
 
     return Y_AXIS[kind]
 

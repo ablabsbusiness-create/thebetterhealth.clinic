@@ -24,14 +24,14 @@
 <path class="tick" d="M215 162 V156"/>
 <text class="label" x="215" y="178">5y</text>
 <path class="tick" d="M45 22 H51"/>
-<text class="ylabel" x="39" y="26">130</text>
+<text class="ylabel" x="39" y="26">120</text>
 <path class="tick" d="M45 57 H51"/>
-<text class="ylabel" x="39" y="61">110</text>
+<text class="ylabel" x="39" y="61">100</text>
 <path class="tick" d="M45 92 H51"/>
-<text class="ylabel" x="39" y="96">90</text>
+<text class="ylabel" x="39" y="96">80</text>
 <path class="tick" d="M45 127 H51"/>
-<text class="ylabel" x="39" y="131">70</text>
+<text class="ylabel" x="39" y="131">60</text>
 <path class="tick" d="M45 162 H51"/>
-<text class="ylabel" x="39" y="166">45</text>
+<text class="ylabel" x="39" y="166">40</text>
 
 </svg>
