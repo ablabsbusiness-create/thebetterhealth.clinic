@@ -1,0 +1,27 @@
+{
+  "name": "The Better Lungs Clinic EMR",
+  "short_name": "Lungs EMR",
+  "description": "Standalone EMR web app for The Better Lungs Clinic pulmonology workflows.",
+  "start_url": "/emr/lungs/password/",
+  "scope": "/emr/lungs/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "background_color": "#eef4ef",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/emr/lungs/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/emr/lungs/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["medical", "productivity"]
+}
