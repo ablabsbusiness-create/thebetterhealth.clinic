@@ -18,6 +18,7 @@ const PROTECTED_PATHS = new Set([
   '/reception-qr',
   '/search',
   '/settings',
+  '/test',
   '/vaccination',
   '/vacination',
   '/prescription-growth-chart-dashboard',
