@@ -147,6 +147,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         password: resolve(__dirname, 'password.html'),
+        download: resolve(__dirname, 'download.html'),
         entryDashboard: resolve(__dirname, 'index.html'),
         dashboard: resolve(__dirname, 'clinci.html'),
         newPatient: resolve(__dirname, 'new-patient.html'),
