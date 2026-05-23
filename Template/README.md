@@ -37,6 +37,61 @@ CLINIC_SESSION_SECRET
 
 `CLINIC_ACCESS_PASSWORD` and `CLINIC_SESSION_SECRET` are optional unless you add route-level password protection. Keep `CLINIC_SESSION_SECRET` long and random if used.
 
+## How To Get Env Values
+
+In Firebase:
+
+1. Open Firebase Console.
+2. Open your project.
+3. Go to Project settings.
+4. In General, scroll to Your apps.
+5. Create or open a Web app.
+6. Copy values from the `firebaseConfig` object.
+
+Map the Firebase config to Vercel env like this:
+
+```txt
+apiKey             -> VITE_FIREBASE_API_KEY
+authDomain         -> VITE_FIREBASE_AUTH_DOMAIN
+projectId          -> VITE_FIREBASE_PROJECT_ID
+storageBucket      -> VITE_FIREBASE_STORAGE_BUCKET
+messagingSenderId  -> VITE_FIREBASE_MESSAGING_SENDER_ID
+appId              -> VITE_FIREBASE_APP_ID
+measurementId      -> VITE_FIREBASE_MEASUREMENT_ID
+```
+
+Example source format from Firebase:
+
+```js
+const firebaseConfig = {
+  apiKey: "...",
+  authDomain: "...firebaseapp.com",
+  projectId: "...",
+  storageBucket: "...firebasestorage.app",
+  messagingSenderId: "...",
+  appId: "...",
+  measurementId: "..."
+};
+```
+
+For password protection:
+
+```txt
+CLINIC_ACCESS_PASSWORD
+```
+
+Choose the password/PIN staff will type to enter the EMR.
+
+```txt
+CLINIC_SESSION_SECRET
+```
+
+Create a long random value. You can generate one locally with:
+
+```txt
+node -e "console.log(crypto.randomUUID() + crypto.randomUUID())"
+```
+
 ## Firebase Setup
 
 Create a Firebase project, then create a Web App and copy the config values into the Vercel environment variables.
