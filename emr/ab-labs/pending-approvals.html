@@ -132,12 +132,27 @@
     @media (max-width:960px) { .workspace { grid-template-columns:1fr; } .queue-panel { position:static; max-height:none; } }
     @media (max-width:720px) { .review-grid { grid-template-columns:1fr; } .page-intro,.review-head,.review-actions { flex-direction:column; align-items:stretch; } }
 
+  
+    .brand-mark {
+      background: #fff !important;
+      color: var(--brand, #166534);
+      overflow: hidden;
+      border: 1px solid rgba(22, 101, 52, 0.14);
+    }
+
+    .brand-logo {
+      width: 78%;
+      height: 78%;
+      object-fit: contain;
+      display: block;
+    }
+
   </style>
 </head>
 <body>
   <header class="site-header">
     <div class="topbar">
-      <div class="brand"><div class="brand-mark">PA</div><div class="brand-copy"><strong>Ab Labs EMR</strong><span>Pending Intake Approvals</span></div></div>
+      <div class="brand"><div class="brand-mark"><img class="brand-logo" src="/emr/kid/ab-labs-logo.png" alt="Ab Labs logo"></div><div class="brand-copy"><strong>Ab Labs EMR</strong><span>Pending Intake Approvals</span></div></div>
       <nav id="primary-nav" class="nav-links" aria-label="Primary">
         <a class="nav-link" href="index">Dashboard</a>
         <a class="nav-link" href="search">Enter Clinic</a>

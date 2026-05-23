@@ -760,13 +760,28 @@
       }
     }
 
+  
+    .brand-mark {
+      background: #fff !important;
+      color: var(--brand, #166534);
+      overflow: hidden;
+      border: 1px solid rgba(22, 101, 52, 0.14);
+    }
+
+    .brand-logo {
+      width: 78%;
+      height: 78%;
+      object-fit: contain;
+      display: block;
+    }
+
   </style>
 </head>
 <body>
   <header class="site-header">
     <div class="topbar">
       <a class="brand" href="search">
-        <span class="brand-mark">VH</span>
+        <span class="brand-mark"><img class="brand-logo" src="/emr/kid/ab-labs-logo.png" alt="Ab Labs logo"></span>
         <span class="brand-copy">
           <strong>Ab Labs EMR</strong>
           <span>Vaccination Tracker</span>
