@@ -1950,12 +1950,12 @@
         const savedRecord = await ensurePrescriptionSaved();
         const chartRecord = getCurrentChartRecord();
         const branding = getPrescriptionBranding();
-        const shortLink = buildShortPrescriptionLink(savedRecord.saveId) || savedRecord.downloadURL;
+        const prescriptionLink = savedRecord.downloadURL || buildShortPrescriptionLink(savedRecord.saveId);
         const message = [
           `Hello ${chartRecord?.patientName || chartRecord?.childName || 'Patient'},`,
           '',
-          `You can see your prescription here:`,
-          shortLink,
+          `You can see your prescription PDF here:`,
+          prescriptionLink,
           '',
           `Patient ID: ${savedRecord.patientId || chartRecord?.patientId || '-'}`,
           `Clinic: ${branding.clinicTitle || DEFAULT_BRANDING.clinicTitle}`,

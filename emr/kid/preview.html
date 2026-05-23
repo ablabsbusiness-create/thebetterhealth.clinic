@@ -330,7 +330,8 @@
     }
 
     .btn-primary:disabled,
-    .btn-secondary:disabled {
+    .btn-secondary:disabled,
+    .btn-whatsapp:disabled {
       opacity: 0.65;
       cursor: wait;
     }
@@ -345,6 +346,12 @@
       border: 1px solid var(--line);
       background: #fff;
       color: var(--brand-strong);
+    }
+
+    .btn-whatsapp {
+      background: #25d366;
+      color: #fff;
+      box-shadow: 0 12px 24px rgba(37, 211, 102, 0.18);
     }
 
     .document-stage {
@@ -812,6 +819,7 @@
         <div class="preview-actions">
           <a class="nav-link nav-enter-clinic" href="search">Enter Clinic</a>
           <button id="download-pdf-btn" class="btn-primary" type="button">Download PDF</button>
+          <button id="whatsapp-btn" class="btn-whatsapp" type="button">WhatsApp</button>
         </div>
       </div>
       <div class="document-stage">
@@ -840,6 +848,7 @@
     const primaryNav = document.getElementById('primary-nav');
     const rxSheet = document.getElementById('rx-sheet');
     const downloadPdfBtn = document.getElementById('download-pdf-btn');
+    const whatsappBtn = document.getElementById('whatsapp-btn');
     const PRESCRIPTION_DRAFT_STORAGE_KEY = clinicStorageKey('prescriptionDraft');
     const CHART_RECORD_STORAGE_KEY = clinicStorageKey('growthChartRecentRecords');
     const LOCAL_PRESCRIPTION_HISTORY_KEY = clinicStorageKey('savedPrescriptionHistory');
@@ -1919,6 +1928,33 @@
       localStorage.removeItem(MEDICINE_DETAIL_STORAGE_KEY);
     }
 
+    function normalizeWhatsAppPhone(phone) {
+      const digits = String(phone || '').replace(/\D/g, '');
+      if (digits.length === 10) {
+        return `91${digits}`;
+      }
+      return digits;
+    }
+
+    function openWhatsAppChat(phone, message) {
+      const normalizedPhone = normalizeWhatsAppPhone(phone);
+      const encodedMessage = encodeURIComponent(message);
+      const targetUrl = normalizedPhone
+        ? `https://wa.me/${normalizedPhone}?text=${encodedMessage}`
+        : `https://wa.me/?text=${encodedMessage}`;
+      window.open(targetUrl, '_blank', 'noopener,noreferrer');
+    }
+
+    function buildShortPrescriptionLink(saveId) {
+      if (!saveId) {
+        return '';
+      }
+
+      const url = new URL('rx', window.location.href);
+      url.searchParams.set('i', saveId);
+      return url.toString();
+    }
+
     downloadPdfBtn.addEventListener('click', async () => {
       downloadPdfBtn.disabled = true;
       downloadPdfBtn.textContent = 'Preparing...';
@@ -1932,6 +1968,36 @@
       } finally {
         downloadPdfBtn.disabled = false;
         downloadPdfBtn.textContent = 'Download PDF';
+      }
+    });
+
+    whatsappBtn.addEventListener('click', async () => {
+      whatsappBtn.disabled = true;
+      whatsappBtn.textContent = 'Opening...';
+
+      try {
+        const savedRecord = await ensurePrescriptionSaved();
+        const chartRecord = getCurrentChartRecord();
+        const branding = getPrescriptionBranding();
+        const prescriptionLink = savedRecord.downloadURL || buildShortPrescriptionLink(savedRecord.saveId);
+        const message = [
+          `Hello ${chartRecord?.patientName || chartRecord?.childName || 'Patient'},`,
+          '',
+          `You can see your prescription PDF here:`,
+          prescriptionLink,
+          '',
+          `Patient ID: ${savedRecord.patientId || chartRecord?.patientId || '-'}`,
+          `Clinic: ${branding.clinicTitle || DEFAULT_BRANDING.clinicTitle}`,
+          '',
+          `Regards,`,
+          `AB Labs`
+        ].join('\n');
+        openWhatsAppChat(chartRecord?.phone || savedRecord.phone || '', message);
+      } catch (error) {
+        console.warn(`Unable to prepare WhatsApp prescription link: ${error.message}`);
+      } finally {
+        whatsappBtn.disabled = false;
+        whatsappBtn.textContent = 'WhatsApp';
       }
     });
 
