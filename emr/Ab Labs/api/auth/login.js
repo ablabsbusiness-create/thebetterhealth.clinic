@@ -1,5 +1,4 @@
 import {
-  buildClientSessionCookie,
   buildSessionCookie,
   createSessionToken,
   isAuthConfigured
@@ -56,9 +55,7 @@ export default async function handler(req, res) {
   }
 
   if (!isAuthConfigured()) {
-    sendJson(res, 200, { ok: true, mode: 'client-session' }, {
-      'Set-Cookie': buildClientSessionCookie()
-    });
+    sendJson(res, 200, { ok: true, mode: 'open-access' });
     return;
   }
 

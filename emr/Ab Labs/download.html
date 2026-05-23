@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Download Kids EMR | The Better Kids Clinic</title>
+  <title>Download Ab Labs EMR | Ab Labs</title>
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="manifest" href="/emr/kid/site.webmanifest" />
-  <meta name="description" content="Install The Better Kids Clinic EMR app for quick access to pediatric clinic workflows." />
+  <meta name="description" content="Install Ab Labs EMR app for quick access to clinical workflows." />
   <link rel="canonical" href="https://www.thebetterhealth.clinic/emr/kid/download" />
   <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="The Better Kids Clinic" />
-  <meta property="og:title" content="Download Kids EMR | The Better Kids Clinic" />
-  <meta property="og:description" content="Install The Better Kids Clinic EMR app for quick access to pediatric clinic workflows." />
+  <meta property="og:site_name" content="Ab Labs" />
+  <meta property="og:title" content="Download Ab Labs EMR | Ab Labs" />
+  <meta property="og:description" content="Install Ab Labs EMR app for quick access to clinical workflows." />
   <meta property="og:url" content="https://www.thebetterhealth.clinic/emr/kid/download" />
   <meta property="og:locale" content="en_IN" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -260,29 +260,29 @@
   <main>
     <section class="hero">
       <div class="panel intro-panel">
-        <div class="badge">Kids EMR app download</div>
-        <h1>Install Kids EMR for quick access.</h1>
-        <p class="lead">Use this page to install The Better Kids Clinic EMR on your phone, tablet, or desktop. If the install prompt does not show, open the browser menu and choose Add to Home Screen or Install app.</p>
+        <div class="badge">Ab Labs EMR app download</div>
+        <h1>Install Ab Labs EMR for quick access.</h1>
+        <p class="lead">Use this page to install Ab Labs EMR on your phone, tablet, or desktop. If the install prompt does not show, open the browser menu and choose Add to Home Screen or Install app.</p>
         <div class="actions">
-          <button class="button" id="install-button" type="button">Install Kids EMR</button>
+          <button class="button" id="install-button" type="button">Install Ab Labs EMR</button>
           <a class="button secondary" href="/emr/kid/index.html">Back to EMR</a>
         </div>
         <p class="install-note" id="install-note">Install works from the live HTTPS website in Chrome or Edge. On iPhone, use Share, then Add to Home Screen.</p>
       </div>
 
-      <div class="panel phone" aria-label="Kids EMR app preview">
+      <div class="panel phone" aria-label="Ab Labs EMR app preview">
         <div class="device">
           <div class="app-top">
             <div class="mark">K</div>
             <div class="app-name">
-              <strong>Kids EMR</strong>
-              <span>Pediatric workflows</span>
+              <strong>Ab Labs EMR</strong>
+              <span>Clinical workflows</span>
             </div>
           </div>
           <div class="app-grid">
             <div class="app-card">
               <strong>Patients</strong>
-              <span>Pediatric visits and follow-ups</span>
+              <span>Patient visits and follow-ups</span>
             </div>
             <div class="app-card">
               <strong>Prescriptions</strong>
@@ -300,18 +300,18 @@
     <section class="steps" aria-label="Install steps">
       <div class="step">
         <div class="step-number">1</div>
-        <h2>Open Kids EMR</h2>
-        <p>Tap Download / Install Kids EMR from the Kids EMR app.</p>
+        <h2>Open Ab Labs EMR</h2>
+        <p>Tap Download / Install Ab Labs EMR from the Ab Labs EMR app.</p>
       </div>
       <div class="step">
         <div class="step-number">2</div>
         <h2>Install the app</h2>
-        <p>Tap Install Kids EMR, or use your browser menu and choose Add to Home Screen.</p>
+        <p>Tap Install Ab Labs EMR, or use your browser menu and choose Add to Home Screen.</p>
       </div>
       <div class="step">
         <div class="step-number">3</div>
         <h2>Use from home screen</h2>
-        <p>Open Kids EMR from the installed icon.</p>
+        <p>Open Ab Labs EMR from the installed icon.</p>
       </div>
     </section>
   </main>
@@ -334,11 +334,11 @@
 
         if (!navigator.serviceWorker.controller && !sessionStorage.getItem(refreshKey)) {
           sessionStorage.setItem(refreshKey, '1');
-          installNote.textContent = 'Preparing Kids EMR install. This page will refresh once, then tap Install Kids EMR again.';
+          installNote.textContent = 'Preparing Ab Labs EMR install. This page will refresh once, then tap Install Ab Labs EMR again.';
           window.setTimeout(() => window.location.reload(), 700);
         }
       } catch {
-        installNote.innerHTML = '<strong>Install setup is not ready.</strong> Refresh this page once, then try Install Kids EMR again.';
+        installNote.innerHTML = '<strong>Install setup is not ready.</strong> Refresh this page once, then try Install Ab Labs EMR again.';
       }
     }
 
@@ -347,12 +347,12 @@
     window.addEventListener('beforeinstallprompt', (event) => {
       event.preventDefault();
       deferredPrompt = event;
-      installNote.textContent = 'Your browser is ready. Tap Install Kids EMR to add it to this device.';
+      installNote.textContent = 'Your browser is ready. Tap Install Ab Labs EMR to add it to this device.';
     });
 
     installButton.addEventListener('click', async () => {
       if (window.location.protocol === 'file:') {
-        installNote.innerHTML = '<strong>Local file cannot install apps.</strong> Open the live HTTPS install page, then tap Install Kids EMR again.';
+        installNote.innerHTML = '<strong>Local file cannot install apps.</strong> Open the live HTTPS install page, then tap Install Ab Labs EMR again.';
         window.open(liveUrl, '_blank', 'noopener');
         return;
       }
@@ -360,7 +360,7 @@
       if (!deferredPrompt) {
         if ('serviceWorker' in navigator && !navigator.serviceWorker.controller && !sessionStorage.getItem(refreshKey)) {
           sessionStorage.setItem(refreshKey, '1');
-          installNote.textContent = 'Preparing Kids EMR install. Refreshing once now.';
+          installNote.textContent = 'Preparing Ab Labs EMR install. Refreshing once now.';
           window.setTimeout(() => window.location.reload(), 500);
           return;
         }
@@ -372,11 +372,11 @@
       deferredPrompt.prompt();
       await deferredPrompt.userChoice;
       deferredPrompt = null;
-      installNote.textContent = 'If installation completed, open Kids EMR from your device home screen or app list.';
+      installNote.textContent = 'If installation completed, open Ab Labs EMR from your device home screen or app list.';
     });
 
     if (window.matchMedia('(display-mode: standalone)').matches) {
-      installNote.textContent = 'Kids EMR is already running in installed app mode on this device.';
+      installNote.textContent = 'Ab Labs EMR is already running in installed app mode on this device.';
     }
   </script>
 </body>

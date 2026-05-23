@@ -4,7 +4,6 @@ import { cpSync, existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import {
   buildClearedSessionCookie,
-  buildClientSessionCookie,
   buildLoginRedirect,
   buildSessionCookie,
   createSessionToken,
@@ -145,9 +144,7 @@ export default defineConfig({
               }
 
               if (!isAuthConfigured()) {
-                sendJson(res, 200, { ok: true, mode: 'client-session' }, {
-                  'Set-Cookie': buildClientSessionCookie()
-                });
+                sendJson(res, 200, { ok: true, mode: 'open-access' });
                 return;
               }
 

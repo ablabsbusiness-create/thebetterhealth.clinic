@@ -4,20 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Prescription Growth Chart Dashboard | The Better Kids Clinic EMR</title>
+  <title>Prescription Growth Chart Dashboard | Ab Labs EMR</title>
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="manifest" href="/emr/kid/site.webmanifest" />
-  <meta name="description" content="Prescription Growth Chart Dashboard page for The Better Kids Clinic EMR, supporting clinic workflows and patient care operations at The Better Health Clinic." />
+  <meta name="description" content="Prescription Growth Chart Dashboard page for Ab Labs EMR, supporting clinic workflows and patient care operations at Ab Labs EMR." />
   <link rel="canonical" href="https://www.thebetterhealth.clinic/emr/kid/prescription-growth-chart-dashboard" />
   <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="The Better Health Clinic" />
-  <meta property="og:title" content="Prescription Growth Chart Dashboard | The Better Kids Clinic EMR" />
-  <meta property="og:description" content="Prescription Growth Chart Dashboard page for The Better Kids Clinic EMR, supporting clinic workflows and patient care operations at The Better Health Clinic." />
+  <meta property="og:site_name" content="Ab Labs EMR" />
+  <meta property="og:title" content="Prescription Growth Chart Dashboard | Ab Labs EMR" />
+  <meta property="og:description" content="Prescription Growth Chart Dashboard page for Ab Labs EMR, supporting clinic workflows and patient care operations at Ab Labs EMR." />
   <meta property="og:url" content="https://www.thebetterhealth.clinic/emr/kid/prescription-growth-chart-dashboard" />
   <meta property="og:locale" content="en_IN" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Prescription Growth Chart Dashboard | The Better Kids Clinic EMR" />
-  <meta name="twitter:description" content="Prescription Growth Chart Dashboard page for The Better Kids Clinic EMR, supporting clinic workflows and patient care operations at The Better Health Clinic." />
+  <meta name="twitter:title" content="Prescription Growth Chart Dashboard | Ab Labs EMR" />
+  <meta name="twitter:description" content="Prescription Growth Chart Dashboard page for Ab Labs EMR, supporting clinic workflows and patient care operations at Ab Labs EMR." />
   <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -25,13 +25,13 @@
     {
       "@type": "WebSite",
       "@id": "https://www.thebetterhealth.clinic/#website",
-      "name": "The Better Health Clinic",
+      "name": "Ab Labs EMR",
       "url": "https://www.thebetterhealth.clinic/"
     },
     {
       "@type": "MedicalClinic",
       "@id": "https://www.thebetterhealth.clinic/#clinic",
-      "name": "The Better Health Clinic",
+      "name": "Ab Labs EMR",
       "url": "https://www.thebetterhealth.clinic/",
       "telephone": [
         "+919686183999",
@@ -53,8 +53,8 @@
       "@type": "WebPage",
       "@id": "https://www.thebetterhealth.clinic/emr/kid/prescription-growth-chart-dashboard#webpage",
       "url": "https://www.thebetterhealth.clinic/emr/kid/prescription-growth-chart-dashboard",
-      "name": "Prescription Growth Chart Dashboard | The Better Kids Clinic EMR",
-      "description": "Prescription Growth Chart Dashboard page for The Better Kids Clinic EMR, supporting clinic workflows and patient care operations at The Better Health Clinic.",
+      "name": "Prescription Growth Chart Dashboard | Ab Labs EMR",
+      "description": "Prescription Growth Chart Dashboard page for Ab Labs EMR, supporting clinic workflows and patient care operations at Ab Labs EMR.",
       "isPartOf": {
         "@id": "https://www.thebetterhealth.clinic/#website"
       },
@@ -2042,10 +2042,10 @@
   <header class="site-header">
     <div class="topbar">
       <div class="brand">
-        <div class="brand-mark">🩺</div>
+        <div class="brand-mark">??</div>
         <div class="brand-copy">
-          <strong>The Better Health Clinic</strong>
-          <span>Growth Monitoring Portal</span>
+          <strong>Ab Labs EMR</strong>
+          <span>EMR Portal</span>
         </div>
       </div>
 
@@ -2063,7 +2063,7 @@
   <div class="page-shell">
     <section class="page-intro">
       <div>
-        <div class="eyebrow">Pediatric Growth Records</div>
+        <div class="eyebrow">Growth Records</div>
         <h1>Prescription Chart</h1>
       </div>
       <div class="page-meta">
@@ -3057,8 +3057,8 @@
               <button type="button" class="record-grid-clear-btn" data-clear-record-date>Show all</button>
             </div>
             <div class="record-grid-nav">
-              <button type="button" class="record-grid-nav-btn" data-record-scroll="left" aria-label="Show newer dates">‹</button>
-              <button type="button" class="record-grid-nav-btn" data-record-scroll="right" aria-label="Show older dates">›</button>
+              <button type="button" class="record-grid-nav-btn" data-record-scroll="left" aria-label="Show newer dates">�</button>
+              <button type="button" class="record-grid-nav-btn" data-record-scroll="right" aria-label="Show older dates">�</button>
             </div>
           </div>
           <div class="record-grid-wrap">
@@ -3302,7 +3302,7 @@
         { label: 'Pulse', unit: '/min', getValue: (entry) => formatMetricCellValue(entry.pulse) },
         { label: 'Systolic', unit: 'mmHg', getValue: (entry) => formatMetricCellValue(entry.systolic) },
         { label: 'Diastolic', unit: 'mmHg', getValue: (entry) => formatMetricCellValue(entry.diastolic) },
-        { label: 'Temperature', unit: '°C', getValue: (entry) => formatMetricCellValue(entry.temp) }
+        { label: 'Temperature', unit: '�C', getValue: (entry) => formatMetricCellValue(entry.temp) }
       ];
 
       return `
@@ -3544,7 +3544,7 @@
       { key: 'pulse', shortLabel: 'Pulse', unit: '/min', type: 'Vitals', label: 'Pulse (bpm)', placeholder: 'bpm' },
       { key: 'systolic', shortLabel: 'Systolic', unit: 'mmHg', type: 'Vitals', label: 'BP Systolic (mmHg)', placeholder: 'mmHg' },
       { key: 'diastolic', shortLabel: 'Diastolic', unit: 'mmHg', type: 'Vitals', label: 'BP Diastolic (mmHg)', placeholder: 'mmHg' },
-      { key: 'temp', shortLabel: 'Temperature', unit: '°C', type: 'Vitals', label: 'Temp (C)', placeholder: 'C' }
+      { key: 'temp', shortLabel: 'Temperature', unit: '�C', type: 'Vitals', label: 'Temp (C)', placeholder: 'C' }
     ];
 
     function getEditableHistoryEntries() {

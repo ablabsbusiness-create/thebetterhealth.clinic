@@ -1,6 +1,6 @@
-# The Better Kids Clinic EMR
+# Ab Labs EMR
 
-Standalone Vite web app for The Better Kids Clinic EMR.
+Standalone Vite web app for Ab Labs EMR.
 
 ## Local development
 

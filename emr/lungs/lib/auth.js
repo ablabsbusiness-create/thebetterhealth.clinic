@@ -36,7 +36,7 @@ function getAuthSecret() {
 }
 
 export function getAccessPassword() {
-  return String(process.env.CLINIC_ACCESS_PASSWORD || '3301').trim();
+  return String(process.env.CLINIC_ACCESS_PASSWORD || '').trim();
 }
 
 export function isAuthConfigured() {
@@ -205,25 +205,10 @@ export async function verifySessionToken(token) {
 export async function isAuthenticatedCookieHeader(cookieHeader = '') {
   const cookies = parseCookies(cookieHeader);
   if (!getAuthSecret()) {
-    return cookies[SESSION_COOKIE_NAME] === 'client-session';
+    return false;
   }
 
   return verifySessionToken(cookies[SESSION_COOKIE_NAME]);
-}
-
-export function buildClientSessionCookie() {
-  const cookieParts = [
-    `${SESSION_COOKIE_NAME}=client-session`,
-    'Path=/',
-    'SameSite=Strict',
-    `Max-Age=${SESSION_TTL_SECONDS}`
-  ];
-
-  if (process.env.NODE_ENV === 'production') {
-    cookieParts.push('Secure');
-  }
-
-  return cookieParts.join('; ');
 }
 
 export function buildSessionCookie(token) {

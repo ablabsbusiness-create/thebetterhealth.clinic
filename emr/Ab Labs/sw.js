@@ -1,4 +1,4 @@
-const CACHE_NAME = 'better-kids-emr-v1';
+const CACHE_NAME = 'ab-labs-emr-v1';
 const APP_SHELL = [
   '/emr/kid/site.webmanifest',
   '/emr/kid/icons/icon-192.png',

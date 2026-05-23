@@ -2,7 +2,6 @@ import { defineConfig } from 'vite';
 import { resolve } from 'node:path';
 import {
   buildClearedSessionCookie,
-  buildClientSessionCookie,
   buildLoginRedirect,
   buildSessionCookie,
   createSessionToken,
@@ -83,15 +82,13 @@ export default defineConfig({
               const submittedPassword = String(payload?.password || '').trim();
               const configuredPassword = getAccessPassword();
 
-              if (!submittedPassword || submittedPassword !== configuredPassword) {
-                sendJson(res, 401, { error: 'Incorrect password. Please try again.' });
+              if (!isAuthConfigured()) {
+                sendJson(res, 503, { error: 'Clinic access is not configured. Please contact support.' });
                 return;
               }
 
-              if (!isAuthConfigured()) {
-                sendJson(res, 200, { ok: true, mode: 'client-session' }, {
-                  'Set-Cookie': buildClientSessionCookie()
-                });
+              if (!submittedPassword || submittedPassword !== configuredPassword) {
+                sendJson(res, 401, { error: 'Incorrect password. Please try again.' });
                 return;
               }
 

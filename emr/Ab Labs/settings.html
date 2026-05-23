@@ -4,20 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Settings | The Better Kids Clinic EMR</title>
+  <title>Settings | Ab Labs EMR</title>
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="manifest" href="/emr/kid/site.webmanifest" />
-  <meta name="description" content="Settings page for The Better Kids Clinic EMR, supporting clinic workflows and patient care operations at The Better Health Clinic." />
+  <meta name="description" content="Settings page for Ab Labs EMR, supporting clinic workflows and patient care operations at Ab Labs EMR." />
   <link rel="canonical" href="https://www.thebetterhealth.clinic/emr/kid/settings" />
   <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="The Better Health Clinic" />
-  <meta property="og:title" content="Settings | The Better Kids Clinic EMR" />
-  <meta property="og:description" content="Settings page for The Better Kids Clinic EMR, supporting clinic workflows and patient care operations at The Better Health Clinic." />
+  <meta property="og:site_name" content="Ab Labs EMR" />
+  <meta property="og:title" content="Settings | Ab Labs EMR" />
+  <meta property="og:description" content="Settings page for Ab Labs EMR, supporting clinic workflows and patient care operations at Ab Labs EMR." />
   <meta property="og:url" content="https://www.thebetterhealth.clinic/emr/kid/settings" />
   <meta property="og:locale" content="en_IN" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Settings | The Better Kids Clinic EMR" />
-  <meta name="twitter:description" content="Settings page for The Better Kids Clinic EMR, supporting clinic workflows and patient care operations at The Better Health Clinic." />
+  <meta name="twitter:title" content="Settings | Ab Labs EMR" />
+  <meta name="twitter:description" content="Settings page for Ab Labs EMR, supporting clinic workflows and patient care operations at Ab Labs EMR." />
   <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -25,13 +25,13 @@
     {
       "@type": "WebSite",
       "@id": "https://www.thebetterhealth.clinic/#website",
-      "name": "The Better Health Clinic",
+      "name": "Ab Labs EMR",
       "url": "https://www.thebetterhealth.clinic/"
     },
     {
       "@type": "MedicalClinic",
       "@id": "https://www.thebetterhealth.clinic/#clinic",
-      "name": "The Better Health Clinic",
+      "name": "Ab Labs EMR",
       "url": "https://www.thebetterhealth.clinic/",
       "telephone": [
         "+919686183999",
@@ -53,8 +53,8 @@
       "@type": "WebPage",
       "@id": "https://www.thebetterhealth.clinic/emr/kid/settings#webpage",
       "url": "https://www.thebetterhealth.clinic/emr/kid/settings",
-      "name": "Settings | The Better Kids Clinic EMR",
-      "description": "Settings page for The Better Kids Clinic EMR, supporting clinic workflows and patient care operations at The Better Health Clinic.",
+      "name": "Settings | Ab Labs EMR",
+      "description": "Settings page for Ab Labs EMR, supporting clinic workflows and patient care operations at Ab Labs EMR.",
       "isPartOf": {
         "@id": "https://www.thebetterhealth.clinic/#website"
       },
@@ -881,9 +881,9 @@
   <header class="site-header">
     <div class="topbar">
       <div class="brand">
-        <div class="brand-mark">⚙️</div>
+        <div class="brand-mark">??</div>
         <div class="brand-copy">
-          <strong>The Better Health Clinic</strong>
+          <strong>Ab Labs EMR</strong>
           <span>Setting</span>
         </div>
       </div>
@@ -964,7 +964,7 @@
             <div class="branding-grid">
               <div class="branding-field">
                 <label for="clinic-title-input">Clinic header title</label>
-                <input id="clinic-title-input" type="text" placeholder="The Better Health Clinic">
+                <input id="clinic-title-input" type="text" placeholder="Ab Labs EMR">
               </div>
 
               <div class="branding-field">
@@ -1100,7 +1100,7 @@
     const COMBINED_CLINIC_STORAGE_PREFIXES = ['clinics/kid', 'clinics/lungs'];
     const STORAGE_ALERT_THRESHOLD = 0.95;
     const STORAGE_SUPPORT_PHONE = '917357397888';
-    const CLINIC_STORAGE_LABEL = CLINIC_FIREBASE_NAMESPACE.includes('/lungs') ? 'lungs clinic' : 'kid clinic';
+    const CLINIC_STORAGE_LABEL = CLINIC_FIREBASE_NAMESPACE.includes('/lungs') ? 'lungs clinic' : 'Ab Labs clinic';
     const PRINT_HEADER_GAP_STORAGE_KEY = clinicStorageKey('previewPrintHeaderGapCm');
     const PRESCRIPTION_BRANDING_STORAGE_KEY = clinicStorageKey('prescriptionBrandingSettings');
     const PRESCRIPTION_BRANDING_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'prescriptionBranding'];
@@ -1108,11 +1108,11 @@
     const DEFAULT_BRANDING = {
       sectionTitle: 'Prescription Header, Footer & Signature',
       sectionDescription: 'Set the clinic text and doctor signature used on prescription preview, print, and saved PDF.',
-      clinicTitle: 'The Better Health Clinic',
-      clinicAddress: 'The Better Health Clinic - Paediatrician #118, 5th Cross, Omkar Nagar Akere, Bannerghatta road 560076 Bengaluru Karnataka',
+      clinicTitle: 'Ab Labs EMR',
+      clinicAddress: 'Ab Labs EMR - Paediatrician #118, 5th Cross, Omkar Nagar Akere, Bannerghatta road 560076 Bengaluru Karnataka',
       doctorName: 'Dr. Gunda Srinivas',
       doctorDetails: 'MBBS, DCH, DNB - Paediatrics, PGDDN, FPEM\n71826',
-      footerText: 'The Better Health Clinic - Paediatrician #118, 5th Cross, Omkar Nagar Akere,\nBannerghatta road 560076 Bengaluru Karnataka',
+      footerText: 'Ab Labs EMR - Paediatrician #118, 5th Cross, Omkar Nagar Akere,\nBannerghatta road 560076 Bengaluru Karnataka',
       printWithoutHeaderTitle: 'Print Without Header',
       printWithoutHeaderDescription: 'Choose how much blank top space to leave when you print or save without the prescription header.',
       printHeaderGapCm: 0,

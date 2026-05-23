@@ -1,7 +1,7 @@
 {
-  "name": "The Better Kids Clinic EMR",
-  "short_name": "Kids EMR",
-  "description": "Standalone EMR web app for The Better Kids Clinic pediatric workflows.",
+  "name": "Ab Labs EMR",
+  "short_name": "Ab Labs EMR",
+  "description": "Standalone EMR web app for Ab Labs clinical workflows.",
   "start_url": "/emr/kid/index.html",
   "scope": "/emr/kid/",
   "display": "standalone",
