@@ -8,7 +8,6 @@ import {
   buildLoginRedirect,
   buildSessionCookie,
   createSessionToken,
-  getAccessPassword,
   getDefaultProtectedPath,
   isAuthConfigured,
   isAuthenticatedCookieHeader,
@@ -142,14 +141,6 @@ export default defineConfig({
                 payload = JSON.parse(await readRequestBody(req));
               } catch {
                 sendJson(res, 400, { error: 'Invalid request body.' });
-                return;
-              }
-
-              const submittedPassword = String(payload?.password || '').trim();
-              const configuredPassword = getAccessPassword();
-
-              if (!submittedPassword || submittedPassword !== configuredPassword) {
-                sendJson(res, 401, { error: 'Incorrect password. Please try again.' });
                 return;
               }
 

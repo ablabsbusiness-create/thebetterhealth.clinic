@@ -2,7 +2,6 @@ import {
   buildClientSessionCookie,
   buildSessionCookie,
   createSessionToken,
-  getAccessPassword,
   isAuthConfigured
 } from '../../lib/auth.js';
 
@@ -49,20 +48,10 @@ export default async function handler(req, res) {
     return;
   }
 
-  let payload = {};
-
   try {
-    payload = await readJsonBody(req);
+    await readJsonBody(req);
   } catch {
     sendJson(res, 400, { error: 'Invalid request body.' });
-    return;
-  }
-
-  const submittedPassword = String(payload?.password || '').trim();
-  const configuredPassword = getAccessPassword();
-
-  if (!submittedPassword || submittedPassword !== configuredPassword) {
-    sendJson(res, 401, { error: 'Incorrect password. Please try again.' });
     return;
   }
 

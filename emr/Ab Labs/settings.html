@@ -1694,11 +1694,11 @@
 
         document.cookie = `${ACCESS_COOKIE_NAME}=; Max-Age=0; Path=/; SameSite=Strict`;
 
-        const passwordPath = window.location.pathname.startsWith('/emr/kid/')
-          ? '/emr/kid/password.html'
-          : '/password';
+        const appPath = window.location.pathname.startsWith('/emr/kid/')
+          ? '/emr/kid/index.html'
+          : '/index';
 
-        window.location.replace(passwordPath);
+        window.location.replace(appPath);
       });
     }
 

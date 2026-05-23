@@ -2,7 +2,7 @@
   "name": "The Better Kids Clinic EMR",
   "short_name": "Kids EMR",
   "description": "Standalone EMR web app for The Better Kids Clinic pediatric workflows.",
-  "start_url": "/emr/kid/password.html",
+  "start_url": "/emr/kid/index.html",
   "scope": "/emr/kid/",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui", "browser"],
