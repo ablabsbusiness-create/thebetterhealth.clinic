@@ -3053,7 +3053,7 @@
       const startIndex = showAll ? currentPage * HISTORY_PAGE_SIZE : 0;
       const visibleCount = showAll ? HISTORY_PAGE_SIZE : HISTORY_DEFAULT_VISIBLE_COUNT;
       const filteredEntries = allFilteredEntries.slice(startIndex, startIndex + visibleCount);
-      const hasMoreEntries = !selectedDate && allFilteredEntries.length > HISTORY_DEFAULT_VISIBLE_COUNT;
+      const canToggleAllEntries = !selectedDate && allFilteredEntries.length > 0;
 
       const rows = [
         {
@@ -3120,7 +3120,7 @@
             <label for="history-date-${patient.patientId}">Change date</label>
             <input id="history-date-${patient.patientId}" class="history-date-input" data-patient-id="${patient.patientId}" type="date" value="${selectedDate}">
             ${selectedDate ? `<button class="filter-clear-btn" type="button" data-clear-history-date="${patient.patientId}">Show all</button>` : ''}
-            ${hasMoreEntries ? `<button class="filter-clear-btn ${showAll ? 'is-active' : ''}" type="button" data-toggle-history-all="${escapeHtml(patientId)}">${showAll ? 'Fit view' : 'Show all'}</button>` : ''}
+            ${canToggleAllEntries ? `<button class="filter-clear-btn ${showAll ? 'is-active' : ''}" type="button" data-toggle-history-all="${escapeHtml(patientId)}">${showAll ? 'Fit view' : 'Show all'}</button>` : ''}
           </div>
           ${showAll ? `
             <div class="history-pager" aria-label="Vitals history navigation">
