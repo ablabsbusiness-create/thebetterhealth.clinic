@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>New Patient | Kid EMR Template</title>
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <meta name="description" content="New Patient page for Kid EMR Template, supporting clinic workflows and patient care operations at Kid EMR Template." />
+  <link rel="canonical" href="https://www.thebetterhealth.clinic/new-patient" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Kid EMR Template" />
+  <meta property="og:title" content="New Patient | Kid EMR Template" />
+  <meta property="og:description" content="New Patient page for Kid EMR Template, supporting clinic workflows and patient care operations at Kid EMR Template." />
+  <meta property="og:url" content="https://www.thebetterhealth.clinic/new-patient" />
+  <meta property="og:locale" content="en_IN" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="New Patient | Kid EMR Template" />
+  <meta name="twitter:description" content="New Patient page for Kid EMR Template, supporting clinic workflows and patient care operations at Kid EMR Template." />
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://www.thebetterhealth.clinic/#website",
+      "name": "Kid EMR Template",
+      "url": "https://www.thebetterhealth.clinic/"
+    },
+    {
+      "@type": "MedicalClinic",
+      "@id": "https://www.thebetterhealth.clinic/#clinic",
+      "name": "Kid EMR Template",
+      "url": "https://www.thebetterhealth.clinic/",
+      "telephone": [
+        "+919686183999",
+        "+919513988840"
+      ],
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "#155, 2nd Cross, 1st stage, Arekere MICO Layout, Off Bannerghatta Road",
+        "addressLocality": "Bengaluru",
+        "postalCode": "560076",
+        "addressCountry": "IN"
+      },
+      "medicalSpecialty": [
+        "Pediatrics",
+        "Pulmonology"
+      ]
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://www.thebetterhealth.clinic/new-patient#webpage",
+      "url": "https://www.thebetterhealth.clinic/new-patient",
+      "name": "New Patient | Kid EMR Template",
+      "description": "New Patient page for Kid EMR Template, supporting clinic workflows and patient care operations at Kid EMR Template.",
+      "isPartOf": {
+        "@id": "https://www.thebetterhealth.clinic/#website"
+      },
+      "about": {
+        "@id": "https://www.thebetterhealth.clinic/#clinic"
+      }
+    }
+  ]
+}
+  </script><script type="module" src="./auth-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #eef4ef;
+      --panel: #fcfdf8;
+      --panel-strong: #ffffff;
+      --ink: #1b2a21;
+      --muted: #607067;
+      --line: #d7e2d9;
+      --brand: #166534;
+      --brand-soft: #dcfce7;
+      --brand-strong: #14532d;
+      --accent-soft: #ffedd5;
+      --shadow: 0 18px 45px rgba(22, 38, 29, 0.08);
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Outfit', system-ui, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(34, 197, 94, 0.14), transparent 28%),
+        linear-gradient(180deg, #f5faf3 0%, #edf5ef 100%);
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(12px);
+      background: rgba(248, 252, 248, 0.85);
+      border-bottom: 1px solid rgba(215, 226, 217, 0.95);
+      box-shadow: 0 8px 24px rgba(22, 38, 29, 0.05);
+    }
+
+    .topbar {
+      width: min(1180px, calc(100% - 28px));
+      margin: 0 auto;
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      background: linear-gradient(135deg, #166534, #22c55e);
+      color: #fff;
+      box-shadow: 0 10px 22px rgba(22, 101, 52, 0.22);
+    }
+
+    .brand-copy strong {
+      display: block;
+      font-size: 15px;
+      line-height: 1.1;
+    }
+
+    .brand-copy span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: auto;
+      min-width: 0;
+    }
+
+    .nav-link {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 18px;
+      border-radius: 999px;
+      color: #5f6f66;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 800;
+      white-space: nowrap;
+      transition: background 0.18s ease, color 0.18s ease;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      background: #dcfce7;
+      color: #14532d;
+    }
+    .menu-toggle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      margin-left: auto;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.82);
+      color: var(--ink);
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(22, 38, 29, 0.08);
+    }
+
+    .menu-toggle-inner {
+      display: grid;
+      gap: 4px;
+    }
+
+    .menu-toggle-bar {
+      display: block;
+      width: 18px;
+      height: 2px;
+      border-radius: 999px;
+      background: currentColor;
+      transition: transform 0.18s ease, opacity 0.18s ease;
+    }
+
+    .menu-toggle[aria-expanded="true"] .menu-toggle-bar:nth-child(1) {
+      transform: translateY(6px) rotate(45deg);
+    }
+
+    .menu-toggle[aria-expanded="true"] .menu-toggle-bar:nth-child(2) {
+      opacity: 0;
+    }
+
+    .menu-toggle[aria-expanded="true"] .menu-toggle-bar:nth-child(3) {
+      transform: translateY(-6px) rotate(-45deg);
+    }
+
+    .topbar-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      background: #f8fbf9;
+      border: 1px solid var(--line);
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.12);
+    }
+
+    .page-shell {
+      width: min(1040px, calc(100% - 32px));
+      margin: 34px auto;
+    }
+
+    .intro {
+      margin-bottom: 22px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--brand-soft);
+      color: var(--brand-strong);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 12px 0 8px;
+      font-size: clamp(28px, 3.6vw, 42px);
+      line-height: 1.04;
+    }
+
+    .intro p {
+      margin: 0;
+      max-width: 58ch;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .content-panel {
+      padding: 24px;
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(215, 226, 217, 0.95);
+      background: rgba(255, 255, 255, 0.84);
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow);
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    .panel-head h2 {
+      margin: 0 0 6px;
+      font-size: 24px;
+    }
+
+    .panel-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .panel-note {
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: var(--accent-soft);
+      color: #9a3412;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .intake-form {
+      display: grid;
+      gap: 18px;
+    }
+
+    .panel-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 280px;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .sidebar-stack {
+      display: grid;
+      gap: 12px;
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field-full {
+      grid-column: 1 / -1;
+    }
+
+    label,
+    .field-label {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    input[type="text"],
+    input[type="tel"],
+    input[type="email"] {
+      width: 100%;
+      min-height: 48px;
+      padding: 0 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      outline: none;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    input:focus {
+      border-color: rgba(22, 101, 52, 0.55);
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12);
+    }
+
+    .field-hint {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .dob-group {
+      display: grid;
+      grid-template-columns: 84px 84px minmax(112px, 1fr);
+      gap: 10px;
+    }
+
+    .dob-group input {
+      text-align: center;
+    }
+
+    .required {
+      color: #b91c1c;
+    }
+
+    .radio-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .radio-pill input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .radio-pill label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0 18px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: #fff;
+      cursor: pointer;
+      font-weight: 600;
+      transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+    }
+
+    .radio-pill input:checked + label {
+      border-color: rgba(22, 101, 52, 0.38);
+      background: var(--brand-soft);
+      color: var(--brand-strong);
+    }
+
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 20px;
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .btn-primary {
+      border: 0;
+      background: linear-gradient(135deg, #166534, #22c55e);
+      color: #fff;
+      box-shadow: 0 12px 24px rgba(22, 101, 52, 0.2);
+    }
+
+    .btn-secondary {
+      border: 1px solid var(--line);
+      background: #f8fbf9;
+      color: var(--ink);
+    }
+
+    .btn-primary:hover,
+    .btn-secondary:hover {
+      transform: translateY(-1px);
+    }
+
+    .patient-id-box {
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(244, 250, 245, 0.96));
+    }
+
+    .patient-id-box h3 {
+      margin: 0 0 8px;
+      font-size: 16px;
+    }
+
+    .patient-id-box p {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .patient-id-value {
+      display: inline-flex;
+      align-items: center;
+      min-height: 46px;
+      padding: 0 14px;
+      border-radius: 14px;
+      background: #f8fbf9;
+      border: 1px solid var(--line);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--brand-strong);
+    }
+
+    .save-status {
+      min-height: 42px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: #f8fbf9;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+      font-weight: 600;
+    }
+
+    .save-status.error {
+      border-color: #fecaca;
+      background: #fff1f2;
+      color: #991b1b;
+    }
+
+    .save-status.ready {
+      border-color: #bbf7d0;
+      background: #f0fdf4;
+      color: var(--brand-strong);
+    }
+
+    @media (max-width: 900px) {
+      .topbar {
+        width: min(100% - 24px, 100%);
+        min-height: auto;
+        padding: 14px 0;
+        flex-wrap: wrap;
+      }
+
+      .page-shell {
+        width: min(100% - 24px, 100%);
+      }
+
+      .panel-head {
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .topbar {
+        width: min(100% - 20px, 100%);
+        padding: 12px 0;
+        gap: 12px;
+        align-items: stretch;
+      }
+
+      .brand {
+        width: auto;
+        flex: 1 1 auto;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .menu-toggle {
+        display: inline-flex;
+        flex-shrink: 0;
+      }
+
+      .nav-links {
+        width: 100%;
+        order: 3;
+        margin-left: 0;
+        display: none;
+        flex-direction: column;
+        gap: 6px;
+        padding: 10px;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.96);
+        box-shadow: 0 14px 28px rgba(22, 38, 29, 0.08);
+      }
+
+      .nav-links.is-open {
+        display: flex;
+      }
+
+      .topbar-actions {
+        margin-left: 0;
+        width: 100%;
+        order: 4;
+      }
+
+      .page-shell {
+        width: min(100% - 20px, 100%);
+        margin: 16px auto 22px;
+      }
+
+      .brand-mark {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        font-size: 18px;
+      }
+
+      .brand-copy strong {
+        font-size: 14px;
+      }
+
+      .brand-copy span {
+        font-size: 11px;
+      }
+
+      .content-panel {
+        padding: 16px;
+      }
+
+      .status-chip {
+        width: 100%;
+        justify-content: center;
+        border-radius: 14px;
+      }
+
+      .nav-link {
+        width: 100%;
+        min-height: 42px;
+        padding: 10px 12px;
+        border-radius: 14px;
+      }
+
+      .panel-layout,
+      .field-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .dob-group {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .radio-row {
+        flex-direction: column;
+      }
+
+      .radio-pill label,
+      .btn-primary,
+      .btn-secondary {
+        width: 100%;
+      }
+
+      .intro p,
+      .panel-head p,
+      .patient-id-box p {
+        font-size: 13px;
+      }
+    }
+
+  
+    .brand-mark {
+      background: #fff !important;
+      color: var(--brand, #166534);
+      overflow: hidden;
+      border: 1px solid rgba(22, 101, 52, 0.14);
+    }
+
+    .brand-logo {
+      width: 78%;
+      height: 78%;
+      object-fit: contain;
+      display: block;
+    }
+
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-mark"><img class="brand-logo" src="/ab-labs-logo.png" alt="Ab Labs logo"></div>
+        <div class="brand-copy">
+          <strong>Kid EMR Template</strong>
+          <span>New Patient</span>
+        </div>
+      </div>
+
+      
+      <nav id="primary-nav" class="nav-links" aria-label="Primary">
+        <a class="nav-link" href="index">Dashboard</a>
+        <a class="nav-link active" href="search">Enter Clinic</a>
+        <a class="nav-link" href="pending-approvals">Approvals</a>
+        <a class="nav-link" href="settings">Settings</a>
+      </nav>
+
+
+    </div>
+  </header>
+
+  <div class="page-shell">
+    <section class="content-panel">
+      <div class="panel-layout">
+        <form id="new-patient-form" class="intake-form" novalidate>
+          <div class="field-grid">
+            <div class="field">
+              <label for="mobile-number">Phone Number <span class="required">*</span></label>
+              <input id="mobile-number" name="mobileNumber" type="tel" inputmode="tel" placeholder="Enter phone number" required>
+              <span class="field-hint">Use the main contact number for this patient.</span>
+            </div>
+
+            <div class="field">
+              <label for="parent-name">Parent Name</label>
+              <input id="parent-name" name="parentName" type="text" placeholder="Enter parent name">
+              <span class="field-hint">Leave blank if not available.</span>
+            </div>
+
+            <div class="field">
+              <label for="child-name">Child Name <span class="required">*</span></label>
+              <input id="child-name" name="childName" type="text" placeholder="Enter child name" required>
+              <span class="field-hint">Enter the child name used in clinic records.</span>
+            </div>
+
+            <div class="field">
+              <span class="field-label">Date of Birth <span class="required">*</span></span>
+              <div class="dob-group">
+                <input id="dob-day" name="dobDay" type="text" inputmode="numeric" placeholder="DD" maxlength="2" required>
+                <input id="dob-month" name="dobMonth" type="text" inputmode="numeric" placeholder="MM" maxlength="2" required>
+                <input id="dob-year" name="dobYear" type="text" inputmode="numeric" placeholder="YYYY" maxlength="4" required>
+              </div>
+              <span class="field-hint">Enter date of birth as day, month, and year.</span>
+            </div>
+
+            <div class="field">
+              <span class="field-label">Gender <span class="required">*</span></span>
+              <div class="radio-row" role="radiogroup" aria-label="Gender selection">
+                <div class="radio-pill">
+                  <input id="gender-male" name="gender" type="radio" value="Male" required>
+                  <label for="gender-male">Male</label>
+                </div>
+                <div class="radio-pill">
+                  <input id="gender-female" name="gender" type="radio" value="Female" required>
+                  <label for="gender-female">Female</label>
+                </div>
+              </div>
+              <span class="field-hint">Choose the patient gender used for clinic charting.</span>
+            </div>
+
+            <div class="field">
+              <label for="blood-group">Blood</label>
+              <input id="blood-group" name="bloodGroup" type="text" placeholder="e.g. O+">
+              <span class="field-hint">Leave blank if not known.</span>
+            </div>
+
+            <div class="field">
+              <label for="email">Email</label>
+              <input id="email" name="email" type="email" placeholder="Enter email address">
+              <span class="field-hint">Leave blank if not available.</span>
+            </div>
+          </div>
+        </form>
+
+        <div class="sidebar-stack">
+          <div class="patient-id-box">
+            <h3>Patient ID</h3>
+            <div id="patient-id-output" class="patient-id-value">Preparing...</div>
+          </div>
+
+          <button id="continue-btn" class="btn-primary" type="submit" form="new-patient-form">Continue</button>
+          <div id="save-status" class="save-status">Patient details will be saved before the consult starts.</div>
+        </div>
+      </div>
+
+    </section>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
+    import { getFirestore, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
+    const FIREBASE_COLLECTIONS = {
+      patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
+      pendingPatients: `${CLINIC_FIREBASE_NAMESPACE}/pendingPatients`,
+      history: `${CLINIC_FIREBASE_NAMESPACE}/history`,
+      prescription: `${CLINIC_FIREBASE_NAMESPACE}/prescription`
+    };
+    const CLINIC_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE;
+
+    const menuToggle = document.getElementById('menu-toggle');
+    const primaryNav = document.getElementById('primary-nav');
+    const navLinks = [...document.querySelectorAll('#primary-nav .nav-link')];
+    const newPatientForm = document.getElementById('new-patient-form');
+    const continueBtn = document.getElementById('continue-btn');
+    const saveStatus = document.getElementById('save-status');
+    const patientIdOutput = document.getElementById('patient-id-output');
+    const dobDayInput = document.getElementById('dob-day');
+    const dobMonthInput = document.getElementById('dob-month');
+    const dobYearInput = document.getElementById('dob-year');
+    const searchParams = new URLSearchParams(window.location.search);
+    const firebaseEnv = import.meta.env || {};
+    const firebaseConfig = {
+      apiKey: firebaseEnv.VITE_FIREBASE_API_KEY || '',
+      authDomain: firebaseEnv.VITE_FIREBASE_AUTH_DOMAIN || '',
+      projectId: firebaseEnv.VITE_FIREBASE_PROJECT_ID || '',
+      storageBucket: firebaseEnv.VITE_FIREBASE_STORAGE_BUCKET || '',
+      messagingSenderId: firebaseEnv.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
+      appId: firebaseEnv.VITE_FIREBASE_APP_ID || '',
+      measurementId: firebaseEnv.VITE_FIREBASE_MEASUREMENT_ID || ''
+    };
+    const firebaseConfigured = Object.values(firebaseConfig).every(Boolean);
+    let db = null;
+
+    if (firebaseConfigured) {
+      const app = initializeApp(firebaseConfig);
+      db = getFirestore(app);
+    }
+
+    function setSaveStatus(message, tone = '') {
+      if (!saveStatus) {
+        return;
+      }
+      saveStatus.textContent = message;
+      saveStatus.className = `save-status${tone ? ` ${tone}` : ''}`;
+    }
+
+    function closeMobileMenu() {
+      menuToggle.setAttribute('aria-expanded', 'false');
+      primaryNav.classList.remove('is-open');
+    }
+
+    function toggleMobileMenu() {
+      const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
+      menuToggle.setAttribute('aria-expanded', String(!isOpen));
+      primaryNav.classList.toggle('is-open', !isOpen);
+    }
+
+    function buildPatientId() {
+      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let suffix = '';
+
+      for (let index = 0; index < 3; index += 1) {
+        const randomIndex = Math.floor(Math.random() * characters.length);
+        suffix += characters[randomIndex];
+      }
+
+      return `SX${suffix}`;
+    }
+
+    function parseDobInput(dayValue, monthValue, yearValue) {
+      const day = Number.parseInt(dayValue.trim(), 10);
+      const month = Number.parseInt(monthValue.trim(), 10);
+      const year = Number.parseInt(yearValue.trim(), 10);
+
+      if (!day || !month || !yearValue.trim().match(/^\d{4}$/)) {
+        return '';
+      }
+
+      const parsed = new Date(year, month - 1, day);
+
+      if (
+        Number.isNaN(parsed.getTime()) ||
+        parsed.getFullYear() !== year ||
+        parsed.getMonth() !== month - 1 ||
+        parsed.getDate() !== day
+      ) {
+        return '';
+      }
+
+      return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    }
+
+    async function savePatientToCloudRecords(patientId) {
+      const normalizedDob = parseDobInput(dobDayInput.value, dobMonthInput.value, dobYearInput.value);
+      const patientRecord = {
+        patientId,
+        childName: newPatientForm.elements.childName.value.trim(),
+        parentName: newPatientForm.elements.parentName.value.trim(),
+        gender: newPatientForm.elements.gender.value,
+        dob: normalizedDob,
+        phone: newPatientForm.elements.mobileNumber.value.trim(),
+        mobileNumber: newPatientForm.elements.mobileNumber.value.trim(),
+        email: newPatientForm.elements.email.value.trim(),
+        bloodGroup: newPatientForm.elements.bloodGroup.value.trim(),
+        createdAt: firebaseConfigured ? serverTimestamp() : new Date().toISOString()
+      };
+
+      sessionStorage.setItem('newPatientDraft', JSON.stringify(patientRecord));
+
+      if (!db) {
+        return false;
+      }
+
+      await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId), patientRecord);
+      return true;
+    }
+
+    const autoPatientId = buildPatientId();
+    patientIdOutput.textContent = autoPatientId;
+    sessionStorage.setItem('newPatientId', autoPatientId);
+
+    const prefilledChildName = searchParams.get('childName') || '';
+    const prefilledMobileNumber = searchParams.get('mobileNumber') || '';
+    if (prefilledChildName && !newPatientForm.elements.childName.value.trim()) {
+      newPatientForm.elements.childName.value = prefilledChildName.trim();
+    }
+    if (prefilledMobileNumber && !newPatientForm.elements.mobileNumber.value.trim()) {
+      newPatientForm.elements.mobileNumber.value = prefilledMobileNumber.trim();
+    }
+
+    newPatientForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const normalizedDob = parseDobInput(dobDayInput.value, dobMonthInput.value, dobYearInput.value);
+      if (!normalizedDob) {
+        dobYearInput.setCustomValidity('Please enter a valid date of birth.');
+      } else {
+        dobYearInput.setCustomValidity('');
+      }
+
+      if (!newPatientForm.reportValidity()) {
+        return;
+      }
+
+      continueBtn.disabled = true;
+      continueBtn.textContent = 'Saving...';
+
+      try {
+        const savedToCloudRecords = await savePatientToCloudRecords(autoPatientId);
+        setSaveStatus(savedToCloudRecords
+          ? `Patient details saved.`
+          : `Patient ID created, but online saving is not available.`, savedToCloudRecords ? 'ready' : 'error');
+        console.log(savedToCloudRecords
+          ? `Saved with Patient ID ${autoPatientId}.`
+          : `Patient ID ${autoPatientId} generated locally. Configure cloud records to store this online.`);
+        window.location.href = `prescription-growth-chart-dashboard?patientId=${encodeURIComponent(autoPatientId)}`;
+      } catch (error) {
+        console.error(`Cloud save failed: ${error.message}`);
+        setSaveStatus(`Unable to save patient details: ${error.message}. Please try again.`, 'error');
+      } finally {
+        continueBtn.disabled = false;
+        continueBtn.textContent = 'Continue';
+      }
+    });
+
+    [dobDayInput, dobMonthInput, dobYearInput].forEach((input) => {
+      input.addEventListener('input', () => {
+        dobYearInput.setCustomValidity('');
+      });
+    });
+
+    menuToggle.addEventListener('click', toggleMobileMenu);
+    navLinks.forEach((link) => link.addEventListener('click', closeMobileMenu));
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 640) {
+        closeMobileMenu();
+      }
+    });
+  </script>
+  <script type="module" src="/template-brand.js"></script>
+</body>
+</html>
+
