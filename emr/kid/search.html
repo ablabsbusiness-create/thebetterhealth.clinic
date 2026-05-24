@@ -2039,6 +2039,8 @@
     const storage = firebaseApp ? getStorage(firebaseApp) : null;
     let allPatients = [];
     let allHistory = [];
+    let prescriptionHistoryByPatientId = new Map();
+    let prescriptionHistoryByPatientDate = new Map();
     const historyDateFilters = {};
     const historyShowAll = {};
     const historyPageIndexes = {};
@@ -2268,6 +2270,7 @@
 
       allPatients = cache.patients;
       allHistory = cache.history;
+      rebuildHistoryIndexes();
       filterPatients();
       setStatus('Showing recent records while updating...');
       return true;
@@ -2820,6 +2823,39 @@
       });
     }
 
+    function rebuildHistoryIndexes() {
+      const byPatientId = new Map();
+      const byPatientDate = new Map();
+
+      allHistory
+        .filter((entry) => isPrescriptionHistoryEntry(entry))
+        .forEach((entry) => {
+          const patientId = getNormalizedPatientId(entry.patientId);
+          if (!patientId) {
+            return;
+          }
+
+          const entries = byPatientId.get(patientId) || [];
+          entries.push(entry);
+          byPatientId.set(patientId, entries);
+
+          const dateValue = getIsoDatePart(entry.createdAtIso);
+          if (dateValue) {
+            const dateKey = `${patientId}|${dateValue}`;
+            const dateEntries = byPatientDate.get(dateKey) || [];
+            dateEntries.push(entry);
+            byPatientDate.set(dateKey, dateEntries);
+          }
+        });
+
+      byPatientId.forEach((entries) => {
+        entries.sort((a, b) => new Date(b.createdAtIso || 0) - new Date(a.createdAtIso || 0));
+      });
+
+      prescriptionHistoryByPatientId = byPatientId;
+      prescriptionHistoryByPatientDate = byPatientDate;
+    }
+
     function getDateLabel(dateValue) {
       const parsed = new Date(`${dateValue}T12:00:00`);
       if (Number.isNaN(parsed.getTime())) {
@@ -3082,10 +3118,7 @@
     }
 
     function getPrescriptionEntries(patientId) {
-      return allHistory
-        .filter((entry) => isPrescriptionHistoryEntry(entry))
-        .filter((entry) => getNormalizedPatientId(entry.patientId) === getNormalizedPatientId(patientId))
-        .sort((a, b) => new Date(b.createdAtIso || 0) - new Date(a.createdAtIso || 0));
+      return prescriptionHistoryByPatientId.get(getNormalizedPatientId(patientId)) || [];
     }
 
     function createMeasurementEntryKey(entry) {
@@ -3162,7 +3195,7 @@
     }
 
     function getPrescriptionEntriesForDate(patientId, dateValue) {
-      return getPrescriptionEntries(patientId).filter((entry) => getIsoDatePart(entry.createdAtIso) === dateValue);
+      return prescriptionHistoryByPatientDate.get(`${getNormalizedPatientId(patientId)}|${dateValue}`) || [];
     }
 
     function patientHasSeenActivityOnDate(patient, dateValue) {
@@ -3766,6 +3799,7 @@
           });
         });
         allHistory = [...mergedHistoryById.values()];
+        rebuildHistoryIndexes();
         const historyByPatientId = new Map();
 
         allHistory.forEach((entry) => {
@@ -3879,6 +3913,7 @@
             existingHistoryById.set(key, entry);
           });
           allHistory = [...existingHistoryById.values()];
+          rebuildHistoryIndexes();
           saveSearchCache();
           filterPatients();
         }).catch((error) => {
