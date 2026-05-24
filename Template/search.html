@@ -2838,6 +2838,19 @@
       });
     }
 
+    function isMeasurementHistoryEntry(entry) {
+      if (!entry || typeof entry !== 'object') {
+        return false;
+      }
+
+      if (entry.type === 'prescription' || entry.source === 'prescription-pdf') {
+        return false;
+      }
+
+      return ['weight', 'height', 'head', 'spo2', 'pulse', 'systolic', 'diastolic', 'temp']
+        .some((key) => String(entry[key] || '').trim());
+    }
+
     function rebuildHistoryIndexes() {
       const byPatientId = new Map();
       const byPatientDate = new Map();
@@ -3850,7 +3863,7 @@
             ? [...patient.measurementHistory]
             : [];
           historyEntries
-            .filter((entry) => entry.type !== 'prescription' && entry.source !== 'prescription-pdf')
+            .filter(isMeasurementHistoryEntry)
             .forEach((entry) => {
               const entryKey = createMeasurementEntryKey(entry);
               const alreadyIncluded = measurementEntries.some((candidate) => createMeasurementEntryKey(candidate) === entryKey);
@@ -3887,8 +3900,8 @@
             phone: latest.phone || '',
             gender: latest.gender || '',
             dob: latest.dob || '',
-            measurementHistory: entries.filter((entry) => entry.type !== 'prescription' && entry.source !== 'prescription-pdf'),
-            lastMeasurementRecord: entries.find((entry) => entry.type !== 'prescription' && entry.source !== 'prescription-pdf') || latest,
+            measurementHistory: entries.filter(isMeasurementHistoryEntry),
+            lastMeasurementRecord: entries.find(isMeasurementHistoryEntry) || null,
             fromHistoryOnly: true
           });
         });
