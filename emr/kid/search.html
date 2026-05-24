@@ -2045,6 +2045,9 @@
     let selectedPatientId = String(new URLSearchParams(window.location.search).get('patientId') || '').trim().toUpperCase();
     let selectedWorklistDate = getTodayIsoDate();
     let selectedWorklistMode = 'seen';
+    let searchInputTimer = null;
+    const SEARCH_RENDER_LIMIT = 80;
+    const SEARCH_INPUT_DEBOUNCE_MS = 180;
     const TEST_PAST_CHARTS_PATIENT_ID = 'TESTPAST001';
     const HISTORY_DEFAULT_VISIBLE_COUNT = 3;
     const HISTORY_PAGE_SIZE = 4;
@@ -3384,6 +3387,10 @@
 
       const counts = getWorklistCounts(patients, selectedWorklistDate);
       const worklistPatients = getWorklistPatients(patients, selectedWorklistDate, selectedWorklistMode, searchValue);
+      const renderedWorklistPatients = searchValue
+        ? worklistPatients.slice(0, SEARCH_RENDER_LIMIT)
+        : worklistPatients;
+      const hiddenPatientCount = Math.max(0, worklistPatients.length - renderedWorklistPatients.length);
       if ((!selectedPatientId || !patients.some((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId)) && worklistPatients[0]) {
         selectedPatientId = formatMissing(worklistPatients[0].patientId, 'ID not saved');
       }
@@ -3428,8 +3435,11 @@
             </div>
 
             <div class="worklist-list">
-              ${worklistPatients.length
-                ? worklistPatients.map((patient) => renderWorklistItemHtml(patient, selectedWorklistDate)).join('')
+              ${hiddenPatientCount
+                ? `<div class="worklist-empty">Showing first ${SEARCH_RENDER_LIMIT} matches. Keep typing to narrow the list.</div>`
+                : ''}
+              ${renderedWorklistPatients.length
+                ? renderedWorklistPatients.map((patient) => renderWorklistItemHtml(patient, selectedWorklistDate)).join('')
                 : `<div class="worklist-empty">${searchValue ? 'No matching patients were found.' : selectedWorklistMode === 'queue' ? 'No patients were added to queue for this date yet.' : 'No patients have been seen on this date yet.'}</div>`}
             </div>
           </aside>
@@ -3848,7 +3858,7 @@
         if (usedLegacyPatients || usedLegacyHistory) {
           setStatus('Showing patients from older shared records. Ask support to finish separating clinic records.', 'warning');
         }
-        getStoragePrescriptionEntriesForPatients(patientRecords).then((storageHistory) => {
+        window.setTimeout(() => getStoragePrescriptionEntriesForPatients(patientRecords).then((storageHistory) => {
           if (!storageHistory.length) {
             return;
           }
@@ -3873,7 +3883,7 @@
           filterPatients();
         }).catch((error) => {
           console.warn(`Unable to load prescription PDFs after patient list: ${error.message}`);
-        });
+        }), 300);
       } catch (error) {
         if (!showedCache) {
           allPatients = [];
@@ -3920,7 +3930,8 @@
 
     searchInput.addEventListener('input', () => {
       updateNewPatientButton();
-      filterPatients();
+      window.clearTimeout(searchInputTimer);
+      searchInputTimer = window.setTimeout(filterPatients, SEARCH_INPUT_DEBOUNCE_MS);
     });
     clearBtn.addEventListener('click', clearSearch);
     updateNewPatientButton();
