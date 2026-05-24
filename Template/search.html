@@ -4,20 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Search | The Better Kids Clinic EMR</title>
+  <title>Search | Kid EMR Template</title>
   <link rel="icon" href="/favicon.ico" sizes="any" />
-  <link rel="manifest" href="/emr/kid/site.webmanifest" />
-  <meta name="description" content="Search page for The Better Kids Clinic EMR, supporting clinic workflows and patient care operations at The Better Health Clinic." />
-  <link rel="canonical" href="https://www.thebetterhealth.clinic/emr/kid/search" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <meta name="description" content="Search page for Kid EMR Template, supporting clinic workflows and patient care operations at Kid EMR Template." />
+  <link rel="canonical" href="https://www.thebetterhealth.clinic/search" />
   <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="The Better Health Clinic" />
-  <meta property="og:title" content="Search | The Better Kids Clinic EMR" />
-  <meta property="og:description" content="Search page for The Better Kids Clinic EMR, supporting clinic workflows and patient care operations at The Better Health Clinic." />
-  <meta property="og:url" content="https://www.thebetterhealth.clinic/emr/kid/search" />
+  <meta property="og:site_name" content="Kid EMR Template" />
+  <meta property="og:title" content="Search | Kid EMR Template" />
+  <meta property="og:description" content="Search page for Kid EMR Template, supporting clinic workflows and patient care operations at Kid EMR Template." />
+  <meta property="og:url" content="https://www.thebetterhealth.clinic/search" />
   <meta property="og:locale" content="en_IN" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Search | The Better Kids Clinic EMR" />
-  <meta name="twitter:description" content="Search page for The Better Kids Clinic EMR, supporting clinic workflows and patient care operations at The Better Health Clinic." />
+  <meta name="twitter:title" content="Search | Kid EMR Template" />
+  <meta name="twitter:description" content="Search page for Kid EMR Template, supporting clinic workflows and patient care operations at Kid EMR Template." />
   <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -25,13 +25,13 @@
     {
       "@type": "WebSite",
       "@id": "https://www.thebetterhealth.clinic/#website",
-      "name": "The Better Health Clinic",
+      "name": "Kid EMR Template",
       "url": "https://www.thebetterhealth.clinic/"
     },
     {
       "@type": "MedicalClinic",
       "@id": "https://www.thebetterhealth.clinic/#clinic",
-      "name": "The Better Health Clinic",
+      "name": "Kid EMR Template",
       "url": "https://www.thebetterhealth.clinic/",
       "telephone": [
         "+919686183999",
@@ -51,10 +51,10 @@
     },
     {
       "@type": "WebPage",
-      "@id": "https://www.thebetterhealth.clinic/emr/kid/search#webpage",
-      "url": "https://www.thebetterhealth.clinic/emr/kid/search",
-      "name": "Search | The Better Kids Clinic EMR",
-      "description": "Search page for The Better Kids Clinic EMR, supporting clinic workflows and patient care operations at The Better Health Clinic.",
+      "@id": "https://www.thebetterhealth.clinic/search#webpage",
+      "url": "https://www.thebetterhealth.clinic/search",
+      "name": "Search | Kid EMR Template",
+      "description": "Search page for Kid EMR Template, supporting clinic workflows and patient care operations at Kid EMR Template.",
       "isPartOf": {
         "@id": "https://www.thebetterhealth.clinic/#website"
       },
@@ -1932,15 +1932,30 @@
       }
     }
 
+  
+    .brand-mark {
+      background: #fff !important;
+      color: var(--brand, #166534);
+      overflow: hidden;
+      border: 1px solid rgba(22, 101, 52, 0.14);
+    }
+
+    .brand-logo {
+      width: 78%;
+      height: 78%;
+      object-fit: contain;
+      display: block;
+    }
+
   </style>
 </head>
 <body>
   <header class="site-header">
     <div class="topbar">
       <div class="brand">
-        <div class="brand-mark">🩺</div>
+        <div class="brand-mark"><img class="brand-logo" src="/ab-labs-logo.png" alt="Ab Labs logo"></div>
         <div class="brand-copy">
-          <strong>The Better Health Clinic</strong>
+          <strong>Kid EMR Template</strong>
           <span>Growth Monitoring Portal</span>
         </div>
       </div>
@@ -2024,13 +2039,13 @@
 
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
-      apiKey: firebaseEnv.VITE_FIREBASE_API_KEY || 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
-      authDomain: firebaseEnv.VITE_FIREBASE_AUTH_DOMAIN || 'clinci-dr-gunda.firebaseapp.com',
-      projectId: firebaseEnv.VITE_FIREBASE_PROJECT_ID || 'clinci-dr-gunda',
-      storageBucket: firebaseEnv.VITE_FIREBASE_STORAGE_BUCKET || 'clinci-dr-gunda.firebasestorage.app',
-      messagingSenderId: firebaseEnv.VITE_FIREBASE_MESSAGING_SENDER_ID || '1059959825609',
-      appId: firebaseEnv.VITE_FIREBASE_APP_ID || '1:1059959825609:web:8201599754706ac4661918',
-      measurementId: firebaseEnv.VITE_FIREBASE_MEASUREMENT_ID || 'G-4V5JMVW45E'
+      apiKey: firebaseEnv.VITE_FIREBASE_API_KEY || '',
+      authDomain: firebaseEnv.VITE_FIREBASE_AUTH_DOMAIN || '',
+      projectId: firebaseEnv.VITE_FIREBASE_PROJECT_ID || '',
+      storageBucket: firebaseEnv.VITE_FIREBASE_STORAGE_BUCKET || '',
+      messagingSenderId: firebaseEnv.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
+      appId: firebaseEnv.VITE_FIREBASE_APP_ID || '',
+      measurementId: firebaseEnv.VITE_FIREBASE_MEASUREMENT_ID || ''
     };
 
     const firebaseConfigured = Object.values(firebaseConfig).every(Boolean);
@@ -3947,5 +3962,6 @@
 
     loadPatients();
   </script>
+  <script type="module" src="/template-brand.js"></script>
 </body>
 </html>
