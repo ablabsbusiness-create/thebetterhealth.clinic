@@ -30,5 +30,9 @@ export default async function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/((?!.*\\..*).*)']
+  matcher: [
+    '/emr/kid',
+    '/emr/kid/:path*',
+    '/((?!_next/|favicon.ico|icons/|assets/|public/|.*\\.(?:css|js|png|jpg|jpeg|gif|svg|webp|ico|json|webmanifest|txt|xml|pdf|map)$).*)'
+  ]
 };
