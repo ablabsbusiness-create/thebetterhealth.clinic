@@ -188,6 +188,58 @@ function getPatientId(row) {
   return canonicalId(getUhid(row));
 }
 
+function getPersonName(row) {
+  return compactSpaces(row['Patient Name']);
+}
+
+function getPersonPhone(row) {
+  return normalizePhone(row.Mobile || row['Patient Mobile']);
+}
+
+function getLookupPhone(row) {
+  const digits = getPersonPhone(row).replace(/\D/g, '');
+  return digits.length > 10 ? digits.slice(-10) : digits;
+}
+
+function personLookupKey(row) {
+  const name = getPersonName(row).toLowerCase();
+  const phone = getLookupPhone(row);
+  return name && phone ? `${name}|${phone}` : '';
+}
+
+function buildPatientIdLookup(patientRows) {
+  const matches = new Map();
+
+  for (const row of patientRows) {
+    const patientId = getPatientId(row);
+    const key = personLookupKey(row);
+    if (!patientId || !key) {
+      continue;
+    }
+
+    const existing = matches.get(key) || new Set();
+    existing.add(patientId);
+    matches.set(key, existing);
+  }
+
+  return matches;
+}
+
+function resolvePatientId(row, patientIdLookup) {
+  const patientId = getPatientId(row);
+  if (patientId) {
+    return { patientId, matchedFromMaster: false };
+  }
+
+  const key = personLookupKey(row);
+  const matches = key ? patientIdLookup.get(key) : null;
+  if (matches?.size === 1) {
+    return { patientId: [...matches][0], matchedFromMaster: true };
+  }
+
+  return { patientId: '', matchedFromMaster: false };
+}
+
 function normalizeGender(value) {
   const normalized = clean(value).toLowerCase();
   if (normalized === 'm' || normalized === 'male') {
@@ -306,6 +358,7 @@ function uniquePush(list, value) {
 }
 
 function mergeHistory(historyMap, key, patch) {
+  const cleanPatch = Object.fromEntries(Object.entries(patch).filter(([, value]) => value !== undefined));
   const current = historyMap.get(key) || {
     source: IMPORT_SOURCE,
     importBatchId,
@@ -318,27 +371,27 @@ function mergeHistory(historyMap, key, patch) {
     rawAppointments: []
   };
 
-  const next = { ...current, ...patch };
-  next.importedFrom = [...new Set([...(current.importedFrom || []), ...(patch.importedFrom || [])])];
+  const next = { ...current, ...cleanPatch };
+  next.importedFrom = [...new Set([...(current.importedFrom || []), ...(cleanPatch.importedFrom || [])])];
   next.symptoms = [...(current.symptoms || [])];
   next.diagnosis = [...(current.diagnosis || [])];
   next.drugs = [...(current.drugs || [])];
   next.rawVitals = [...(current.rawVitals || [])];
   next.rawAppointments = [...(current.rawAppointments || [])];
 
-  for (const value of patch.symptoms || []) {
+  for (const value of cleanPatch.symptoms || []) {
     uniquePush(next.symptoms, value);
   }
-  for (const value of patch.diagnosis || []) {
+  for (const value of cleanPatch.diagnosis || []) {
     uniquePush(next.diagnosis, value);
   }
-  for (const value of patch.drugs || []) {
+  for (const value of cleanPatch.drugs || []) {
     uniquePush(next.drugs, value);
   }
-  for (const value of patch.rawVitals || []) {
+  for (const value of cleanPatch.rawVitals || []) {
     uniquePush(next.rawVitals, value);
   }
-  for (const value of patch.rawAppointments || []) {
+  for (const value of cleanPatch.rawAppointments || []) {
     next.rawAppointments.push(value);
   }
 
@@ -387,6 +440,7 @@ function addCatalogItems(catalog, sectionName, values) {
 
 function buildImportData() {
   const rows = Object.fromEntries(Object.entries(CSV_FILES).map(([key, fileName]) => [key, readCsvRows(fileName)]));
+  const patientIdLookup = buildPatientIdLookup(rows.patients);
   const patients = new Map();
   const history = new Map();
   let historyInputRows = 0;
@@ -398,14 +452,15 @@ function buildImportData() {
   const skipped = [];
 
   for (const row of rows.patients) {
-    const patientId = getPatientId(row);
+    const { patientId, matchedFromMaster } = resolvePatientId(row, patientIdLookup);
     if (!patientId) {
-      skipped.push({ file: CSV_FILES.patients, reason: 'missing UHID', row });
+      skipped.push({ file: CSV_FILES.patients, reason: 'missing UHID and no unique master match', row });
       continue;
     }
 
     ensurePatient(patients, patientId, {
-      legacyUhid: getUhid(row),
+      legacyUhid: getUhid(row) || patientId,
+      legacyUhidResolvedFromMaster: matchedFromMaster || undefined,
       childName: titleCase(row['Patient Name']),
       gender: normalizeGender(row.Gender),
       phone: normalizePhone(row.Mobile),
@@ -418,9 +473,9 @@ function buildImportData() {
   }
 
   for (const row of rows.appointments) {
-    const patientId = getPatientId(row);
+    const { patientId, matchedFromMaster } = resolvePatientId(row, patientIdLookup);
     if (!patientId) {
-      skipped.push({ file: CSV_FILES.appointments, reason: 'missing UHID', row });
+      skipped.push({ file: CSV_FILES.appointments, reason: 'missing UHID and no unique master match', row });
       continue;
     }
 
@@ -428,7 +483,8 @@ function buildImportData() {
     const key = historyKey(patientId, row.date, visitTime);
     historyInputRows += 1;
     ensurePatient(patients, patientId, {
-      legacyUhid: getUhid(row),
+      legacyUhid: getUhid(row) || patientId,
+      legacyUhidResolvedFromMaster: matchedFromMaster || undefined,
       childName: titleCase(row['Patient Name']),
       gender: normalizeGender(row['Patient Gender']),
       phone: normalizePhone(row['Patient Mobile']),
@@ -443,7 +499,8 @@ function buildImportData() {
 
     mergeHistory(history, key, {
       patientId,
-      legacyUhid: getUhid(row),
+      legacyUhid: getUhid(row) || patientId,
+      legacyUhidResolvedFromMaster: matchedFromMaster || undefined,
       childName: titleCase(row['Patient Name']),
       gender: normalizeGender(row['Patient Gender']),
       phone: normalizePhone(row['Patient Mobile']),
@@ -462,16 +519,17 @@ function buildImportData() {
   }
 
   for (const row of rows.symptoms) {
-    const patientId = getPatientId(row);
+    const { patientId, matchedFromMaster } = resolvePatientId(row, patientIdLookup);
     if (!patientId) {
-      skipped.push({ file: CSV_FILES.symptoms, reason: 'missing Patient UHID', row });
+      skipped.push({ file: CSV_FILES.symptoms, reason: 'missing Patient UHID and no unique master match', row });
       continue;
     }
 
     const symptomItems = splitCsvList(row.Symptom);
     addCatalogItems(catalog, 'Symptoms', symptomItems);
     ensurePatient(patients, patientId, {
-      legacyUhid: getUhid(row),
+      legacyUhid: getUhid(row) || patientId,
+      legacyUhidResolvedFromMaster: matchedFromMaster || undefined,
       childName: titleCase(row['Patient Name']),
       gender: normalizeGender(row['Patient Gender']),
       phone: normalizePhone(row['Patient Mobile']),
@@ -481,7 +539,8 @@ function buildImportData() {
 
     mergeHistory(history, historyKey(patientId, row.Date, row.Slot), {
       patientId,
-      legacyUhid: getUhid(row),
+      legacyUhid: getUhid(row) || patientId,
+      legacyUhidResolvedFromMaster: matchedFromMaster || undefined,
       childName: titleCase(row['Patient Name']),
       gender: normalizeGender(row['Patient Gender']),
       phone: normalizePhone(row['Patient Mobile']),
@@ -495,16 +554,17 @@ function buildImportData() {
   }
 
   for (const row of rows.diagnosis) {
-    const patientId = getPatientId(row);
+    const { patientId, matchedFromMaster } = resolvePatientId(row, patientIdLookup);
     if (!patientId) {
-      skipped.push({ file: CSV_FILES.diagnosis, reason: 'missing Patient UHID', row });
+      skipped.push({ file: CSV_FILES.diagnosis, reason: 'missing Patient UHID and no unique master match', row });
       continue;
     }
 
     const diagnosis = compactSpaces(row.Diagnosis);
     addCatalogItems(catalog, 'Diagnosis', [diagnosis]);
     ensurePatient(patients, patientId, {
-      legacyUhid: getUhid(row),
+      legacyUhid: getUhid(row) || patientId,
+      legacyUhidResolvedFromMaster: matchedFromMaster || undefined,
       childName: titleCase(row['Patient Name']),
       gender: normalizeGender(row['Patient Gender']),
       phone: normalizePhone(row['Patient Mobile']),
@@ -514,7 +574,8 @@ function buildImportData() {
 
     mergeHistory(history, historyKey(patientId, row.Date, row.Slot), {
       patientId,
-      legacyUhid: getUhid(row),
+      legacyUhid: getUhid(row) || patientId,
+      legacyUhidResolvedFromMaster: matchedFromMaster || undefined,
       childName: titleCase(row['Patient Name']),
       gender: normalizeGender(row['Patient Gender']),
       phone: normalizePhone(row['Patient Mobile']),
@@ -528,16 +589,17 @@ function buildImportData() {
   }
 
   for (const row of rows.drugs) {
-    const patientId = getPatientId(row);
+    const { patientId, matchedFromMaster } = resolvePatientId(row, patientIdLookup);
     if (!patientId) {
-      skipped.push({ file: CSV_FILES.drugs, reason: 'missing Patient UHID', row });
+      skipped.push({ file: CSV_FILES.drugs, reason: 'missing Patient UHID and no unique master match', row });
       continue;
     }
 
     const drugs = splitCsvList(row.Drug);
     addCatalogItems(catalog, 'Medication', drugs);
     ensurePatient(patients, patientId, {
-      legacyUhid: getUhid(row),
+      legacyUhid: getUhid(row) || patientId,
+      legacyUhidResolvedFromMaster: matchedFromMaster || undefined,
       childName: titleCase(row['Patient Name']),
       gender: normalizeGender(row['Patient Gender']),
       phone: normalizePhone(row['Patient Mobile']),
@@ -547,7 +609,8 @@ function buildImportData() {
 
     mergeHistory(history, historyKey(patientId, row.Date, row.Slot), {
       patientId,
-      legacyUhid: getUhid(row),
+      legacyUhid: getUhid(row) || patientId,
+      legacyUhidResolvedFromMaster: matchedFromMaster || undefined,
       childName: titleCase(row['Patient Name']),
       gender: normalizeGender(row['Patient Gender']),
       phone: normalizePhone(row['Patient Mobile']),
@@ -561,16 +624,17 @@ function buildImportData() {
   }
 
   for (const row of rows.vitals) {
-    const patientId = getPatientId(row);
+    const { patientId, matchedFromMaster } = resolvePatientId(row, patientIdLookup);
     if (!patientId) {
-      skipped.push({ file: CSV_FILES.vitals, reason: 'missing Patient UHID', row });
+      skipped.push({ file: CSV_FILES.vitals, reason: 'missing Patient UHID and no unique master match', row });
       continue;
     }
 
     const parsedVitals = parseVitals(row['Vital Name And Value']);
     historyInputRows += 1;
     ensurePatient(patients, patientId, {
-      legacyUhid: getUhid(row),
+      legacyUhid: getUhid(row) || patientId,
+      legacyUhidResolvedFromMaster: matchedFromMaster || undefined,
       childName: titleCase(row['Patient Name']),
       gender: normalizeGender(row['Patient Gender']),
       phone: normalizePhone(row['Patient Mobile']),
@@ -580,7 +644,8 @@ function buildImportData() {
 
     mergeHistory(history, historyKey(patientId, row.date, 'vitals'), {
       patientId,
-      legacyUhid: getUhid(row),
+      legacyUhid: getUhid(row) || patientId,
+      legacyUhidResolvedFromMaster: matchedFromMaster || undefined,
       childName: titleCase(row['Patient Name']),
       gender: normalizeGender(row['Patient Gender']),
       phone: normalizePhone(row['Patient Mobile']),
