@@ -31,6 +31,7 @@ const args = parseArgs(process.argv.slice(2));
 const csvDir = path.resolve(args.csvDir || DEFAULT_CSV_DIR);
 const writeMode = Boolean(args.write);
 const importBatchId = args.batchId || `kid-csv-${new Date().toISOString().slice(0, 10)}`;
+const PATIENT_MASTER_REFERENCE_DATE = '2025-10-31';
 
 function parseArgs(argv) {
   const parsed = {};
@@ -278,6 +279,54 @@ function toIsoDate(value) {
   return raw;
 }
 
+function subtractDateParts(dateValue, years = 0, months = 0, days = 0) {
+  const date = new Date(`${toIsoDate(dateValue)}T12:00:00.000Z`);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  const targetYear = date.getUTCFullYear() - years;
+  const targetMonthIndex = date.getUTCMonth() - months;
+  const targetDay = date.getUTCDate();
+  const lastDayOfTargetMonth = new Date(Date.UTC(targetYear, targetMonthIndex + 1, 0)).getUTCDate();
+  date.setUTCFullYear(targetYear, targetMonthIndex, Math.min(targetDay, lastDayOfTargetMonth));
+  date.setUTCDate(date.getUTCDate() - days);
+  return date.toISOString().slice(0, 10);
+}
+
+function estimateDobFromAgeText(ageText, referenceDate) {
+  const raw = compactSpaces(ageText).toLowerCase();
+  const date = toIsoDate(referenceDate);
+  if (!raw || !date) {
+    return '';
+  }
+
+  const yearsMatch = raw.match(/(\d+(?:\.\d+)?)\s*(?:y|yr|yrs|year|years)\b/);
+  const monthsMatch = raw.match(/(\d+(?:\.\d+)?)\s*(?:m|mo|mos|month|months)\b/);
+  const daysMatch = raw.match(/(\d+(?:\.\d+)?)\s*(?:d|day|days)\b/);
+
+  if (yearsMatch || monthsMatch || daysMatch) {
+    return subtractDateParts(
+      date,
+      yearsMatch ? Math.trunc(Number(yearsMatch[1])) : 0,
+      monthsMatch ? Math.trunc(Number(monthsMatch[1])) : 0,
+      daysMatch ? Math.trunc(Number(daysMatch[1])) : 0
+    );
+  }
+
+  const numericYears = raw.match(/^(\d+(?:\.\d+)?)$/);
+  if (numericYears) {
+    const years = Number(numericYears[1]);
+    if (Number.isFinite(years)) {
+      const wholeYears = Math.trunc(years);
+      const months = Math.round((years - wholeYears) * 12);
+      return subtractDateParts(date, wholeYears, months, 0);
+    }
+  }
+
+  return '';
+}
+
 function combineDateAndTime(dateValue, timeValue) {
   const date = toIsoDate(dateValue);
   const time = clean(timeValue);
@@ -488,6 +537,7 @@ function buildImportData() {
       phone: normalizePhone(row.Mobile),
       mobileNumber: normalizePhone(row.Mobile),
       ageText: clean(row.Age),
+      dob: estimateDobFromAgeText(row.Age, PATIENT_MASTER_REFERENCE_DATE),
       bloodGroup: clean(row['Blood Group (DF)']).replace(/^-$/, ''),
       abhaId: clean(row['ABHA Id (DF)']).replace(/^-$/, ''),
       tags: clean(row['Tag (DF)']).replace(/^-$/, '')
@@ -512,6 +562,7 @@ function buildImportData() {
       phone: normalizePhone(row['Patient Mobile']),
       mobileNumber: normalizePhone(row['Patient Mobile']),
       ageText: clean(row.Age),
+      dob: estimateDobFromAgeText(row.Age, row.date),
       address: clean(row['Patient Address']),
       abhaId: clean(row['Abha Health ID']).replace(/^-$/, ''),
       visitCount: clean(row['Visit Count']),
@@ -556,7 +607,8 @@ function buildImportData() {
       gender: normalizeGender(row['Patient Gender']),
       phone: normalizePhone(row['Patient Mobile']),
       mobileNumber: normalizePhone(row['Patient Mobile']),
-      ageText: clean(row['Patient Age'])
+      ageText: clean(row['Patient Age']),
+      dob: estimateDobFromAgeText(row['Patient Age'], row.Date)
     });
 
     mergeHistory(history, historyKey(patientId, row.Date, row.Slot), {
@@ -591,7 +643,8 @@ function buildImportData() {
       gender: normalizeGender(row['Patient Gender']),
       phone: normalizePhone(row['Patient Mobile']),
       mobileNumber: normalizePhone(row['Patient Mobile']),
-      ageText: clean(row['Patient Age'])
+      ageText: clean(row['Patient Age']),
+      dob: estimateDobFromAgeText(row['Patient Age'], row.Date)
     });
 
     mergeHistory(history, historyKey(patientId, row.Date, row.Slot), {
@@ -626,7 +679,8 @@ function buildImportData() {
       gender: normalizeGender(row['Patient Gender']),
       phone: normalizePhone(row['Patient Mobile']),
       mobileNumber: normalizePhone(row['Patient Mobile']),
-      ageText: clean(row['Patient Age'])
+      ageText: clean(row['Patient Age']),
+      dob: estimateDobFromAgeText(row['Patient Age'], row.Date)
     });
 
     mergeHistory(history, historyKey(patientId, row.Date, row.Slot), {
@@ -661,7 +715,8 @@ function buildImportData() {
       gender: normalizeGender(row['Patient Gender']),
       phone: normalizePhone(row['Patient Mobile']),
       mobileNumber: normalizePhone(row['Patient Mobile']),
-      ageText: clean(row['Patient Age'])
+      ageText: clean(row['Patient Age']),
+      dob: estimateDobFromAgeText(row['Patient Age'], row.date)
     });
 
     mergeHistory(history, historyKey(patientId, row.date, 'vitals'), {
