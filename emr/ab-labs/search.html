@@ -1945,7 +1945,7 @@
     const LOCAL_WORKLIST_QUEUE_KEY = clinicStorageKey('patientWorklistQueueByDate');
     const LOCAL_SEARCH_CACHE_KEY = clinicStorageKey('patientSearchCache');
     const SEARCH_CACHE_TTL_MS = 2 * 60 * 1000;
-    const SEARCH_CACHE_PATIENT_LIMIT = 500;
+    const SEARCH_CACHE_PATIENT_LIMIT = 250;
 
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
@@ -1964,6 +1964,8 @@
     const storage = firebaseApp ? getStorage(firebaseApp) : null;
     let allPatients = [];
     let allHistory = [];
+    const storagePrescriptionPatientIdsLoaded = new Set();
+    const storagePrescriptionPatientLoads = new Map();
     const historyDateFilters = {};
     const historyShowAll = {};
     const historyPageIndexes = {};
@@ -2188,7 +2190,7 @@
         doctorName: patient.doctorName || '',
         status: patient.status || '',
         lastMeasurementRecord: patient.lastMeasurementRecord || null,
-        measurementHistory: Array.isArray(patient.measurementHistory) ? patient.measurementHistory.slice(0, 4) : []
+        measurementHistory: Array.isArray(patient.measurementHistory) ? patient.measurementHistory.slice(0, 2) : []
       }));
     }
 
@@ -2552,6 +2554,63 @@
       return entries;
     }
 
+    function getHistoryEntryKey(entry, fallbackPrefix = 'history', index = 0) {
+      return entry?.prescriptionSaveId
+        || entry?.id
+        || getPrescriptionDownloadUrl(entry)
+        || `${entry?.patientId || fallbackPrefix}-${entry?.createdAtIso || index}`;
+    }
+
+    function mergeHistoryEntries(entries) {
+      if (!Array.isArray(entries) || entries.length === 0) {
+        return false;
+      }
+
+      const existingHistoryById = new Map();
+      allHistory.forEach((entry, index) => {
+        existingHistoryById.set(getHistoryEntryKey(entry, 'history', index), entry);
+      });
+
+      let changed = false;
+      entries.forEach((entry, index) => {
+        const key = getHistoryEntryKey(entry, 'storage', index);
+        if (!existingHistoryById.has(key)) {
+          changed = true;
+        }
+        existingHistoryById.set(key, entry);
+      });
+
+      if (!changed) {
+        return false;
+      }
+
+      allHistory = [...existingHistoryById.values()];
+      saveSearchCache();
+      return true;
+    }
+
+    function ensureStoragePrescriptionsForPatient(patient) {
+      const patientId = getNormalizedPatientId(patient?.patientId || patient?.id || '');
+      if (!patientId || storagePrescriptionPatientIdsLoaded.has(patientId) || storagePrescriptionPatientLoads.has(patientId)) {
+        return;
+      }
+
+      const loadPromise = getStoragePrescriptionEntriesForPatient(patient)
+        .then((entries) => {
+          storagePrescriptionPatientIdsLoaded.add(patientId);
+          storagePrescriptionPatientLoads.delete(patientId);
+          if (mergeHistoryEntries(entries)) {
+            filterPatients();
+          }
+        })
+        .catch((error) => {
+          storagePrescriptionPatientLoads.delete(patientId);
+          console.warn(`Unable to load prescription PDFs for selected patient ${patientId}: ${error.message}`);
+        });
+
+      storagePrescriptionPatientLoads.set(patientId, loadPromise);
+    }
+
     function renderPrescriptionPreviewImage(imageElement) {
       if (!(imageElement instanceof HTMLImageElement)) {
         return;
@@ -2727,19 +2786,27 @@
       return String(value || '').replace(/\D+/g, '');
     }
 
-    function getPatientSearchText(patient) {
-      return [
+    function getPatientSearchTokens(patient) {
+      if (Array.isArray(patient.__searchTokens)) {
+        return patient.__searchTokens;
+      }
+
+      const tokens = [
         patient.childName,
         patient.firstName,
         patient.middleName,
         patient.lastName,
         patient.patientId,
-        patient.phone,
         patient.parentName
       ]
         .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
+        .flatMap((value) => String(value).toLowerCase().split(/\s+/))
+        .filter(Boolean);
+      Object.defineProperty(patient, '__searchTokens', {
+        value: tokens,
+        configurable: true
+      });
+      return tokens;
     }
 
     function patientMatchesSearch(patient, rawSearchValue) {
@@ -2757,7 +2824,7 @@
       const normalizedSearchValue = normalizeSearchValue(rawSearchValue);
       const normalizedPatientPhone = normalizeSearchValue(patient.phone);
 
-      return getPatientSearchText(patient).includes(loweredSearchValue)
+      return getPatientSearchTokens(patient).some((token) => token.startsWith(loweredSearchValue))
         || Boolean(normalizedSearchValue && normalizedPatientPhone.includes(normalizedSearchValue));
     }
 
@@ -2766,16 +2833,25 @@
     }
 
     function getMeasurementEntries(patient) {
+      if (Array.isArray(patient.__measurementEntries)) {
+        return patient.__measurementEntries;
+      }
+
       const entries = Array.isArray(patient.measurementHistory) ? [...patient.measurementHistory] : [];
       if (patient.lastMeasurementRecord && entries.length === 0) {
         entries.push(patient.lastMeasurementRecord);
       }
 
-      return entries.sort((a, b) => {
+      const sortedEntries = entries.sort((a, b) => {
         const aTime = Date.parse(a?.createdAtIso || '') || 0;
         const bTime = Date.parse(b?.createdAtIso || '') || 0;
         return bTime - aTime;
       });
+      Object.defineProperty(patient, '__measurementEntries', {
+        value: sortedEntries,
+        configurable: true
+      });
+      return sortedEntries;
     }
 
     function getDateLabel(dateValue) {
@@ -2840,18 +2916,34 @@
       return getPatientVisitEntriesForDate(patient, dateValue)[0] || getMeasurementEntries(patient)[0] || null;
     }
 
+    function getQueuedPatientIdSet(dateValue) {
+      return new Set(getExplicitQueueIdsForDate(dateValue));
+    }
+
     function getWorklistCounts(patients, dateValue) {
-      const seen = patients.filter((patient) => patientHasSeenActivityOnDate(patient, dateValue)).length;
-      const queue = patients.filter((patient) => patientIsQueuedOnDate(patient, dateValue)).length;
+      const queuedIds = getQueuedPatientIdSet(dateValue);
+      let seen = 0;
+      let queue = 0;
+
+      patients.forEach((patient) => {
+        const hasSeen = patientHasSeenActivityOnDate(patient, dateValue);
+        if (hasSeen) {
+          seen += 1;
+        } else if (patientIsQueuedOnDate(patient, dateValue, queuedIds)) {
+          queue += 1;
+        }
+      });
+
       return { seen, queue };
     }
 
     function getWorklistPatients(patients, dateValue, mode, searchValue = '') {
       const hasSearch = Boolean(String(searchValue || '').trim());
+      const queuedIds = getQueuedPatientIdSet(dateValue);
       const filtered = hasSearch
         ? [...patients]
         : mode === 'queue'
-          ? patients.filter((patient) => patientIsQueuedOnDate(patient, dateValue))
+          ? patients.filter((patient) => patientIsQueuedOnDate(patient, dateValue, queuedIds))
           : patients.filter((patient) => patientHasSeenActivityOnDate(patient, dateValue));
 
       return filtered.sort((left, right) => {
@@ -3129,13 +3221,14 @@
         || (patientId && getPrescriptionEntriesForDate(patientId, dateValue).length > 0);
     }
 
-    function patientIsQueuedOnDate(patient, dateValue) {
+    function patientIsQueuedOnDate(patient, dateValue, queuedIds = null) {
       const patientId = String(patient?.patientId || '').trim();
       if (!patientId) {
         return false;
       }
 
-      return getExplicitQueueIdsForDate(dateValue).includes(patientId) && !patientHasSeenActivityOnDate(patient, dateValue);
+      const ids = queuedIds || getQueuedPatientIdSet(dateValue);
+      return ids.has(patientId) && !patientHasSeenActivityOnDate(patient, dateValue);
     }
 
     function renderPrescriptionListHtml(patientId) {
@@ -3334,6 +3427,9 @@
       }).join('');
 
       attachPrescriptionPreviewRendering();
+      patients
+        .filter((patient) => selectedPatientId === formatMissing(patient.patientId, 'ID not saved'))
+        .forEach((patient) => ensureStoragePrescriptionsForPatient(patient));
     }
 
     function renderDoctorWorklist(patients, searchValue = '') {
@@ -3350,6 +3446,9 @@
 
       const counts = getWorklistCounts(patients, selectedWorklistDate);
       const worklistPatients = getWorklistPatients(patients, selectedWorklistDate, selectedWorklistMode, searchValue);
+      const renderedWorklistPatients = searchValue
+        ? worklistPatients.slice(0, SEARCH_RENDER_LIMIT)
+        : worklistPatients;
       if ((!selectedPatientId || !patients.some((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId)) && worklistPatients[0]) {
         selectedPatientId = formatMissing(worklistPatients[0].patientId, 'ID not saved');
       }
@@ -3394,8 +3493,8 @@
             </div>
 
             <div class="worklist-list">
-              ${worklistPatients.length
-                ? worklistPatients.map((patient) => renderWorklistItemHtml(patient, selectedWorklistDate)).join('')
+              ${renderedWorklistPatients.length
+                ? renderedWorklistPatients.map((patient) => renderWorklistItemHtml(patient, selectedWorklistDate)).join('')
                 : `<div class="worklist-empty">${searchValue ? 'No matching patients were found.' : selectedWorklistMode === 'queue' ? 'No patients were added to queue for this date yet.' : 'No patients have been seen on this date yet.'}</div>`}
             </div>
           </aside>
@@ -3444,6 +3543,9 @@
       `;
 
       attachPrescriptionPreviewRendering();
+      if (selectedPatient) {
+        ensureStoragePrescriptionsForPatient(selectedPatient);
+      }
     }
 
     function filterPatients() {
@@ -3819,32 +3921,6 @@
         if (usedLegacyPatients || usedLegacyHistory) {
           setStatus('Showing patients from older shared records. Ask support to finish separating clinic records.', 'warning');
         }
-        getStoragePrescriptionEntriesForPatients(patientRecords).then((storageHistory) => {
-          if (!storageHistory.length) {
-            return;
-          }
-
-          const existingHistoryById = new Map();
-          allHistory.forEach((entry, index) => {
-            const key = entry.prescriptionSaveId
-              || entry.id
-              || getPrescriptionDownloadUrl(entry)
-              || `${entry.patientId || 'history'}-${entry.createdAtIso || index}`;
-            existingHistoryById.set(key, entry);
-          });
-          storageHistory.forEach((entry, index) => {
-            const key = entry.prescriptionSaveId
-              || entry.id
-              || getPrescriptionDownloadUrl(entry)
-              || `${entry.patientId || 'storage'}-${entry.createdAtIso || index}`;
-            existingHistoryById.set(key, entry);
-          });
-          allHistory = [...existingHistoryById.values()];
-          saveSearchCache();
-          filterPatients();
-        }).catch((error) => {
-          console.warn(`Unable to load prescription PDFs after patient list: ${error.message}`);
-        });
       } catch (error) {
         if (!showedCache) {
           allPatients = [];
