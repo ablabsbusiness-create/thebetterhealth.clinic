@@ -434,7 +434,10 @@ function parseVitals(value) {
 
 function addCatalogItems(catalog, sectionName, values) {
   for (const value of values) {
-    uniquePush(catalog[sectionName], normalizeCatalogItem(sectionName, value));
+    const normalized = normalizeCatalogItem(sectionName, value);
+    if (!isJunkCatalogItem(normalized)) {
+      uniquePush(catalog[sectionName], normalized);
+    }
   }
 }
 
@@ -450,6 +453,11 @@ function normalizeCatalogItem(sectionName, value) {
   }
 
   return compactSpaces(cleaned);
+}
+
+function isJunkCatalogItem(value) {
+  return new Set(['.', 'a', 'aa', '11', 'test', 'testing', 'abc', 'asdf', 'qwerty', 'demo', 'sample'])
+    .has(compactSpaces(value).toLowerCase());
 }
 
 function buildImportData() {

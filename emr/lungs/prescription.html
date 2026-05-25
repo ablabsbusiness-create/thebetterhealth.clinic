@@ -1519,6 +1519,7 @@
     const MEDICINE_DETAIL_TTL_MS = 10 * 60 * 1000;
     const CHART_RECORD_STORAGE_KEY = clinicStorageKey('growthChartRecentRecords');
     const PRESCRIPTION_DRAFT_TTL_MS = 10 * 60 * 1000;
+    const VISIBLE_CHIP_LIMIT = 8;
     const prescriptionTemplates = {
       Symptoms: ['Fever', 'Cold', 'Cough', 'Vomiting', 'Loose stools'],
       Finding: ['Throat congestion', 'Wheeze', 'Pallor', 'Dehydrated', 'Alert patient'],
@@ -2109,7 +2110,7 @@
 
     function renderBubbleButtons(wrap, items, addableQuery = '') {
       wrap.innerHTML = '';
-      const visibleItems = items.slice(0, 10);
+      const visibleItems = items.slice(0, VISIBLE_CHIP_LIMIT);
 
       if (!items.length) {
         if (!addableQuery) {
