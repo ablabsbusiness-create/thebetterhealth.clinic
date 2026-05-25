@@ -19,7 +19,7 @@ const DEFAULT_FIREBASE_CONFIG = {
 };
 
 const CSV_FILES = {
-  patients: "Gunda Srinivas's Patients 31 Oct 2025 1 44 PM.csv",
+  patients: "Gunda Srinivas's Patients 31 Oct 2025 1 44 PM - Gunda Srinivas's Patients 31 Oct 2025 1 44 PM.csv",
   appointments: 'Name, phone date etc.csv',
   vitals: 'Vitals.csv',
   symptoms: 'Symptoms.csv',
@@ -561,8 +561,6 @@ function buildImportData() {
       gender: normalizeGender(row['Patient Gender']),
       phone: normalizePhone(row['Patient Mobile']),
       mobileNumber: normalizePhone(row['Patient Mobile']),
-      ageText: clean(row.Age),
-      dob: estimateDobFromAgeText(row.Age, row.date),
       address: clean(row['Patient Address']),
       abhaId: clean(row['Abha Health ID']).replace(/^-$/, ''),
       visitCount: clean(row['Visit Count']),
@@ -606,9 +604,7 @@ function buildImportData() {
       childName: titleCase(row['Patient Name']),
       gender: normalizeGender(row['Patient Gender']),
       phone: normalizePhone(row['Patient Mobile']),
-      mobileNumber: normalizePhone(row['Patient Mobile']),
-      ageText: clean(row['Patient Age']),
-      dob: estimateDobFromAgeText(row['Patient Age'], row.Date)
+      mobileNumber: normalizePhone(row['Patient Mobile'])
     });
 
     mergeHistory(history, historyKey(patientId, row.Date, row.Slot), {
@@ -642,9 +638,7 @@ function buildImportData() {
       childName: titleCase(row['Patient Name']),
       gender: normalizeGender(row['Patient Gender']),
       phone: normalizePhone(row['Patient Mobile']),
-      mobileNumber: normalizePhone(row['Patient Mobile']),
-      ageText: clean(row['Patient Age']),
-      dob: estimateDobFromAgeText(row['Patient Age'], row.Date)
+      mobileNumber: normalizePhone(row['Patient Mobile'])
     });
 
     mergeHistory(history, historyKey(patientId, row.Date, row.Slot), {
@@ -678,9 +672,7 @@ function buildImportData() {
       childName: titleCase(row['Patient Name']),
       gender: normalizeGender(row['Patient Gender']),
       phone: normalizePhone(row['Patient Mobile']),
-      mobileNumber: normalizePhone(row['Patient Mobile']),
-      ageText: clean(row['Patient Age']),
-      dob: estimateDobFromAgeText(row['Patient Age'], row.Date)
+      mobileNumber: normalizePhone(row['Patient Mobile'])
     });
 
     mergeHistory(history, historyKey(patientId, row.Date, row.Slot), {
@@ -714,9 +706,7 @@ function buildImportData() {
       childName: titleCase(row['Patient Name']),
       gender: normalizeGender(row['Patient Gender']),
       phone: normalizePhone(row['Patient Mobile']),
-      mobileNumber: normalizePhone(row['Patient Mobile']),
-      ageText: clean(row['Patient Age']),
-      dob: estimateDobFromAgeText(row['Patient Age'], row.date)
+      mobileNumber: normalizePhone(row['Patient Mobile'])
     });
 
     mergeHistory(history, historyKey(patientId, row.date, 'vitals'), {
