@@ -383,14 +383,6 @@
       font-size: 12px;
     }
 
-    body.rendering-prescription-download .rx-sheet {
-      min-height: auto;
-    }
-
-    body.rendering-prescription-download .rx-footer {
-      margin-top: 18px;
-    }
-
     body.preview-without-header .rx-sheet-header {
       display: none;
     }
@@ -1782,16 +1774,11 @@
     }
 
     function buildPdfFromCanvas(canvas) {
-      const a4Width = 210;
-      const a4Height = 297;
-      const pageWidth = a4Width;
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
       const margin = 8;
       const contentWidth = pageWidth - margin * 2;
-      const naturalImageHeightMm = canvas.height * (contentWidth / canvas.width);
-      const pageHeight = naturalImageHeightMm < a4Height - margin * 2
-        ? Math.max(90, naturalImageHeightMm + margin * 2)
-        : a4Height;
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [pageWidth, pageHeight] });
       const contentHeight = pageHeight - margin * 2;
       const widthScale = contentWidth / canvas.width;
       const heightScale = contentHeight / canvas.height;

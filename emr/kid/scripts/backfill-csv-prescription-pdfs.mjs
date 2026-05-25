@@ -461,17 +461,14 @@ function renderPdf(entry) {
   if (entry.followUpDate) appointmentLines.push(`Follow up: ${entry.followUpDate}`);
   y = addSection(pdf, 'Appointment', appointmentLines, y);
 
-  y = ensurePageSpace(pdf, y, 18);
+  if (y < 250) {
+    y = 250;
+  }
   pdf.setDrawColor(220, 226, 221);
   pdf.line(16, y, 194, y);
   pdf.setFontSize(7);
   pdf.setTextColor(90, 105, 97);
   pdf.text('Generated from imported historical CSV data. Please verify clinically before reuse.', 16, y + 6);
-
-  if (pdf.getNumberOfPages() === 1) {
-    const compactPageHeight = Math.max(90, Math.min(297, y + 16));
-    pdf.internal.pageSize.setHeight(compactPageHeight);
-  }
 
   return Buffer.from(pdf.output('arraybuffer'));
 }
