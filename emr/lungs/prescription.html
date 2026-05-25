@@ -1542,6 +1542,15 @@
     const firebaseConfigured = Object.values(firebaseConfig).every(Boolean);
     const db = firebaseConfigured ? getFirestore(initializeApp(firebaseConfig)) : null;
 
+    function setSyncStatus(message, warning = false) {
+      if (!statusChip) {
+        return;
+      }
+
+      statusChip.textContent = message;
+      statusChip.classList.toggle('is-warning', warning);
+    }
+
     function closeMobileMenu() {
       if (!menuToggle || !primaryNav) {
         return;
@@ -2856,8 +2865,7 @@
 
     async function ensurePrescriptionCollection() {
       if (!db) {
-        statusChip.textContent = 'Cloud sync unavailable';
-        statusChip.classList.add('is-warning');
+        setSyncStatus('Cloud sync unavailable', true);
         return prescriptionTemplates;
       }
 
@@ -2885,7 +2893,7 @@
         })
       );
 
-      statusChip.textContent = 'Prescription collection synced';
+      setSyncStatus('Prescription collection synced');
       return Object.fromEntries(entries);
     }
 
@@ -3121,8 +3129,7 @@
           bindCardSelection(card, items);
         });
       } catch (error) {
-        statusChip.textContent = 'Cloud sync failed';
-        statusChip.classList.add('is-warning');
+        setSyncStatus('Cloud sync failed', true);
         console.error(`Prescription collection sync failed: ${error.message}`);
 
         Object.entries(localTemplates).forEach(([sectionName, items]) => {
