@@ -237,17 +237,55 @@
     }
 
     .page-shell {
-      width: min(760px, calc(100% - 32px));
-      margin: 32px auto 40px;
+      width: min(1120px, calc(100% - 32px));
+      margin: 32px auto 44px;
     }
 
     .stats-panel {
-      padding: 26px;
-      background: rgba(255, 255, 255, 0.9);
-      backdrop-filter: blur(12px);
+      display: grid;
+      gap: 18px;
+    }
+
+    .settings-hero {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 24px;
       border: 1px solid rgba(215, 226, 217, 0.95);
       border-radius: var(--radius-lg);
-      box-shadow: var(--shadow);
+      background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(234,247,238,0.9));
+      box-shadow: 0 18px 44px rgba(22, 38, 29, 0.08);
+    }
+
+    .settings-kicker {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: rgba(22, 101, 52, 0.09);
+      color: var(--brand-strong);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .settings-intro {
+      max-width: 620px;
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .settings-hero-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
 
     h1 {
@@ -258,16 +296,16 @@
 
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(12, minmax(0, 1fr));
       gap: 18px;
-      margin-top: 22px;
     }
 
     .stat-card {
-      padding: 22px;
-      border-radius: 20px;
+      grid-column: span 6;
+      padding: 20px;
+      border-radius: 16px;
       border: 1px solid var(--line);
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(244,250,245,0.96));
+      background: rgba(255,255,255,0.96);
       box-shadow: 0 12px 24px rgba(22, 38, 29, 0.05);
     }
 
@@ -345,10 +383,53 @@
 
     .setting-card {
       grid-column: 1 / -1;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .setting-card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 20px 20px 16px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, #fff, #f8fbf9);
+    }
+
+    .setting-card-title {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .setting-icon {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border-radius: 12px;
+      background: #e9f8ef;
+      color: var(--brand-strong);
+      font-weight: 900;
+    }
+
+    .setting-card-head strong {
+      margin: 0;
+      color: var(--ink);
+      font-size: 18px;
+      line-height: 1.2;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .setting-card-body {
+      padding: 20px;
     }
 
     .setting-copy {
-      margin-top: 10px;
+      margin: 6px 0 0;
       color: var(--muted);
       font-size: 14px;
       line-height: 1.55;
@@ -519,8 +600,7 @@
 
     .prescription-ui-form {
       display: grid;
-      gap: 18px;
-      margin-top: 18px;
+      gap: 20px;
     }
 
     .prescription-ui-row {
@@ -532,6 +612,7 @@
     .prescription-ui-field {
       display: grid;
       gap: 8px;
+      align-content: start;
     }
 
     .prescription-ui-field.full {
@@ -548,9 +629,9 @@
     .prescription-ui-select,
     .prescription-ui-input {
       width: 100%;
-      min-height: 48px;
+      min-height: 50px;
       border: 1px solid var(--line);
-      border-radius: 14px;
+      border-radius: 12px;
       background: #fff;
       color: var(--ink);
       font: inherit;
@@ -566,7 +647,7 @@
     .prescription-ui-segment {
       display: inline-grid;
       grid-template-columns: repeat(2, minmax(110px, 1fr));
-      width: min(320px, 100%);
+      width: min(360px, 100%);
       overflow: hidden;
       border: 1px solid var(--line);
       border-radius: 12px;
@@ -597,6 +678,10 @@
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 18px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #f8fbf9;
     }
 
     .margin-input {
@@ -959,12 +1044,31 @@
       }
 
       .stats-panel {
-        padding: 18px;
+        padding: 0;
         border-radius: 20px;
       }
 
       .stats-grid {
         grid-template-columns: 1fr;
+      }
+
+      .settings-hero {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 18px;
+      }
+
+      .settings-hero-actions {
+        width: 100%;
+        justify-content: stretch;
+      }
+
+      .settings-hero-actions .btn-primary {
+        width: 100%;
+      }
+
+      .stat-card {
+        grid-column: 1 / -1;
       }
 
       .branding-grid,
@@ -1069,7 +1173,16 @@
 
   <main class="page-shell">
     <section class="stats-panel">
-      <h1>Setting</h1>
+      <div class="settings-hero">
+        <div>
+          <span class="settings-kicker">Clinic settings</span>
+          <h1>Settings</h1>
+          <p class="settings-intro">Manage prescription layout, branding, signature, and storage status from one place.</p>
+        </div>
+        <div class="settings-hero-actions">
+          <a class="btn-primary" href="index">Back to Dashboard</a>
+        </div>
+      </div>
 
       <div class="stats-grid">
         <article class="stat-card">
@@ -1097,23 +1210,39 @@
         </article>
 
         <article class="stat-card setting-card">
-          <strong>Print Without Header</strong>
-          <div class="setting-copy">Choose how much blank top space to leave when you print or save without the prescription header.</div>
-          <div class="setting-control">
-            <label class="setting-input-wrap" for="print-gap-setting-input">
-              Gap (cm)
-              <input id="print-gap-setting-input" type="number" min="0" max="10" step="0.1" value="0">
-            </label>
-            <button id="save-print-gap-btn" class="setting-save" type="button">Save Setting</button>
+          <div class="setting-card-head">
+            <div class="setting-card-title">
+              <span class="setting-icon">A</span>
+              <div>
+                <strong>Print Without Header</strong>
+                <div class="setting-copy">Blank top space for header-free print and PDF output.</div>
+              </div>
+            </div>
           </div>
-          <div id="print-gap-setting-status" class="setting-status">Current saved gap: 0.0 cm</div>
+          <div class="setting-card-body">
+            <div class="setting-control">
+              <label class="setting-input-wrap" for="print-gap-setting-input">
+                Gap (cm)
+                <input id="print-gap-setting-input" type="number" min="0" max="10" step="0.1" value="0">
+              </label>
+              <button id="save-print-gap-btn" class="setting-save" type="button">Save Setting</button>
+            </div>
+            <div id="print-gap-setting-status" class="setting-status">Current saved gap: 0.0 cm</div>
+          </div>
         </article>
 
         <article class="stat-card setting-card prescription-ui-card">
-          <strong>Prescription Settings</strong>
-          <div class="setting-copy">UI preview for future prescription layout controls. These controls are visual only right now.</div>
+          <div class="setting-card-head">
+            <div class="setting-card-title">
+              <span class="setting-icon">Rx</span>
+              <div>
+                <strong>Prescription Settings</strong>
+                <div class="setting-copy">Layout controls shown as a visual settings panel.</div>
+              </div>
+            </div>
+          </div>
 
-          <div class="prescription-ui-form">
+          <div class="setting-card-body prescription-ui-form">
             <div class="prescription-ui-field full">
               <label for="rx-ui-language">Default Language</label>
               <select id="rx-ui-language" class="prescription-ui-select">
@@ -1202,10 +1331,17 @@
         </article>
 
         <article class="stat-card setting-card">
-          <strong>Prescription Header, Footer & Signature</strong>
-          <div class="setting-copy">Set the clinic text and doctor signature used on prescription preview, print, and saved PDF.</div>
+          <div class="setting-card-head">
+            <div class="setting-card-title">
+              <span class="setting-icon">ID</span>
+              <div>
+                <strong>Prescription Header, Footer & Signature</strong>
+                <div class="setting-copy">Clinic text and doctor signature for prescription preview, print, and saved PDF.</div>
+              </div>
+            </div>
+          </div>
 
-          <div class="branding-form">
+          <div class="setting-card-body branding-form">
             <div class="branding-grid">
               <div class="branding-field">
                 <label for="clinic-title-input">Clinic header title</label>
@@ -1257,7 +1393,6 @@
       </div>
 
       <div class="help-actions">
-        <a class="btn-primary" href="index">Back to Dashboard</a>
         <button id="sign-out-btn" class="setting-save" type="button">Sign Out</button>
       </div>
     </section>
