@@ -2485,7 +2485,7 @@
     }
 
     function getPdfViewerUrl(pdfUrl) {
-      return pdfUrl || '';
+      return pdfUrl ? `pdf-viewer.html?url=${encodeURIComponent(pdfUrl)}` : '';
     }
 
     function shouldEmbedPrescriptionPdfPreview() {

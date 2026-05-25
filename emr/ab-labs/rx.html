@@ -140,7 +140,7 @@
     const prescriptionId = (params.get('i') || '').trim();
 
     function getPdfViewerUrl(pdfUrl) {
-      return pdfUrl || '';
+      return pdfUrl ? `pdf-viewer.html?url=${encodeURIComponent(pdfUrl)}` : '';
     }
 
     const firebaseEnv = import.meta.env || {};
