@@ -1567,6 +1567,12 @@
       box-shadow: inset 0 0 0 1px rgba(22, 38, 29, 0.06);
     }
 
+    .prescription-preview-surface.is-tap-preview {
+      min-height: 220px;
+      height: 220px;
+      background: linear-gradient(180deg, #ffffff, #f5faf6);
+    }
+
     .prescription-preview-frame {
       width: 100%;
       height: 100%;
@@ -1604,6 +1610,16 @@
     .prescription-preview-placeholder.is-error {
       color: #8a3b12;
       background: linear-gradient(180deg, #fff8f2, #fff0e6);
+    }
+
+    .prescription-preview-placeholder.is-static {
+      position: static;
+      width: 100%;
+      height: 100%;
+      color: #102217;
+      font-size: 15px;
+      font-weight: 800;
+      background: transparent;
     }
 
     .prescription-preview-embed {
@@ -2021,6 +2037,7 @@
     const LOCAL_WORKLIST_QUEUE_KEY = clinicStorageKey('patientWorklistQueueByDate');
     const LOCAL_SEARCH_CACHE_KEY = clinicStorageKey('patientSearchCache');
     const SEARCH_CACHE_TTL_MS = 10 * 60 * 1000;
+    const SEARCH_CACHE_PATIENT_LIMIT = 500;
 
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
@@ -2252,14 +2269,37 @@
       };
     }
 
+    function getCacheablePatients() {
+      return allPatients.slice(0, SEARCH_CACHE_PATIENT_LIMIT).map((patient) => ({
+        id: patient.id || '',
+        patientId: patient.patientId || '',
+        childName: patient.childName || '',
+        firstName: patient.firstName || '',
+        middleName: patient.middleName || '',
+        lastName: patient.lastName || '',
+        gender: patient.gender || '',
+        dob: patient.dob || '',
+        dateOfBirth: patient.dateOfBirth || '',
+        ageText: patient.ageText || '',
+        phone: patient.phone || '',
+        mobileNumber: patient.mobileNumber || '',
+        parentName: patient.parentName || '',
+        doctorName: patient.doctorName || '',
+        status: patient.status || '',
+        lastMeasurementRecord: patient.lastMeasurementRecord || null,
+        measurementHistory: Array.isArray(patient.measurementHistory) ? patient.measurementHistory.slice(0, 4) : []
+      }));
+    }
+
     function saveSearchCache() {
       try {
         localStorage.setItem(LOCAL_SEARCH_CACHE_KEY, JSON.stringify({
           savedAt: Date.now(),
-          patients: allPatients,
-          history: allHistory
+          patients: getCacheablePatients(),
+          history: []
         }));
       } catch (error) {
+        localStorage.removeItem(LOCAL_SEARCH_CACHE_KEY);
         console.warn(`Unable to keep recent patient list: ${error.message}`);
       }
     }
@@ -2445,7 +2485,11 @@
     }
 
     function getPdfViewerUrl(pdfUrl) {
-      return pdfUrl ? `pdf-viewer.html?url=${encodeURIComponent(pdfUrl)}` : '';
+      return pdfUrl || '';
+    }
+
+    function shouldEmbedPrescriptionPdfPreview() {
+      return false;
     }
 
     function getPrescriptionPreviewImageUrl(entry) {
@@ -3308,6 +3352,7 @@
               const cardUrl = escapeHtml(viewerUrl);
               const embeddedPdfUrl = escapeHtml(embedViewerUrl);
               const cardPreviewUrl = escapeHtml(previewImageUrl);
+              const shouldEmbedPdf = Boolean(downloadUrl && shouldEmbedPrescriptionPdfPreview());
 
               return `
                 <div class="prescription-preview-card" data-open-prescription-url="${cardUrl}" data-preview-image-url="${cardPreviewUrl}">
@@ -3321,13 +3366,15 @@
                       ${downloadUrl ? `<a class="prescription-preview-open-chip" href="${cardUrl}" target="_blank" rel="noopener noreferrer">Open prescription</a>` : ''}
                     `
                     : `
-                      <div class="prescription-preview-surface">
-                        ${downloadUrl
+                      <div class="prescription-preview-surface${shouldEmbedPdf ? '' : ' is-tap-preview'}">
+                        ${shouldEmbedPdf
                           ? `
                             <div class="prescription-preview-placeholder">Loading prescription preview...</div>
                             <iframe class="prescription-preview-embed" data-preview-pdf-url="${embeddedPdfUrl}" title="Prescription PDF preview ${index + 1}" loading="lazy"></iframe>
                           `
-                          : '<div class="prescription-preview-placeholder is-error">Prescription PDF could not be loaded for this record.</div>'}
+                          : downloadUrl
+                            ? '<div class="prescription-preview-placeholder is-static">Prescription PDF</div>'
+                            : '<div class="prescription-preview-placeholder is-error">Prescription PDF could not be loaded for this record.</div>'}
                       </div>
                       ${downloadUrl ? `<a class="prescription-preview-open-chip" href="${cardUrl}" target="_blank" rel="noopener noreferrer">Open prescription</a>` : ''}
                     `}
@@ -3627,7 +3674,12 @@
       pdfPreviewModal.classList.add('is-open');
       pdfPreviewModal.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
-      pdfPreviewFrame.src = url ? (url.includes('#') ? url : `${url}#toolbar=1&navpanes=0&scrollbar=1&view=FitH`) : '';
+      if (url) {
+        window.open(url, '_blank', 'noopener,noreferrer');
+        closePrescriptionPreview();
+        return;
+      }
+      pdfPreviewFrame.src = '';
       pdfPreviewClose.focus();
     }
 
