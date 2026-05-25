@@ -2726,7 +2726,7 @@
       }, 3500);
 
       frameElement.src = '';
-      frameElement.src = pdfUrl.includes('#')
+      frameElement.src = pdfUrl.includes('pdf-viewer.html') || pdfUrl.includes('#')
         ? pdfUrl
         : `${pdfUrl}#page=1&toolbar=0&navpanes=0&scrollbar=0&view=FitH`;
     }
@@ -3303,8 +3303,10 @@
             ${entries.map((entry, index) => {
               const downloadUrl = getPrescriptionDownloadUrl(entry);
               const previewImageUrl = getPrescriptionPreviewImageUrl(entry);
-              const cardUrl = escapeHtml(getPdfViewerUrl(downloadUrl));
-              const rawPdfUrl = escapeHtml(downloadUrl);
+              const viewerUrl = getPdfViewerUrl(downloadUrl);
+              const embedViewerUrl = viewerUrl ? `${viewerUrl}&embed=1` : '';
+              const cardUrl = escapeHtml(viewerUrl);
+              const embeddedPdfUrl = escapeHtml(embedViewerUrl);
               const cardPreviewUrl = escapeHtml(previewImageUrl);
 
               return `
@@ -3323,7 +3325,7 @@
                         ${downloadUrl
                           ? `
                             <div class="prescription-preview-placeholder">Loading prescription preview...</div>
-                            <iframe class="prescription-preview-embed" data-preview-pdf-url="${rawPdfUrl}" title="Prescription PDF preview ${index + 1}" loading="lazy"></iframe>
+                            <iframe class="prescription-preview-embed" data-preview-pdf-url="${embeddedPdfUrl}" title="Prescription PDF preview ${index + 1}" loading="lazy"></iframe>
                           `
                           : '<div class="prescription-preview-placeholder is-error">Prescription PDF could not be loaded for this record.</div>'}
                       </div>
