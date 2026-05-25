@@ -907,6 +907,7 @@
     const PRESCRIPTION_BRANDING_STORAGE_KEY = clinicStorageKey('prescriptionBrandingSettings');
     const MEDICINE_DETAIL_STORAGE_KEY = clinicStorageKey('prescriptionMedicineDetails');
     const PRESCRIPTION_BRANDING_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'prescriptionBranding'];
+    const CLINIC_SETTINGS_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'settings'];
     const DEFAULT_BRANDING = {
       sectionTitle: 'Prescription Header, Footer & Signature',
       sectionDescription: 'Set the clinic text and doctor signature used on prescription preview, print, and saved PDF.',
@@ -1119,7 +1120,10 @@
       }
 
       try {
-        const snapshot = await getDoc(doc(db, ...PRESCRIPTION_BRANDING_DOC_PATH));
+        let snapshot = await getDoc(doc(db, ...CLINIC_SETTINGS_DOC_PATH));
+        if (!snapshot.exists()) {
+          snapshot = await getDoc(doc(db, ...PRESCRIPTION_BRANDING_DOC_PATH));
+        }
         if (!snapshot.exists()) {
           return cachedBranding;
         }

@@ -468,18 +468,6 @@
       align-items: flex-start;
     }
 
-    .setting-icon {
-      width: 38px;
-      height: 38px;
-      display: grid;
-      place-items: center;
-      flex: 0 0 auto;
-      border-radius: 12px;
-      background: #e9f8ef;
-      color: var(--brand-strong);
-      font-weight: 900;
-    }
-
     .setting-card-head strong {
       margin: 0;
       color: var(--ink);
@@ -1363,7 +1351,6 @@
         <article class="stat-card setting-card">
           <div class="setting-card-head">
             <div class="setting-card-title">
-              <span class="setting-icon">A</span>
               <div>
                 <strong>Print Without Header</strong>
                 <div class="setting-copy">Blank top space for header-free print and PDF output.</div>
@@ -1386,7 +1373,6 @@
         <article class="stat-card setting-card prescription-ui-card">
           <div class="setting-card-head">
             <div class="setting-card-title">
-              <span class="setting-icon">Rx</span>
               <div>
                 <strong>Prescription Settings</strong>
                 <div class="setting-copy">Layout controls shown as a visual settings panel.</div>
@@ -1461,7 +1447,6 @@
         <article class="stat-card setting-card">
           <div class="setting-card-head">
             <div class="setting-card-title">
-              <span class="setting-icon">ID</span>
               <div>
                 <strong>Prescription Header, Footer & Signature</strong>
                 <div class="setting-copy">Clinic text and doctor signature for prescription preview, print, and saved PDF.</div>
@@ -1631,7 +1616,9 @@
     const CLINIC_STORAGE_LABEL = CLINIC_FIREBASE_NAMESPACE.includes('/lungs') ? 'lungs clinic' : 'Ab Labs clinic';
     const PRINT_HEADER_GAP_STORAGE_KEY = clinicStorageKey('previewPrintHeaderGapCm');
     const PRESCRIPTION_BRANDING_STORAGE_KEY = clinicStorageKey('prescriptionBrandingSettings');
+    const CLINIC_DOC_PATH = CLINIC_FIREBASE_NAMESPACE.split('/');
     const PRESCRIPTION_BRANDING_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'prescriptionBranding'];
+    const CLINIC_SETTINGS_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'settings'];
     const ACCESS_COOKIE_NAME = 'clinic_session';
     const DEFAULT_BRANDING = {
       sectionTitle: 'Prescription Header, Footer & Signature',
@@ -1862,15 +1849,8 @@
       });
 
       if (db) {
-        const brandingDocRef = doc(db, ...PRESCRIPTION_BRANDING_DOC_PATH);
-        await setDoc(brandingDocRef, {
-          printWithoutHeaderTitle: nextSettings.printWithoutHeaderTitle,
-          printWithoutHeaderDescription: nextSettings.printWithoutHeaderDescription,
-          printHeaderGapCm: safeValue,
-          updatedAt: serverTimestamp()
-        }, { merge: true });
-
-        const confirmedSnapshot = await getDoc(brandingDocRef);
+        await saveClinicSettingsToCloud(nextSettings);
+        const confirmedSnapshot = await getDoc(doc(db, ...CLINIC_SETTINGS_DOC_PATH));
         const confirmedValue = normalizePrintGapCm(confirmedSnapshot.data()?.printHeaderGapCm);
         localStorage.setItem(PRINT_HEADER_GAP_STORAGE_KEY, String(confirmedValue));
         cacheBrandingSettings({
@@ -1908,6 +1888,56 @@
       return normalizedSettings;
     }
 
+    function buildClinicSettingsPayload(settings) {
+      const normalizedSettings = cacheBrandingSettings(settings);
+      return {
+        clinicId: CLINIC_FIREBASE_NAMESPACE.split('/').pop(),
+        clinicNamespace: CLINIC_FIREBASE_NAMESPACE,
+        settingsVersion: 1,
+        sections: {
+          print: {
+            printWithoutHeaderTitle: normalizedSettings.printWithoutHeaderTitle,
+            printWithoutHeaderDescription: normalizedSettings.printWithoutHeaderDescription,
+            printHeaderGapCm: normalizePrintGapCm(normalizedSettings.printHeaderGapCm)
+          },
+          prescriptionLayout: normalizePrescriptionLayout(normalizedSettings),
+          branding: {
+            sectionTitle: normalizedSettings.sectionTitle,
+            sectionDescription: normalizedSettings.sectionDescription,
+            clinicTitle: normalizedSettings.clinicTitle,
+            clinicAddress: normalizedSettings.clinicAddress,
+            doctorName: normalizedSettings.doctorName,
+            doctorDetails: normalizedSettings.doctorDetails,
+            footerText: normalizedSettings.footerText,
+            signatureDataUrl: normalizedSettings.signatureDataUrl || ''
+          }
+        },
+        ...normalizedSettings
+      };
+    }
+
+    async function saveClinicSettingsToCloud(settings) {
+      if (!db) {
+        return;
+      }
+      const payload = buildClinicSettingsPayload(settings);
+      await Promise.all([
+        setDoc(doc(db, ...PRESCRIPTION_BRANDING_DOC_PATH), {
+          ...payload,
+          updatedAt: serverTimestamp()
+        }, { merge: true }),
+        setDoc(doc(db, ...CLINIC_SETTINGS_DOC_PATH), {
+          ...payload,
+          updatedAt: serverTimestamp()
+        }, { merge: true }),
+        setDoc(doc(db, ...CLINIC_DOC_PATH), {
+          prescriptionSettings: payload.sections,
+          settingsVersion: payload.settingsVersion,
+          settingsUpdatedAt: serverTimestamp()
+        }, { merge: true })
+      ]);
+    }
+
     async function loadBrandingSettings() {
       const cachedSettings = readBrandingSettings();
       populateBrandingForm(cachedSettings);
@@ -1922,7 +1952,10 @@
       }
 
       try {
-        const snapshot = await getDoc(doc(db, ...PRESCRIPTION_BRANDING_DOC_PATH));
+        let snapshot = await getDoc(doc(db, ...CLINIC_SETTINGS_DOC_PATH));
+        if (!snapshot.exists()) {
+          snapshot = await getDoc(doc(db, ...PRESCRIPTION_BRANDING_DOC_PATH));
+        }
         if (!snapshot.exists()) {
           if (brandingSettingStatus) {
             brandingSettingStatus.textContent = 'Current branding: default clinic header and footer. Save once to share it across devices.';
@@ -2001,10 +2034,7 @@
       populateBrandingForm(nextSettings);
 
       if (db) {
-        await setDoc(doc(db, ...PRESCRIPTION_BRANDING_DOC_PATH), {
-          ...nextSettings,
-          updatedAt: serverTimestamp()
-        }, { merge: true });
+        await saveClinicSettingsToCloud(nextSettings);
         showCloudSavePopup(message);
       } else if (message.includes('cloud records')) {
         message = message
