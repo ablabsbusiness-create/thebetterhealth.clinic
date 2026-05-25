@@ -288,6 +288,61 @@
       justify-content: flex-end;
     }
 
+    .settings-nav {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      overflow-x: auto;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255,255,255,0.94);
+      box-shadow: 0 10px 24px rgba(22, 38, 29, 0.05);
+      scrollbar-width: thin;
+    }
+
+    .settings-nav a {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 0 14px;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      background: #f5faf6;
+      color: var(--brand-strong);
+      font-size: 13px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .settings-nav a:hover {
+      border-color: #b8dec3;
+      background: #ecf8ef;
+    }
+
+    .settings-divider {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      scroll-margin-top: 96px;
+    }
+
+    .settings-divider::after {
+      content: '';
+      height: 1px;
+      flex: 1;
+      background: var(--line);
+    }
+
     h1 {
       margin: 14px 0 4px;
       font-size: clamp(28px, 3.6vw, 40px);
@@ -1199,7 +1254,16 @@
         </div>
       </div>
 
+      <nav class="settings-nav" aria-label="Settings sections">
+        <a href="#storage-settings">Storage</a>
+        <a href="#print-settings">Print</a>
+        <a href="#prescription-layout-settings">Prescription Layout</a>
+        <a href="#branding-settings">Branding</a>
+        <a href="#account-settings">Account</a>
+      </nav>
+
       <div class="stats-grid">
+        <div id="storage-settings" class="settings-divider">Storage</div>
         <article class="stat-card">
           <strong>Generated PDFs</strong>
           <div id="pdf-count" class="stat-value">0</div>
@@ -1224,6 +1288,7 @@
           </div>
         </article>
 
+        <div id="print-settings" class="settings-divider">Print</div>
         <article class="stat-card setting-card">
           <div class="setting-card-head">
             <div class="setting-card-title">
@@ -1246,6 +1311,7 @@
           </div>
         </article>
 
+        <div id="prescription-layout-settings" class="settings-divider">Prescription Layout</div>
         <article class="stat-card setting-card prescription-ui-card">
           <div class="setting-card-head">
             <div class="setting-card-title">
@@ -1320,6 +1386,7 @@
           </div>
         </article>
 
+        <div id="branding-settings" class="settings-divider">Branding</div>
         <article class="stat-card setting-card">
           <div class="setting-card-head">
             <div class="setting-card-title">
@@ -1382,6 +1449,7 @@
         </article>
       </div>
 
+      <div id="account-settings" class="settings-divider">Account</div>
       <div class="help-actions">
         <button id="sign-out-btn" class="setting-save" type="button">Sign Out</button>
       </div>
