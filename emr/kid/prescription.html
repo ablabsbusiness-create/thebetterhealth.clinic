@@ -3079,6 +3079,7 @@
 
         renderSelectedItems(selectedList, [...selectedValues], sectionName);
         savePrescriptionDraft();
+        const modalTrigger = clearSearchAfterSelection(shouldSelect, trigger);
 
         if (sectionName === 'Medication') {
           if (shouldSelect) {
@@ -3096,14 +3097,14 @@
           renderMedicineDetails();
 
           if (shouldSelect || activeMedicine) {
-            openMedicineModal(trigger);
+            openMedicineModal(modalTrigger);
           }
           return;
         }
 
         if ((sectionName === 'Symptoms' || sectionName === 'Finding') && shouldSelect) {
           getSectionItemDetail(sectionName, value);
-          openSelectionDetailModal(sectionName, value, trigger);
+          openSelectionDetailModal(sectionName, value, modalTrigger);
         }
 
         if ((sectionName === 'Symptoms' || sectionName === 'Finding') && !shouldSelect && sectionItemDetails[sectionName]) {
@@ -3125,6 +3126,16 @@
             toggleValue(value, !isSelected, button);
           });
         });
+      }
+
+      function clearSearchAfterSelection(shouldSelect, trigger) {
+        if (!shouldSelect || !searchInput.value.trim()) {
+          return trigger;
+        }
+
+        searchInput.value = '';
+        applySearchFilter();
+        return searchInput;
       }
 
       async function addNewItem(rawValue) {
