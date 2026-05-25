@@ -75,6 +75,17 @@
       max-width: none;
       box-shadow: none;
     }
+
+    .fallback-viewer {
+      width: 100%;
+      height: calc(100vh - 58px);
+      border: 0;
+      background: #ffffff;
+    }
+
+    body.embed .fallback-viewer {
+      height: 100vh;
+    }
   </style>
 </head>
 <body>
@@ -102,6 +113,15 @@
     function setStatus(message) {
       status.textContent = message;
       status.hidden = !message;
+    }
+
+    function renderFallbackViewer() {
+      const fallbackFrame = document.createElement('iframe');
+      fallbackFrame.className = 'fallback-viewer';
+      fallbackFrame.title = 'Prescription PDF preview';
+      fallbackFrame.src = `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(pdfUrl)}`;
+      pages.replaceChildren(fallbackFrame);
+      setStatus('');
     }
 
     async function renderPage(pdf, pageNumber) {
@@ -145,7 +165,7 @@
           await renderPage(pdf, pageNumber);
         }
       } catch (error) {
-        setStatus(error.message || 'Unable to load this PDF.');
+        renderFallbackViewer();
       }
     }
 
