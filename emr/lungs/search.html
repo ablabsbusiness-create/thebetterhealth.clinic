@@ -2935,7 +2935,7 @@
       return String(value || '').replace(/\D+/g, '');
     }
 
-    function getPatientSearchText(patient) {
+    function getPatientSearchTokens(patient) {
       return [
         patient.patientName,
         patient.childName,
@@ -2943,12 +2943,11 @@
         patient.middleName,
         patient.lastName,
         patient.patientId,
-        patient.phone,
         patient.parentName
       ]
         .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
+        .flatMap((value) => String(value).toLowerCase().split(/\s+/))
+        .filter(Boolean);
     }
 
     function patientMatchesSearch(patient, rawSearchValue) {
@@ -2966,7 +2965,7 @@
       const normalizedSearchValue = normalizeSearchValue(rawSearchValue);
       const normalizedPatientPhone = normalizeSearchValue(patient.phone);
 
-      return getPatientSearchText(patient).includes(loweredSearchValue)
+      return getPatientSearchTokens(patient).some((token) => token.startsWith(loweredSearchValue))
         || Boolean(normalizedSearchValue && normalizedPatientPhone.includes(normalizedSearchValue));
     }
 

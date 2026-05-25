@@ -2787,19 +2787,18 @@
       return String(value || '').replace(/\D+/g, '');
     }
 
-    function getPatientSearchText(patient) {
+    function getPatientSearchTokens(patient) {
       return [
         patient.childName,
         patient.firstName,
         patient.middleName,
         patient.lastName,
         patient.patientId,
-        patient.phone,
         patient.parentName
       ]
         .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
+        .flatMap((value) => String(value).toLowerCase().split(/\s+/))
+        .filter(Boolean);
     }
 
     function patientMatchesSearch(patient, rawSearchValue) {
@@ -2817,7 +2816,7 @@
       const normalizedSearchValue = normalizeSearchValue(rawSearchValue);
       const normalizedPatientPhone = normalizeSearchValue(patient.phone);
 
-      return getPatientSearchText(patient).includes(loweredSearchValue)
+      return getPatientSearchTokens(patient).some((token) => token.startsWith(loweredSearchValue))
         || Boolean(normalizedSearchValue && normalizedPatientPhone.includes(normalizedSearchValue));
     }
 
@@ -3451,7 +3450,6 @@
       const renderedWorklistPatients = searchValue
         ? worklistPatients.slice(0, SEARCH_RENDER_LIMIT)
         : worklistPatients;
-      const hiddenPatientCount = Math.max(0, worklistPatients.length - renderedWorklistPatients.length);
       if ((!selectedPatientId || !patients.some((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId)) && worklistPatients[0]) {
         selectedPatientId = formatMissing(worklistPatients[0].patientId, 'ID not saved');
       }
@@ -3496,9 +3494,6 @@
             </div>
 
             <div class="worklist-list">
-              ${hiddenPatientCount
-                ? `<div class="worklist-empty">Showing first ${SEARCH_RENDER_LIMIT} matches. Keep typing to narrow the list.</div>`
-                : ''}
               ${renderedWorklistPatients.length
                 ? renderedWorklistPatients.map((patient) => renderWorklistItemHtml(patient, selectedWorklistDate)).join('')
                 : `<div class="worklist-empty">${searchValue ? 'No matching patients were found.' : selectedWorklistMode === 'queue' ? 'No patients were added to queue for this date yet.' : 'No patients have been seen on this date yet.'}</div>`}
