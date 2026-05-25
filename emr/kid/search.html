@@ -2041,6 +2041,8 @@
     let allHistory = [];
     let prescriptionHistoryByPatientId = new Map();
     let prescriptionHistoryByPatientDate = new Map();
+    const storagePrescriptionPatientIdsLoaded = new Set();
+    const storagePrescriptionPatientLoads = new Map();
     const historyDateFilters = {};
     const historyShowAll = {};
     const historyPageIndexes = {};
@@ -2595,6 +2597,64 @@
       }
 
       return entries;
+    }
+
+    function getHistoryEntryKey(entry, fallbackPrefix = 'history', index = 0) {
+      return entry?.prescriptionSaveId
+        || entry?.id
+        || getPrescriptionDownloadUrl(entry)
+        || `${entry?.patientId || fallbackPrefix}-${entry?.createdAtIso || index}`;
+    }
+
+    function mergeHistoryEntries(entries) {
+      if (!Array.isArray(entries) || entries.length === 0) {
+        return false;
+      }
+
+      const existingHistoryById = new Map();
+      allHistory.forEach((entry, index) => {
+        existingHistoryById.set(getHistoryEntryKey(entry, 'history', index), entry);
+      });
+
+      let changed = false;
+      entries.forEach((entry, index) => {
+        const key = getHistoryEntryKey(entry, 'storage', index);
+        if (!existingHistoryById.has(key)) {
+          changed = true;
+        }
+        existingHistoryById.set(key, entry);
+      });
+
+      if (!changed) {
+        return false;
+      }
+
+      allHistory = [...existingHistoryById.values()];
+      rebuildHistoryIndexes();
+      saveSearchCache();
+      return true;
+    }
+
+    function ensureStoragePrescriptionsForPatient(patient) {
+      const patientId = getNormalizedPatientId(patient?.patientId || patient?.id || '');
+      if (!patientId || storagePrescriptionPatientIdsLoaded.has(patientId) || storagePrescriptionPatientLoads.has(patientId)) {
+        return;
+      }
+
+      const loadPromise = getStoragePrescriptionEntriesForPatient(patient)
+        .then((entries) => {
+          storagePrescriptionPatientIdsLoaded.add(patientId);
+          storagePrescriptionPatientLoads.delete(patientId);
+          if (mergeHistoryEntries(entries)) {
+            filterPatients();
+          }
+        })
+        .catch((error) => {
+          storagePrescriptionPatientLoads.delete(patientId);
+          console.warn(`Unable to load prescription PDFs for selected patient ${patientId}: ${error.message}`);
+        });
+
+      storagePrescriptionPatientLoads.set(patientId, loadPromise);
     }
 
     function renderPrescriptionPreviewImage(imageElement) {
@@ -3417,6 +3477,9 @@
       }).join('');
 
       attachPrescriptionPreviewRendering();
+      patients
+        .filter((patient) => selectedPatientId === formatMissing(patient.patientId, 'ID not saved'))
+        .forEach((patient) => ensureStoragePrescriptionsForPatient(patient));
     }
 
     function renderDoctorWorklist(patients, searchValue = '') {
@@ -3534,6 +3597,9 @@
       `;
 
       attachPrescriptionPreviewRendering();
+      if (selectedPatient) {
+        ensureStoragePrescriptionsForPatient(selectedPatient);
+      }
     }
 
     function filterPatients() {
@@ -3910,25 +3976,15 @@
             return;
           }
 
-          const existingHistoryById = new Map();
-          allHistory.forEach((entry, index) => {
-            const key = entry.prescriptionSaveId
-              || entry.id
-              || getPrescriptionDownloadUrl(entry)
-              || `${entry.patientId || 'history'}-${entry.createdAtIso || index}`;
-            existingHistoryById.set(key, entry);
+          storageHistory.forEach((entry) => {
+            const patientId = getNormalizedPatientId(entry?.patientId || '');
+            if (patientId) {
+              storagePrescriptionPatientIdsLoaded.add(patientId);
+            }
           });
-          storageHistory.forEach((entry, index) => {
-            const key = entry.prescriptionSaveId
-              || entry.id
-              || getPrescriptionDownloadUrl(entry)
-              || `${entry.patientId || 'storage'}-${entry.createdAtIso || index}`;
-            existingHistoryById.set(key, entry);
-          });
-          allHistory = [...existingHistoryById.values()];
-          rebuildHistoryIndexes();
-          saveSearchCache();
-          filterPatients();
+          if (mergeHistoryEntries(storageHistory)) {
+            filterPatients();
+          }
         }).catch((error) => {
           console.warn(`Unable to load prescription PDFs after patient list: ${error.message}`);
         }), 300);
