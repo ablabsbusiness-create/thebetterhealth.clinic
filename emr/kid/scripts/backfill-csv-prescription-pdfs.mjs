@@ -1,4 +1,7 @@
 import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { initializeApp } from 'firebase/app';
 import {
   collection,
@@ -18,8 +21,13 @@ import {
 } from 'firebase/storage';
 import { jsPDF } from 'jspdf';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const KID_ROOT = path.resolve(__dirname, '..');
 const CLINIC_NAMESPACE = 'clinics/kid';
 const CLINIC_STORAGE_PREFIX = 'clinics/kid';
+const CHART_CONFIG_PATH = path.join(KID_ROOT, 'growth_chart_config.json');
+const chartConfig = JSON.parse(fs.readFileSync(CHART_CONFIG_PATH, 'utf8'));
+const sharedGrowthCharts = Array.isArray(chartConfig.charts) ? chartConfig.charts : [];
 const DEFAULT_FIREBASE_CONFIG = {
   apiKey: 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
   authDomain: 'clinci-dr-gunda.firebaseapp.com',
@@ -162,6 +170,82 @@ function listValues(value) {
     .filter(Boolean);
 }
 
+function numberValue(value) {
+  const match = clean(value).match(/-?\d+(?:\.\d+)?/);
+  const parsed = match ? Number.parseFloat(match[0]) : NaN;
+  return Number.isFinite(parsed) ? parsed : NaN;
+}
+
+function calculateAgeYears(dobValue, atValue) {
+  const dob = toDate(dobValue);
+  const at = toDate(atValue) || new Date();
+  if (!dob || !at || dob > at) {
+    return NaN;
+  }
+
+  return (at - dob) / (365.25 * 24 * 60 * 60 * 1000);
+}
+
+function getChartPatientData(entry, visitIso) {
+  const height = numberValue(entry.height);
+  const weight = numberValue(entry.weight);
+  const ageYears = calculateAgeYears(entry.dob || '', visitIso);
+
+  return {
+    ageYears,
+    ageMonths: Number.isFinite(ageYears) ? ageYears * 12 : NaN,
+    height,
+    weight,
+    head: numberValue(entry.head),
+    bmi: Number.isFinite(weight) && Number.isFinite(height) && height > 0 ? weight / ((height / 100) ** 2) : NaN
+  };
+}
+
+function normalizeGenderForChart(value) {
+  const normalized = clean(value).toLowerCase();
+  if (normalized.startsWith('m')) {
+    return 'male';
+  }
+  if (normalized.startsWith('f')) {
+    return 'female';
+  }
+  return '';
+}
+
+function getChartRequests(entry, visitIso) {
+  const patientData = getChartPatientData(entry, visitIso);
+  const sex = normalizeGenderForChart(entry.gender);
+  const ageGroup = patientData.ageYears < 5 ? '0-5' : patientData.ageYears <= 18 ? '5-18' : '';
+
+  if (!sex || !ageGroup || !Number.isFinite(patientData.ageYears)) {
+    return [];
+  }
+
+  return [
+    { metric: 'height', value: patientData.height, xValue: ageGroup === '0-5' ? patientData.ageMonths : patientData.ageYears },
+    { metric: 'weight', value: patientData.weight, xValue: ageGroup === '0-5' ? patientData.ageMonths : patientData.ageYears },
+    { metric: 'head', value: patientData.head, xValue: patientData.ageMonths },
+    { metric: 'bmi', value: patientData.bmi, xValue: ageGroup === '0-5' ? patientData.ageMonths : patientData.ageYears }
+  ]
+    .filter((request) => Number.isFinite(request.value) && Number.isFinite(request.xValue))
+    .filter((request) => !(ageGroup === '5-18' && request.metric === 'head'))
+    .map((request) => {
+      const chart = sharedGrowthCharts.find((item) => (
+        item.sex === sex
+        && item.ageGroup === ageGroup
+        && item.metric === request.metric
+      ));
+
+      if (!chart?.backgroundImage) {
+        return null;
+      }
+
+      return { ...request, chart };
+    })
+    .filter(Boolean)
+    .slice(0, 4);
+}
+
 function hasClinicalContent(entry) {
   return [
     'symptoms',
@@ -258,6 +342,73 @@ function buildVitals(entry) {
   return rows;
 }
 
+function ensurePageSpace(pdf, y, needed = 38) {
+  if (y + needed <= 282) {
+    return y;
+  }
+
+  pdf.addPage();
+  return 18;
+}
+
+function addChartCard(pdf, request, x, y, width, height) {
+  const imagePath = path.join(KID_ROOT, request.chart.backgroundImage);
+  if (!fs.existsSync(imagePath)) {
+    return false;
+  }
+
+  const imageData = `data:image/png;base64,${fs.readFileSync(imagePath).toString('base64')}`;
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(7.5);
+  pdf.setTextColor(17, 24, 39);
+  pdf.text(request.chart.label || `${request.metric} chart`, x, y);
+  pdf.addImage(imageData, 'PNG', x, y + 2, width, height, undefined, 'FAST');
+
+  const plot = request.chart.plotArea || { left: 0.1731, top: 0.117, right: 0.8269, bottom: 0.8617 };
+  const rawXRatio = (request.xValue - request.chart.xMin) / (request.chart.xMax - request.chart.xMin);
+  const rawYRatio = (request.value - request.chart.yMin) / (request.chart.yMax - request.chart.yMin);
+  const xRatio = Math.min(1, Math.max(0, rawXRatio));
+  const yRatio = Math.min(1, Math.max(0, rawYRatio));
+  const pointX = x + (plot.left + xRatio * (plot.right - plot.left)) * width;
+  const pointY = y + 2 + (plot.bottom - yRatio * (plot.bottom - plot.top)) * height;
+
+  pdf.setFillColor(17, 17, 17);
+  pdf.circle(pointX, pointY, 1.45, 'F');
+  pdf.setDrawColor(255, 255, 255);
+  pdf.circle(pointX, pointY, 2.15, 'S');
+  return true;
+}
+
+function addGrowthCharts(pdf, entry, visitIso, y) {
+  const requests = getChartRequests(entry, visitIso);
+  if (!requests.length) {
+    return y;
+  }
+
+  y = ensurePageSpace(pdf, y, 80);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(10);
+  pdf.setTextColor(17, 24, 39);
+  pdf.text('Growth Charts', 16, y);
+  y += 5;
+
+  const cardWidth = 84;
+  const cardHeight = 61;
+  let rendered = 0;
+
+  requests.forEach((request, index) => {
+    const col = index % 2;
+    const row = Math.floor(index / 2);
+    const cardX = col === 0 ? 16 : 110;
+    const cardY = y + row * 70;
+    if (addChartCard(pdf, request, cardX, cardY, cardWidth, cardHeight)) {
+      rendered += 1;
+    }
+  });
+
+  return rendered ? y + Math.ceil(requests.length / 2) * 70 + 2 : y - 5;
+}
+
 function renderPdf(entry) {
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const visitIso = getIso(entry.createdAtIso || entry.measuredAt || entry.visitDate);
@@ -294,9 +445,15 @@ function renderPdf(entry) {
 
   let y = 67;
   y = addSection(pdf, 'Symptoms', listValues(entry.symptoms || entry.rawSymptom), y);
+  y = addSection(pdf, 'Finding', listValues(entry.findings || entry.rawFinding), y);
+  y = addSection(pdf, 'Notes', listValues(entry.notes || entry.rawNotes), y);
   y = addSection(pdf, 'Diagnosis', listValues(entry.diagnosis || entry.rawDiagnosis), y);
+  y = addSection(pdf, 'Investigation', listValues(entry.investigation || entry.rawInvestigation), y);
+  y = addSection(pdf, 'Past Medical History', listValues(entry.pastMedicalHistory || entry.rawPastMedicalHistory), y);
   y = addSection(pdf, 'Medication', listValues(entry.drugs || entry.rawDrug), y);
+  y = addSection(pdf, 'Instruction', listValues(entry.instruction || entry.instructions || entry.rawInstruction), y);
   y = addSection(pdf, 'Vitals', vitals, y);
+  y = addGrowthCharts(pdf, entry, visitIso, y);
 
   const appointmentLines = [];
   if (entry.appointmentId) appointmentLines.push(`Appointment ID: ${entry.appointmentId}`);
@@ -322,16 +479,32 @@ async function main() {
   const storage = getStorage(app);
 
   const historyRef = collection(db, `${CLINIC_NAMESPACE}/history`);
+  const patientsRef = collection(db, `${CLINIC_NAMESPACE}/patients`);
   const historyQuery = query(historyRef, where('source', '==', 'csv-import'));
   const existingQuery = query(historyRef, where('generatedFrom', '==', 'csv-import-history'));
-  const [snapshot, existingSnapshot] = await Promise.all([
+  const [snapshot, existingSnapshot, patientsSnapshot] = await Promise.all([
     getDocs(historyQuery),
-    getDocs(existingQuery)
+    getDocs(existingQuery),
+    getDocs(patientsRef)
   ]);
 
   const existingGeneratedDocIds = new Set(existingSnapshot.docs.map((docSnapshot) => docSnapshot.id));
+  const patientsById = new Map(patientsSnapshot.docs.map((docSnapshot) => {
+    const data = docSnapshot.data();
+    return [clean(data.patientId || docSnapshot.id).toUpperCase(), data];
+  }));
   const candidates = snapshot.docs
-    .map((docSnapshot) => ({ id: docSnapshot.id, ...docSnapshot.data() }))
+    .map((docSnapshot) => {
+      const entry = { id: docSnapshot.id, ...docSnapshot.data() };
+      const patient = patientsById.get(clean(entry.patientId).toUpperCase()) || {};
+      return {
+        ...patient,
+        ...entry,
+        dob: entry.dob || patient.dob || '',
+        ageText: entry.ageText || patient.ageText || '',
+        mobileNumber: entry.mobileNumber || patient.mobileNumber || ''
+      };
+    })
     .filter((entry) => clean(entry.patientId) && hasClinicalContent(entry))
     .sort((left, right) => {
       const leftTime = Date.parse(getIso(left.createdAtIso || left.measuredAt || left.visitDate)) || 0;
