@@ -3068,7 +3068,7 @@
         const exactExists = query
           ? allItems.some((item) => item.toLowerCase() === query)
           : true;
-        const addableQuery = query && !exactExists
+        const addableQuery = query && !exactExists && filteredItems.length === 0
           ? toTitleCase(searchInput.value)
           : '';
 
