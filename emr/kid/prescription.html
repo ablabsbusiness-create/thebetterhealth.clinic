@@ -2237,6 +2237,7 @@
 
     function renderBubbleButtons(wrap, items, addableQuery = '') {
       wrap.innerHTML = '';
+      const visibleItems = items.slice(0, 10);
 
       if (!items.length) {
         if (!addableQuery) {
@@ -2247,7 +2248,7 @@
         }
       }
 
-      items.forEach((item) => {
+      visibleItems.forEach((item) => {
         const button = document.createElement('button');
         button.className = 'bubble-btn';
         button.type = 'button';

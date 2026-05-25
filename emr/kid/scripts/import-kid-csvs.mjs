@@ -434,8 +434,22 @@ function parseVitals(value) {
 
 function addCatalogItems(catalog, sectionName, values) {
   for (const value of values) {
-    uniquePush(catalog[sectionName], value);
+    uniquePush(catalog[sectionName], normalizeCatalogItem(sectionName, value));
   }
+}
+
+function normalizeCatalogItem(sectionName, value) {
+  let cleaned = compactSpaces(value).replace(/\?/g, '');
+
+  if (sectionName === 'Diagnosis') {
+    cleaned = cleaned
+      .split(',')
+      .map((part) => compactSpaces(part))
+      .filter((part) => part && part.toLowerCase() !== 'well child')
+      .join(', ');
+  }
+
+  return compactSpaces(cleaned);
 }
 
 function buildImportData() {
