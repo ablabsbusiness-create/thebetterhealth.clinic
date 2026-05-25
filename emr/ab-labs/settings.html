@@ -513,6 +513,153 @@
       font-weight: 600;
     }
 
+    .prescription-ui-card {
+      grid-column: 1 / -1;
+    }
+
+    .prescription-ui-form {
+      display: grid;
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .prescription-ui-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .prescription-ui-field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .prescription-ui-field.full {
+      grid-column: 1 / -1;
+    }
+
+    .prescription-ui-field label,
+    .prescription-ui-section-title {
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .prescription-ui-select,
+    .prescription-ui-input {
+      width: 100%;
+      min-height: 48px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      padding: 0 14px;
+    }
+
+    .prescription-ui-select {
+      appearance: auto;
+    }
+
+    .prescription-ui-segment {
+      display: inline-grid;
+      grid-template-columns: repeat(2, minmax(110px, 1fr));
+      width: min(320px, 100%);
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    .prescription-ui-segment button {
+      min-height: 42px;
+      border: 0;
+      border-right: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      font-weight: 700;
+      cursor: default;
+    }
+
+    .prescription-ui-segment button:last-child {
+      border-right: 0;
+    }
+
+    .prescription-ui-segment button.is-active {
+      background: #2396f3;
+      color: #fff;
+    }
+
+    .paper-size-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .margin-input {
+      display: grid;
+      grid-template-columns: 64px minmax(0, 1fr);
+      min-height: 48px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    .margin-input span,
+    .margin-input input {
+      display: flex;
+      align-items: center;
+      border: 0;
+      background: transparent;
+      color: var(--ink);
+      font: inherit;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .margin-input span {
+      justify-content: center;
+      border-right: 1px solid var(--line);
+      color: #24352b;
+    }
+
+    .margin-input input {
+      width: 100%;
+      padding: 0 14px;
+    }
+
+    .prescription-ui-actions {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 14px;
+      margin-top: 2px;
+    }
+
+    .prescription-preview-btn,
+    .prescription-save-btn {
+      min-height: 48px;
+      border-radius: 12px;
+      font: inherit;
+      font-weight: 800;
+      cursor: default;
+    }
+
+    .prescription-preview-btn {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: #2396f3;
+    }
+
+    .prescription-save-btn {
+      border: 0;
+      background: #2396f3;
+      color: #fff;
+    }
+
     .cloud-save-popup {
       position: fixed;
       right: 24px;
@@ -821,7 +968,13 @@
       }
 
       .branding-grid,
-      .signature-editor {
+      .signature-editor,
+      .prescription-ui-row,
+      .paper-size-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .prescription-ui-actions {
         grid-template-columns: 1fr;
       }
 
@@ -969,6 +1122,98 @@
             <button id="save-print-gap-btn" class="setting-save" type="button">Save Setting</button>
           </div>
           <div id="print-gap-setting-status" class="setting-status">Current saved gap: 0.0 cm</div>
+        </article>
+
+        <article class="stat-card setting-card prescription-ui-card">
+          <strong>Prescription Settings</strong>
+          <div class="setting-copy">UI preview for future prescription layout controls. These controls are visual only right now.</div>
+
+          <div class="prescription-ui-form">
+            <div class="prescription-ui-field full">
+              <label for="rx-ui-language">Default Language</label>
+              <select id="rx-ui-language" class="prescription-ui-select">
+                <option>English</option>
+              </select>
+            </div>
+
+            <div class="prescription-ui-row">
+              <div class="prescription-ui-field">
+                <label for="rx-ui-font-family">Font Family</label>
+                <select id="rx-ui-font-family" class="prescription-ui-select">
+                  <option>Arial</option>
+                  <option>Outfit</option>
+                  <option>Times New Roman</option>
+                </select>
+              </div>
+
+              <div class="prescription-ui-field">
+                <label for="rx-ui-font-size">Font Size</label>
+                <select id="rx-ui-font-size" class="prescription-ui-select">
+                  <option>14</option>
+                  <option>12</option>
+                  <option>16</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="prescription-ui-field">
+              <label>Footer Alignment</label>
+              <div class="prescription-ui-segment" aria-label="Footer alignment preview">
+                <button class="is-active" type="button">Left</button>
+                <button type="button">Right</button>
+              </div>
+            </div>
+
+            <div class="prescription-ui-field full">
+              <label for="rx-ui-template">Prescription Template</label>
+              <select id="rx-ui-template" class="prescription-ui-select">
+                <option>Single Column</option>
+                <option>Two Column</option>
+              </select>
+            </div>
+
+            <div class="prescription-ui-field full">
+              <label for="rx-ui-medicine-template">Medicine Template</label>
+              <select id="rx-ui-medicine-template" class="prescription-ui-select">
+                <option>Table2</option>
+                <option>Table1</option>
+                <option>Inline</option>
+              </select>
+            </div>
+
+            <div class="prescription-ui-field full">
+              <label for="rx-ui-investigation-template">Investigation Result Template</label>
+              <select id="rx-ui-investigation-template" class="prescription-ui-select">
+                <option>Inline</option>
+                <option>Table</option>
+              </select>
+            </div>
+
+            <div class="prescription-ui-section-title">Paper Size</div>
+            <div class="paper-size-grid">
+              <label class="prescription-ui-field">
+                <span>Top Margin</span>
+                <span class="margin-input"><span>cm</span><input type="text" value="10" aria-label="Top margin"></span>
+              </label>
+              <label class="prescription-ui-field">
+                <span>Bottom Margin</span>
+                <span class="margin-input"><span>cm</span><input type="text" value="7" aria-label="Bottom margin"></span>
+              </label>
+              <label class="prescription-ui-field">
+                <span>Left Margin</span>
+                <span class="margin-input"><span>cm</span><input type="text" value="0" aria-label="Left margin"></span>
+              </label>
+              <label class="prescription-ui-field">
+                <span>Right Margin</span>
+                <span class="margin-input"><span>cm</span><input type="text" value="6" aria-label="Right margin"></span>
+              </label>
+            </div>
+
+            <div class="prescription-ui-actions">
+              <button class="prescription-preview-btn" type="button">Preview RX</button>
+              <button class="prescription-save-btn" type="button">Save Settings</button>
+            </div>
+          </div>
         </article>
 
         <article class="stat-card setting-card">
