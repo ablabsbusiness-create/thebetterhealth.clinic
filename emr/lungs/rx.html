@@ -139,6 +139,10 @@
     const params = new URLSearchParams(window.location.search);
     const prescriptionId = (params.get('i') || '').trim();
 
+    function getPdfViewerUrl(pdfUrl) {
+      return pdfUrl ? `pdf-viewer.html?url=${encodeURIComponent(pdfUrl)}` : '';
+    }
+
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
       apiKey: firebaseEnv.VITE_FIREBASE_API_KEY || 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
@@ -182,8 +186,9 @@
           return;
         }
 
-        message.innerHTML = `Redirecting to prescription PDF. If it does not open automatically, <a href="${record.downloadURL}">tap here</a>.`;
-        window.location.replace(record.downloadURL);
+        const viewerUrl = getPdfViewerUrl(record.downloadURL);
+        message.innerHTML = `Redirecting to prescription PDF. If it does not open automatically, <a href="${viewerUrl}">tap here</a>.`;
+        window.location.replace(viewerUrl);
       } catch (error) {
         title.textContent = 'Unable To Open Prescription';
         message.textContent = error.message || 'Something went wrong while opening the prescription.';

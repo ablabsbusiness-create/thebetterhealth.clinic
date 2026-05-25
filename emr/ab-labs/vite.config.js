@@ -242,6 +242,7 @@ export default defineConfig({
         growthChartPreview: resolve(__dirname, 'growth-chart-preview.html'),
         prescription: resolve(__dirname, 'prescription.html'),
         preview: resolve(__dirname, 'preview.html'),
+        pdfViewer: resolve(__dirname, 'pdf-viewer.html'),
         pendingApprovals: resolve(__dirname, 'pending-approvals.html'),
         receptionQr: resolve(__dirname, 'reception-qr.html'),
         intake: resolve(__dirname, 'intake.html'),

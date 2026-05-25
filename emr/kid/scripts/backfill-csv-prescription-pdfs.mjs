@@ -540,6 +540,7 @@ async function main() {
 
     await uploadBytes(storageRef, pdfBuffer, {
       contentType: 'application/pdf',
+      contentDisposition: 'inline',
       customMetadata: {
         source: 'csv-import-prescription-pdf',
         csvHistoryDocId: entry.id,

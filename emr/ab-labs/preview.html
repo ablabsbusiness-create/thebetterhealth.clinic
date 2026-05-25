@@ -1839,7 +1839,8 @@
         try {
           const storageRef = ref(storage, storagePath);
           await uploadBytes(storageRef, pdfBlob, {
-            contentType: 'application/pdf'
+            contentType: 'application/pdf',
+            contentDisposition: 'inline'
           });
           downloadURL = await getDownloadURL(storageRef);
           persistedStoragePath = storagePath;

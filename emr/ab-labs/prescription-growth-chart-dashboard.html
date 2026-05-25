@@ -4152,7 +4152,8 @@
       const storagePath = `${CLINIC_STORAGE_PREFIX}/chart-pdfs/${patientId}/${fileName}`;
       const storageRef = ref(storage, storagePath);
       const metadata = {
-        contentType: 'application/pdf'
+        contentType: 'application/pdf',
+        contentDisposition: 'inline'
       };
 
       await uploadBytes(storageRef, pdfBlob, metadata);

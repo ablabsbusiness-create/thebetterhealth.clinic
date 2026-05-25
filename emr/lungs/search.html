@@ -2538,6 +2538,10 @@
       ).trim();
     }
 
+    function getPdfViewerUrl(pdfUrl) {
+      return pdfUrl ? `pdf-viewer.html?url=${encodeURIComponent(pdfUrl)}` : '';
+    }
+
     function getPrescriptionPreviewImageUrl(entry) {
       return String(
         entry?.previewImageURL
@@ -3360,7 +3364,8 @@
             ${entries.map((entry, index) => {
               const downloadUrl = getPrescriptionDownloadUrl(entry);
               const previewImageUrl = getPrescriptionPreviewImageUrl(entry);
-              const cardUrl = escapeHtml(downloadUrl);
+              const cardUrl = escapeHtml(getPdfViewerUrl(downloadUrl));
+              const rawPdfUrl = escapeHtml(downloadUrl);
               const cardPreviewUrl = escapeHtml(previewImageUrl);
 
               return `
@@ -3379,7 +3384,7 @@
                         ${downloadUrl
                           ? `
                             <div class="prescription-preview-placeholder">Loading prescription preview...</div>
-                            <iframe class="prescription-preview-embed" data-preview-pdf-url="${cardUrl}" title="Prescription PDF preview ${index + 1}" loading="lazy"></iframe>
+                            <iframe class="prescription-preview-embed" data-preview-pdf-url="${rawPdfUrl}" title="Prescription PDF preview ${index + 1}" loading="lazy"></iframe>
                           `
                           : '<div class="prescription-preview-placeholder is-error">Prescription PDF could not be loaded for this record.</div>'}
                       </div>
