@@ -1410,8 +1410,8 @@
             <div class="prescription-ui-field">
               <label>Footer Alignment</label>
               <div class="prescription-ui-segment" aria-label="Footer alignment preview">
-                <button class="is-active" type="button">Left</button>
-                <button type="button">Right</button>
+                <button class="is-active" type="button" data-footer-align="left">Left</button>
+                <button type="button" data-footer-align="right">Right</button>
               </div>
             </div>
 
@@ -1419,25 +1419,25 @@
             <div class="paper-size-grid">
               <label class="prescription-ui-field">
                 <span>Top Margin</span>
-                <span class="margin-input"><span>cm</span><input type="text" value="10" aria-label="Top margin"></span>
+                <span class="margin-input"><span>cm</span><input id="rx-ui-margin-top" type="text" value="10" aria-label="Top margin"></span>
               </label>
               <label class="prescription-ui-field">
                 <span>Bottom Margin</span>
-                <span class="margin-input"><span>cm</span><input type="text" value="7" aria-label="Bottom margin"></span>
+                <span class="margin-input"><span>cm</span><input id="rx-ui-margin-bottom" type="text" value="7" aria-label="Bottom margin"></span>
               </label>
               <label class="prescription-ui-field">
                 <span>Left Margin</span>
-                <span class="margin-input"><span>cm</span><input type="text" value="0" aria-label="Left margin"></span>
+                <span class="margin-input"><span>cm</span><input id="rx-ui-margin-left" type="text" value="0" aria-label="Left margin"></span>
               </label>
               <label class="prescription-ui-field">
                 <span>Right Margin</span>
-                <span class="margin-input"><span>cm</span><input type="text" value="6" aria-label="Right margin"></span>
+                <span class="margin-input"><span>cm</span><input id="rx-ui-margin-right" type="text" value="6" aria-label="Right margin"></span>
               </label>
             </div>
 
             <div class="prescription-ui-actions">
-              <button class="prescription-preview-btn" type="button">Preview RX</button>
-              <button class="prescription-save-btn" type="button">Save Settings</button>
+              <button id="preview-rx-settings-btn" class="prescription-preview-btn" type="button">Preview RX</button>
+              <button id="save-rx-layout-btn" class="prescription-save-btn" type="button">Save Settings</button>
             </div>
           </div>
         </article>
@@ -1586,6 +1586,18 @@
     const saveBrandingBtn = document.getElementById('save-branding-btn');
     const resetBrandingBtn = document.getElementById('reset-branding-btn');
     const brandingSettingStatus = document.getElementById('branding-setting-status');
+    const rxLanguageSelect = document.getElementById('rx-ui-language');
+    const rxFontFamilySelect = document.getElementById('rx-ui-font-family');
+    const rxFontSizeSelect = document.getElementById('rx-ui-font-size');
+    const rxFooterAlignButtons = [...document.querySelectorAll('[data-footer-align]')];
+    const rxMarginInputs = {
+      top: document.getElementById('rx-ui-margin-top'),
+      bottom: document.getElementById('rx-ui-margin-bottom'),
+      left: document.getElementById('rx-ui-margin-left'),
+      right: document.getElementById('rx-ui-margin-right')
+    };
+    const previewRxSettingsBtn = document.getElementById('preview-rx-settings-btn');
+    const saveRxLayoutBtn = document.getElementById('save-rx-layout-btn');
     const cloudSavePopup = document.getElementById('cloud-save-popup');
     const cloudSavePopupTitle = document.getElementById('cloud-save-popup-title');
     const cloudSavePopupMessage = document.getElementById('cloud-save-popup-message');
@@ -1617,6 +1629,16 @@
       printWithoutHeaderTitle: 'Print Without Header',
       printWithoutHeaderDescription: 'Choose how much blank top space to leave when you print or save without the prescription header.',
       printHeaderGapCm: 0,
+      prescriptionLanguage: 'English',
+      prescriptionFontFamily: 'Arial',
+      prescriptionFontSize: 14,
+      prescriptionFooterAlignment: 'left',
+      prescriptionMarginsCm: {
+        top: 10,
+        bottom: 7,
+        left: 0,
+        right: 6
+      },
       signatureDataUrl: ''
     };
     let storageAlertShown = false;
@@ -1727,6 +1749,76 @@
       return Math.min(parsedValue, 10);
     }
 
+    function normalizePrescriptionMargin(value, fallbackValue) {
+      const parsedValue = Number.parseFloat(String(value ?? ''));
+      if (!Number.isFinite(parsedValue) || parsedValue < 0) {
+        return fallbackValue;
+      }
+      return Math.min(parsedValue, 60);
+    }
+
+    function normalizePrescriptionLayout(settings = {}) {
+      settings = settings && typeof settings === 'object' ? settings : {};
+      const savedMargins = settings.prescriptionMarginsCm && typeof settings.prescriptionMarginsCm === 'object'
+        ? settings.prescriptionMarginsCm
+        : {};
+      const defaultMargins = DEFAULT_BRANDING.prescriptionMarginsCm;
+      const fontSize = Number.parseInt(settings.prescriptionFontSize, 10);
+
+      return {
+        prescriptionLanguage: settings.prescriptionLanguage || DEFAULT_BRANDING.prescriptionLanguage,
+        prescriptionFontFamily: ['Arial', 'Outfit', 'Times New Roman'].includes(settings.prescriptionFontFamily)
+          ? settings.prescriptionFontFamily
+          : DEFAULT_BRANDING.prescriptionFontFamily,
+        prescriptionFontSize: [12, 14, 16].includes(fontSize) ? fontSize : DEFAULT_BRANDING.prescriptionFontSize,
+        prescriptionFooterAlignment: settings.prescriptionFooterAlignment === 'right' ? 'right' : 'left',
+        prescriptionMarginsCm: {
+          top: normalizePrescriptionMargin(savedMargins.top, defaultMargins.top),
+          bottom: normalizePrescriptionMargin(savedMargins.bottom, defaultMargins.bottom),
+          left: normalizePrescriptionMargin(savedMargins.left, defaultMargins.left),
+          right: normalizePrescriptionMargin(savedMargins.right, defaultMargins.right)
+        }
+      };
+    }
+
+    function setFooterAlignmentControl(alignment) {
+      const safeAlignment = alignment === 'right' ? 'right' : 'left';
+      rxFooterAlignButtons.forEach((button) => {
+        const isActive = button.dataset.footerAlign === safeAlignment;
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-pressed', String(isActive));
+      });
+    }
+
+    function populatePrescriptionLayoutForm(settings = readBrandingSettings()) {
+      const layout = normalizePrescriptionLayout(settings);
+      if (rxLanguageSelect) rxLanguageSelect.value = layout.prescriptionLanguage;
+      if (rxFontFamilySelect) rxFontFamilySelect.value = layout.prescriptionFontFamily;
+      if (rxFontSizeSelect) rxFontSizeSelect.value = String(layout.prescriptionFontSize);
+      setFooterAlignmentControl(layout.prescriptionFooterAlignment);
+      Object.entries(layout.prescriptionMarginsCm).forEach(([key, value]) => {
+        if (rxMarginInputs[key]) {
+          rxMarginInputs[key].value = String(value);
+        }
+      });
+    }
+
+    function collectPrescriptionLayoutForm() {
+      const activeFooterButton = rxFooterAlignButtons.find((button) => button.classList.contains('is-active'));
+      return normalizePrescriptionLayout({
+        prescriptionLanguage: rxLanguageSelect?.value || DEFAULT_BRANDING.prescriptionLanguage,
+        prescriptionFontFamily: rxFontFamilySelect?.value || DEFAULT_BRANDING.prescriptionFontFamily,
+        prescriptionFontSize: rxFontSizeSelect?.value || DEFAULT_BRANDING.prescriptionFontSize,
+        prescriptionFooterAlignment: activeFooterButton?.dataset.footerAlign || DEFAULT_BRANDING.prescriptionFooterAlignment,
+        prescriptionMarginsCm: {
+          top: rxMarginInputs.top?.value,
+          bottom: rxMarginInputs.bottom?.value,
+          left: rxMarginInputs.left?.value,
+          right: rxMarginInputs.right?.value
+        }
+      });
+    }
+
     function getSavedPrintGapCm() {
       const localValue = localStorage.getItem(PRINT_HEADER_GAP_STORAGE_KEY);
       const brandingValue = readBrandingSettings().printHeaderGapCm;
@@ -1783,7 +1875,8 @@
         const parsed = JSON.parse(localStorage.getItem(PRESCRIPTION_BRANDING_STORAGE_KEY) || '{}');
         return {
           ...DEFAULT_BRANDING,
-          ...(parsed && typeof parsed === 'object' ? parsed : {})
+          ...(parsed && typeof parsed === 'object' ? parsed : {}),
+          ...normalizePrescriptionLayout(parsed)
         };
       } catch (error) {
         return { ...DEFAULT_BRANDING };
@@ -1793,7 +1886,8 @@
     function cacheBrandingSettings(settings) {
       const normalizedSettings = {
         ...DEFAULT_BRANDING,
-        ...(settings && typeof settings === 'object' ? settings : {})
+        ...(settings && typeof settings === 'object' ? settings : {}),
+        ...normalizePrescriptionLayout(settings)
       };
       localStorage.setItem(PRESCRIPTION_BRANDING_STORAGE_KEY, JSON.stringify(normalizedSettings));
       return normalizedSettings;
@@ -1860,6 +1954,7 @@
       if (doctorNameInput) doctorNameInput.value = settings.doctorName || '';
       if (doctorDetailsInput) doctorDetailsInput.value = settings.doctorDetails || '';
       if (footerTextInput) footerTextInput.value = settings.footerText || '';
+      populatePrescriptionLayoutForm(settings);
       renderSignaturePreview(settings.signatureDataUrl || '');
       if (brandingSettingStatus) {
         brandingSettingStatus.textContent = localStorage.getItem(PRESCRIPTION_BRANDING_STORAGE_KEY)
@@ -1881,6 +1976,7 @@
         printWithoutHeaderTitle: DEFAULT_BRANDING.printWithoutHeaderTitle,
         printWithoutHeaderDescription: DEFAULT_BRANDING.printWithoutHeaderDescription,
         printHeaderGapCm: getSavedPrintGapCm(),
+        ...collectPrescriptionLayoutForm(),
         signatureDataUrl: current.signatureDataUrl || ''
       };
     }
@@ -2147,6 +2243,34 @@
           if (brandingSettingStatus) {
             brandingSettingStatus.textContent = `Signature removed locally, but Cloud save failed: ${error.message}`;
           }
+        }
+      });
+    }
+
+    rxFooterAlignButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        setFooterAlignmentControl(button.dataset.footerAlign);
+      });
+    });
+
+    if (previewRxSettingsBtn) {
+      previewRxSettingsBtn.addEventListener('click', () => {
+        cacheBrandingSettings(collectBrandingForm());
+        window.open('preview.html', '_blank', 'noopener,noreferrer');
+      });
+    }
+
+    if (saveRxLayoutBtn) {
+      saveRxLayoutBtn.addEventListener('click', async () => {
+        saveRxLayoutBtn.disabled = true;
+        try {
+          await saveBrandingSettings('Prescription settings saved.');
+        } catch (error) {
+          if (brandingSettingStatus) {
+            brandingSettingStatus.textContent = `Saved locally, but Cloud save failed: ${error.message}`;
+          }
+        } finally {
+          saveRxLayoutBtn.disabled = false;
         }
       });
     }

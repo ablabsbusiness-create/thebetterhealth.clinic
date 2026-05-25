@@ -410,7 +410,7 @@
       width: min(794px, 100%);
       min-height: 1123px;
       margin: 0 auto;
-      padding: 38px 42px;
+      padding: var(--rx-margin-top, 38px) var(--rx-margin-right, 42px) var(--rx-margin-bottom, 38px) var(--rx-margin-left, 42px);
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -419,8 +419,8 @@
       background: #fff;
       color: #111827;
       box-shadow: 0 20px 45px rgba(22, 38, 29, 0.14);
-      font-family: Arial, Helvetica, sans-serif;
-      font-size: 12px;
+      font-family: var(--rx-font-family, Arial, Helvetica, sans-serif);
+      font-size: var(--rx-font-size, 12px);
     }
 
     body.preview-without-header .rx-sheet-header {
@@ -428,7 +428,7 @@
     }
 
     body.preview-without-header .rx-sheet {
-      padding-top: calc(38px + var(--preview-header-gap));
+      padding-top: calc(var(--rx-margin-top, 38px) + var(--preview-header-gap));
     }
 
     .rx-sheet-header {
@@ -619,6 +619,16 @@
       padding-top: 10px;
       font-size: 10px;
       line-height: 1.15;
+    }
+
+    .rx-footer.is-footer-right {
+      flex-direction: row-reverse;
+      text-align: right;
+    }
+
+    .rx-footer.is-footer-right .signature-image {
+      margin-left: auto;
+      object-position: right bottom;
     }
 
     .footer-address {
@@ -918,6 +928,16 @@
       printWithoutHeaderTitle: 'Print Without Header',
       printWithoutHeaderDescription: 'Choose how much blank top space to leave when you print or save without the prescription header.',
       printHeaderGapCm: 0,
+      prescriptionLanguage: 'English',
+      prescriptionFontFamily: 'Arial',
+      prescriptionFontSize: 14,
+      prescriptionFooterAlignment: 'left',
+      prescriptionMarginsCm: {
+        top: 10,
+        bottom: 7,
+        left: 0,
+        right: 6
+      },
       signatureDataUrl: ''
     };
     const firebaseEnv = import.meta.env || {};
@@ -992,6 +1012,58 @@
       }
     }
 
+    function normalizePrescriptionMargin(value, fallbackValue) {
+      const parsedValue = Number.parseFloat(String(value ?? ''));
+      if (!Number.isFinite(parsedValue) || parsedValue < 0) {
+        return fallbackValue;
+      }
+      return Math.min(parsedValue, 60);
+    }
+
+    function normalizePrescriptionLayout(settings = {}) {
+      settings = settings && typeof settings === 'object' ? settings : {};
+      const savedMargins = settings.prescriptionMarginsCm && typeof settings.prescriptionMarginsCm === 'object'
+        ? settings.prescriptionMarginsCm
+        : {};
+      const defaultMargins = DEFAULT_BRANDING.prescriptionMarginsCm;
+      const fontSize = Number.parseInt(settings.prescriptionFontSize, 10);
+
+      return {
+        prescriptionLanguage: settings.prescriptionLanguage || DEFAULT_BRANDING.prescriptionLanguage,
+        prescriptionFontFamily: ['Arial', 'Outfit', 'Times New Roman'].includes(settings.prescriptionFontFamily)
+          ? settings.prescriptionFontFamily
+          : DEFAULT_BRANDING.prescriptionFontFamily,
+        prescriptionFontSize: [12, 14, 16].includes(fontSize) ? fontSize : DEFAULT_BRANDING.prescriptionFontSize,
+        prescriptionFooterAlignment: settings.prescriptionFooterAlignment === 'right' ? 'right' : 'left',
+        prescriptionMarginsCm: {
+          top: normalizePrescriptionMargin(savedMargins.top, defaultMargins.top),
+          bottom: normalizePrescriptionMargin(savedMargins.bottom, defaultMargins.bottom),
+          left: normalizePrescriptionMargin(savedMargins.left, defaultMargins.left),
+          right: normalizePrescriptionMargin(savedMargins.right, defaultMargins.right)
+        }
+      };
+    }
+
+    function getPrescriptionFontStack(fontFamily) {
+      if (fontFamily === 'Outfit') {
+        return "'Outfit', Arial, Helvetica, sans-serif";
+      }
+      if (fontFamily === 'Times New Roman') {
+        return "'Times New Roman', Times, serif";
+      }
+      return 'Arial, Helvetica, sans-serif';
+    }
+
+    function applyPrescriptionLayoutStyles(settings = getPrescriptionBranding()) {
+      const layout = normalizePrescriptionLayout(settings);
+      rxSheet.style.setProperty('--rx-font-family', getPrescriptionFontStack(layout.prescriptionFontFamily));
+      rxSheet.style.setProperty('--rx-font-size', `${layout.prescriptionFontSize}px`);
+      rxSheet.style.setProperty('--rx-margin-top', `${layout.prescriptionMarginsCm.top}mm`);
+      rxSheet.style.setProperty('--rx-margin-bottom', `${layout.prescriptionMarginsCm.bottom}mm`);
+      rxSheet.style.setProperty('--rx-margin-left', `${layout.prescriptionMarginsCm.left}mm`);
+      rxSheet.style.setProperty('--rx-margin-right', `${layout.prescriptionMarginsCm.right}mm`);
+    }
+
     function getPrescriptionBranding() {
       if (activePrescriptionBranding) {
         return activePrescriptionBranding;
@@ -1000,14 +1072,16 @@
       const saved = readJson(PRESCRIPTION_BRANDING_STORAGE_KEY, {});
       return {
         ...DEFAULT_BRANDING,
-        ...(saved && typeof saved === 'object' ? saved : {})
+        ...(saved && typeof saved === 'object' ? saved : {}),
+        ...normalizePrescriptionLayout(saved)
       };
     }
 
     function cachePrescriptionBranding(settings) {
       activePrescriptionBranding = {
         ...DEFAULT_BRANDING,
-        ...(settings && typeof settings === 'object' ? settings : {})
+        ...(settings && typeof settings === 'object' ? settings : {}),
+        ...normalizePrescriptionLayout(settings)
       };
       localStorage.setItem(PRESCRIPTION_BRANDING_STORAGE_KEY, JSON.stringify(activePrescriptionBranding));
       return activePrescriptionBranding;
@@ -1605,6 +1679,7 @@
       const now = new Date().toISOString();
       const instructions = sections.Instruction || [];
       const branding = getPrescriptionBranding();
+      applyPrescriptionLayoutStyles(branding);
       const signatureHtml = branding.signatureDataUrl
         ? `<img class="signature-image" src="${escapeHtml(branding.signatureDataUrl)}" alt="Doctor signature">`
         : '<div class="signature-line"></div>';
@@ -1655,7 +1730,7 @@
 
         ${renderMiniCharts(chartRecord)}
 
-        <footer class="rx-footer">
+        <footer class="rx-footer ${branding.prescriptionFooterAlignment === 'right' ? 'is-footer-right' : ''}">
           <div>
             ${signatureHtml}
             <strong>${escapeHtml(branding.doctorName)}</strong><br>
