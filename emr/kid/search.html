@@ -2020,7 +2020,7 @@
     const LOCAL_PRESCRIPTION_HISTORY_KEY = clinicStorageKey('savedPrescriptionHistory');
     const LOCAL_WORKLIST_QUEUE_KEY = clinicStorageKey('patientWorklistQueueByDate');
     const LOCAL_SEARCH_CACHE_KEY = clinicStorageKey('patientSearchCache');
-    const SEARCH_CACHE_TTL_MS = 2 * 60 * 1000;
+    const SEARCH_CACHE_TTL_MS = 10 * 60 * 1000;
 
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {

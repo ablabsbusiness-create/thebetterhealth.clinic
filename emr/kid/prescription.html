@@ -1643,8 +1643,10 @@
     const DETAIL_SECTIONS = new Set(['Symptoms', 'Finding', 'Medication']);
     const MEDICINE_DETAIL_STORAGE_KEY = clinicStorageKey('prescriptionMedicineDetails');
     const CUSTOM_TEMPLATE_STORAGE_KEY = clinicStorageKey('prescriptionCustomTemplates');
+    const PRESCRIPTION_TEMPLATE_CACHE_KEY = clinicStorageKey('prescriptionCloudTemplates');
     const PRESCRIPTION_DRAFT_STORAGE_KEY = clinicStorageKey('prescriptionDraft');
     const MEDICINE_DETAIL_TTL_MS = 10 * 60 * 1000;
+    const PRESCRIPTION_TEMPLATE_CACHE_TTL_MS = 15 * 60 * 1000;
     const CHART_RECORD_STORAGE_KEY = clinicStorageKey('growthChartRecentRecords');
     const PRESCRIPTION_DRAFT_TTL_MS = 10 * 60 * 1000;
     const VISIBLE_CHIP_LIMIT = 8;
@@ -2995,10 +2997,46 @@
       syncMedicineDetailsFromDom();
     });
 
+    function readPrescriptionTemplateCache() {
+      try {
+        const cache = JSON.parse(localStorage.getItem(PRESCRIPTION_TEMPLATE_CACHE_KEY) || 'null');
+        if (!cache || typeof cache !== 'object') {
+          return null;
+        }
+
+        const savedAt = Number(cache.savedAt || 0);
+        if (!savedAt || Date.now() - savedAt > PRESCRIPTION_TEMPLATE_CACHE_TTL_MS) {
+          return null;
+        }
+
+        if (cache.medicineCatalog && typeof cache.medicineCatalog === 'object') {
+          rememberMedicineCatalogEntries(cache.medicineCatalog);
+        }
+
+        return cache.templates && typeof cache.templates === 'object' ? cache.templates : null;
+      } catch (error) {
+        console.warn(`Unable to read prescription template cache: ${error.message}`);
+        return null;
+      }
+    }
+
+    function writePrescriptionTemplateCache(templates, medicineCatalogEntries = {}) {
+      try {
+        localStorage.setItem(PRESCRIPTION_TEMPLATE_CACHE_KEY, JSON.stringify({
+          savedAt: Date.now(),
+          templates,
+          medicineCatalog: medicineCatalogEntries
+        }));
+      } catch (error) {
+        console.warn(`Unable to cache prescription templates: ${error.message}`);
+      }
+    }
+
     async function ensurePrescriptionCollection() {
+      const cachedTemplates = readPrescriptionTemplateCache();
       if (!db) {
         setSyncStatus('Cloud sync unavailable', true);
-        return prescriptionTemplates;
+        return cachedTemplates || prescriptionTemplates;
       }
 
       const entries = await Promise.all(
@@ -3018,15 +3056,19 @@
 
           const data = snapshot.data();
           const savedItems = Array.isArray(data.items) && data.items.length ? data.items : items;
+          const savedMedicineCatalog = sectionName === 'Medication' ? data.medicineCatalog || {} : {};
           if (sectionName === 'Medication') {
-            rememberMedicineCatalogEntries(data.medicineCatalog || {});
+            rememberMedicineCatalogEntries(savedMedicineCatalog);
           }
-          return [sectionName, savedItems];
+          return [sectionName, savedItems, savedMedicineCatalog];
         })
       );
 
+      const templates = Object.fromEntries(entries.map(([sectionName, items]) => [sectionName, items]));
+      const medicineCatalogEntries = entries.find(([sectionName]) => sectionName === 'Medication')?.[2] || {};
+      writePrescriptionTemplateCache(templates, medicineCatalogEntries);
       setSyncStatus('Prescription collection synced');
-      return Object.fromEntries(entries);
+      return templates;
     }
 
     setupSectionRows();
@@ -3250,7 +3292,7 @@
       cleanupExpiredMedicineDetails();
       renderGrowthSummary();
 
-      const localTemplates = mergeWithSavedTemplates(prescriptionTemplates);
+      const localTemplates = mergeWithSavedTemplates(readPrescriptionTemplateCache() || prescriptionTemplates);
       Object.entries(localTemplates).forEach(([sectionName, items]) => {
         const card = sectionMap.get(sectionName);
 
