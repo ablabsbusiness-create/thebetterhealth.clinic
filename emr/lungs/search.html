@@ -2583,7 +2583,12 @@
     }
 
     function shouldEmbedPrescriptionPdfPreview() {
-      return window.matchMedia('(min-width: 821px) and (hover: hover) and (pointer: fine)').matches;
+      return true;
+    }
+
+    function getEmbeddedPrescriptionPreviewUrl(downloadUrl, viewerUrl) {
+      const isTouchPreview = window.matchMedia('(max-width: 820px), (pointer: coarse)').matches;
+      return isTouchPreview && viewerUrl ? `${viewerUrl}&embed=1` : downloadUrl;
     }
 
     function getPrescriptionPreviewImageUrl(entry) {
@@ -3410,7 +3415,7 @@
               const previewImageUrl = getPrescriptionPreviewImageUrl(entry);
               const viewerUrl = getPdfViewerUrl(downloadUrl);
               const cardUrl = escapeHtml(viewerUrl);
-              const embeddedPdfUrl = escapeHtml(downloadUrl);
+              const embeddedPdfUrl = escapeHtml(getEmbeddedPrescriptionPreviewUrl(downloadUrl, viewerUrl));
               const cardPreviewUrl = escapeHtml(previewImageUrl);
               const shouldEmbedPdf = Boolean(downloadUrl && shouldEmbedPrescriptionPdfPreview());
 
