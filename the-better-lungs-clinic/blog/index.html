@@ -29,6 +29,17 @@
     .article-body p { margin-top: 1.1rem; line-height: 1.85; color: #475569; }
   </style>
     <link rel="canonical" href="https://www.thebetterhealth.clinic/the-better-lungs-clinic/blog/" />
+    <script>
+      (function () {
+        var canonical = document.querySelector('link[rel="canonical"]');
+        if (!canonical) return;
+        var target = new URL(canonical.href);
+        if (location.origin !== target.origin) return;
+        if (location.pathname !== target.pathname) {
+          location.replace(target.pathname + location.search + location.hash);
+        }
+      })();
+    </script>
 </head>
 <body class="antialiased">
 

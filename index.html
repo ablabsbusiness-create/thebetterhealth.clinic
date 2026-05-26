@@ -739,6 +739,17 @@
     }
   </style>
     <link rel="canonical" href="https://www.thebetterhealth.clinic/" />
+    <script>
+      (function () {
+        var canonical = document.querySelector('link[rel="canonical"]');
+        if (!canonical) return;
+        var target = new URL(canonical.href);
+        if (location.origin !== target.origin) return;
+        if (location.pathname !== target.pathname) {
+          location.replace(target.pathname + location.search + location.hash);
+        }
+      })();
+    </script>
 </head>
 <body class="antialiased">
 

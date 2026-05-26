@@ -131,6 +131,17 @@
     #mobile-menu.open { display: block; }
   </style>
     <link rel="canonical" href="https://www.thebetterhealth.clinic/the-better-kid-clinic/about/" />
+    <script>
+      (function () {
+        var canonical = document.querySelector('link[rel="canonical"]');
+        if (!canonical) return;
+        var target = new URL(canonical.href);
+        if (location.origin !== target.origin) return;
+        if (location.pathname !== target.pathname) {
+          location.replace(target.pathname + location.search + location.hash);
+        }
+      })();
+    </script>
 </head>
 <body class="antialiased">
   <div class="bg-brand-cream border-b border-brand-cream-dark py-2 px-4 text-sm text-brand-dark hidden md:block">

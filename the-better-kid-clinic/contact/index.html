@@ -80,6 +80,17 @@
     window.location.replace('./#contact');
   </script>
     <link rel="canonical" href="https://www.thebetterhealth.clinic/the-better-kid-clinic/contact/" />
+    <script>
+      (function () {
+        var canonical = document.querySelector('link[rel="canonical"]');
+        if (!canonical) return;
+        var target = new URL(canonical.href);
+        if (location.origin !== target.origin) return;
+        if (location.pathname !== target.pathname) {
+          location.replace(target.pathname + location.search + location.hash);
+        }
+      })();
+    </script>
 </head>
 <body>
   <p>Redirecting to the contact section… <a href="https://www.thebetterhealth.clinic/the-better-kid-clinic/contact/#contact">Continue</a></p>

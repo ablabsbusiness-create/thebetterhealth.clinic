@@ -128,6 +128,17 @@
     #mobile-menu.open { display: block; }
   .faq-section details{background:#fff;border:1px solid rgba(46,125,107,.14);border-radius:1.35rem;padding:1.1rem 1.25rem;box-shadow:0 8px 24px rgba(31,41,55,.05)}.faq-section details+details{margin-top:.9rem}.faq-section summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:1rem;font-weight:800;color:#1F2937}.faq-section summary::-webkit-details-marker{display:none}.faq-section summary:after{content:'+';width:1.9rem;height:1.9rem;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;background:rgba(46,125,107,.1);color:#2E7D6B;font-weight:900}.faq-section details[open] summary:after{content:'-';background:#2E7D6B;color:white}.faq-section details p{margin-top:.8rem;color:#4B5563;line-height:1.75}</style>
     <link rel="canonical" href="https://www.thebetterhealth.clinic/the-better-kid-clinic/services/all-vaccinations/" />
+    <script>
+      (function () {
+        var canonical = document.querySelector('link[rel="canonical"]');
+        if (!canonical) return;
+        var target = new URL(canonical.href);
+        if (location.origin !== target.origin) return;
+        if (location.pathname !== target.pathname) {
+          location.replace(target.pathname + location.search + location.hash);
+        }
+      })();
+    </script>
 </head>
 <body class="antialiased">
   <header id="navbar" class="sticky top-0 z-50 bg-white transition-shadow duration-300 shadow-soft">

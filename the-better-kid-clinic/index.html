@@ -724,6 +724,17 @@
     ::-webkit-scrollbar-thumb { background: #2E7D6B; border-radius: 3px; }
   </style>
     <link rel="canonical" href="https://www.thebetterhealth.clinic/the-better-kid-clinic/" />
+    <script>
+      (function () {
+        var canonical = document.querySelector('link[rel="canonical"]');
+        if (!canonical) return;
+        var target = new URL(canonical.href);
+        if (location.origin !== target.origin) return;
+        if (location.pathname !== target.pathname) {
+          location.replace(target.pathname + location.search + location.hash);
+        }
+      })();
+    </script>
 </head>
 <body class="antialiased">
 <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
