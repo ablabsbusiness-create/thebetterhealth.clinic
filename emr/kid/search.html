@@ -2037,7 +2037,7 @@
     const LOCAL_WORKLIST_QUEUE_KEY = clinicStorageKey('patientWorklistQueueByDate');
     const LOCAL_SEARCH_CACHE_KEY = clinicStorageKey('patientSearchCache');
     const SEARCH_CACHE_TTL_MS = 10 * 60 * 1000;
-    const SEARCH_CACHE_PATIENT_LIMIT = 250;
+    const SEARCH_CACHE_PATIENT_LIMIT = 2000;
 
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
@@ -2056,6 +2056,7 @@
     const storage = firebaseApp ? getStorage(firebaseApp) : null;
     let allPatients = [];
     let allHistory = [];
+    let historyLoaded = false;
     let prescriptionHistoryByPatientId = new Map();
     let prescriptionHistoryByPatientDate = new Map();
     const storagePrescriptionPatientIdsLoaded = new Set();
@@ -2265,7 +2266,7 @@
 
       return {
         patients: Array.isArray(cache.patients) ? cache.patients : [],
-        history: Array.isArray(cache.history) ? cache.history : []
+        selectedPatientId: String(cache.selectedPatientId || '').trim().toUpperCase()
       };
     }
 
@@ -2287,13 +2288,18 @@
         doctorName: patient.doctorName || '',
         status: patient.status || '',
         lastMeasurementRecord: patient.lastMeasurementRecord || null,
-        measurementHistory: Array.isArray(patient.measurementHistory) ? patient.measurementHistory.slice(0, 2) : []
+        measurementHistory: Array.isArray(patient.measurementHistory) ? patient.measurementHistory.slice(0, 2) : [],
+        cachedAt: new Date().toISOString()
       }));
     }
 
     function saveSearchCache() {
       try {
-        localStorage.removeItem(LOCAL_SEARCH_CACHE_KEY);
+        localStorage.setItem(LOCAL_SEARCH_CACHE_KEY, JSON.stringify({
+          savedAt: Date.now(),
+          selectedPatientId,
+          patients: getCacheablePatients()
+        }));
       } catch (error) {
         localStorage.removeItem(LOCAL_SEARCH_CACHE_KEY);
         console.warn(`Unable to keep recent patient list: ${error.message}`);
@@ -2301,7 +2307,21 @@
     }
 
     function showSearchCache() {
-      return false;
+      const cache = getSearchCache();
+      if (!cache || cache.patients.length === 0) {
+        return false;
+      }
+
+      selectedPatientId = cache.selectedPatientId || selectedPatientId;
+      allPatients = withTestPastChartsPatient(cache.patients)
+        .filter((patient) => patient.status !== 'pending' && patient.status !== 'rejected')
+        .map(preparePatientForSearch)
+        .sort(sortByPatientName);
+      allHistory = [];
+      historyLoaded = false;
+      rebuildHistoryIndexes();
+      filterPatients();
+      return true;
     }
 
     function getQueueState() {
@@ -2887,7 +2907,7 @@
         .replace(/\s+/g, ' ');
     }
 
-    function getPatientNameParts(patient) {
+    function buildPatientSearchMeta(patient) {
       const displayName = normalizeSearchText(getPatientDisplayName(patient));
       const explicitNames = [
         patient.childName,
@@ -2897,6 +2917,43 @@
       ].map(normalizeSearchText).filter(Boolean);
       const names = [...new Set([displayName, ...explicitNames].filter(Boolean))];
       const tokens = [...new Set(names.flatMap((value) => value.split(/\s+/)).filter(Boolean))];
+      const patientId = getNormalizedPatientId(patient.patientId);
+      const phones = [patient.phone, patient.mobileNumber].map(normalizeSearchValue).filter(Boolean);
+
+      return {
+        names,
+        tokens,
+        patientId,
+        phones,
+        sortName: getPatientDisplayName(patient)
+      };
+    }
+
+    function preparePatientForSearch(patient) {
+      if (!patient || typeof patient !== 'object') {
+        return patient;
+      }
+
+      Object.defineProperty(patient, '__searchMeta', {
+        value: buildPatientSearchMeta(patient),
+        configurable: true
+      });
+      if (Object.prototype.hasOwnProperty.call(patient, '__measurementEntries')) {
+        delete patient.__measurementEntries;
+      }
+      return patient;
+    }
+
+    function getPatientSearchMeta(patient) {
+      if (!patient?.__searchMeta) {
+        preparePatientForSearch(patient);
+      }
+
+      return patient.__searchMeta || buildPatientSearchMeta(patient || {});
+    }
+
+    function getPatientNameParts(patient) {
+      const { names, tokens } = getPatientSearchMeta(patient);
       return { names, tokens };
     }
 
@@ -2929,16 +2986,14 @@
         return 0;
       }
 
-      const normalizedPatientId = getNormalizedPatientId(patient.patientId);
+      const searchMeta = getPatientSearchMeta(patient);
+      const normalizedPatientId = searchMeta.patientId;
       const normalizedSearchPatientId = getNormalizedPatientId(rawSearchValue);
       const normalizedSearchValue = normalizeSearchValue(rawSearchValue);
-      const normalizedPatientPhones = [
-        patient.phone,
-        patient.mobileNumber
-      ].map(normalizeSearchValue).filter(Boolean);
+      const normalizedPatientPhones = searchMeta.phones;
       const isLikelyPatientIdSearch = /^(GS|SAC|SX|TEST)[A-Z0-9]*/.test(normalizedSearchPatientId)
         || /\d/.test(normalizedSearchPatientId);
-      const { names, tokens } = getPatientNameParts(patient);
+      const { names, tokens } = searchMeta;
 
       if (names.some((name) => name === loweredSearchValue)) {
         return 100;
@@ -2985,7 +3040,7 @@
     }
 
     function sortByPatientName(left, right) {
-      return getPatientDisplayName(left).localeCompare(getPatientDisplayName(right));
+      return getPatientSearchMeta(left).sortName.localeCompare(getPatientSearchMeta(right).sortName);
     }
 
     function getMeasurementEntries(patient) {
@@ -3054,6 +3109,122 @@
 
       prescriptionHistoryByPatientId = byPatientId;
       prescriptionHistoryByPatientDate = byPatientDate;
+    }
+
+    function getHistoryEntriesByPatientId(historyEntries) {
+      const historyByPatientId = new Map();
+
+      historyEntries.forEach((entry) => {
+        const patientId = getNormalizedPatientId(entry.patientId);
+        if (!isUsablePatientId(patientId)) {
+          return;
+        }
+
+        const entries = historyByPatientId.get(patientId) || [];
+        entries.push(entry);
+        historyByPatientId.set(patientId, entries);
+      });
+
+      historyByPatientId.forEach((entries) => {
+        entries.sort((left, right) => {
+          const leftTime = Date.parse(left.createdAtIso || '') || 0;
+          const rightTime = Date.parse(right.createdAtIso || '') || 0;
+          return rightTime - leftTime;
+        });
+      });
+
+      return historyByPatientId;
+    }
+
+    function getMergedHistoryEntries(remoteHistory, patientRecords) {
+      const localHistory = getLocalPrescriptionEntries()
+        .map((entry) => normalizePrescriptionEntry(entry))
+        .filter(Boolean);
+      const mergedHistoryById = new Map();
+
+      [...remoteHistory, ...localHistory].forEach((entry, index) => {
+        const key = entry.prescriptionSaveId
+          || entry.id
+          || getPrescriptionDownloadUrl(entry)
+          || `${entry.patientId || 'history'}-${entry.createdAtIso || index}`;
+        mergedHistoryById.set(key, entry);
+      });
+
+      patientRecords.forEach((patient) => {
+        getPatientPrescriptionHistoryEntries(patient).forEach((entry, index) => {
+          const key = entry.prescriptionSaveId
+            || entry.id
+            || getPrescriptionDownloadUrl(entry)
+            || `${entry.patientId || 'patient'}-embedded-${index}`;
+          if (!mergedHistoryById.has(key)) {
+            mergedHistoryById.set(key, entry);
+          }
+        });
+      });
+
+      return [...mergedHistoryById.values()];
+    }
+
+    function buildPatientsFromRecords(patientRecords, historyEntries = []) {
+      const historyByPatientId = getHistoryEntriesByPatientId(historyEntries);
+      const mergedPatients = [];
+      const seenPatientIds = new Set();
+
+      patientRecords.forEach((patient) => {
+        if (patient.status === 'pending' || patient.status === 'rejected') {
+          return;
+        }
+        const patientId = getNormalizedPatientId(patient.patientId);
+        const patientHistoryEntries = patientId ? historyByPatientId.get(patientId) || [] : [];
+
+        const measurementEntries = Array.isArray(patient.measurementHistory)
+          ? [...patient.measurementHistory]
+          : [];
+        patientHistoryEntries
+          .filter(isMeasurementHistoryEntry)
+          .forEach((entry) => {
+            const entryKey = createMeasurementEntryKey(entry);
+            const alreadyIncluded = measurementEntries.some((candidate) => createMeasurementEntryKey(candidate) === entryKey);
+            if (!alreadyIncluded) {
+              measurementEntries.push(entry);
+            }
+          });
+
+        mergedPatients.push(preparePatientForSearch({
+          ...patient,
+          measurementHistory: measurementEntries,
+          lastMeasurementRecord: patient.lastMeasurementRecord || measurementEntries[0] || null
+        }));
+
+        if (isUsablePatientId(patientId)) {
+          seenPatientIds.add(patientId);
+        }
+      });
+
+      historyByPatientId.forEach((entries, patientId) => {
+        if (seenPatientIds.has(patientId)) {
+          return;
+        }
+
+        const latest = entries[0] || {};
+        mergedPatients.push(preparePatientForSearch({
+          id: `history-${patientId}`,
+          patientId: latest.patientId || patientId,
+          childName: latest.childName || latest.patientName || '',
+          firstName: latest.firstName || '',
+          middleName: latest.middleName || '',
+          lastName: latest.lastName || '',
+          parentName: latest.parentName || '',
+          phone: latest.phone || '',
+          gender: latest.gender || '',
+          dob: latest.dob || '',
+          measurementHistory: entries.filter(isMeasurementHistoryEntry),
+          lastMeasurementRecord: entries.find(isMeasurementHistoryEntry) || null,
+          fromHistoryOnly: true
+        }));
+      });
+
+      return withTestPastChartsPatient(mergedPatients).map(preparePatientForSearch).sort(sortByPatientName);
     }
 
     function getDateLabel(dateValue) {
@@ -3144,6 +3315,8 @@
       const queuedIds = getQueuedPatientIdSet(dateValue);
       const filtered = hasSearch
         ? [...patients]
+        : !historyLoaded
+          ? [...patients]
         : mode === 'queue'
           ? patients.filter((patient) => patientIsQueuedOnDate(patient, dateValue, queuedIds))
           : patients.filter((patient) => patientHasSeenActivityOnDate(patient, dateValue));
@@ -3645,9 +3818,7 @@
 
       const counts = getWorklistCounts(patients, selectedWorklistDate);
       const worklistPatients = getWorklistPatients(patients, selectedWorklistDate, selectedWorklistMode, searchValue);
-      const renderedWorklistPatients = searchValue
-        ? worklistPatients.slice(0, SEARCH_RENDER_LIMIT)
-        : worklistPatients;
+      const renderedWorklistPatients = worklistPatients.slice(0, SEARCH_RENDER_LIMIT);
       if ((!selectedPatientId || !patients.some((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId)) && worklistPatients[0]) {
         selectedPatientId = formatMissing(worklistPatients[0].patientId, 'ID not saved');
       }
@@ -3990,20 +4161,29 @@
       setStatus(showedCache ? 'Updating records...' : 'Loading patients...');
 
       try {
-        const [
-          { snapshot, usedLegacy: usedLegacyPatients },
-          { snapshot: historySnapshot, usedLegacy: usedLegacyHistory }
-        ] = await Promise.all([
-          getDocsWithLegacyFallback(FIREBASE_COLLECTIONS.patients, 'patients'),
-          getDocsWithLegacyFallback(FIREBASE_COLLECTIONS.history, 'history').catch((error) => {
-            console.warn(`Unable to load history records: ${error.message}`);
-            return { snapshot: { docs: [] }, usedLegacy: false };
-          })
-        ]);
+        const { snapshot, usedLegacy: usedLegacyPatients } = await getDocsWithLegacyFallback(FIREBASE_COLLECTIONS.patients, 'patients');
         const patientRecords = snapshot.docs.map((docSnapshot) => ({
           id: docSnapshot.id,
           ...docSnapshot.data()
         })).filter((patient) => !usedLegacyPatients || recordBelongsToCurrentClinic(patient));
+
+        allHistory = getMergedHistoryEntries([], patientRecords);
+        historyLoaded = false;
+        rebuildHistoryIndexes();
+        allPatients = buildPatientsFromRecords(patientRecords, allHistory);
+        saveSearchCache();
+
+        if (allPatients.length === 0) {
+          updateCount(0);
+          renderPlaceholder('No patients have been saved yet.');
+          setStatus('No patients were found in online records.');
+        } else {
+          filterPatients();
+          setStatus(showedCache ? 'Records updated. Loading visit history...' : 'Patients loaded. Loading visit history...');
+        }
+
+        getDocsWithLegacyFallback(FIREBASE_COLLECTIONS.history, 'history')
+          .then(({ snapshot: historySnapshot, usedLegacy: usedLegacyHistory }) => {
         const remoteHistory = historySnapshot.docs
           .map((docSnapshot) => normalizePrescriptionEntry({
             id: docSnapshot.id,
@@ -4015,109 +4195,10 @@
           clearLocalPrescriptionEntries();
         }
 
-        const localHistory = getLocalPrescriptionEntries()
-          .map((entry) => normalizePrescriptionEntry(entry))
-          .filter(Boolean);
-        const mergedHistoryById = new Map();
-        [...remoteHistory, ...localHistory].forEach((entry, index) => {
-          const key = entry.prescriptionSaveId
-            || entry.id
-            || getPrescriptionDownloadUrl(entry)
-            || `${entry.patientId || 'history'}-${entry.createdAtIso || index}`;
-          mergedHistoryById.set(key, entry);
-        });
-        patientRecords.forEach((patient) => {
-          getPatientPrescriptionHistoryEntries(patient).forEach((entry, index) => {
-            const key = entry.prescriptionSaveId
-              || entry.id
-              || getPrescriptionDownloadUrl(entry)
-              || `${entry.patientId || 'patient'}-embedded-${index}`;
-            if (!mergedHistoryById.has(key)) {
-              mergedHistoryById.set(key, entry);
-            }
-          });
-        });
-        allHistory = [...mergedHistoryById.values()];
+        allHistory = getMergedHistoryEntries(remoteHistory, patientRecords);
+        historyLoaded = true;
         rebuildHistoryIndexes();
-        const historyByPatientId = new Map();
-
-        allHistory.forEach((entry) => {
-          const patientId = String(entry.patientId || '').trim().toUpperCase();
-          if (!patientId) {
-            return;
-          }
-
-          const entries = historyByPatientId.get(patientId) || [];
-          entries.push(entry);
-          historyByPatientId.set(patientId, entries);
-        });
-
-        historyByPatientId.forEach((entries) => {
-          entries.sort((left, right) => {
-            const leftTime = Date.parse(left.createdAtIso || '') || 0;
-            const rightTime = Date.parse(right.createdAtIso || '') || 0;
-            return rightTime - leftTime;
-          });
-        });
-
-        const mergedPatients = [];
-        const seenPatientIds = new Set();
-
-        patientRecords.forEach((patient) => {
-          if (patient.status === 'pending' || patient.status === 'rejected') {
-            return;
-          }
-          const patientId = String(patient.patientId || '').trim().toUpperCase();
-          const historyEntries = patientId ? historyByPatientId.get(patientId) || [] : [];
-
-          const measurementEntries = Array.isArray(patient.measurementHistory)
-            ? [...patient.measurementHistory]
-            : [];
-          historyEntries
-            .filter(isMeasurementHistoryEntry)
-            .forEach((entry) => {
-              const entryKey = createMeasurementEntryKey(entry);
-              const alreadyIncluded = measurementEntries.some((candidate) => createMeasurementEntryKey(candidate) === entryKey);
-              if (!alreadyIncluded) {
-                measurementEntries.push(entry);
-              }
-            });
-
-          mergedPatients.push({
-            ...patient,
-            measurementHistory: measurementEntries,
-            lastMeasurementRecord: patient.lastMeasurementRecord || measurementEntries[0] || null
-          });
-
-          if (patientId) {
-            seenPatientIds.add(patientId);
-          }
-        });
-
-        historyByPatientId.forEach((entries, patientId) => {
-          if (seenPatientIds.has(patientId)) {
-            return;
-          }
-
-          const latest = entries[0] || {};
-          mergedPatients.push({
-            id: `history-${patientId}`,
-            patientId: latest.patientId || patientId,
-            childName: latest.childName || latest.patientName || '',
-            firstName: latest.firstName || '',
-            middleName: latest.middleName || '',
-            lastName: latest.lastName || '',
-            parentName: latest.parentName || '',
-            phone: latest.phone || '',
-            gender: latest.gender || '',
-            dob: latest.dob || '',
-            measurementHistory: entries.filter(isMeasurementHistoryEntry),
-            lastMeasurementRecord: entries.find(isMeasurementHistoryEntry) || null,
-            fromHistoryOnly: true
-          });
-        });
-
-        allPatients = mergedPatients.sort(sortByPatientName);
+        allPatients = buildPatientsFromRecords(patientRecords, allHistory);
         saveSearchCache();
 
         if (allPatients.length === 0) {
@@ -4130,11 +4211,19 @@
         filterPatients();
         if (usedLegacyPatients || usedLegacyHistory) {
           setStatus('Showing patients from older shared records. Ask support to finish separating clinic records.', 'warning');
+          return;
         }
+        setStatus('Showing all patients.');
+          })
+          .catch((error) => {
+            console.warn(`Unable to load history records: ${error.message}`);
+            setStatus('Patients loaded. Visit history will appear when the connection allows it.', 'warning');
+          });
       } catch (error) {
         if (!showedCache) {
           allPatients = [];
           allHistory = [];
+          historyLoaded = false;
           filterPatients();
         }
         setStatus(`Unable to load patient records: ${error.message}.`, 'warning');
