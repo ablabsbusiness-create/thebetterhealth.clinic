@@ -924,10 +924,10 @@
       prescriptionFontSize: 14,
       prescriptionFooterAlignment: 'left',
       prescriptionMarginsCm: {
-        top: 10,
-        bottom: 7,
+        top: 1,
+        bottom: 0.7,
         left: 0,
-        right: 6
+        right: 0.6
       },
       signatureDataUrl: ''
     };
@@ -1043,7 +1043,7 @@
       if (!Number.isFinite(parsedValue) || parsedValue < 0) {
         return fallbackValue;
       }
-      return Math.min(parsedValue, 60);
+      return Math.min(parsedValue, 10);
     }
 
     function normalizePrescriptionLayout(settings = {}) {
@@ -1084,10 +1084,10 @@
       const layout = normalizePrescriptionLayout(settings);
       rxSheet.style.setProperty('--rx-font-family', getPrescriptionFontStack(layout.prescriptionFontFamily));
       rxSheet.style.setProperty('--rx-font-size', `${layout.prescriptionFontSize}px`);
-      rxSheet.style.setProperty('--rx-margin-top', `${layout.prescriptionMarginsCm.top}mm`);
-      rxSheet.style.setProperty('--rx-margin-bottom', `${layout.prescriptionMarginsCm.bottom}mm`);
-      rxSheet.style.setProperty('--rx-margin-left', `${layout.prescriptionMarginsCm.left}mm`);
-      rxSheet.style.setProperty('--rx-margin-right', `${layout.prescriptionMarginsCm.right}mm`);
+      rxSheet.style.setProperty('--rx-margin-top', `${layout.prescriptionMarginsCm.top}cm`);
+      rxSheet.style.setProperty('--rx-margin-bottom', `${layout.prescriptionMarginsCm.bottom}cm`);
+      rxSheet.style.setProperty('--rx-margin-left', `${layout.prescriptionMarginsCm.left}cm`);
+      rxSheet.style.setProperty('--rx-margin-right', `${layout.prescriptionMarginsCm.right}cm`);
     }
 
     function getPrescriptionBranding() {
