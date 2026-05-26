@@ -880,7 +880,7 @@
     import html2canvas from 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/+esm';
     import { jsPDF } from 'https://cdn.jsdelivr.net/npm/jspdf@3.0.3/+esm';
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
-    import { doc, getDoc, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { collection, doc, getDoc, getDocs, getFirestore, query, serverTimestamp, setDoc, where } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     import { getDownloadURL, getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
     const FIREBASE_COLLECTIONS = {
@@ -950,8 +950,9 @@
     let savedPrescriptionRecord = null;
     let preparedChartRecord = null;
     let activePrescriptionBranding = null;
+    const patientMeasurementHistoryCache = new Map();
     const CHART_ASSET_VERSION = '2026-05-22-growth-recalibrated';
-    const CHART_PREVIEW_VERSION = 'preview-rebuilt-2026-05-iap-no-ofc-5-18';
+    const CHART_PREVIEW_VERSION = 'preview-rebuilt-2026-05-iap-past-vitals';
     const CHART_RENDER_MAX_WIDTH = 1600;
     const CHART_RENDER_SCALE = 6;
     const CHART_POINT_RADIUS = 7;
@@ -1211,22 +1212,54 @@
       return Number.isFinite(parsed) ? parsed : NaN;
     }
 
-    function calculateAgeYears(dobValue) {
+    function getRecordTimestamp(record = {}) {
+      const candidates = [
+        record.measuredAt,
+        record.visitDate,
+        record.createdAtIso,
+        record.savedAt,
+        record.createdAtDisplay,
+        record.updatedAt
+      ];
+
+      for (const value of candidates) {
+        if (!value) continue;
+        if (typeof value?.toDate === 'function') {
+          const time = value.toDate().getTime();
+          if (Number.isFinite(time)) return time;
+        }
+        const parsed = new Date(value).getTime();
+        if (Number.isFinite(parsed)) return parsed;
+      }
+
+      return 0;
+    }
+
+    function getRecordDate(record = {}) {
+      const timestamp = getRecordTimestamp(record);
+      return timestamp ? new Date(timestamp) : new Date();
+    }
+
+    function calculateAgeYearsAt(dobValue, atDate = new Date()) {
       if (!dobValue) {
         return NaN;
       }
 
       const dob = new Date(dobValue);
-      const today = new Date();
-      if (Number.isNaN(dob.getTime()) || dob > today) {
+      const targetDate = atDate instanceof Date ? atDate : new Date(atDate);
+      if (Number.isNaN(dob.getTime()) || Number.isNaN(targetDate.getTime()) || dob > targetDate) {
         return NaN;
       }
 
-      return (today - dob) / (365.25 * 24 * 60 * 60 * 1000);
+      return (targetDate - dob) / (365.25 * 24 * 60 * 60 * 1000);
     }
 
-    function getChartPatientData(record) {
-      const ageYears = calculateAgeYears(record?.dob || '');
+    function calculateAgeYears(dobValue) {
+      return calculateAgeYearsAt(dobValue, new Date());
+    }
+
+    function getChartPatientData(record, measuredAt = getRecordDate(record)) {
+      const ageYears = calculateAgeYearsAt(record?.dob || '', measuredAt);
       const height = parseMetricValue(record?.height);
       const weight = parseMetricValue(record?.weight);
 
@@ -1236,7 +1269,151 @@
         height,
         weight,
         head: parseMetricValue(record?.head),
-        bmi: Number.isFinite(weight) && Number.isFinite(height) && height > 0 ? weight / ((height / 100) ** 2) : NaN
+        bmi: Number.isFinite(weight) && Number.isFinite(height) && height > 0 ? weight / ((height / 100) ** 2) : NaN,
+        sourceRecord: record
+      };
+    }
+
+    function normalizeMetricEntry(entry = {}, baseRecord = {}) {
+      const measuredAt = entry.measuredAt || entry.visitDate || entry.createdAtIso || entry.savedAt || entry.createdAtDisplay || '';
+      return {
+        measuredAt,
+        visitDate: entry.visitDate || '',
+        createdAtIso: entry.createdAtIso || '',
+        savedAt: entry.savedAt || '',
+        weight: entry.weight || '',
+        height: entry.height || '',
+        head: entry.head || entry.ofc || '',
+        dob: entry.dob || baseRecord.dob || '',
+        gender: entry.gender || baseRecord.gender || '',
+        patientId: entry.patientId || baseRecord.patientId || ''
+      };
+    }
+
+    function getMetricValue(entry, metricKey) {
+      if (metricKey === 'bmi') {
+        const weight = parseMetricValue(entry.weight);
+        const height = parseMetricValue(entry.height);
+        return Number.isFinite(weight) && Number.isFinite(height) && height > 0 ? weight / ((height / 100) ** 2) : NaN;
+      }
+      return parseMetricValue(entry[metricKey]);
+    }
+
+    function getMetricSeries(record, metricKey) {
+      const combined = [
+        normalizeMetricEntry(record, record),
+        ...(Array.isArray(record?.measurementHistory) ? record.measurementHistory.map((entry) => normalizeMetricEntry(entry, record)) : []),
+        ...(Array.isArray(record?.plotSeries?.[metricKey]) ? record.plotSeries[metricKey].map((entry) => normalizeMetricEntry(entry, record)) : [])
+      ];
+      const byDay = new Map();
+
+      combined.forEach((entry) => {
+        const timestamp = getRecordTimestamp(entry);
+        if (!timestamp || !Number.isFinite(getMetricValue(entry, metricKey))) return;
+        const dayKey = new Date(timestamp).toISOString().slice(0, 10);
+        const existing = byDay.get(dayKey);
+        if (!existing || getRecordTimestamp(entry) >= getRecordTimestamp(existing)) {
+          byDay.set(dayKey, entry);
+        }
+      });
+
+      return [...byDay.values()]
+        .filter((entry) => Number.isFinite(getMetricValue(entry, metricKey)))
+        .sort((left, right) => getRecordTimestamp(left) - getRecordTimestamp(right))
+        .slice(-30);
+    }
+
+    function hasMeasurementValue(entry = {}) {
+      return ['weight', 'height', 'head', 'ofc'].some((key) => String(entry?.[key] ?? '').trim());
+    }
+
+    function getMeasurementEntryKey(entry = {}) {
+      const day = getRecordTimestamp(entry)
+        ? new Date(getRecordTimestamp(entry)).toISOString().slice(0, 10)
+        : '';
+      return [
+        day,
+        String(entry.weight ?? '').trim(),
+        String(entry.height ?? '').trim(),
+        String(entry.head ?? entry.ofc ?? '').trim()
+      ].join('|');
+    }
+
+    async function loadPatientMeasurementHistory(patientId) {
+      const normalizedPatientId = String(patientId || '').trim().toUpperCase();
+      if (!normalizedPatientId || !db) {
+        return [];
+      }
+
+      if (patientMeasurementHistoryCache.has(normalizedPatientId)) {
+        return patientMeasurementHistoryCache.get(normalizedPatientId);
+      }
+
+      const loadPromise = (async () => {
+        const [patientSnapshot, historySnapshot] = await Promise.all([
+          getDoc(doc(db, FIREBASE_COLLECTIONS.patients, normalizedPatientId)).catch(() => null),
+          getDocs(query(collection(db, FIREBASE_COLLECTIONS.history), where('patientId', '==', normalizedPatientId))).catch(() => null)
+        ]);
+        const entries = [];
+
+        if (patientSnapshot?.exists?.()) {
+          const patientRecord = patientSnapshot.data();
+          if (Array.isArray(patientRecord.measurementHistory)) {
+            entries.push(...patientRecord.measurementHistory);
+          }
+          if (patientRecord.lastMeasurementRecord) {
+            entries.push(patientRecord.lastMeasurementRecord);
+          }
+        }
+
+        historySnapshot?.forEach?.((entrySnapshot) => {
+          entries.push({ id: entrySnapshot.id, ...entrySnapshot.data() });
+        });
+
+        const deduped = new Map();
+        entries
+          .filter(hasMeasurementValue)
+          .forEach((entry) => {
+            const normalizedEntry = normalizeMetricEntry(entry, { patientId: normalizedPatientId });
+            const key = getMeasurementEntryKey(normalizedEntry);
+            if (key && !deduped.has(key)) {
+              deduped.set(key, normalizedEntry);
+            }
+          });
+
+        return [...deduped.values()].sort((left, right) => getRecordTimestamp(right) - getRecordTimestamp(left));
+      })();
+
+      patientMeasurementHistoryCache.set(normalizedPatientId, loadPromise);
+      return loadPromise;
+    }
+
+    async function enrichChartRecordWithHistory(record) {
+      if (!record) {
+        return record;
+      }
+
+      const patientId = (record.patientId || getPatientIdFromUrl() || '').trim().toUpperCase();
+      const remoteHistory = await loadPatientMeasurementHistory(patientId).catch((error) => {
+        console.warn(`Unable to load past vitals for prescription charts: ${error.message}`);
+        return [];
+      });
+      const existingHistory = Array.isArray(record.measurementHistory) ? record.measurementHistory : [];
+      const byKey = new Map();
+
+      [...existingHistory, ...remoteHistory].forEach((entry) => {
+        if (!hasMeasurementValue(entry)) return;
+        const normalizedEntry = normalizeMetricEntry(entry, record);
+        const key = getMeasurementEntryKey(normalizedEntry);
+        if (key && !byKey.has(key)) {
+          byKey.set(key, normalizedEntry);
+        }
+      });
+
+      return {
+        ...record,
+        patientId: patientId || record.patientId,
+        measurementHistory: [...byKey.values()].sort((left, right) => getRecordTimestamp(right) - getRecordTimestamp(left))
       };
     }
 
@@ -1403,12 +1580,6 @@
       context.fillRect(0, 0, canvas.width, canvas.height);
       context.drawImage(image, 0, 0, canvas.width, canvas.height);
 
-      const xValue = patientData[request.x.source];
-      const yValue = patientData[request.metricKey];
-      const rawXRatio = (xValue - request.x.min) / (request.x.max - request.x.min);
-      const rawYRatio = (yValue - request.y.min) / (request.y.max - request.y.min);
-      const xRatio = clampRatio(rawXRatio);
-      const yRatio = clampRatio(rawYRatio);
       const plotArea = request.plotArea || {
         left: chartTemplateAxis.xStart,
         top: chartTemplateAxis.yEnd,
@@ -1419,50 +1590,93 @@
       const plotTop = plotArea.top * canvas.height;
       const plotRight = plotArea.right * canvas.width;
       const plotBottom = plotArea.bottom * canvas.height;
-      const x = plotLeft + xRatio * (plotRight - plotLeft);
-      const y = plotBottom - yRatio * (plotBottom - plotTop);
+      const metricSeries = getMetricSeries(patientData.sourceRecord || {}, request.metricKey);
+      const seriesRecords = metricSeries.length
+        ? metricSeries
+        : [patientData.sourceRecord || {}];
+      const mappedPoints = seriesRecords
+        .map((entry) => {
+          const measuredAt = getRecordDate(entry);
+          const entryData = getChartPatientData({ ...(patientData.sourceRecord || {}), ...entry }, measuredAt);
+          const xValue = entryData[request.x.source];
+          const yValue = entryData[request.metricKey];
+          if (!Number.isFinite(xValue) || !Number.isFinite(yValue)) {
+            return null;
+          }
 
-      if (rawXRatio < 0 || rawXRatio > 1 || rawYRatio < 0 || rawYRatio > 1) {
-        console.warn('Growth chart measurement outside chart range; plotting at nearest chart edge.', {
-          metric: request.metricKey,
-          xValue,
-          yValue,
-          xMin: request.x.min,
-          xMax: request.x.max,
-          yMin: request.y.min,
-          yMax: request.y.max
-        });
-      }
+          const rawXRatio = (xValue - request.x.min) / (request.x.max - request.x.min);
+          const rawYRatio = (yValue - request.y.min) / (request.y.max - request.y.min);
+          const xRatio = clampRatio(rawXRatio);
+          const yRatio = clampRatio(rawYRatio);
+          const x = plotLeft + xRatio * (plotRight - plotLeft);
+          const y = plotBottom - yRatio * (plotBottom - plotTop);
 
-      if (GROWTH_CHART_DEBUG) {
-        console.log({
-          chartId: request.chartId,
-          referenceSource: request.referenceSource,
-          sex: request.chartId?.startsWith('boys') ? 'male' : request.chartId?.startsWith('girls') ? 'female' : '',
-          ageGroup: request.chartId?.includes('0-5') ? '0-5' : request.chartId?.includes('5-18') ? '5-18' : '',
-          ageMonths: patientData.ageMonths,
-          ageYears: patientData.ageYears,
-          metric: request.metricKey === 'head' ? 'ofc' : request.metricKey,
-          value: yValue,
-          bmi: patientData.bmi,
-          xMin: request.x.min,
-          xMax: request.x.max,
-          yMin: request.y.min,
-          yMax: request.y.max,
-          plotLeft,
-          plotTop,
-          plotRight,
-          plotBottom,
-          xPixel: x,
-          yPixel: y,
-          backgroundImage: request.path
-        });
-      }
+          if (GROWTH_CHART_DEBUG) {
+            console.log({
+              chartId: request.chartId,
+              referenceSource: request.referenceSource,
+              totalEntries: seriesRecords.length,
+              sex: request.chartId?.startsWith('boys') ? 'male' : request.chartId?.startsWith('girls') ? 'female' : '',
+              ageGroup: request.chartId?.includes('0-5') ? '0-5' : request.chartId?.includes('5-18') ? '5-18' : '',
+              ageMonths: entryData.ageMonths,
+              ageYears: entryData.ageYears,
+              metric: request.metricKey === 'head' ? 'ofc' : request.metricKey,
+              value: yValue,
+              bmi: entryData.bmi,
+              xMin: request.x.min,
+              xMax: request.x.max,
+              yMin: request.y.min,
+              yMax: request.y.max,
+              plotLeft,
+              plotTop,
+              plotRight,
+              plotBottom,
+              xPixel: x,
+              yPixel: y,
+              visitDate: measuredAt.toISOString(),
+              backgroundImage: request.path
+            });
+          }
 
+          if (rawXRatio < 0 || rawXRatio > 1 || rawYRatio < 0 || rawYRatio > 1) {
+            console.warn('Growth chart measurement outside chart range; plotting at nearest chart edge.', {
+              metric: request.metricKey,
+              xValue,
+              yValue,
+              xMin: request.x.min,
+              xMax: request.x.max,
+              yMin: request.y.min,
+              yMax: request.y.max
+            });
+          }
+
+          return { x, y };
+        })
+        .filter(Boolean);
+
+      context.save();
       context.beginPath();
-      context.arc(x, y, CHART_POINT_RADIUS * renderScale, 0, Math.PI * 2);
-      context.fillStyle = '#111111';
-      context.fill();
+      context.rect(plotLeft, plotTop, plotRight - plotLeft, plotBottom - plotTop);
+      context.clip();
+
+      if (mappedPoints.length > 1) {
+        context.beginPath();
+        context.moveTo(mappedPoints[0].x, mappedPoints[0].y);
+        mappedPoints.slice(1).forEach((point) => context.lineTo(point.x, point.y));
+        context.lineWidth = Math.max(1, renderScale);
+        context.strokeStyle = '#111111';
+        context.lineJoin = 'round';
+        context.lineCap = 'round';
+        context.stroke();
+      }
+
+      mappedPoints.forEach((point) => {
+        context.beginPath();
+        context.arc(point.x, point.y, CHART_POINT_RADIUS * renderScale, 0, Math.PI * 2);
+        context.fillStyle = '#111111';
+        context.fill();
+      });
+      context.restore();
 
       return {
         label: request.label,
@@ -1478,6 +1692,7 @@
         return null;
       }
 
+      record = await enrichChartRecordWithHistory(record);
       const hasChartPages = Array.isArray(record.chartPages) && record.chartPages.some((page) => page?.dataUrl);
       const isCurrentChartFormat = record.chartFormatVersion === CHART_PREVIEW_VERSION
         && record.chartPages?.every((page) => !page?.dataUrl || page.chartFormatVersion === CHART_PREVIEW_VERSION);
