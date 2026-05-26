@@ -451,6 +451,12 @@ function parseVitals(value) {
   const raw = clean(value);
   const parsed = {};
   const items = splitCsvList(raw);
+  const setIfValid = (key, numberValue, min, max) => {
+    const parsedNumber = Number.parseFloat(numberValue);
+    if (Number.isFinite(parsedNumber) && parsedNumber >= min && parsedNumber <= max) {
+      parsed[key] = String(parsedNumber);
+    }
+  };
 
   for (const item of items) {
     const [labelPart, ...valueParts] = item.split(' - ');
@@ -463,18 +469,18 @@ function parseVitals(value) {
       continue;
     }
 
-    if (label.includes('body weight')) {
-      parsed.weight = numberValue;
-    } else if (label.includes('body height') || label.includes('height')) {
-      parsed.height = numberValue;
-    } else if (label.includes('occipital') || label.includes('ofc') || label.includes('head')) {
-      parsed.head = numberValue;
+    if (label === 'body weight') {
+      setIfValid('weight', numberValue, 0.5, 250);
+    } else if (label === 'body height') {
+      setIfValid('height', numberValue, 20, 250);
+    } else if (label.includes('occipital frontal circumference') || label === 'ofc' || label === 'head circumference') {
+      setIfValid('head', numberValue, 20, 80);
     } else if (label.includes('oxygen') || label.includes('spo2') || label.includes('saturation')) {
-      parsed.spo2 = numberValue;
+      setIfValid('spo2', numberValue, 50, 100);
     } else if (label.includes('pulse') || label.includes('heart rate')) {
-      parsed.pulse = numberValue;
+      setIfValid('pulse', numberValue, 30, 250);
     } else if (label.includes('temperature') || label === 'temp') {
-      parsed.temp = numberValue;
+      setIfValid('temp', numberValue, 30, 45);
     }
   }
 

@@ -259,6 +259,26 @@ function numberValue(value) {
   return Number.isFinite(parsed) ? parsed : NaN;
 }
 
+function isVitalInRange(key, value) {
+  const parsed = numberValue(value);
+  if (!Number.isFinite(parsed)) {
+    return false;
+  }
+
+  const ranges = {
+    weight: [0.5, 250],
+    height: [20, 250],
+    head: [20, 80],
+    spo2: [50, 100],
+    pulse: [30, 250],
+    systolic: [40, 220],
+    diastolic: [20, 140],
+    temp: [30, 45]
+  };
+  const [min, max] = ranges[key] || [-Infinity, Infinity];
+  return parsed >= min && parsed <= max;
+}
+
 function extractRawVitalValue(rawVitals, labelPattern) {
   const rows = Array.isArray(rawVitals) ? rawVitals : [rawVitals];
   for (const row of rows) {
@@ -295,12 +315,18 @@ function normalizeVitalsFromRaw(entry) {
   if (bodyWeight) {
     next.weight = bodyWeight;
   }
-  if (bodyHeight && (!clean(next.height) || numberValue(next.height) < 20)) {
+  if (bodyHeight && (!clean(next.height) || !isVitalInRange('height', next.height))) {
     next.height = bodyHeight;
   }
   if (ofc && !clean(next.head)) {
     next.head = ofc;
   }
+
+  ['weight', 'height', 'head', 'spo2', 'pulse', 'systolic', 'diastolic', 'temp'].forEach((key) => {
+    if (clean(next[key]) && !isVitalInRange(key, next[key])) {
+      next[key] = '';
+    }
+  });
 
   return next;
 }
