@@ -42,8 +42,11 @@ const args = parseArgs(process.argv.slice(2));
 const writeMode = Boolean(args.write);
 const limit = Number.parseInt(args.limit || '', 10) || 0;
 const forceMode = Boolean(args.force);
+const vitalsOnlyMode = Boolean(args.vitalsOnly);
 const concurrency = Math.max(1, Math.min(Number.parseInt(args.concurrency || '', 10) || 8, 20));
 const importBatchId = args.batchId || `kid-csv-prescription-pdf-${new Date().toISOString().slice(0, 10)}`;
+const referencePdfPath = args.referencePdf ? path.resolve(args.referencePdf) : '';
+const referencePdfName = referencePdfPath ? path.basename(referencePdfPath) : '';
 
 function parseArgs(argv) {
   const parsed = {};
@@ -70,6 +73,13 @@ function parseArgs(argv) {
       index += 1;
     } else if (arg === '--force') {
       parsed.force = true;
+    } else if (arg === '--vitals-only') {
+      parsed.vitalsOnly = true;
+    } else if (arg.startsWith('--reference-pdf=')) {
+      parsed.referencePdf = arg.slice('--reference-pdf='.length);
+    } else if (arg === '--reference-pdf') {
+      parsed.referencePdf = argv[index + 1];
+      index += 1;
     } else if (arg === '--help' || arg === '-h') {
       parsed.help = true;
     }
@@ -92,6 +102,8 @@ Options:
   --concurrency N  Parallel uploads/writes. Defaults to 8.
   --force          Regenerate records even when a generated doc already exists.
   --batch-id <id>  Batch marker for the generated records.
+  --vitals-only    Generate only CSV history records with imported vitals.
+  --reference-pdf  Optional local PDF used as the visual/reference source marker.
 `);
 }
 
@@ -270,12 +282,29 @@ function hasClinicalContent(entry) {
   });
 }
 
+function hasVitalsContent(entry) {
+  return [
+    'weight',
+    'height',
+    'head',
+    'spo2',
+    'pulse',
+    'systolic',
+    'diastolic',
+    'temp',
+    'rawVitals'
+  ].some((key) => {
+    const value = entry[key];
+    return Array.isArray(value) ? value.some((item) => clean(item)) : Boolean(clean(value));
+  });
+}
+
 function makeGeneratedIds(entry) {
   const seed = entry.importKey || entry.id || `${entry.patientId}|${entry.createdAtIso || entry.visitDate || ''}`;
   const hash = hashId(seed);
   const patientId = sanitizeFilePart(entry.patientId);
   const visitDate = getIsoDate(entry.createdAtIso || entry.measuredAt || entry.visitDate) || 'unknown-date';
-  const docId = `csvPrescription_${hash}`;
+  const docId = vitalsOnlyMode ? `csvVitalPrescription_${hash}` : `csvPrescription_${hash}`;
   const fileName = `${visitDate}-${docId}.pdf`;
   const storagePath = `${CLINIC_STORAGE_PREFIX}/prescriptions/${patientId}/${fileName}`;
   return { docId, fileName, storagePath };
@@ -351,7 +380,47 @@ function ensurePageSpace(pdf, y, needed = 38) {
   return 18;
 }
 
-function addChartCard(pdf, request, x, y, width, height) {
+function getEntryTimestamp(entry) {
+  return Date.parse(getIso(entry.createdAtIso || entry.measuredAt || entry.visitDate || entry.savedAt)) || 0;
+}
+
+function getMetricValue(entry, metric) {
+  if (metric === 'bmi') {
+    const weight = numberValue(entry.weight);
+    const height = numberValue(entry.height);
+    return Number.isFinite(weight) && Number.isFinite(height) && height > 0
+      ? weight / ((height / 100) ** 2)
+      : NaN;
+  }
+  return numberValue(metric === 'head' ? entry.head : entry[metric]);
+}
+
+function getChartPoint(request, entry) {
+  const visitIso = getIso(entry.createdAtIso || entry.measuredAt || entry.visitDate);
+  const patientData = getChartPatientData(entry, visitIso);
+  const xValue = request.metric === 'head' || request.chart.ageGroup === '0-5'
+    ? patientData.ageMonths
+    : patientData.ageYears;
+  const value = getMetricValue(entry, request.metric);
+
+  if (!Number.isFinite(xValue) || !Number.isFinite(value)) {
+    return null;
+  }
+
+  const plot = request.chart.plotArea || { left: 0.1731, top: 0.117, right: 0.8269, bottom: 0.8617 };
+  const rawXRatio = (xValue - request.chart.xMin) / (request.chart.xMax - request.chart.xMin);
+  const rawYRatio = (value - request.chart.yMin) / (request.chart.yMax - request.chart.yMin);
+  const xRatio = Math.min(1, Math.max(0, rawXRatio));
+  const yRatio = Math.min(1, Math.max(0, rawYRatio));
+
+  return {
+    xRatio,
+    yRatio,
+    plot
+  };
+}
+
+function addChartCard(pdf, request, x, y, width, height, seriesEntries = []) {
   const imagePath = path.join(KID_ROOT, request.chart.backgroundImage);
   if (!fs.existsSync(imagePath)) {
     return false;
@@ -364,22 +433,36 @@ function addChartCard(pdf, request, x, y, width, height) {
   pdf.text(request.chart.label || `${request.metric} chart`, x, y);
   pdf.addImage(imageData, 'PNG', x, y + 2, width, height, undefined, 'FAST');
 
-  const plot = request.chart.plotArea || { left: 0.1731, top: 0.117, right: 0.8269, bottom: 0.8617 };
-  const rawXRatio = (request.xValue - request.chart.xMin) / (request.chart.xMax - request.chart.xMin);
-  const rawYRatio = (request.value - request.chart.yMin) / (request.chart.yMax - request.chart.yMin);
-  const xRatio = Math.min(1, Math.max(0, rawXRatio));
-  const yRatio = Math.min(1, Math.max(0, rawYRatio));
-  const pointX = x + (plot.left + xRatio * (plot.right - plot.left)) * width;
-  const pointY = y + 2 + (plot.bottom - yRatio * (plot.bottom - plot.top)) * height;
+  const points = seriesEntries
+    .map((entry) => getChartPoint(request, entry))
+    .filter(Boolean)
+    .map((point) => ({
+      x: x + (point.plot.left + point.xRatio * (point.plot.right - point.plot.left)) * width,
+      y: y + 2 + (point.plot.bottom - point.yRatio * (point.plot.bottom - point.plot.top)) * height
+    }));
 
-  pdf.setFillColor(17, 17, 17);
-  pdf.circle(pointX, pointY, 1.45, 'F');
-  pdf.setDrawColor(255, 255, 255);
-  pdf.circle(pointX, pointY, 2.15, 'S');
+  if (!points.length) {
+    return true;
+  }
+
+  pdf.setDrawColor(17, 17, 17);
+  pdf.setLineWidth(0.3);
+  if (points.length > 1) {
+    for (let index = 1; index < points.length; index += 1) {
+      pdf.line(points[index - 1].x, points[index - 1].y, points[index].x, points[index].y);
+    }
+  }
+
+  points.forEach((point) => {
+    pdf.setFillColor(17, 17, 17);
+    pdf.circle(point.x, point.y, 1.45, 'F');
+    pdf.setDrawColor(255, 255, 255);
+    pdf.circle(point.x, point.y, 2.15, 'S');
+  });
   return true;
 }
 
-function addGrowthCharts(pdf, entry, visitIso, y) {
+function addGrowthCharts(pdf, entry, visitIso, y, seriesEntries = []) {
   const requests = getChartRequests(entry, visitIso);
   if (!requests.length) {
     return y;
@@ -401,7 +484,7 @@ function addGrowthCharts(pdf, entry, visitIso, y) {
     const row = Math.floor(index / 2);
     const cardX = col === 0 ? 16 : 110;
     const cardY = y + row * 70;
-    if (addChartCard(pdf, request, cardX, cardY, cardWidth, cardHeight)) {
+    if (addChartCard(pdf, request, cardX, cardY, cardWidth, cardHeight, seriesEntries)) {
       rendered += 1;
     }
   });
@@ -409,11 +492,14 @@ function addGrowthCharts(pdf, entry, visitIso, y) {
   return rendered ? y + Math.ceil(requests.length / 2) * 70 + 2 : y - 5;
 }
 
-function renderPdf(entry) {
+function renderPdf(entry, options = {}) {
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const visitIso = getIso(entry.createdAtIso || entry.measuredAt || entry.visitDate);
   const visitDisplay = formatDisplayDate(visitIso || entry.createdAtDisplay || entry.visitDate);
   const vitals = buildVitals(entry);
+  const seriesEntries = Array.isArray(options.seriesEntries) && options.seriesEntries.length
+    ? options.seriesEntries
+    : [entry];
 
   pdf.setTextColor(17, 24, 39);
   pdf.setFont('helvetica', 'bold');
@@ -453,7 +539,7 @@ function renderPdf(entry) {
   y = addSection(pdf, 'Medication', listValues(entry.drugs || entry.rawDrug), y);
   y = addSection(pdf, 'Instruction', listValues(entry.instruction || entry.instructions || entry.rawInstruction), y);
   y = addSection(pdf, 'Vitals', vitals, y);
-  y = addGrowthCharts(pdf, entry, visitIso, y);
+  y = addGrowthCharts(pdf, entry, visitIso, y, seriesEntries);
 
   const appointmentLines = [];
   if (entry.appointmentId) appointmentLines.push(`Appointment ID: ${entry.appointmentId}`);
@@ -469,6 +555,9 @@ function renderPdf(entry) {
   pdf.setFontSize(7);
   pdf.setTextColor(90, 105, 97);
   pdf.text('Generated from imported historical CSV data. Please verify clinically before reuse.', 16, y + 6);
+  if (options.referencePdfName) {
+    pdf.text(`Reference PDF: ${options.referencePdfName}`, 16, y + 10);
+  }
 
   return Buffer.from(pdf.output('arraybuffer'));
 }
@@ -481,7 +570,9 @@ async function main() {
   const historyRef = collection(db, `${CLINIC_NAMESPACE}/history`);
   const patientsRef = collection(db, `${CLINIC_NAMESPACE}/patients`);
   const historyQuery = query(historyRef, where('source', '==', 'csv-import'));
-  const existingQuery = query(historyRef, where('generatedFrom', '==', 'csv-import-history'));
+  const generatedFromMarker = vitalsOnlyMode ? 'csv-import-vitals-history' : 'csv-import-history';
+  const storageSourceMarker = vitalsOnlyMode ? 'csv-import-vitals-prescription-pdf' : 'csv-import-prescription-pdf';
+  const existingQuery = query(historyRef, where('generatedFrom', '==', generatedFromMarker));
   const [snapshot, existingSnapshot, patientsSnapshot] = await Promise.all([
     getDocs(historyQuery),
     getDocs(existingQuery),
@@ -505,12 +596,26 @@ async function main() {
         mobileNumber: entry.mobileNumber || patient.mobileNumber || ''
       };
     })
-    .filter((entry) => clean(entry.patientId) && hasClinicalContent(entry))
+    .filter((entry) => clean(entry.patientId) && (vitalsOnlyMode ? hasVitalsContent(entry) : hasClinicalContent(entry)))
     .sort((left, right) => {
       const leftTime = Date.parse(getIso(left.createdAtIso || left.measuredAt || left.visitDate)) || 0;
       const rightTime = Date.parse(getIso(right.createdAtIso || right.measuredAt || right.visitDate)) || 0;
       return leftTime - rightTime || clean(left.patientId).localeCompare(clean(right.patientId));
     });
+  const vitalsByPatient = new Map();
+  candidates.forEach((entry) => {
+    if (!hasVitalsContent(entry)) {
+      return;
+    }
+
+    const patientId = clean(entry.patientId).toUpperCase();
+    const entries = vitalsByPatient.get(patientId) || [];
+    entries.push(entry);
+    vitalsByPatient.set(patientId, entries);
+  });
+  vitalsByPatient.forEach((entries) => {
+    entries.sort((left, right) => getEntryTimestamp(left) - getEntryTimestamp(right));
+  });
 
   const pending = forceMode
     ? candidates
@@ -525,6 +630,10 @@ async function main() {
   console.log(`Selected this run: ${selected.length}`);
   console.log(`Concurrency: ${concurrency}`);
   console.log(`Import batch: ${importBatchId}`);
+  console.log(`Mode: ${vitalsOnlyMode ? 'vitals only' : 'all clinical CSV history'}`);
+  if (referencePdfName) {
+    console.log(`Reference PDF: ${referencePdfName}`);
+  }
 
   if (!writeMode) {
     console.log('No writes performed. Add --write to upload PDFs and create prescription history records.');
@@ -535,16 +644,22 @@ async function main() {
   async function processEntry(entry) {
     const { docId, fileName, storagePath } = makeGeneratedIds(entry);
     const visitIso = getIso(entry.createdAtIso || entry.measuredAt || entry.visitDate) || new Date().toISOString();
-    const pdfBuffer = renderPdf(entry);
+    const patientVitals = vitalsByPatient.get(clean(entry.patientId).toUpperCase()) || [entry];
+    const visitTime = getEntryTimestamp(entry) || Date.parse(visitIso) || Date.now();
+    const seriesEntries = patientVitals
+      .filter((candidate) => (getEntryTimestamp(candidate) || 0) <= visitTime)
+      .slice(-30);
+    const pdfBuffer = renderPdf(entry, { seriesEntries, referencePdfName });
     const storageRef = ref(storage, storagePath);
 
     await uploadBytes(storageRef, pdfBuffer, {
       contentType: 'application/pdf',
       contentDisposition: 'inline',
       customMetadata: {
-        source: 'csv-import-prescription-pdf',
+        source: storageSourceMarker,
         csvHistoryDocId: entry.id,
-        visitDate: visitIso.slice(0, 10)
+        visitDate: visitIso.slice(0, 10),
+        referencePdfName: referencePdfName || ''
       }
     });
 
@@ -571,11 +686,14 @@ async function main() {
       downloadURL,
       source: 'prescription-pdf',
       type: 'prescription',
-      generatedFrom: 'csv-import-history',
+      generatedFrom: generatedFromMarker,
       csvHistoryDocId: entry.id,
       csvHistoryImportKey: entry.importKey || '',
       originalImportBatchId: entry.importBatchId || '',
       importBatchId,
+      generatedFor: vitalsOnlyMode ? 'csv-vitals' : 'csv-history',
+      referencePdfName: referencePdfName || '',
+      plottedVitalsCount: seriesEntries.length,
       symptoms: Array.isArray(entry.symptoms) ? entry.symptoms : [],
       diagnosis: Array.isArray(entry.diagnosis) ? entry.diagnosis : [],
       drugs: Array.isArray(entry.drugs) ? entry.drugs : [],
