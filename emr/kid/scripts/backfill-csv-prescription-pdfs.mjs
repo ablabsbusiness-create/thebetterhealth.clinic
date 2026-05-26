@@ -173,6 +173,22 @@ function getIsoDate(value) {
   return iso ? iso.slice(0, 10) : '';
 }
 
+function getClinicDateKey(value) {
+  const parsed = toDate(value);
+  if (!parsed) {
+    return clean(value).slice(0, 10);
+  }
+
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).formatToParts(parsed);
+  const part = (type) => parts.find((item) => item.type === type)?.value || '';
+  return [part('year'), part('month'), part('day')].filter(Boolean).join('-');
+}
+
 function formatDisplayDate(iso) {
   const parsed = toDate(iso);
   if (!parsed) {
@@ -219,10 +235,74 @@ function listValues(value) {
     .filter(Boolean);
 }
 
+function uniqueValues(values) {
+  const seen = new Set();
+  const result = [];
+  values.flatMap(listValues).forEach((value) => {
+    const normalized = compactSpaces(value);
+    const key = normalized.toLowerCase();
+    if (normalized && !seen.has(key)) {
+      seen.add(key);
+      result.push(normalized);
+    }
+  });
+  return result;
+}
+
+function mergeTextValues(values) {
+  return uniqueValues(values).join(', ');
+}
+
 function numberValue(value) {
   const match = clean(value).match(/-?\d+(?:\.\d+)?/);
   const parsed = match ? Number.parseFloat(match[0]) : NaN;
   return Number.isFinite(parsed) ? parsed : NaN;
+}
+
+function extractRawVitalValue(rawVitals, labelPattern) {
+  const rows = Array.isArray(rawVitals) ? rawVitals : [rawVitals];
+  for (const row of rows) {
+    const text = clean(row);
+    if (!text) {
+      continue;
+    }
+
+    const segments = text.split(',').map(compactSpaces);
+    for (const segment of segments) {
+      if (labelPattern.test(segment)) {
+        const match = segment.match(/-\s*(-?\d+(?:\.\d+)?)/);
+        const parsed = match ? Number.parseFloat(match[1]) : NaN;
+        if (Number.isFinite(parsed)) {
+          return String(parsed);
+        }
+      }
+    }
+  }
+  return '';
+}
+
+function normalizeVitalsFromRaw(entry) {
+  const rawVitals = Array.isArray(entry.rawVitals) ? entry.rawVitals : [];
+  if (!rawVitals.length) {
+    return entry;
+  }
+
+  const bodyWeight = extractRawVitalValue(rawVitals, /^Body weight\b/i);
+  const bodyHeight = extractRawVitalValue(rawVitals, /^Body height\b/i);
+  const ofc = extractRawVitalValue(rawVitals, /^(?:Occipital frontal circumference|ofc)\b/i);
+  const next = { ...entry };
+
+  if (bodyWeight) {
+    next.weight = bodyWeight;
+  }
+  if (bodyHeight && (!clean(next.height) || numberValue(next.height) < 20)) {
+    next.height = bodyHeight;
+  }
+  if (ofc && !clean(next.head)) {
+    next.head = ofc;
+  }
+
+  return next;
 }
 
 function calculateAgeYears(dobValue, atValue) {
@@ -334,6 +414,82 @@ function hasVitalsContent(entry) {
     const value = entry[key];
     return Array.isArray(value) ? value.some((item) => clean(item)) : Boolean(clean(value));
   });
+}
+
+function getEntryVisitDateKey(entry) {
+  return getClinicDateKey(entry.createdAtIso || entry.measuredAt || entry.visitDate || entry.savedAt);
+}
+
+function getPatientDateKey(entry) {
+  return `${clean(entry.patientId).toUpperCase()}|${getEntryVisitDateKey(entry)}`;
+}
+
+function buildVisitEntryIndex(entries) {
+  const index = new Map();
+  entries.forEach((entry) => {
+    const key = getPatientDateKey(entry);
+    if (!clean(entry.patientId) || !key.endsWith(getEntryVisitDateKey(entry)) || !getEntryVisitDateKey(entry)) {
+      return;
+    }
+
+    const list = index.get(key) || [];
+    list.push(entry);
+    index.set(key, list);
+  });
+
+  index.forEach((list) => {
+    list.sort((left, right) => getEntryTimestamp(left) - getEntryTimestamp(right));
+  });
+  return index;
+}
+
+function mergeVisitEntries(baseEntry, relatedEntries = []) {
+  const entries = [baseEntry, ...relatedEntries.filter((entry) => entry.id !== baseEntry.id)];
+  const merged = normalizeVitalsFromRaw({ ...baseEntry });
+  const mergeArrayField = (field, rawField = '') => {
+    merged[field] = uniqueValues(entries.map((entry) => entry[field] || (rawField ? entry[rawField] : '')));
+  };
+  const mergeRawField = (field) => {
+    merged[field] = mergeTextValues(entries.map((entry) => entry[field]));
+  };
+  const firstValue = (...fields) => {
+    for (const entry of entries) {
+      for (const field of fields) {
+        const value = entry[field];
+        if (Array.isArray(value) ? value.some((item) => clean(item)) : clean(value)) {
+          return value;
+        }
+      }
+    }
+    return '';
+  };
+
+  mergeArrayField('symptoms', 'rawSymptom');
+  mergeArrayField('findings', 'rawFinding');
+  mergeArrayField('notes', 'rawNotes');
+  mergeArrayField('diagnosis', 'rawDiagnosis');
+  mergeArrayField('investigation', 'rawInvestigation');
+  mergeArrayField('pastMedicalHistory', 'rawPastMedicalHistory');
+  mergeArrayField('drugs', 'rawDrug');
+  mergeArrayField('instructions', 'rawInstruction');
+  mergeRawField('rawSymptom');
+  mergeRawField('rawFinding');
+  mergeRawField('rawNotes');
+  mergeRawField('rawDiagnosis');
+  mergeRawField('rawInvestigation');
+  mergeRawField('rawPastMedicalHistory');
+  mergeRawField('rawDrug');
+  mergeRawField('rawInstruction');
+
+  merged.rawVitals = uniqueValues(entries.map((entry) => entry.rawVitals));
+  Object.assign(merged, normalizeVitalsFromRaw(merged));
+  merged.appointmentId = clean(firstValue('appointmentId')) || merged.appointmentId || '';
+  merged.appointmentStatus = clean(firstValue('appointmentStatus')) || merged.appointmentStatus || '';
+  merged.appointmentType = clean(firstValue('appointmentType')) || merged.appointmentType || '';
+  merged.visitType = clean(firstValue('visitType')) || merged.visitType || '';
+  merged.mergedCsvHistoryDocIds = entries.map((entry) => entry.id).filter(Boolean);
+  merged.mergedCsvHistoryCount = merged.mergedCsvHistoryDocIds.length;
+  return merged;
 }
 
 function makeGeneratedIds(entry) {
@@ -882,7 +1038,7 @@ async function main() {
     const data = docSnapshot.data();
     return [clean(data.patientId || docSnapshot.id).toUpperCase(), data];
   }));
-  const candidates = snapshot.docs
+  const sourceEntries = snapshot.docs
     .map((docSnapshot) => {
       const entry = { id: docSnapshot.id, ...docSnapshot.data() };
       const patient = patientsById.get(clean(entry.patientId).toUpperCase()) || {};
@@ -894,6 +1050,13 @@ async function main() {
         mobileNumber: entry.mobileNumber || patient.mobileNumber || ''
       };
     })
+    .sort((left, right) => {
+      const leftTime = Date.parse(getIso(left.createdAtIso || left.measuredAt || left.visitDate)) || 0;
+      const rightTime = Date.parse(getIso(right.createdAtIso || right.measuredAt || right.visitDate)) || 0;
+      return leftTime - rightTime || clean(left.patientId).localeCompare(clean(right.patientId));
+    });
+  const entriesByPatientDate = buildVisitEntryIndex(sourceEntries);
+  const candidates = sourceEntries
     .filter((entry) => clean(entry.patientId) && (vitalsOnlyMode ? hasVitalsContent(entry) : hasClinicalContent(entry)))
     .sort((left, right) => {
       const leftTime = Date.parse(getIso(left.createdAtIso || left.measuredAt || left.visitDate)) || 0;
@@ -947,12 +1110,13 @@ async function main() {
   async function processEntry(entry) {
     const { docId, fileName, storagePath } = makeGeneratedIds(entry);
     const visitIso = getIso(entry.createdAtIso || entry.measuredAt || entry.visitDate) || new Date().toISOString();
+    const mergedEntry = mergeVisitEntries(entry, entriesByPatientDate.get(getPatientDateKey(entry)) || []);
     const patientVitals = vitalsByPatient.get(clean(entry.patientId).toUpperCase()) || [entry];
     const visitTime = getEntryTimestamp(entry) || Date.parse(visitIso) || Date.now();
     const seriesEntries = patientVitals
       .filter((candidate) => (getEntryTimestamp(candidate) || 0) <= visitTime)
       .slice(-30);
-    const pdfBuffer = renderPdf(entry, { seriesEntries, referencePdfName, branding });
+    const pdfBuffer = renderPdf(mergedEntry, { seriesEntries, referencePdfName, branding });
     const storageRef = ref(storage, storagePath);
     if (outputDir) {
       fs.writeFileSync(path.join(outputDir, fileName), pdfBuffer);
@@ -962,31 +1126,32 @@ async function main() {
       contentType: 'application/pdf',
       contentDisposition: 'inline',
       customMetadata: {
-        source: storageSourceMarker,
-        csvHistoryDocId: entry.id,
-        visitDate: visitIso.slice(0, 10),
-        referencePdfName: referencePdfName || ''
+      source: storageSourceMarker,
+      csvHistoryDocId: entry.id,
+      mergedCsvHistoryDocIds: (mergedEntry.mergedCsvHistoryDocIds || []).join(','),
+      visitDate: visitIso.slice(0, 10),
+      referencePdfName: referencePdfName || ''
       }
     });
 
     const downloadURL = await getDownloadURL(storageRef);
     const historyRecord = {
       prescriptionSaveId: storagePath,
-      patientId: clean(entry.patientId).toUpperCase(),
-      childName: entry.childName || '',
-      parentName: entry.parentName || '',
-      phone: entry.phone || '',
-      gender: entry.gender || '',
-      dob: entry.dob || '',
-      age: entry.age || entry.ageText || '',
-      weight: entry.weight || '',
-      height: entry.height || '',
-      head: entry.head || '',
-      spo2: entry.spo2 || '',
-      pulse: entry.pulse || '',
-      systolic: entry.systolic || '',
-      diastolic: entry.diastolic || '',
-      temp: entry.temp || '',
+      patientId: clean(mergedEntry.patientId).toUpperCase(),
+      childName: mergedEntry.childName || '',
+      parentName: mergedEntry.parentName || '',
+      phone: mergedEntry.phone || '',
+      gender: mergedEntry.gender || '',
+      dob: mergedEntry.dob || '',
+      age: mergedEntry.age || mergedEntry.ageText || '',
+      weight: mergedEntry.weight || '',
+      height: mergedEntry.height || '',
+      head: mergedEntry.head || '',
+      spo2: mergedEntry.spo2 || '',
+      pulse: mergedEntry.pulse || '',
+      systolic: mergedEntry.systolic || '',
+      diastolic: mergedEntry.diastolic || '',
+      temp: mergedEntry.temp || '',
       fileName,
       storagePath,
       downloadURL,
@@ -994,23 +1159,35 @@ async function main() {
       type: 'prescription',
       generatedFrom: generatedFromMarker,
       csvHistoryDocId: entry.id,
+      mergedCsvHistoryDocIds: mergedEntry.mergedCsvHistoryDocIds || [entry.id],
+      mergedCsvHistoryCount: mergedEntry.mergedCsvHistoryCount || 1,
       csvHistoryImportKey: entry.importKey || '',
       originalImportBatchId: entry.importBatchId || '',
       importBatchId,
       generatedFor: vitalsOnlyMode ? 'csv-vitals' : 'csv-history',
       referencePdfName: referencePdfName || '',
       plottedVitalsCount: seriesEntries.length,
-      symptoms: Array.isArray(entry.symptoms) ? entry.symptoms : [],
-      diagnosis: Array.isArray(entry.diagnosis) ? entry.diagnosis : [],
-      drugs: Array.isArray(entry.drugs) ? entry.drugs : [],
-      rawSymptom: entry.rawSymptom || '',
-      rawDiagnosis: entry.rawDiagnosis || '',
-      rawDrug: entry.rawDrug || '',
-      rawVitals: Array.isArray(entry.rawVitals) ? entry.rawVitals : [],
-      appointmentId: entry.appointmentId || '',
-      appointmentStatus: entry.appointmentStatus || '',
-      appointmentType: entry.appointmentType || '',
-      visitType: entry.visitType || '',
+      symptoms: Array.isArray(mergedEntry.symptoms) ? mergedEntry.symptoms : [],
+      findings: Array.isArray(mergedEntry.findings) ? mergedEntry.findings : [],
+      notes: Array.isArray(mergedEntry.notes) ? mergedEntry.notes : [],
+      diagnosis: Array.isArray(mergedEntry.diagnosis) ? mergedEntry.diagnosis : [],
+      investigation: Array.isArray(mergedEntry.investigation) ? mergedEntry.investigation : [],
+      pastMedicalHistory: Array.isArray(mergedEntry.pastMedicalHistory) ? mergedEntry.pastMedicalHistory : [],
+      drugs: Array.isArray(mergedEntry.drugs) ? mergedEntry.drugs : [],
+      instructions: Array.isArray(mergedEntry.instructions) ? mergedEntry.instructions : [],
+      rawSymptom: mergedEntry.rawSymptom || '',
+      rawFinding: mergedEntry.rawFinding || '',
+      rawNotes: mergedEntry.rawNotes || '',
+      rawDiagnosis: mergedEntry.rawDiagnosis || '',
+      rawInvestigation: mergedEntry.rawInvestigation || '',
+      rawPastMedicalHistory: mergedEntry.rawPastMedicalHistory || '',
+      rawDrug: mergedEntry.rawDrug || '',
+      rawInstruction: mergedEntry.rawInstruction || '',
+      rawVitals: Array.isArray(mergedEntry.rawVitals) ? mergedEntry.rawVitals : [],
+      appointmentId: mergedEntry.appointmentId || '',
+      appointmentStatus: mergedEntry.appointmentStatus || '',
+      appointmentType: mergedEntry.appointmentType || '',
+      visitType: mergedEntry.visitType || '',
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
       createdAtIso: visitIso,
