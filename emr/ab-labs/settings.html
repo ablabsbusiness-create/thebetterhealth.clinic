@@ -781,17 +781,24 @@
 
     .prescription-ui-actions {
       display: grid;
-      grid-template-columns: minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       gap: 14px;
       margin-top: 2px;
     }
 
+    .prescription-preview-btn,
     .prescription-save-btn {
       min-height: 48px;
       border-radius: 12px;
       font: inherit;
       font-weight: 800;
       cursor: default;
+    }
+
+    .prescription-preview-btn {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: #2396f3;
     }
 
     .prescription-save-btn {
@@ -1427,6 +1434,7 @@
             </div>
 
             <div class="prescription-ui-actions">
+              <button id="preview-rx-settings-btn" class="prescription-preview-btn" type="button">Preview RX</button>
               <button id="save-rx-layout-btn" class="prescription-save-btn" type="button">Save Settings</button>
             </div>
           </div>
@@ -1584,6 +1592,7 @@
       left: document.getElementById('rx-ui-margin-left'),
       right: document.getElementById('rx-ui-margin-right')
     };
+    const previewRxSettingsBtn = document.getElementById('preview-rx-settings-btn');
     const saveRxLayoutBtn = document.getElementById('save-rx-layout-btn');
     const cloudSavePopup = document.getElementById('cloud-save-popup');
     const cloudSavePopupTitle = document.getElementById('cloud-save-popup-title');
@@ -2284,6 +2293,13 @@
         setFooterAlignmentControl(button.dataset.footerAlign);
       });
     });
+
+    if (previewRxSettingsBtn) {
+      previewRxSettingsBtn.addEventListener('click', () => {
+        cacheBrandingSettings(collectBrandingForm());
+        window.open('preview.html', '_blank', 'noopener,noreferrer');
+      });
+    }
 
     if (saveRxLayoutBtn) {
       saveRxLayoutBtn.addEventListener('click', async () => {
