@@ -6,6 +6,7 @@ import { initializeApp } from 'firebase/app';
 import {
   collection,
   doc,
+  getDoc,
   getDocs,
   getFirestore,
   query,
@@ -37,6 +38,15 @@ const DEFAULT_FIREBASE_CONFIG = {
   appId: '1:1059959825609:web:8201599754706ac4661918',
   measurementId: 'G-4V5JMVW45E'
 };
+const DEFAULT_BRANDING = {
+  clinicTitle: 'The Better Kid Clinic',
+  clinicAddress: 'The Better Health Clinic - Paediatrician #118, 5th Cross, Omkar\nNagar Akere, Bannerghatta road 560076 Bengaluru Karnataka',
+  doctorName: 'Dr. Gunda Srinivas',
+  doctorDetails: 'MBBS, DCH, DNB - Paediatrics, PGDDN, FPEM\n71826',
+  footerText: 'The Better Health Clinic - Paediatrician #118, 5th Cross, Omkar Nagar\nAkere,\nBannerghatta road 560076 Bengaluru Karnataka',
+  prescriptionFooterAlignment: 'left',
+  signatureDataUrl: ''
+};
 
 const args = parseArgs(process.argv.slice(2));
 const writeMode = Boolean(args.write);
@@ -47,6 +57,7 @@ const concurrency = Math.max(1, Math.min(Number.parseInt(args.concurrency || '',
 const importBatchId = args.batchId || `kid-csv-prescription-pdf-${new Date().toISOString().slice(0, 10)}`;
 const referencePdfPath = args.referencePdf ? path.resolve(args.referencePdf) : '';
 const referencePdfName = referencePdfPath ? path.basename(referencePdfPath) : '';
+const outputDir = args.outputDir ? path.resolve(args.outputDir) : '';
 
 function parseArgs(argv) {
   const parsed = {};
@@ -80,6 +91,11 @@ function parseArgs(argv) {
     } else if (arg === '--reference-pdf') {
       parsed.referencePdf = argv[index + 1];
       index += 1;
+    } else if (arg.startsWith('--output-dir=')) {
+      parsed.outputDir = arg.slice('--output-dir='.length);
+    } else if (arg === '--output-dir') {
+      parsed.outputDir = argv[index + 1];
+      index += 1;
     } else if (arg === '--help' || arg === '-h') {
       parsed.help = true;
     }
@@ -104,6 +120,7 @@ Options:
   --batch-id <id>  Batch marker for the generated records.
   --vitals-only    Generate only CSV history records with imported vitals.
   --reference-pdf  Optional local PDF used as the visual/reference source marker.
+  --output-dir     Optional local folder to write generated PDFs while running.
 `);
 }
 
@@ -169,6 +186,26 @@ function formatDisplayDate(iso) {
     hour: '2-digit',
     minute: '2-digit'
   });
+}
+
+function formatPrescriptionDate(iso) {
+  const parsed = toDate(iso);
+  if (!parsed) {
+    return clean(iso);
+  }
+
+  const datePart = parsed.toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+  const timePart = parsed.toLocaleTimeString('en-IN', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  }).toLowerCase();
+
+  return `${datePart}, ${timePart}`;
 }
 
 function listValues(value) {
@@ -327,6 +364,193 @@ function addWrappedText(pdf, text, x, y, options = {}) {
   return y;
 }
 
+function formatCompactAge(value) {
+  const raw = clean(value);
+  if (!raw) {
+    return '-';
+  }
+
+  return raw
+    .replace(/\bYears?\b/gi, 'y')
+    .replace(/\bMonths?\b/gi, 'm')
+    .replace(/\bDays?\b/gi, 'd')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function addInlineRow(pdf, label, value, x, y, width = 190) {
+  const text = clean(value);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(9.5);
+  pdf.setTextColor(17, 24, 39);
+  pdf.text(`${label}:`, x, y);
+
+  if (!text) {
+    return y + 5.4;
+  }
+
+  const labelWidth = pdf.getTextWidth(`${label}: `);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(8.8);
+  const lines = pdf.splitTextToSize(text, Math.max(20, width - labelWidth));
+  lines.forEach((line, index) => {
+    pdf.text(line, index === 0 ? x + labelWidth : x, y + index * 4.4);
+  });
+  return y + Math.max(1, lines.length) * 4.4 + 1;
+}
+
+function addMultilineText(pdf, text, x, y, options = {}) {
+  const lines = clean(text)
+    .split(/\n+/)
+    .map(compactSpaces)
+    .filter(Boolean)
+    .flatMap((line) => (options.width ? pdf.splitTextToSize(line, options.width) : [line]));
+  const lineHeight = options.lineHeight || 4;
+  lines.forEach((line, index) => {
+    pdf.text(line, x, y + index * lineHeight, options.align ? { align: options.align } : undefined);
+  });
+  return y + lines.length * lineHeight;
+}
+
+function addPrescriptionHeader(pdf, branding = DEFAULT_BRANDING) {
+  pdf.setTextColor(17, 24, 39);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(13);
+  pdf.text(branding.clinicTitle || DEFAULT_BRANDING.clinicTitle, 6, 12);
+
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(7.6);
+  addMultilineText(pdf, branding.clinicAddress || DEFAULT_BRANDING.clinicAddress, 6, 18, { lineHeight: 4, width: 82 });
+
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(8.8);
+  pdf.text(branding.doctorName || DEFAULT_BRANDING.doctorName, 204, 12, { align: 'right' });
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(7.8);
+  addMultilineText(pdf, branding.doctorDetails || DEFAULT_BRANDING.doctorDetails, 204, 17, { lineHeight: 4, width: 70, align: 'right' });
+
+  pdf.setDrawColor(95, 104, 116);
+  pdf.setLineWidth(0.25);
+  pdf.line(6, 25, 204, 25);
+}
+
+function addPatientBand(pdf, entry, visitIso) {
+  pdf.setDrawColor(222, 226, 232);
+  pdf.setLineWidth(0.25);
+  pdf.rect(6, 29, 198, 16);
+  pdf.setFontSize(8.3);
+  pdf.setTextColor(17, 24, 39);
+
+  const leftX = 8;
+  const midX = 83;
+  const rightX = 146;
+  const row1 = 34;
+  const row2 = 38.5;
+  const row3 = 43;
+
+  const writePair = (label, value, x, y) => {
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(`${label}:`, x, y);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(clean(value) || '-', x + pdf.getTextWidth(`${label}: `) + 0.8, y);
+  };
+
+  writePair('Name', entry.childName || '-', leftX, row1);
+  writePair('Age/Sex', `${formatCompactAge(entry.age || entry.ageText || '-')} / ${entry.gender || '-'}`, leftX, row2);
+  writePair('Office ID', entry.patientId || '-', leftX, row3);
+  writePair('Date', formatPrescriptionDate(visitIso), midX, row1);
+  writePair('Mobile', entry.phone || entry.mobileNumber || '-', midX, row2);
+  writePair('Weight', clean(entry.weight) ? `${entry.weight} kg` : '-', rightX, row1);
+  writePair('Height', clean(entry.height) ? `${entry.height} cm` : '-', rightX, row2);
+}
+
+function parseMedicationRows(entry) {
+  return listValues(entry.drugs || entry.rawDrug)
+    .map((item) => ({
+      name: item,
+      quantity: '-',
+      frequency: '-',
+      duration: '-',
+      food: ''
+    }))
+    .slice(0, 8);
+}
+
+function addMedicationTable(pdf, rows, y) {
+  if (!rows.length) {
+    return y;
+  }
+
+  y = ensurePageSpace(pdf, y, 28 + rows.length * 9);
+  const x = 6;
+  const widths = [14, 66, 38, 44, 36];
+  const xs = widths.reduce((acc, width) => {
+    acc.push(acc[acc.length - 1] + width);
+    return acc;
+  }, [x]);
+  const tableWidth = widths.reduce((sum, width) => sum + width, 0);
+  const headerHeight = 7;
+  const rowHeight = 9;
+
+  pdf.setDrawColor(83, 94, 108);
+  pdf.setLineWidth(0.45);
+  pdf.setFillColor(232, 234, 238);
+  pdf.rect(x, y, tableWidth, headerHeight, 'FD');
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(8.4);
+  [' ', 'Medication', 'Quantity', 'Frequency', 'Duration'].forEach((header, index) => {
+    pdf.text(header, xs[index] + widths[index] / 2, y + 4.7, { align: 'center' });
+  });
+  for (let index = 1; index < xs.length - 1; index += 1) {
+    pdf.line(xs[index], y, xs[index], y + headerHeight + rows.length * rowHeight);
+  }
+
+  y += headerHeight;
+  rows.forEach((row, index) => {
+    pdf.rect(x, y, tableWidth, rowHeight);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(8.4);
+    pdf.text(String(index + 1), xs[0] + widths[0] / 2, y + 5.7, { align: 'center' });
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(pdf.splitTextToSize(row.name || '-', widths[1] - 4).slice(0, 1), xs[1] + 2, y + 4.2);
+    if (row.food) {
+      pdf.setFont('helvetica', 'italic');
+      pdf.setFontSize(6.8);
+      pdf.text(row.food, xs[1] + 2, y + 7.4);
+    }
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(8.2);
+    pdf.text(row.quantity || '-', xs[2] + widths[2] / 2, y + 5.7, { align: 'center' });
+    pdf.text(row.frequency || '-', xs[3] + widths[3] / 2, y + 5.7, { align: 'center' });
+    pdf.text(row.duration || '-', xs[4] + widths[4] / 2, y + 5.7, { align: 'center' });
+    y += rowHeight;
+  });
+
+  return y + 5;
+}
+
+function addPrescriptionFooter(pdf, branding = DEFAULT_BRANDING) {
+  const footerY = 277;
+  if (branding.signatureDataUrl) {
+    try {
+      pdf.addImage(branding.signatureDataUrl, 'PNG', 6, footerY - 19, 48, 16, undefined, 'FAST');
+    } catch {
+      // Ignore invalid signature data and keep the footer text.
+    }
+  }
+
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(7.5);
+  pdf.setTextColor(17, 24, 39);
+  pdf.text(branding.doctorName || DEFAULT_BRANDING.doctorName, 6, footerY);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(7.2);
+  addMultilineText(pdf, branding.doctorDetails || DEFAULT_BRANDING.doctorDetails, 6, footerY + 4, { lineHeight: 4, width: 70 });
+
+  pdf.setFontSize(6.8);
+  addMultilineText(pdf, branding.footerText || DEFAULT_BRANDING.footerText, 204, footerY + 1, { lineHeight: 4, width: 82, align: 'right' });
+}
+
 function addSection(pdf, title, values, y) {
   const items = Array.isArray(values) ? values.filter(Boolean) : [values].filter(Boolean);
   if (!items.length) {
@@ -468,96 +692,49 @@ function addGrowthCharts(pdf, entry, visitIso, y, seriesEntries = []) {
     return y;
   }
 
-  y = ensurePageSpace(pdf, y, 80);
-  pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(10);
-  pdf.setTextColor(17, 24, 39);
-  pdf.text('Growth Charts', 16, y);
-  y += 5;
+  y = ensurePageSpace(pdf, y, 42);
 
-  const cardWidth = 84;
-  const cardHeight = 61;
+  const cardWidth = 43;
+  const cardHeight = 33;
+  const gap = 7;
   let rendered = 0;
 
   requests.forEach((request, index) => {
-    const col = index % 2;
-    const row = Math.floor(index / 2);
-    const cardX = col === 0 ? 16 : 110;
-    const cardY = y + row * 70;
+    const col = index % 4;
+    const row = Math.floor(index / 4);
+    const cardX = 13 + col * (cardWidth + gap);
+    const cardY = y + row * 40;
     if (addChartCard(pdf, request, cardX, cardY, cardWidth, cardHeight, seriesEntries)) {
       rendered += 1;
     }
   });
 
-  return rendered ? y + Math.ceil(requests.length / 2) * 70 + 2 : y - 5;
+  return rendered ? y + Math.ceil(requests.length / 4) * 40 + 2 : y;
 }
 
 function renderPdf(entry, options = {}) {
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const visitIso = getIso(entry.createdAtIso || entry.measuredAt || entry.visitDate);
-  const visitDisplay = formatDisplayDate(visitIso || entry.createdAtDisplay || entry.visitDate);
-  const vitals = buildVitals(entry);
+  const branding = options.branding || DEFAULT_BRANDING;
   const seriesEntries = Array.isArray(options.seriesEntries) && options.seriesEntries.length
     ? options.seriesEntries
     : [entry];
 
-  pdf.setTextColor(17, 24, 39);
-  pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(12);
-  pdf.text('Kid Clinic', 16, 17);
+  addPrescriptionHeader(pdf, branding);
+  addPatientBand(pdf, entry, visitIso);
 
-  pdf.setFontSize(8);
-  pdf.text('Dr. Gunda Srinivas', 194, 17, { align: 'right' });
-  pdf.setFont('helvetica', 'normal');
-  pdf.text('Imported historical prescription', 16, 22);
-  pdf.text(`Date: ${visitDisplay || '-'}`, 194, 22, { align: 'right' });
-
-  pdf.setDrawColor(220, 226, 221);
-  pdf.line(16, 27, 194, 27);
-
-  pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(9);
-  pdf.text('Patient', 16, 35);
-  pdf.text('Contact', 112, 35);
-
-  pdf.setFont('helvetica', 'normal');
-  pdf.text(`Name: ${entry.childName || '-'}`, 16, 41);
-  pdf.text(`ID: ${entry.patientId || '-'}`, 16, 46);
-  pdf.text(`Age: ${entry.age || entry.ageText || '-'}`, 16, 51);
-  pdf.text(`Gender: ${entry.gender || '-'}`, 16, 56);
-  pdf.text(`Phone: ${entry.phone || '-'}`, 112, 41);
-  pdf.text(`Visit type: ${entry.visitType || entry.appointmentType || '-'}`, 112, 46);
-  pdf.text(`Status: ${entry.appointmentStatus || '-'}`, 112, 51);
-
-  let y = 67;
-  y = addSection(pdf, 'Symptoms', listValues(entry.symptoms || entry.rawSymptom), y);
-  y = addSection(pdf, 'Finding', listValues(entry.findings || entry.rawFinding), y);
-  y = addSection(pdf, 'Notes', listValues(entry.notes || entry.rawNotes), y);
-  y = addSection(pdf, 'Diagnosis', listValues(entry.diagnosis || entry.rawDiagnosis), y);
-  y = addSection(pdf, 'Investigation', listValues(entry.investigation || entry.rawInvestigation), y);
-  y = addSection(pdf, 'Past Medical History', listValues(entry.pastMedicalHistory || entry.rawPastMedicalHistory), y);
-  y = addSection(pdf, 'Medication', listValues(entry.drugs || entry.rawDrug), y);
-  y = addSection(pdf, 'Instruction', listValues(entry.instruction || entry.instructions || entry.rawInstruction), y);
-  y = addSection(pdf, 'Vitals', vitals, y);
+  let y = 51;
+  y = addInlineRow(pdf, 'Symptoms', listValues(entry.symptoms || entry.rawSymptom).join(', '), 6, y, 198);
+  y = addInlineRow(pdf, 'Finding', listValues(entry.findings || entry.rawFinding).join(', '), 6, y, 198);
+  y = addInlineRow(pdf, 'Notes', listValues(entry.notes || entry.rawNotes).join(', '), 6, y, 198);
+  y = addInlineRow(pdf, 'Diagnosis', listValues(entry.diagnosis || entry.rawDiagnosis).join(', '), 6, y, 198);
+  y = addInlineRow(pdf, 'Investigation', listValues(entry.investigation || entry.rawInvestigation).join(', '), 6, y, 198);
+  y = addInlineRow(pdf, 'Past Medical History', listValues(entry.pastMedicalHistory || entry.rawPastMedicalHistory).join(', '), 6, y, 198);
+  y = addMedicationTable(pdf, parseMedicationRows(entry), y + 2);
+  y = addInlineRow(pdf, 'Instruction', listValues(entry.instruction || entry.instructions || entry.rawInstruction).join(' | '), 6, y, 198);
   y = addGrowthCharts(pdf, entry, visitIso, y, seriesEntries);
 
-  const appointmentLines = [];
-  if (entry.appointmentId) appointmentLines.push(`Appointment ID: ${entry.appointmentId}`);
-  if (entry.channel) appointmentLines.push(`Channel: ${entry.channel}`);
-  if (entry.followUpDate) appointmentLines.push(`Follow up: ${entry.followUpDate}`);
-  y = addSection(pdf, 'Appointment', appointmentLines, y);
-
-  if (y < 250) {
-    y = 250;
-  }
-  pdf.setDrawColor(220, 226, 221);
-  pdf.line(16, y, 194, y);
-  pdf.setFontSize(7);
-  pdf.setTextColor(90, 105, 97);
-  pdf.text('Generated from imported historical CSV data. Please verify clinically before reuse.', 16, y + 6);
-  if (options.referencePdfName) {
-    pdf.text(`Reference PDF: ${options.referencePdfName}`, 16, y + 10);
-  }
+  addPrescriptionFooter(pdf, branding);
 
   return Buffer.from(pdf.output('arraybuffer'));
 }
@@ -573,11 +750,17 @@ async function main() {
   const generatedFromMarker = vitalsOnlyMode ? 'csv-import-vitals-history' : 'csv-import-history';
   const storageSourceMarker = vitalsOnlyMode ? 'csv-import-vitals-prescription-pdf' : 'csv-import-prescription-pdf';
   const existingQuery = query(historyRef, where('generatedFrom', '==', generatedFromMarker));
-  const [snapshot, existingSnapshot, patientsSnapshot] = await Promise.all([
+  const brandingRef = doc(db, CLINIC_NAMESPACE, 'clinicSettings', 'prescriptionBranding');
+  const [snapshot, existingSnapshot, patientsSnapshot, brandingSnapshot] = await Promise.all([
     getDocs(historyQuery),
     getDocs(existingQuery),
-    getDocs(patientsRef)
+    getDocs(patientsRef),
+    getDoc(brandingRef)
   ]);
+  const branding = {
+    ...DEFAULT_BRANDING,
+    ...(brandingSnapshot.exists() ? brandingSnapshot.data() : {})
+  };
 
   const existingGeneratedDocIds = new Set(existingSnapshot.docs.map((docSnapshot) => docSnapshot.id));
   const patientsById = new Map(patientsSnapshot.docs.map((docSnapshot) => {
@@ -631,8 +814,13 @@ async function main() {
   console.log(`Concurrency: ${concurrency}`);
   console.log(`Import batch: ${importBatchId}`);
   console.log(`Mode: ${vitalsOnlyMode ? 'vitals only' : 'all clinical CSV history'}`);
+  console.log('Renderer: normal-preview-layout-v2');
   if (referencePdfName) {
     console.log(`Reference PDF: ${referencePdfName}`);
+  }
+  if (outputDir) {
+    fs.mkdirSync(outputDir, { recursive: true });
+    console.log(`Output directory: ${outputDir}`);
   }
 
   if (!writeMode) {
@@ -649,8 +837,11 @@ async function main() {
     const seriesEntries = patientVitals
       .filter((candidate) => (getEntryTimestamp(candidate) || 0) <= visitTime)
       .slice(-30);
-    const pdfBuffer = renderPdf(entry, { seriesEntries, referencePdfName });
+    const pdfBuffer = renderPdf(entry, { seriesEntries, referencePdfName, branding });
     const storageRef = ref(storage, storagePath);
+    if (outputDir) {
+      fs.writeFileSync(path.join(outputDir, fileName), pdfBuffer);
+    }
 
     await uploadBytes(storageRef, pdfBuffer, {
       contentType: 'application/pdf',
