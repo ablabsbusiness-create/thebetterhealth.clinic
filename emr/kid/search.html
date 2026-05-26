@@ -2499,6 +2499,14 @@
       return String(value || '').trim().toUpperCase();
     }
 
+    function isUsablePatientId(value) {
+      const patientId = getNormalizedPatientId(value);
+      return Boolean(patientId)
+        && patientId !== '-'
+        && patientId !== 'ID NOT SAVED'
+        && patientId !== 'UNKNOWN';
+    }
+
     function isPrescriptionHistoryEntry(entry) {
       if (!entry || typeof entry !== 'object') {
         return false;
@@ -2522,7 +2530,7 @@
         || fallbackId
       );
 
-      if (!normalizedPatientId) {
+      if (!isUsablePatientId(normalizedPatientId)) {
         return null;
       }
 
@@ -2571,7 +2579,7 @@
       }
 
       const patientId = getNormalizedPatientId(patient.patientId || patient.id || '');
-      if (!patientId || patientId === 'ID NOT SAVED') {
+      if (!isUsablePatientId(patientId)) {
         return [];
       }
 
