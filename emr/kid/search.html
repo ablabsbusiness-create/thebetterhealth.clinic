@@ -2293,11 +2293,7 @@
 
     function saveSearchCache() {
       try {
-        localStorage.setItem(LOCAL_SEARCH_CACHE_KEY, JSON.stringify({
-          savedAt: Date.now(),
-          patients: getCacheablePatients(),
-          history: []
-        }));
+        localStorage.removeItem(LOCAL_SEARCH_CACHE_KEY);
       } catch (error) {
         localStorage.removeItem(LOCAL_SEARCH_CACHE_KEY);
         console.warn(`Unable to keep recent patient list: ${error.message}`);
@@ -2305,17 +2301,7 @@
     }
 
     function showSearchCache() {
-      const cache = getSearchCache();
-      if (!cache || cache.patients.length === 0) {
-        return false;
-      }
-
-      allPatients = cache.patients;
-      allHistory = cache.history;
-      rebuildHistoryIndexes();
-      filterPatients();
-      setStatus('Showing recent records while updating...');
-      return true;
+      return false;
     }
 
     function getQueueState() {
@@ -2885,6 +2871,27 @@
       return String(value || '').replace(/\D+/g, '');
     }
 
+    function normalizeSearchText(value) {
+      return String(value || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim()
+        .replace(/\s+/g, ' ');
+    }
+
+    function getPatientNameParts(patient) {
+      const displayName = normalizeSearchText(getPatientDisplayName(patient));
+      const explicitNames = [
+        patient.childName,
+        patient.firstName,
+        patient.middleName,
+        patient.lastName
+      ].map(normalizeSearchText).filter(Boolean);
+      const names = [...new Set([displayName, ...explicitNames].filter(Boolean))];
+      const tokens = [...new Set(names.flatMap((value) => value.split(/\s+/)).filter(Boolean))];
+      return { names, tokens };
+    }
+
     function getPatientSearchTokens(patient) {
       if (Array.isArray(patient.__searchTokens)) {
         return patient.__searchTokens;
@@ -2908,23 +2915,60 @@
       return tokens;
     }
 
-    function patientMatchesSearch(patient, rawSearchValue) {
-      const loweredSearchValue = rawSearchValue.trim().toLowerCase();
+    function getPatientSearchRank(patient, rawSearchValue) {
+      const loweredSearchValue = normalizeSearchText(rawSearchValue);
       if (!loweredSearchValue) {
-        return true;
+        return 0;
       }
 
       const normalizedPatientId = getNormalizedPatientId(patient.patientId);
       const normalizedSearchPatientId = getNormalizedPatientId(rawSearchValue);
-      if (/^SX[A-Z0-9]+$/.test(normalizedSearchPatientId)) {
-        return normalizedPatientId === normalizedSearchPatientId;
+      const normalizedSearchValue = normalizeSearchValue(rawSearchValue);
+      const normalizedPatientPhones = [
+        patient.phone,
+        patient.mobileNumber
+      ].map(normalizeSearchValue).filter(Boolean);
+      const isLikelyPatientIdSearch = /^(GS|SAC|SX|TEST)[A-Z0-9]*/.test(normalizedSearchPatientId)
+        || /\d/.test(normalizedSearchPatientId);
+      const { names, tokens } = getPatientNameParts(patient);
+
+      if (names.some((name) => name === loweredSearchValue)) {
+        return 100;
+      }
+      if (names.some((name) => name.startsWith(loweredSearchValue))) {
+        return 90;
+      }
+      if (tokens.some((token) => token === loweredSearchValue)) {
+        return 80;
+      }
+      if (tokens.some((token) => token.startsWith(loweredSearchValue))) {
+        return 70;
+      }
+      if (isLikelyPatientIdSearch && normalizedPatientId && normalizedSearchPatientId && normalizedPatientId === normalizedSearchPatientId) {
+        return 65;
+      }
+      if (isLikelyPatientIdSearch && normalizedPatientId && normalizedSearchPatientId && normalizedPatientId.startsWith(normalizedSearchPatientId)) {
+        return 60;
+      }
+      if (normalizedSearchValue && normalizedPatientPhones.some((phone) => phone === normalizedSearchValue)) {
+        return 58;
+      }
+      if (normalizedSearchValue && normalizedPatientPhones.some((phone) => phone.includes(normalizedSearchValue))) {
+        return 50;
+      }
+      if (isLikelyPatientIdSearch && normalizedPatientId && normalizedSearchPatientId && normalizedPatientId.includes(normalizedSearchPatientId)) {
+        return 40;
       }
 
-      const normalizedSearchValue = normalizeSearchValue(rawSearchValue);
-      const normalizedPatientPhone = normalizeSearchValue(patient.phone);
+      return 0;
+    }
 
-      return getPatientSearchTokens(patient).some((token) => token.startsWith(loweredSearchValue))
-        || Boolean(normalizedSearchValue && normalizedPatientPhone.includes(normalizedSearchValue));
+    function patientMatchesSearch(patient, rawSearchValue) {
+      if (!rawSearchValue.trim()) {
+        return true;
+      }
+
+      return getPatientSearchRank(patient, rawSearchValue) > 0;
     }
 
     function sortByPatientName(left, right) {
@@ -3693,7 +3737,11 @@
     function filterPatients() {
       const searchValue = searchInput.value.trim();
       const filteredPatients = searchValue
-        ? allPatients.filter((patient) => patientMatchesSearch(patient, searchValue))
+        ? allPatients
+          .map((patient) => ({ patient, rank: getPatientSearchRank(patient, searchValue) }))
+          .filter((entry) => entry.rank > 0)
+          .sort((left, right) => right.rank - left.rank || sortByPatientName(left.patient, right.patient))
+          .map((entry) => entry.patient)
         : allPatients;
 
       if (selectedPatientId && !filteredPatients.some((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId)) {
