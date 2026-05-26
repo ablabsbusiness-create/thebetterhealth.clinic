@@ -511,7 +511,14 @@ function isJunkCatalogItem(value) {
 
 function buildImportData() {
   const rows = Object.fromEntries(Object.entries(CSV_FILES).map(([key, fileName]) => [key, readCsvRows(fileName)]));
-  const patientIdLookup = buildPatientIdLookup(rows.patients);
+  const patientIdLookup = buildPatientIdLookup([
+    ...rows.patients,
+    ...rows.appointments,
+    ...rows.vitals,
+    ...rows.symptoms,
+    ...rows.diagnosis,
+    ...rows.drugs
+  ]);
   const patients = new Map();
   const history = new Map();
   let historyInputRows = 0;

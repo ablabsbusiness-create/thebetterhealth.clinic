@@ -950,9 +950,9 @@ function addChartCard(pdf, request, x, y, width, height, seriesEntries = []) {
 
   points.forEach((point) => {
     pdf.setFillColor(17, 17, 17);
-    pdf.circle(point.x, point.y, 1.45, 'F');
+    pdf.circle(point.x, point.y, 0.75, 'F');
     pdf.setDrawColor(255, 255, 255);
-    pdf.circle(point.x, point.y, 2.15, 'S');
+    pdf.circle(point.x, point.y, 1.05, 'S');
   });
   return true;
 }
