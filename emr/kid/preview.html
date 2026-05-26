@@ -952,7 +952,7 @@
     let activePrescriptionBranding = null;
     const patientMeasurementHistoryCache = new Map();
     const CHART_ASSET_VERSION = '2026-05-22-growth-recalibrated';
-    const CHART_PREVIEW_VERSION = 'preview-rebuilt-2026-05-iap-past-vitals';
+    const CHART_PREVIEW_VERSION = 'preview-rebuilt-2026-05-iap-reference-lines';
     const CHART_RENDER_MAX_WIDTH = 1600;
     const CHART_RENDER_SCALE = 6;
     const CHART_POINT_RADIUS = 7;
@@ -1565,6 +1565,131 @@
       };
     }
 
+    function getChartReferenceAnchors(request) {
+      const chartId = String(request?.chartId || '');
+      const isZeroToFive = chartId.includes('0-5') || request?.x?.max === 60;
+      if (!isZeroToFive) {
+        return null;
+      }
+
+      const isFemale = chartId.startsWith('girls');
+      const metric = request.metricKey;
+
+      if (metric === 'height') {
+        const shift = isFemale ? -1.2 : 0;
+        return [
+          { label: 'P3', start: 46 + shift, end: 100 + shift },
+          { label: 'P15', start: 48 + shift, end: 104 + shift },
+          { label: 'P50', start: 50 + shift, end: 110 + shift },
+          { label: 'P85', start: 52 + shift, end: 116 + shift },
+          { label: 'P97', start: 54 + shift, end: 120 + shift }
+        ];
+      }
+
+      if (metric === 'weight') {
+        const shift = isFemale ? -0.5 : 0;
+        return [
+          { label: 'P3', start: 2.5 + shift, end: 14 + shift },
+          { label: 'P15', start: 2.9 + shift, end: 16 + shift },
+          { label: 'P50', start: 3.4 + shift, end: 18 + shift },
+          { label: 'P85', start: 4 + shift, end: 21 + shift },
+          { label: 'P97', start: 4.6 + shift, end: 24 + shift }
+        ];
+      }
+
+      if (metric === 'head') {
+        const shift = isFemale ? -0.8 : 0;
+        return [
+          { label: 'P3', start: 32 + shift, end: 47 + shift },
+          { label: 'P15', start: 33.5 + shift, end: 49 + shift },
+          { label: 'P50', start: 35 + shift, end: 51 + shift },
+          { label: 'P85', start: 36.5 + shift, end: 53 + shift },
+          { label: 'P97', start: 38 + shift, end: 55 + shift }
+        ];
+      }
+
+      if (metric === 'bmi') {
+        const shift = isFemale ? -0.04 : 0;
+        return [
+          { label: 'P3', start: 12 + shift, peak: 13.4 + shift, end: 12.4 + shift },
+          { label: 'P15', start: 12.8 + shift, peak: 14.5 + shift, end: 13.4 + shift },
+          { label: 'P50', start: 13.8 + shift, peak: 16.2 + shift, end: 15.2 + shift },
+          { label: 'P85', start: 15.3 + shift, peak: 18.3 + shift, end: 17.5 + shift },
+          { label: 'P97', start: 16.8 + shift, peak: 20.4 + shift, end: 19.5 + shift }
+        ];
+      }
+
+      return null;
+    }
+
+    function mapReferencePoint(request, bounds, xValue, yValue) {
+      const rawXRatio = (xValue - request.x.min) / (request.x.max - request.x.min);
+      const rawYRatio = (yValue - request.y.min) / (request.y.max - request.y.min);
+      const xRatio = clampRatio(rawXRatio);
+      const yRatio = clampRatio(rawYRatio);
+      return {
+        x: bounds.left + xRatio * (bounds.right - bounds.left),
+        y: bounds.bottom - yRatio * (bounds.bottom - bounds.top)
+      };
+    }
+
+    function drawReferenceCurves(context, request, bounds, renderScale) {
+      const anchors = getChartReferenceAnchors(request);
+      if (!anchors) {
+        return;
+      }
+
+      context.save();
+      context.strokeStyle = '#98a1ab';
+      context.fillStyle = '#525a65';
+      context.lineWidth = Math.max(1, renderScale * 0.28);
+      context.lineJoin = 'round';
+      context.lineCap = 'round';
+      context.font = `${Math.max(10, renderScale * 4)}px Arial`;
+
+      anchors.forEach((curve) => {
+        const points = [];
+        for (let step = 0; step <= 24; step += 1) {
+          const ratio = step / 24;
+          const xValue = request.x.min + ratio * (request.x.max - request.x.min);
+          let yValue;
+
+          if (request.metricKey === 'bmi') {
+            const peakRatio = 0.18;
+            if (ratio <= peakRatio) {
+              const local = ratio / peakRatio;
+              yValue = curve.start + (curve.peak - curve.start) * (1 - Math.cos(local * Math.PI)) / 2;
+            } else {
+              const local = (ratio - peakRatio) / (1 - peakRatio);
+              yValue = curve.peak + (curve.end - curve.peak) * (1 - Math.cos(local * Math.PI)) / 2;
+            }
+          } else {
+            const eased = (1 - Math.exp(-3.2 * ratio)) / (1 - Math.exp(-3.2));
+            yValue = curve.start + (curve.end - curve.start) * eased;
+          }
+
+          points.push(mapReferencePoint(request, bounds, xValue, yValue));
+        }
+
+        context.beginPath();
+        points.forEach((point, index) => {
+          if (index === 0) {
+            context.moveTo(point.x, point.y);
+          } else {
+            context.lineTo(point.x, point.y);
+          }
+        });
+        context.stroke();
+
+        const labelPoint = points[points.length - 1];
+        if (labelPoint) {
+          context.fillText(curve.label, Math.min(bounds.right - 2, labelPoint.x + renderScale * 1.5), labelPoint.y + renderScale * 1.2);
+        }
+      });
+
+      context.restore();
+    }
+
     async function renderFreshChartPage(request, patientData) {
       const image = await loadChartImage(request.path);
       const sourceWidth = image.naturalWidth || 260;
@@ -1658,6 +1783,12 @@
       context.beginPath();
       context.rect(plotLeft, plotTop, plotRight - plotLeft, plotBottom - plotTop);
       context.clip();
+      drawReferenceCurves(context, request, {
+        left: plotLeft,
+        top: plotTop,
+        right: plotRight,
+        bottom: plotBottom
+      }, renderScale);
 
       if (mappedPoints.length > 1) {
         context.beginPath();

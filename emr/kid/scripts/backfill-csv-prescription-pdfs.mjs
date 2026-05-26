@@ -644,6 +644,120 @@ function getChartPoint(request, entry) {
   };
 }
 
+function mapChartValueToPage(chart, x, y, width, height, xValue, yValue) {
+  const plot = chart.plotArea || { left: 0.1731, top: 0.117, right: 0.8269, bottom: 0.8617 };
+  const rawXRatio = (xValue - chart.xMin) / (chart.xMax - chart.xMin);
+  const rawYRatio = (yValue - chart.yMin) / (chart.yMax - chart.yMin);
+  const xRatio = Math.min(1, Math.max(0, rawXRatio));
+  const yRatio = Math.min(1, Math.max(0, rawYRatio));
+
+  return {
+    x: x + (plot.left + xRatio * (plot.right - plot.left)) * width,
+    y: y + 2 + (plot.bottom - yRatio * (plot.bottom - plot.top)) * height
+  };
+}
+
+function getReferenceCurveAnchors(chart) {
+  const sexOffset = chart.sex === 'female' ? -0.04 : 0;
+  const metric = chart.metric;
+
+  if (chart.ageGroup !== '0-5') {
+    return null;
+  }
+
+  if (metric === 'height') {
+    const shift = chart.sex === 'female' ? -1.2 : 0;
+    return [
+      { label: 'P3', start: 46 + shift, end: 100 + shift },
+      { label: 'P15', start: 48 + shift, end: 104 + shift },
+      { label: 'P50', start: 50 + shift, end: 110 + shift },
+      { label: 'P85', start: 52 + shift, end: 116 + shift },
+      { label: 'P97', start: 54 + shift, end: 120 + shift }
+    ];
+  }
+
+  if (metric === 'weight') {
+    const shift = chart.sex === 'female' ? -0.5 : 0;
+    return [
+      { label: 'P3', start: 2.5 + shift, end: 14 + shift },
+      { label: 'P15', start: 2.9 + shift, end: 16 + shift },
+      { label: 'P50', start: 3.4 + shift, end: 18 + shift },
+      { label: 'P85', start: 4 + shift, end: 21 + shift },
+      { label: 'P97', start: 4.6 + shift, end: 24 + shift }
+    ];
+  }
+
+  if (metric === 'head') {
+    const shift = chart.sex === 'female' ? -0.8 : 0;
+    return [
+      { label: 'P3', start: 32 + shift, end: 47 + shift },
+      { label: 'P15', start: 33.5 + shift, end: 49 + shift },
+      { label: 'P50', start: 35 + shift, end: 51 + shift },
+      { label: 'P85', start: 36.5 + shift, end: 53 + shift },
+      { label: 'P97', start: 38 + shift, end: 55 + shift }
+    ];
+  }
+
+  if (metric === 'bmi') {
+    return [
+      { label: 'P3', start: 12 + sexOffset, peak: 13.4 + sexOffset, end: 12.4 + sexOffset },
+      { label: 'P15', start: 12.8 + sexOffset, peak: 14.5 + sexOffset, end: 13.4 + sexOffset },
+      { label: 'P50', start: 13.8 + sexOffset, peak: 16.2 + sexOffset, end: 15.2 + sexOffset },
+      { label: 'P85', start: 15.3 + sexOffset, peak: 18.3 + sexOffset, end: 17.5 + sexOffset },
+      { label: 'P97', start: 16.8 + sexOffset, peak: 20.4 + sexOffset, end: 19.5 + sexOffset }
+    ];
+  }
+
+  return null;
+}
+
+function drawReferenceCurves(pdf, chart, x, y, width, height) {
+  const anchors = getReferenceCurveAnchors(chart);
+  if (!anchors) {
+    return;
+  }
+
+  pdf.setDrawColor(152, 161, 171);
+  pdf.setLineWidth(0.16);
+  pdf.setTextColor(82, 90, 101);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(3.6);
+
+  anchors.forEach((curve) => {
+    const points = [];
+    for (let step = 0; step <= 18; step += 1) {
+      const ratio = step / 18;
+      const xValue = chart.xMin + ratio * (chart.xMax - chart.xMin);
+      let yValue;
+
+      if (chart.metric === 'bmi') {
+        const peakRatio = 0.18;
+        if (ratio <= peakRatio) {
+          const local = ratio / peakRatio;
+          yValue = curve.start + (curve.peak - curve.start) * (1 - Math.cos(local * Math.PI)) / 2;
+        } else {
+          const local = (ratio - peakRatio) / (1 - peakRatio);
+          yValue = curve.peak + (curve.end - curve.peak) * (1 - Math.cos(local * Math.PI)) / 2;
+        }
+      } else {
+        const eased = (1 - Math.exp(-3.2 * ratio)) / (1 - Math.exp(-3.2));
+        yValue = curve.start + (curve.end - curve.start) * eased;
+      }
+
+      points.push(mapChartValueToPage(chart, x, y, width, height, xValue, yValue));
+    }
+
+    for (let index = 1; index < points.length; index += 1) {
+      pdf.line(points[index - 1].x, points[index - 1].y, points[index].x, points[index].y);
+    }
+
+    const labelPoint = points[points.length - 1];
+    if (labelPoint) {
+      pdf.text(curve.label, Math.min(x + width - 1, labelPoint.x + 1), labelPoint.y + 0.8);
+    }
+  });
+}
+
 function addChartCard(pdf, request, x, y, width, height, seriesEntries = []) {
   const imagePath = path.join(KID_ROOT, request.chart.backgroundImage);
   if (!fs.existsSync(imagePath)) {
@@ -656,6 +770,7 @@ function addChartCard(pdf, request, x, y, width, height, seriesEntries = []) {
   pdf.setTextColor(17, 24, 39);
   pdf.text(request.chart.label || `${request.metric} chart`, x, y);
   pdf.addImage(imageData, 'PNG', x, y + 2, width, height, undefined, 'FAST');
+  drawReferenceCurves(pdf, request.chart, x, y, width, height);
 
   const points = seriesEntries
     .map((entry) => getChartPoint(request, entry))
