@@ -1181,6 +1181,23 @@
       return (params.get('patientId') || '').trim().toUpperCase();
     }
 
+    function normalizePatientId(value) {
+      return String(value || '').trim().toUpperCase();
+    }
+
+    function isValidPatientId(value) {
+      const patientId = normalizePatientId(value);
+      return Boolean(patientId)
+        && patientId !== '-'
+        && patientId !== 'UNKNOWN'
+        && patientId !== 'ID NOT SAVED';
+    }
+
+    function getValidatedPrescriptionPatientId(draft, chartRecord) {
+      const patientId = normalizePatientId(draft?.patientId || chartRecord?.patientId || getPatientIdFromUrl());
+      return isValidPatientId(patientId) ? patientId : '';
+    }
+
     function getActivePrescriptionDraft() {
       const draft = readJson(PRESCRIPTION_DRAFT_STORAGE_KEY, null);
       if (!draft || Number(draft.expiresAt) <= Date.now()) {
@@ -2096,7 +2113,7 @@
       const sections = draft?.sections || {};
       const sectionDetails = draft?.sectionDetails || {};
       const medicineRows = getMedicineRows(draft);
-      const patientId = draft?.patientId || chartRecord?.patientId || getPatientIdFromUrl() || '-';
+      const patientId = getValidatedPrescriptionPatientId(draft, chartRecord) || '-';
       const now = new Date().toISOString();
       const instructions = sections.Instruction || [];
       const branding = getPrescriptionBranding();
@@ -2248,7 +2265,10 @@
         preparedChartRecord = chartRecord;
         persistPreparedChartRecord(chartRecord);
       }
-      const patientId = draft?.patientId || chartRecord?.patientId || getPatientIdFromUrl() || '-';
+      const patientId = getValidatedPrescriptionPatientId(draft, chartRecord);
+      if (!patientId) {
+        throw new Error('Select a valid patient before saving a prescription.');
+      }
       buildPreviewHtml();
       const sheetCanvas = await renderPrescriptionSheetCanvas();
       const pdf = buildPdfFromCanvas(sheetCanvas);
@@ -2282,7 +2302,10 @@
         return { ok: false, reason: 'Online records are not configured.' };
       }
 
-      const patientId = details.patientId || 'UNKNOWN';
+      const patientId = normalizePatientId(details.patientId);
+      if (!isValidPatientId(patientId)) {
+        return { ok: false, reason: 'Select a valid patient before saving a prescription.' };
+      }
       const storagePath = `${CLINIC_STORAGE_PREFIX}/prescriptions/${patientId}/${fileName}`;
       let persistedStoragePath = '';
       let previewImageURL = '';
@@ -2354,9 +2377,12 @@
         setPreviewStatus('Saving prescription...');
         const details = await buildPdf();
         const { pdf, patientId, childName, phone, previewBlob } = details;
+        if (!isValidPatientId(patientId)) {
+          throw new Error('Select a valid patient before saving a prescription.');
+        }
         const fallbackSaveId = window.crypto?.randomUUID
-          ? `rx-${patientId || 'UNKNOWN'}-${window.crypto.randomUUID()}`
-          : `rx-${patientId || 'UNKNOWN'}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+          ? `rx-${patientId}-${window.crypto.randomUUID()}`
+          : `rx-${patientId}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
         const saveId = details.draftId || fallbackSaveId;
         const fileName = `${saveId}.pdf`;
         const pdfBlob = pdf.output('blob');

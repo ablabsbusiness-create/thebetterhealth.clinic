@@ -2293,6 +2293,14 @@
       return (params.get('patientId') || '').trim().toUpperCase();
     }
 
+    function isValidPatientId(value) {
+      const patientId = String(value || '').trim().toUpperCase();
+      return Boolean(patientId)
+        && patientId !== '-'
+        && patientId !== 'UNKNOWN'
+        && patientId !== 'ID NOT SAVED';
+    }
+
     function stripChartPageData(record) {
       return {
         ...record,
@@ -2386,7 +2394,7 @@
 
     function getPreviewTargetUrl() {
       const patientId = getCurrentPatientId() || getActiveChartRecord()?.patientId || '';
-      return patientId
+      return isValidPatientId(patientId)
         ? `preview?patientId=${encodeURIComponent(patientId)}`
         : 'preview';
     }
@@ -2400,6 +2408,10 @@
     }
 
     function getPrescriptionDraftId(patientId) {
+      if (!isValidPatientId(patientId)) {
+        return '';
+      }
+
       const existingDraft = readLocalJson(PRESCRIPTION_DRAFT_STORAGE_KEY, null);
       if (existingDraft?.draftId && existingDraft?.patientId === patientId && Number(existingDraft.expiresAt) > Date.now()) {
         return existingDraft.draftId;
@@ -2414,6 +2426,7 @@
     function savePrescriptionDraft() {
       const chartRecord = getActiveChartRecord();
       const patientId = getCurrentPatientId() || chartRecord?.patientId || '';
+      const validPatientId = isValidPatientId(patientId) ? patientId : '';
       const sections = {};
       const details = {};
 
@@ -2436,10 +2449,10 @@
       });
 
       localStorage.setItem(PRESCRIPTION_DRAFT_STORAGE_KEY, JSON.stringify({
-        draftId: getPrescriptionDraftId(patientId),
+        draftId: getPrescriptionDraftId(validPatientId),
         savedAt: new Date().toISOString(),
         expiresAt: Date.now() + PRESCRIPTION_DRAFT_TTL_MS,
-        patientId,
+        patientId: validPatientId,
         sections,
         sectionDetails,
         medicineDetails: details
