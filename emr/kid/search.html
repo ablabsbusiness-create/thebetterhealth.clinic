@@ -2963,6 +2963,11 @@
       return 0;
     }
 
+    function isExactPatientIdSearch(rawSearchValue) {
+      const normalizedSearchPatientId = getNormalizedPatientId(rawSearchValue);
+      return /^(GS|SAC|SX|TEST)[A-Z0-9]*\d[A-Z0-9]*$/.test(normalizedSearchPatientId);
+    }
+
     function patientMatchesSearch(patient, rawSearchValue) {
       if (!rawSearchValue.trim()) {
         return true;
@@ -3736,13 +3741,19 @@
 
     function filterPatients() {
       const searchValue = searchInput.value.trim();
-      const filteredPatients = searchValue
-        ? allPatients
+      let filteredPatients = allPatients;
+      if (searchValue) {
+        const normalizedSearchPatientId = getNormalizedPatientId(searchValue);
+        const rankedPatients = allPatients
           .map((patient) => ({ patient, rank: getPatientSearchRank(patient, searchValue) }))
-          .filter((entry) => entry.rank > 0)
+          .filter((entry) => entry.rank > 0);
+        const exactPatientIdMatches = isExactPatientIdSearch(searchValue)
+          ? rankedPatients.filter((entry) => getNormalizedPatientId(entry.patient.patientId) === normalizedSearchPatientId)
+          : [];
+        filteredPatients = (exactPatientIdMatches.length ? exactPatientIdMatches : rankedPatients)
           .sort((left, right) => right.rank - left.rank || sortByPatientName(left.patient, right.patient))
-          .map((entry) => entry.patient)
-        : allPatients;
+          .map((entry) => entry.patient);
+      }
 
       if (selectedPatientId && !filteredPatients.some((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId)) {
         selectedPatientId = '';
