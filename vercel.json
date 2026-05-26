@@ -1,0 +1,450 @@
+{
+  "cleanUrls": true,
+  "redirects": [
+    {
+      "source": "/index.html",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/about",
+      "destination": "/the-better-kid-clinic/about/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/about/index.html",
+      "destination": "/the-better-kid-clinic/about/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/blog/child-asthma-allergy-cough",
+      "destination": "/the-better-kid-clinic/blog/child-asthma-allergy-cough/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/blog/child-asthma-allergy-cough/index.html",
+      "destination": "/the-better-kid-clinic/blog/child-asthma-allergy-cough/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/blog/fever-in-children",
+      "destination": "/the-better-kid-clinic/blog/fever-in-children/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/blog/fever-in-children/index.html",
+      "destination": "/the-better-kid-clinic/blog/fever-in-children/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/blog/growth-monitoring",
+      "destination": "/the-better-kid-clinic/blog/growth-monitoring/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/blog/growth-monitoring/index.html",
+      "destination": "/the-better-kid-clinic/blog/growth-monitoring/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/blog",
+      "destination": "/the-better-kid-clinic/blog/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/blog/index.html",
+      "destination": "/the-better-kid-clinic/blog/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/blog/newborn-care-first-month",
+      "destination": "/the-better-kid-clinic/blog/newborn-care-first-month/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/blog/newborn-care-first-month/index.html",
+      "destination": "/the-better-kid-clinic/blog/newborn-care-first-month/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/blog/vaccination-schedule",
+      "destination": "/the-better-kid-clinic/blog/vaccination-schedule/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/blog/vaccination-schedule/index.html",
+      "destination": "/the-better-kid-clinic/blog/vaccination-schedule/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/contact",
+      "destination": "/the-better-kid-clinic/contact/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/contact/index.html",
+      "destination": "/the-better-kid-clinic/contact/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic",
+      "destination": "/the-better-kid-clinic/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/index.html",
+      "destination": "/the-better-kid-clinic/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/services/all-vaccinations",
+      "destination": "/the-better-kid-clinic/services/all-vaccinations/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/services/all-vaccinations/index.html",
+      "destination": "/the-better-kid-clinic/services/all-vaccinations/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/services/asthma-allergies",
+      "destination": "/the-better-kid-clinic/services/asthma-allergies/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/services/asthma-allergies/index.html",
+      "destination": "/the-better-kid-clinic/services/asthma-allergies/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/services/consultations",
+      "destination": "/the-better-kid-clinic/services/consultations/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/services/consultations/index.html",
+      "destination": "/the-better-kid-clinic/services/consultations/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/services/deep-consultations-handholding-recovery",
+      "destination": "/the-better-kid-clinic/services/deep-consultations-handholding-recovery/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/services/deep-consultations-handholding-recovery/index.html",
+      "destination": "/the-better-kid-clinic/services/deep-consultations-handholding-recovery/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/services/growth-monitoring",
+      "destination": "/the-better-kid-clinic/services/growth-monitoring/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/services/growth-monitoring/index.html",
+      "destination": "/the-better-kid-clinic/services/growth-monitoring/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/services",
+      "destination": "/the-better-kid-clinic/services/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/services/index.html",
+      "destination": "/the-better-kid-clinic/services/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/services/newborn-care",
+      "destination": "/the-better-kid-clinic/services/newborn-care/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/services/newborn-care/index.html",
+      "destination": "/the-better-kid-clinic/services/newborn-care/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/services/pulmonary-function-testing",
+      "destination": "/the-better-kid-clinic/services/pulmonary-function-testing/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/services/pulmonary-function-testing/index.html",
+      "destination": "/the-better-kid-clinic/services/pulmonary-function-testing/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/services/remote-monitoring-handholding",
+      "destination": "/the-better-kid-clinic/services/remote-monitoring-handholding/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/services/remote-monitoring-handholding/index.html",
+      "destination": "/the-better-kid-clinic/services/remote-monitoring-handholding/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/testimonials",
+      "destination": "/the-better-kid-clinic/testimonials/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/testimonials/index.html",
+      "destination": "/the-better-kid-clinic/testimonials/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/about",
+      "destination": "/the-better-lungs-clinic/about/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/about/index.html",
+      "destination": "/the-better-lungs-clinic/about/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/blog/asthma-symptoms",
+      "destination": "/the-better-lungs-clinic/blog/asthma-symptoms/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/blog/asthma-symptoms/index.html",
+      "destination": "/the-better-lungs-clinic/blog/asthma-symptoms/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/blog/chronic-cough",
+      "destination": "/the-better-lungs-clinic/blog/chronic-cough/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/blog/chronic-cough/index.html",
+      "destination": "/the-better-lungs-clinic/blog/chronic-cough/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/blog",
+      "destination": "/the-better-lungs-clinic/blog/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/blog/index.html",
+      "destination": "/the-better-lungs-clinic/blog/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/blog/pulmonary-function-test-pft",
+      "destination": "/the-better-lungs-clinic/blog/pulmonary-function-test-pft/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/blog/pulmonary-function-test-pft/index.html",
+      "destination": "/the-better-lungs-clinic/blog/pulmonary-function-test-pft/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/blog/sleep-apnea",
+      "destination": "/the-better-lungs-clinic/blog/sleep-apnea/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/blog/sleep-apnea/index.html",
+      "destination": "/the-better-lungs-clinic/blog/sleep-apnea/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/blog/smoking-cessation-lung-health",
+      "destination": "/the-better-lungs-clinic/blog/smoking-cessation-lung-health/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/blog/smoking-cessation-lung-health/index.html",
+      "destination": "/the-better-lungs-clinic/blog/smoking-cessation-lung-health/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/contact",
+      "destination": "/the-better-lungs-clinic/contact/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/contact/index.html",
+      "destination": "/the-better-lungs-clinic/contact/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic",
+      "destination": "/the-better-lungs-clinic/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/index.html",
+      "destination": "/the-better-lungs-clinic/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/services/adult-vaccinations",
+      "destination": "/the-better-lungs-clinic/services/adult-vaccinations/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/services/adult-vaccinations/index.html",
+      "destination": "/the-better-lungs-clinic/services/adult-vaccinations/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/services/consultations",
+      "destination": "/the-better-lungs-clinic/services/consultations/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/services/consultations/index.html",
+      "destination": "/the-better-lungs-clinic/services/consultations/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/services/home-bipap-cpap-services",
+      "destination": "/the-better-lungs-clinic/services/home-bipap-cpap-services/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/services/home-bipap-cpap-services/index.html",
+      "destination": "/the-better-lungs-clinic/services/home-bipap-cpap-services/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/services/home-oxygen-services",
+      "destination": "/the-better-lungs-clinic/services/home-oxygen-services/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/services/home-oxygen-services/index.html",
+      "destination": "/the-better-lungs-clinic/services/home-oxygen-services/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/services",
+      "destination": "/the-better-lungs-clinic/services/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/services/index.html",
+      "destination": "/the-better-lungs-clinic/services/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/services/lab-tests-dispensary",
+      "destination": "/the-better-lungs-clinic/services/lab-tests-dispensary/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/services/lab-tests-dispensary/index.html",
+      "destination": "/the-better-lungs-clinic/services/lab-tests-dispensary/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/services/pulmonary-function-testing",
+      "destination": "/the-better-lungs-clinic/services/pulmonary-function-testing/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/services/pulmonary-function-testing/index.html",
+      "destination": "/the-better-lungs-clinic/services/pulmonary-function-testing/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/services/pulmonary-rehabilitation-physiotherapy",
+      "destination": "/the-better-lungs-clinic/services/pulmonary-rehabilitation-physiotherapy/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/services/pulmonary-rehabilitation-physiotherapy/index.html",
+      "destination": "/the-better-lungs-clinic/services/pulmonary-rehabilitation-physiotherapy/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/services/second-opinions",
+      "destination": "/the-better-lungs-clinic/services/second-opinions/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/services/second-opinions/index.html",
+      "destination": "/the-better-lungs-clinic/services/second-opinions/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/services/sleep-study-polysomnography-level-3",
+      "destination": "/the-better-lungs-clinic/services/sleep-study-polysomnography-level-3/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/services/sleep-study-polysomnography-level-3/index.html",
+      "destination": "/the-better-lungs-clinic/services/sleep-study-polysomnography-level-3/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/services/smoking-cessation-programs",
+      "destination": "/the-better-lungs-clinic/services/smoking-cessation-programs/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/services/smoking-cessation-programs/index.html",
+      "destination": "/the-better-lungs-clinic/services/smoking-cessation-programs/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/testimonials",
+      "destination": "/the-better-lungs-clinic/testimonials/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/testimonials/index.html",
+      "destination": "/the-better-lungs-clinic/testimonials/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/about.html",
+      "destination": "/the-better-kid-clinic/about/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/services.html",
+      "destination": "/the-better-kid-clinic/services/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/testimonials.html",
+      "destination": "/the-better-kid-clinic/testimonials/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-kid-clinic/contact.html",
+      "destination": "/the-better-kid-clinic/contact/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/about.html",
+      "destination": "/the-better-lungs-clinic/about/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/services.html",
+      "destination": "/the-better-lungs-clinic/services/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/testimonials.html",
+      "destination": "/the-better-lungs-clinic/testimonials/",
+      "permanent": true
+    },
+    {
+      "source": "/the-better-lungs-clinic/contact.html",
+      "destination": "/the-better-lungs-clinic/contact/",
+      "permanent": true
+    }
+  ]
+}
