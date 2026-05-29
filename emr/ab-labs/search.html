@@ -3562,6 +3562,13 @@
       setStatus(searchValue ? `Showing matches for "${searchValue}".` : 'Showing all patients.');
     }
 
+    function scrollSearchPageToTop() {
+      window.requestAnimationFrame(() => {
+        const searchShell = document.querySelector('.search-shell');
+        const top = searchShell ? searchShell.getBoundingClientRect().top + window.scrollY - 16 : 0;
+        window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+      });
+    }
     function openPrescriptionPreview(url, previewImageUrl = '') {
       if (!url && !previewImageUrl) {
         return;
@@ -3645,6 +3652,7 @@
         event.preventDefault();
         selectedPatientId = selectedWorklistPatientId;
         filterPatients();
+        scrollSearchPageToTop();
       }
     });
 
@@ -3686,6 +3694,7 @@
       if (selectedWorklistPatientId) {
         selectedPatientId = selectedWorklistPatientId;
         filterPatients();
+        scrollSearchPageToTop();
         return;
       }
 
