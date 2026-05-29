@@ -406,7 +406,7 @@
       border: 1px solid #e5e7eb;
       background: #fff;
       color: #111827;
-      box-shadow: 0 0 0 8px #242424;
+      box-shadow: 0 20px 45px rgba(22, 38, 29, 0.14);
       font-family: var(--rx-font-family, Arial, Helvetica, sans-serif);
       font-size: var(--rx-font-size, 12px);
     }
@@ -2244,8 +2244,15 @@
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
+      const widthScale = pageWidth / canvas.width;
+      const heightScale = pageHeight / canvas.height;
+      const mmPerPx = Math.min(widthScale, heightScale);
+      const imageWidthMm = canvas.width * mmPerPx;
+      const imageHeightMm = canvas.height * mmPerPx;
+      const x = (pageWidth - imageWidthMm) / 2;
+      const y = 0;
 
-      pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', x, y, imageWidthMm, imageHeightMm, undefined, 'FAST');
 
       return pdf;
     }
