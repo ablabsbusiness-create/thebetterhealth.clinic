@@ -148,6 +148,15 @@
       justify-content: flex-end;
     }
 
+    .nav-links {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
     .nav-link,
     .btn-primary,
     .btn-secondary,
@@ -894,37 +903,14 @@
       { key: '4y-dtap-booster2', milestone: '4-6 years', vaccine: 'DTwP/DTaP Booster 2', months: 48, days: 0 },
       { key: '4y-ipv-booster2', milestone: '4-6 years', vaccine: 'IPV Booster 2', months: 48, days: 0 },
       { key: '4y-mmr3', milestone: '4-6 years', vaccine: 'MMR 3', months: 48, days: 0 },
+      { key: '9y-hpv1', milestone: '9-14 years', vaccine: 'HPV 1', months: 108, days: 0 },
+      { key: '9y-hpv2', milestone: '9-14 years', vaccine: 'HPV 2', months: 114, days: 0 },
       { key: '10y-tdap', milestone: '10 years', vaccine: 'Tdap', months: 120, days: 0 },
-      { key: '15y-hpv-booster1', milestone: '15-18 years', vaccine: 'HPV 1', months: 180, days: 0 },
-      { key: '15y-hpv-booster2', milestone: '15-18 years', vaccine: 'HPV 2', months: 182, days: 0 },
-      { key: '15y-hpv-booster3', milestone: '15-18 years', vaccine: 'HPV 3', months: 186, days: 0 },
       { key: '16y-td-tdap', milestone: '16-18 years', vaccine: 'Td/Tdap', months: 192, days: 0 }
     ];
 
     function getVaccineSchedule(patient) {
-      const gender = String(patient?.gender || patient?.sex || '').trim().toLowerCase();
-      const hpvSchedule = [];
-
-      if (gender === 'female' || gender === 'girl') {
-        hpvSchedule.push({ key: '9y-hpv-single', milestone: '9-up to 15 years', vaccine: 'HPV Single Dose', months: 108, days: 0 });
-      } else if (gender === 'male' || gender === 'boy') {
-        hpvSchedule.push(
-          { key: '9y-hpv1', milestone: '9-up to 15 years', vaccine: 'HPV 1', months: 108, days: 0 },
-          { key: '9y-hpv2', milestone: '9-up to 15 years', vaccine: 'HPV 2', months: 114, days: 0 }
-        );
-      } else {
-        hpvSchedule.push(
-          { key: '9y-hpv1', milestone: '9-up to 15 years', vaccine: 'HPV 1', months: 108, days: 0 },
-          { key: '9y-hpv2', milestone: '9-up to 15 years', vaccine: 'HPV 2', months: 114, days: 0 }
-        );
-      }
-
-      const insertBeforeIndex = routineVaccineSchedule.findIndex((item) => item.key === '10y-tdap');
-      return [
-        ...routineVaccineSchedule.slice(0, insertBeforeIndex),
-        ...hpvSchedule,
-        ...routineVaccineSchedule.slice(insertBeforeIndex)
-      ];
+      return routineVaccineSchedule;
     }
 
     function escapeHtml(value) {
