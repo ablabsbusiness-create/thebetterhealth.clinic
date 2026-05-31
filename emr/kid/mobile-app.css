@@ -458,7 +458,6 @@
     width: 44px !important;
     min-height: 44px !important;
   }
-  }
 
   table {
     min-width: 620px;
@@ -638,5 +637,280 @@
 
   .mobile-hidden {
     display: none !important;
+  }
+
+  body:has(#search-input) {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom)) !important;
+  }
+
+  body:has(#search-input) main,
+  body:has(#search-input) .page-shell {
+    padding: 10px 10px 104px !important;
+  }
+
+  body:has(#search-input) .search-row {
+    top: calc(64px + env(safe-area-inset-top)) !important;
+    grid-template-columns: 1fr auto !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 10px !important;
+    margin: -10px -10px 10px !important;
+    border-bottom: 1px solid rgba(15, 122, 59, 0.12) !important;
+    background: rgba(247, 251, 248, 0.96) !important;
+  }
+
+  body:has(#search-input) #search-input {
+    height: 48px !important;
+    min-height: 48px !important;
+    padding: 0 14px !important;
+    border: 1px solid rgba(15, 122, 59, 0.24) !important;
+    border-radius: 8px !important;
+    background: #fff !important;
+    box-shadow: 0 8px 20px rgba(17, 37, 27, 0.06) !important;
+    font-weight: 700 !important;
+  }
+
+  body:has(#search-input) #clear-btn {
+    width: 48px !important;
+    min-width: 48px !important;
+    height: 48px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    color: transparent !important;
+    border-radius: 8px !important;
+    position: relative !important;
+  }
+
+  body:has(#search-input) #clear-btn::before {
+    content: "X";
+    color: #fff;
+    font-size: 14px;
+    font-weight: 900;
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+  }
+
+  body:has(#search-input) #new-patient-btn {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    min-height: 42px !important;
+    border-radius: 8px !important;
+  }
+
+  body:has(#search-input) #status-note {
+    margin: 4px 2px 10px !important;
+    padding: 8px 10px !important;
+    border-radius: 8px !important;
+    background: rgba(255, 255, 255, 0.82) !important;
+    border: 1px solid rgba(35, 83, 55, 0.1) !important;
+    color: var(--mobile-muted) !important;
+  }
+
+  body:has(#search-input) #results-panel {
+    display: grid !important;
+    gap: 12px !important;
+  }
+
+  body:has(#search-input) .worklist-datebar {
+    padding: 10px !important;
+    border-radius: 8px !important;
+    background: #fff !important;
+    border: 1px solid var(--mobile-border) !important;
+    box-shadow: var(--mobile-shadow) !important;
+  }
+
+  body:has(#search-input) .worklist-date-top {
+    display: grid !important;
+    grid-template-columns: 44px 1fr 44px !important;
+    gap: 8px !important;
+    align-items: center !important;
+  }
+
+  body:has(#search-input) .worklist-date-pill {
+    width: 100% !important;
+    min-height: 44px !important;
+    border-radius: 8px !important;
+    background: #f7fbf8 !important;
+    color: var(--mobile-green-dark) !important;
+    font-weight: 900 !important;
+  }
+
+  body:has(#search-input) .worklist-tabs {
+    gap: 8px !important;
+    padding: 4px !important;
+    border: 1px solid rgba(15, 122, 59, 0.12) !important;
+    border-radius: 8px !important;
+    background: rgba(255, 255, 255, 0.78) !important;
+  }
+
+  body:has(#search-input) .worklist-tab {
+    min-height: 42px !important;
+    border-radius: 8px !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  body:has(#search-input) .worklist-tab.is-active {
+    background: #dff8e8 !important;
+    color: var(--mobile-green-dark) !important;
+    box-shadow: 0 8px 18px rgba(15, 122, 59, 0.14) !important;
+  }
+
+  body:has(#search-input) .worklist-summary {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  body:has(#search-input) .worklist-summary-card {
+    min-height: 78px !important;
+    padding: 12px !important;
+    box-shadow: none !important;
+  }
+
+  body:has(#search-input) .worklist-list {
+    display: grid !important;
+    gap: 8px !important;
+  }
+
+  body:has(#search-input) .worklist-item {
+    padding: 0 !important;
+    overflow: hidden !important;
+    background: #fff !important;
+    border-radius: 8px !important;
+    box-shadow: 0 8px 22px rgba(17, 37, 27, 0.06) !important;
+  }
+
+  body:has(#search-input) .worklist-item.is-active {
+    border-color: rgba(15, 122, 59, 0.42) !important;
+    box-shadow: 0 12px 28px rgba(15, 122, 59, 0.12) !important;
+  }
+
+  body:has(#search-input) .worklist-item-main {
+    min-height: 78px !important;
+    padding: 12px !important;
+    display: grid !important;
+    gap: 7px !important;
+  }
+
+  body:has(#search-input) .worklist-item-head,
+  body:has(#search-input) .worklist-item-title {
+    min-width: 0 !important;
+    gap: 8px !important;
+  }
+
+  body:has(#search-input) .worklist-item-name {
+    font-size: 15px !important;
+    line-height: 1.15 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  body:has(#search-input) .worklist-item-meta,
+  body:has(#search-input) .worklist-item-sub,
+  body:has(#search-input) .worklist-item-phone {
+    font-size: 12px !important;
+    line-height: 1.3 !important;
+  }
+
+  body:has(#search-input) .worklist-item-actions {
+    justify-content: flex-end !important;
+  }
+
+  body:has(#search-input) .worklist-item-queue-btn {
+    min-width: 40px !important;
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 8px !important;
+  }
+
+  body:has(#search-input) .worklist-main {
+    gap: 10px !important;
+  }
+
+  body:has(#search-input) .worklist-main > section,
+  body:has(#search-input) .doctor-card,
+  body:has(#search-input) .history-panel {
+    border-radius: 8px !important;
+    background: #fff !important;
+    border: 1px solid var(--mobile-border) !important;
+    box-shadow: var(--mobile-shadow) !important;
+  }
+
+  body:has(#search-input) .doctor-card {
+    padding: 14px !important;
+  }
+
+  body:has(#search-input) .doctor-patient-meta {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    margin-top: 12px !important;
+  }
+
+  body:has(#search-input) .doctor-patient-meta .continue-link {
+    width: 100% !important;
+    min-height: 44px !important;
+    border-radius: 8px !important;
+  }
+
+  body:has(#search-input) .history-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  body:has(#search-input) .history-panel {
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  body:has(#search-input) .history-panel .panel-content {
+    min-height: 0 !important;
+    padding: 0 !important;
+  }
+
+  body:has(#search-input) .history-panel h3,
+  body:has(#search-input) .history-panel > p,
+  body:has(#search-input) .doctor-card-note {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  body:has(#search-input) .history-panel h3 {
+    padding-top: 14px !important;
+    margin-bottom: 10px !important;
+  }
+
+  body:has(#search-input) .history-controls {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    padding: 0 14px 12px !important;
+  }
+
+  body:has(#search-input) .record-table-wrap,
+  body:has(#search-input) .doctor-card-body {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body:has(#search-input) .history-table,
+  body:has(#search-input) .record-table {
+    font-size: 12px !important;
+  }
+
+  body:has(#search-input) .record-table {
+    min-width: 560px !important;
+  }
+
+  body:has(#search-input) .carousel-arrow {
+    min-width: 38px !important;
+    width: 38px !important;
+    height: 44px !important;
+    border-radius: 8px !important;
   }
 }
