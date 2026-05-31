@@ -3071,17 +3071,126 @@
       return getPatientSearchMeta(left).sortName.localeCompare(getPatientSearchMeta(right).sortName);
     }
 
+    function getImportedVitalNumber(value) {
+      const match = String(value || '').replace(',', '.').match(/-?\d+(?:\.\d+)?/);
+      return match ? match[0] : '';
+    }
+
+    function getImportedVitalDate(source, patient) {
+      const dateValue = source?.date || source?.Date || source?.visitDate || source?.createdAt || patient?.date || patient?.visitDate;
+      const isoDate = getIsoDatePart(dateValue);
+      return isoDate || getTodayIsoDate();
+    }
+
+    function hasMeasurementValue(entry) {
+      return ['weight', 'height', 'head', 'spo2', 'pulse', 'systolic', 'diastolic', 'temp']
+        .some((key) => String(entry?.[key] || '').trim());
+    }
+
+    function buildImportedVitalEntry(rawValue, source = {}, patient = {}) {
+      const rawText = String(rawValue || '').trim();
+      if (!rawText) {
+        return null;
+      }
+
+      const entry = buildBlankMeasurementEntry(getImportedVitalDate(source, patient));
+      rawText.split(/\s*,\s*/).forEach((part) => {
+        const separatorIndex = part.indexOf(' - ');
+        if (separatorIndex === -1) {
+          return;
+        }
+
+        const label = part.slice(0, separatorIndex).trim();
+        const value = part.slice(separatorIndex + 3).trim();
+        if (/body weight/i.test(label)) entry.weight = getImportedVitalNumber(value);
+        if (/body height/i.test(label)) entry.height = getImportedVitalNumber(value);
+        if (/occipital frontal circumference|ofc/i.test(label)) entry.head = getImportedVitalNumber(value);
+        if (/peripheral oxygen saturation|spo2/i.test(label)) entry.spo2 = getImportedVitalNumber(value);
+        if (/pulse|heart rate/i.test(label)) entry.pulse = getImportedVitalNumber(value);
+        if (/systolic/i.test(label)) entry.systolic = getImportedVitalNumber(value);
+        if (/diastolic/i.test(label)) entry.diastolic = getImportedVitalNumber(value);
+        if (/temperature|temp/i.test(label)) entry.temp = getImportedVitalNumber(value);
+      });
+
+      return hasMeasurementValue(entry) ? entry : null;
+    }
+
+    function getImportedMeasurementEntries(patient) {
+      if (!patient || typeof patient !== 'object') {
+        return [];
+      }
+
+      const entries = [];
+      const addRawEntry = (rawValue, source = patient) => {
+        const entry = buildImportedVitalEntry(rawValue, source, patient);
+        if (entry) entries.push(entry);
+      };
+
+      [
+        patient.vitalNameAndValue,
+        patient.vitalNameAndValueRaw,
+        patient.vitalsText,
+        patient.vitalsCsv,
+        patient.rawVitals,
+        patient['Vital Name And Value']
+      ].forEach((rawValue) => addRawEntry(rawValue));
+
+      ['vitals', 'vitalRecords', 'measurements', 'importedVitals'].forEach((fieldName) => {
+        const value = patient[fieldName];
+        const items = Array.isArray(value) ? value : value && typeof value === 'object' ? [value] : [];
+        items.forEach((item) => {
+          if (typeof item === 'string') {
+            addRawEntry(item);
+            return;
+          }
+
+          if (!item || typeof item !== 'object') {
+            return;
+          }
+
+          if (hasMeasurementValue(item)) {
+            entries.push(item);
+            return;
+          }
+
+          [
+            item.vitalNameAndValue,
+            item.vitalNameAndValueRaw,
+            item.vitalsText,
+            item.rawVitals,
+            item.value,
+            item.text,
+            item['Vital Name And Value']
+          ].forEach((rawValue) => addRawEntry(rawValue, item));
+        });
+      });
+
+      return entries;
+    }
+
     function getMeasurementEntries(patient) {
       if (Array.isArray(patient.__measurementEntries)) {
         return patient.__measurementEntries;
       }
 
       const entries = Array.isArray(patient.measurementHistory) ? [...patient.measurementHistory] : [];
+      getImportedMeasurementEntries(patient).forEach((entry) => entries.push(entry));
       if (patient.lastMeasurementRecord && entries.length === 0) {
         entries.push(patient.lastMeasurementRecord);
       }
 
-      const sortedEntries = entries.sort((a, b) => {
+      const seenEntries = new Set();
+      const sortedEntries = entries.filter((entry) => {
+        if (!hasMeasurementValue(entry)) {
+          return false;
+        }
+        const entryKey = createMeasurementEntryKey(entry);
+        if (seenEntries.has(entryKey)) {
+          return false;
+        }
+        seenEntries.add(entryKey);
+        return true;
+      }).sort((a, b) => {
         const aTime = Date.parse(a?.createdAtIso || '') || 0;
         const bTime = Date.parse(b?.createdAtIso || '') || 0;
         return bTime - aTime;
