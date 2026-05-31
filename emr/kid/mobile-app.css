@@ -1,0 +1,642 @@
+@media (max-width: 760px) {
+  :root {
+    --mobile-bg: #f4f8f5;
+    --mobile-surface: #ffffff;
+    --mobile-border: rgba(35, 83, 55, 0.14);
+    --mobile-text: #11251b;
+    --mobile-muted: #5f7167;
+    --mobile-green: #0f7a3b;
+    --mobile-green-dark: #075b2a;
+    --mobile-shadow: 0 12px 30px rgba(18, 48, 29, 0.08);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    background: var(--mobile-bg) !important;
+  }
+
+  body {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    overflow-x: hidden !important;
+    background:
+      radial-gradient(circle at 12% -6%, rgba(34, 197, 94, 0.12), transparent 34%),
+      linear-gradient(180deg, #f7fbf8 0%, var(--mobile-bg) 42%, #eef6f1 100%) !important;
+    color: var(--mobile-text) !important;
+    padding-bottom: calc(82px + env(safe-area-inset-bottom)) !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  img,
+  canvas,
+  iframe,
+  video,
+  svg {
+    max-width: 100%;
+  }
+
+  .site-header,
+  .viewer-header {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 80 !important;
+    background: rgba(255, 255, 255, 0.92) !important;
+    border-bottom: 1px solid var(--mobile-border) !important;
+    box-shadow: 0 8px 22px rgba(17, 37, 27, 0.07) !important;
+    backdrop-filter: blur(18px);
+  }
+
+  .topbar,
+  .viewer-header {
+    width: 100% !important;
+    min-height: 64px !important;
+    padding: calc(8px + env(safe-area-inset-top)) 14px 8px !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+
+  .brand,
+  .brand-lockup,
+  .clinic-brand {
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+  }
+
+  .brand h1,
+  .brand strong,
+  .brand-title,
+  .clinic-brand strong,
+  .viewer-header strong {
+    font-size: 15px !important;
+    line-height: 1.15 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .brand p,
+  .brand span,
+  .brand-subtitle,
+  .clinic-brand span {
+    font-size: 11px !important;
+    line-height: 1.25 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .brand-icon,
+  .brand-mark,
+  .logo-mark {
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+    border-radius: 12px !important;
+  }
+
+  .menu-toggle {
+    display: none !important;
+  }
+
+  #primary-nav,
+  .nav-links {
+    position: fixed !important;
+    top: calc(100vh - 72px) !important;
+    top: calc(100dvh - 72px - env(safe-area-inset-bottom)) !important;
+    left: 10px !important;
+    right: auto !important;
+    bottom: auto !important;
+    z-index: 120 !important;
+    height: 62px !important;
+    width: calc(100vw - 20px) !important;
+    max-width: none !important;
+    padding: 7px !important;
+    display: grid !important;
+    grid-auto-flow: column !important;
+    grid-auto-columns: minmax(0, 1fr) !important;
+    align-items: center !important;
+    gap: 5px !important;
+    overflow-x: auto !important;
+    overscroll-behavior-x: contain !important;
+    background: rgba(255, 255, 255, 0.96) !important;
+    border: 1px solid var(--mobile-border) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 16px 38px rgba(17, 37, 27, 0.18) !important;
+    backdrop-filter: blur(20px);
+  }
+
+  #primary-nav::-webkit-scrollbar,
+  .nav-links::-webkit-scrollbar {
+    display: none;
+  }
+
+  #primary-nav a,
+  #primary-nav button,
+  .nav-links a,
+  .nav-links button,
+  .nav-link {
+    min-width: 72px !important;
+    max-width: 104px !important;
+    height: 46px !important;
+    padding: 6px 9px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    white-space: normal !important;
+    border-radius: 12px !important;
+    font-size: 10.5px !important;
+    line-height: 1.1 !important;
+    color: var(--mobile-muted) !important;
+  }
+
+  #primary-nav a[aria-current="page"],
+  #primary-nav a.is-active,
+  .nav-links a[aria-current="page"],
+  .nav-links a.is-active,
+  .nav-link.is-active {
+    background: #dff8e8 !important;
+    color: var(--mobile-green-dark) !important;
+    font-weight: 800 !important;
+  }
+
+  .topbar-actions,
+  .header-actions,
+  .actions,
+  .page-actions,
+  .submit-row,
+  .review-actions,
+  .rx-actions,
+  .preview-actions,
+  .form-actions {
+    width: 100% !important;
+    margin-left: 0 !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 9px !important;
+  }
+
+  .topbar > .topbar-actions,
+  .topbar > .header-actions {
+    width: auto !important;
+    flex: 0 0 auto !important;
+    margin-left: auto !important;
+  }
+
+  main,
+  .page-shell,
+  .shell,
+  .workspace,
+  .dashboard-shell,
+  .content-shell,
+  .panel,
+  .page,
+  .app-shell {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 14px 12px 92px !important;
+  }
+
+  .page-intro,
+  .hero,
+  .section-head,
+  .panel-head,
+  .review-head,
+  .sheet-header,
+  .rx-header,
+  .dashboard-header,
+  .form-header {
+    margin: 0 0 12px !important;
+    padding: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+
+  h1 {
+    font-size: 26px !important;
+    line-height: 1.08 !important;
+    letter-spacing: 0 !important;
+    margin: 0 !important;
+  }
+
+  h2 {
+    font-size: 19px !important;
+    line-height: 1.16 !important;
+    letter-spacing: 0 !important;
+  }
+
+  h3 {
+    font-size: 16px !important;
+    line-height: 1.2 !important;
+    letter-spacing: 0 !important;
+  }
+
+  p,
+  li,
+  label,
+  small,
+  .muted,
+  .field-hint,
+  .status-note {
+    font-size: 13px !important;
+    line-height: 1.45 !important;
+  }
+
+  .card,
+  .app-card,
+  .overview-card,
+  .action-card,
+  .form-card,
+  .preview-card,
+  .metric-card,
+  .summary-card,
+  .setting-card,
+  .stat-card,
+  .rx-card,
+  .medicine-detail-card,
+  .growth-summary-card,
+  .queue-card,
+  .review-card,
+  .qr-card,
+  .info-card,
+  .access-card,
+  .skeleton-card,
+  .worklist-summary-card,
+  .question-space-card,
+  .prescription-ui-card,
+  .storage-alert-card,
+  .account-card {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    border-radius: 8px !important;
+    border: 1px solid var(--mobile-border) !important;
+    background: var(--mobile-surface) !important;
+    box-shadow: var(--mobile-shadow) !important;
+  }
+
+  .card,
+  .app-card,
+  .overview-card,
+  .action-card,
+  .form-card,
+  .preview-card,
+  .metric-card,
+  .summary-card,
+  .setting-card,
+  .stat-card,
+  .rx-card,
+  .medicine-detail-card,
+  .growth-summary-card,
+  .queue-card,
+  .review-card,
+  .qr-card,
+  .info-card,
+  .access-card,
+  .skeleton-card,
+  .worklist-summary-card,
+  .question-space-card,
+  .prescription-ui-card,
+  .storage-alert-card,
+  .account-card,
+  .panel {
+    padding: 14px !important;
+  }
+
+  .grid,
+  .card-grid,
+  .field-grid,
+  .form-grid,
+  .summary-grid,
+  .stats-grid,
+  .review-grid,
+  .metric-grid,
+  .dashboard-grid,
+  .workspace,
+  .layout,
+  .content-grid,
+  .two-column,
+  .rx-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    min-height: 46px !important;
+    border-radius: 8px !important;
+    font-size: 16px !important;
+  }
+
+  input[type="checkbox"],
+  input[type="radio"] {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    min-height: 0 !important;
+  }
+
+  input[type="radio"] {
+    width: 20px !important;
+    height: 20px !important;
+    accent-color: var(--mobile-green) !important;
+  }
+
+  textarea {
+    min-height: 96px !important;
+  }
+
+  button,
+  .button,
+  .btn,
+  .action-btn,
+  .primary-btn,
+  .secondary-btn,
+  .ghost-btn,
+  .filter-clear-btn,
+  .chip,
+  .status-chip {
+    min-height: 44px !important;
+    border-radius: 8px !important;
+    font-size: 13px !important;
+    line-height: 1.15 !important;
+    touch-action: manipulation;
+  }
+
+  .chip,
+  .status-chip,
+  .queue-badge,
+  .count-chip,
+  .badge,
+  .pill,
+  .tag,
+  .tab,
+  .tabs button,
+  .tabs a,
+  .worklist-tabs button,
+  .segmented-control button,
+  .vaccine-filter-row button,
+  .filter-chip,
+  .metric-history-chip,
+  .header-mode-btn,
+  .summary-card span,
+  .worklist-summary-card span {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    min-height: 34px !important;
+    height: auto !important;
+    padding: 8px 11px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
+    line-height: 1.15 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    text-align: center !important;
+  }
+
+  .summary-card span,
+  .worklist-summary-card span {
+    width: fit-content !important;
+    max-width: 100% !important;
+    min-height: 28px !important;
+    padding: 6px 9px !important;
+  }
+
+  .count-chip,
+  .queue-badge,
+  .badge,
+  .status-chip {
+    min-width: 72px !important;
+  }
+
+  .tabs button,
+  .tabs a,
+  .worklist-tabs button,
+  .segmented-control button,
+  .vaccine-filter-row button,
+  .header-mode-btn {
+    flex: 1 1 112px !important;
+  }
+
+  .submit-row > *,
+  .page-actions > *,
+  .review-actions > *,
+  .form-actions > *,
+  .rx-actions > * {
+    flex: 1 1 auto !important;
+    min-width: min(140px, 100%) !important;
+  }
+
+  .cloud-save-close,
+  .modal-close,
+  .dialog-close,
+  .pdf-preview-close,
+  #pdf-preview-close {
+    min-width: 44px !important;
+    width: 44px !important;
+    min-height: 44px !important;
+  }
+  }
+
+  table {
+    min-width: 620px;
+  }
+
+  .table-wrap,
+  .table-scroll,
+  .schedule-table,
+  .vaccine-table,
+  .history-table,
+  .rx-table,
+  .prescription-table {
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .search-row,
+  .search-bar,
+  .search-controls {
+    position: sticky !important;
+    top: calc(64px + env(safe-area-inset-top)) !important;
+    z-index: 70 !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    padding: 10px 8px !important;
+    margin: -14px -12px 10px !important;
+    background: rgba(244, 248, 245, 0.94) !important;
+    border-bottom: 1px solid var(--mobile-border) !important;
+    backdrop-filter: blur(16px);
+  }
+
+  .search-row button,
+  .search-bar button,
+  .search-controls button {
+    width: 100% !important;
+  }
+
+  .worklist-main {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .worklist-sidebar,
+  .queue-panel,
+  .results-sidebar,
+  #results-panel {
+    position: static !important;
+    width: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .worklist-datebar {
+    display: grid !important;
+    grid-template-columns: 44px 1fr 44px !important;
+    gap: 8px !important;
+    align-items: center !important;
+  }
+
+  .worklist-datebar .worklist-date-picker {
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .worklist-tabs {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .worklist-item,
+  .worklist-item-main,
+  .patient-card,
+  .result-card {
+    min-height: 76px !important;
+    border-radius: 8px !important;
+  }
+
+  .patient-hero,
+  .patient-detail,
+  .patient-summary,
+  .selected-patient,
+  .detail-panel {
+    width: 100% !important;
+    padding: 14px !important;
+    border-radius: 8px !important;
+    background: var(--mobile-surface) !important;
+    border: 1px solid var(--mobile-border) !important;
+    box-shadow: var(--mobile-shadow) !important;
+  }
+
+  .history-grid,
+  .patient-history-grid,
+  .preview-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .rx-sheet,
+  .prescription-preview-card,
+  .prescription-preview-frame,
+  .pdf-page,
+  .preview-sheet {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .prescription-preview-card,
+  .preview-card {
+    transform: none !important;
+  }
+
+  .pdf-page canvas,
+  .prescription-preview-frame iframe,
+  .pdf-preview-frame,
+  #pdf-preview-frame {
+    width: 100% !important;
+    min-height: 420px !important;
+  }
+
+  .modal,
+  .dialog,
+  .pdf-preview-modal,
+  #pdf-preview-modal {
+    padding: 10px !important;
+  }
+
+  .modal-content,
+  .dialog-card,
+  .pdf-preview-card {
+    width: 100% !important;
+    max-width: none !important;
+    max-height: calc(100vh - 24px) !important;
+    border-radius: 8px !important;
+  }
+
+  .chart-stage,
+  .chart-preview,
+  .growth-chart,
+  .preview-canvas-wrap {
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .chart-stage canvas,
+  .chart-preview canvas,
+  .growth-chart canvas {
+    max-width: none !important;
+  }
+
+  .pill-row,
+  .chip-row,
+  .tabs,
+  .segmented-control,
+  .vaccine-filter-row {
+    display: flex !important;
+    gap: 8px !important;
+    overflow-x: auto !important;
+    padding-bottom: 2px !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .pill-row > *,
+  .chip-row > *,
+  .tabs > *,
+  .segmented-control > *,
+  .vaccine-filter-row > * {
+    flex: 0 0 auto !important;
+  }
+
+  .mobile-hidden {
+    display: none !important;
+  }
+}
