@@ -1640,18 +1640,32 @@
         .replace(/\s*d\b/g, 'd');
     }
 
+    function splitImportedMedicineDose(value) {
+      const rawValue = String(value || '').trim();
+      const match = rawValue.match(/\s*\(([^()]*(?:\d+(?:\.\d+)?)\s*(?:mg|mcg|g|kg|ml|l|iu|units?|drops?|tabs?|tablets?|caps?|capsules?|puffs?|spoons?|tsp|%)\b[^()]*)\)\s*$/i);
+      if (!match) {
+        return { name: rawValue, dose: '' };
+      }
+
+      return {
+        name: rawValue.slice(0, match.index).trim() || rawValue,
+        dose: match[1].replace(/\s+/g, ' ').trim()
+      };
+    }
+
     function getMedicineRows(draft) {
       const medicines = draft?.sections?.Medication || draft?.sections?.Medicens || [];
       const details = draft?.medicineDetails || {};
       return medicines.map((medicine) => {
         const detail = details[medicine] || {};
-        const medicineName = detail.name || detail.displayName || medicine;
+        const importedDose = splitImportedMedicineDose(medicine);
+        const medicineName = detail.name || detail.displayName || importedDose.name || medicine;
         return {
           medicine,
           medicineName,
           medicineType: detail.type || '',
           composition: detail.composition || '',
-          dose: detail.dose || detail.doseChip || '',
+          dose: detail.dose || detail.doseChip || importedDose.dose || '',
           timing: Array.isArray(detail.timings) ? detail.timings.join(', ') : '',
           food: detail.food || '',
           duration: formatDuration(detail.duration),
