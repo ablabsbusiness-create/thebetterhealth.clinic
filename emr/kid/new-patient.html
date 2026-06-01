@@ -669,10 +669,10 @@
 
       
       <nav id="primary-nav" class="nav-links" aria-label="Primary">
-        <a class="nav-link" href="index">Dashboard</a>
-        <a class="nav-link active" href="search">Enter Clinic</a>
-        <a class="nav-link" href="pending-approvals">Approvals</a>
-        <a class="nav-link" href="settings">Settings</a>
+        <a class="nav-link" href="/emr/kid/">Dashboard</a>
+        <a class="nav-link active" href="/emr/kid/search">Enter Clinic</a>
+        <a class="nav-link" href="/emr/kid/pending-approvals">Approvals</a>
+        <a class="nav-link" href="/emr/kid/settings">Settings</a>
       </nav>
 
 
@@ -913,7 +913,7 @@
         console.log(savedToCloudRecords
           ? `Saved with Patient ID ${autoPatientId}.`
           : `Patient ID ${autoPatientId} generated locally. Configure cloud records to store this online.`);
-        window.location.href = `prescription-growth-chart-dashboard?patientId=${encodeURIComponent(autoPatientId)}`;
+      window.location.href = `/emr/kid/prescription-growth-chart-dashboard?patientId=${encodeURIComponent(autoPatientId)}`;
       } catch (error) {
         console.error(`Cloud save failed: ${error.message}`);
         setSaveStatus(`Unable to save patient details: ${error.message}. Please try again.`, 'error');

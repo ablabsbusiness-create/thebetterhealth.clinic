@@ -1274,10 +1274,10 @@
       </button>
 
       <nav id="primary-nav" class="nav-links" aria-label="Primary">
-        <a class="nav-link" href="index">Dashboard</a>
-        <a class="nav-link" href="search">Enter Clinic</a>
-        <a class="nav-link" href="pending-approvals">Approvals</a>
-        <a class="nav-link active" href="settings">Settings</a>
+        <a class="nav-link" href="/emr/kid/">Dashboard</a>
+        <a class="nav-link" href="/emr/kid/search">Enter Clinic</a>
+        <a class="nav-link" href="/emr/kid/pending-approvals">Approvals</a>
+        <a class="nav-link active" href="/emr/kid/settings">Settings</a>
       </nav>
 
       
@@ -1293,7 +1293,7 @@
           <p class="settings-intro">Manage prescription layout, branding, signature, and storage status from one place.</p>
         </div>
         <div class="settings-hero-actions">
-          <a class="btn-primary" href="index">Back to Dashboard</a>
+          <a class="btn-primary" href="/emr/kid/">Back to Dashboard</a>
         </div>
       </div>
 
@@ -2284,7 +2284,7 @@
     if (previewRxSettingsBtn) {
       previewRxSettingsBtn.addEventListener('click', () => {
         cacheBrandingSettings(collectBrandingForm());
-        window.open('preview.html', '_blank', 'noopener,noreferrer');
+        window.open('/emr/kid/preview', '_blank', 'noopener,noreferrer');
       });
     }
 

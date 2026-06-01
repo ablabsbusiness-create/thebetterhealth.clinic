@@ -775,7 +775,7 @@
 <body>
   <header class="site-header">
     <div class="topbar">
-      <a class="brand" href="search">
+      <a class="brand" href="/emr/kid/search">
         <span class="brand-mark">VH</span>
         <span class="brand-copy">
           <strong>The Better Health Clinic</strong>
@@ -784,10 +784,10 @@
       </a>
       
       <nav id="primary-nav" class="nav-links" aria-label="Primary">
-        <a class="nav-link" href="index">Dashboard</a>
-        <a class="nav-link active" href="search">Enter Clinic</a>
-        <a class="nav-link" href="pending-approvals">Approvals</a>
-        <a class="nav-link" href="settings">Settings</a>
+        <a class="nav-link" href="/emr/kid/">Dashboard</a>
+        <a class="nav-link active" href="/emr/kid/search">Enter Clinic</a>
+        <a class="nav-link" href="/emr/kid/pending-approvals">Approvals</a>
+        <a class="nav-link" href="/emr/kid/settings">Settings</a>
       </nav>
 
     </div>
@@ -1293,7 +1293,7 @@
       updateSummary(rows);
       document.title = `${getPatientName(currentPatient)} Vaccination`;
       if (backToProfileLink) {
-        backToProfileLink.href = `search?patientId=${encodeURIComponent(currentPatient.patientId || '')}`;
+        backToProfileLink.href = `/emr/kid/search?patientId=${encodeURIComponent(currentPatient.patientId || '')}`;
       }
       tablesRoot.innerHTML = [
         historyPanelHtml(getRowByKey(historyKey)),

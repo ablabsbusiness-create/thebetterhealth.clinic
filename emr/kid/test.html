@@ -1043,10 +1043,10 @@
 
       
       <nav id="primary-nav" class="nav-links" aria-label="Primary">
-        <a class="nav-link" href="index">Dashboard</a>
-        <a class="nav-link active" href="search">Enter Clinic</a>
-        <a class="nav-link" href="pending-approvals">Approvals</a>
-        <a class="nav-link" href="settings">Settings</a>
+        <a class="nav-link" href="/emr/kid/">Dashboard</a>
+        <a class="nav-link active" href="/emr/kid/search">Enter Clinic</a>
+        <a class="nav-link" href="/emr/kid/pending-approvals">Approvals</a>
+        <a class="nav-link" href="/emr/kid/settings">Settings</a>
       </nav>
 
     </div>
@@ -1980,7 +1980,7 @@
       }
 
       const previewId = await saveGrowthChartPreview(buildGrowthChartPreviewPayload());
-      const previewUrl = `growth-chart-preview?id=${encodeURIComponent(previewId)}`;
+      const previewUrl = `/emr/kid/growth-chart-preview?id=${encodeURIComponent(previewId)}`;
       window.location.href = previewUrl;
     }
 

@@ -140,10 +140,10 @@
     <div class="topbar">
       <div class="brand"><div class="brand-mark">PA</div><div class="brand-copy"><strong>The Better Health Clinic</strong><span>Pending Intake Approvals</span></div></div>
       <nav id="primary-nav" class="nav-links" aria-label="Primary">
-        <a class="nav-link" href="index">Dashboard</a>
-        <a class="nav-link" href="search">Enter Clinic</a>
-        <a class="nav-link active" href="pending-approvals">Approvals</a>
-        <a class="nav-link" href="settings">Settings</a>
+        <a class="nav-link" href="/emr/kid/">Dashboard</a>
+        <a class="nav-link" href="/emr/kid/search">Enter Clinic</a>
+        <a class="nav-link active" href="/emr/kid/pending-approvals">Approvals</a>
+        <a class="nav-link" href="/emr/kid/settings">Settings</a>
       </nav>
       
     </div>
@@ -323,7 +323,7 @@
             approvedPatientId: patientId
           }, { merge: true });
         }
-        const vitalsUrl = `prescription-growth-chart-dashboard?patientId=${encodeURIComponent(patientId)}`;
+        const vitalsUrl = `/emr/kid/prescription-growth-chart-dashboard?patientId=${encodeURIComponent(patientId)}`;
         window.location.href = vitalsUrl;
         return;
       } catch (error) { setStatus(`Unable to approve this submission: ${error.message}`, 'error'); } finally { approveBtn.disabled = false; rejectBtn.disabled = false; }

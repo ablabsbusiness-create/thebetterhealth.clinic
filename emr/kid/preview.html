@@ -845,10 +845,10 @@
       </div>
 
       <nav id="primary-nav" class="nav-links" aria-label="Primary">
-        <a class="nav-link" href="index">Dashboard</a>
-        <a class="nav-link active" href="search">Enter Clinic</a>
-        <a class="nav-link" href="pending-approvals">Approvals</a>
-        <a class="nav-link" href="settings">Settings</a>
+        <a class="nav-link" href="/emr/kid/">Dashboard</a>
+        <a class="nav-link active" href="/emr/kid/search">Enter Clinic</a>
+        <a class="nav-link" href="/emr/kid/pending-approvals">Approvals</a>
+        <a class="nav-link" href="/emr/kid/settings">Settings</a>
       </nav>
 
       
@@ -863,7 +863,7 @@
           <span class="status-dot"></span>Preparing preview...
         </div>
         <div class="preview-actions">
-          <a class="nav-link nav-enter-clinic" href="search">Enter Clinic</a>
+            <a class="nav-link nav-enter-clinic" href="/emr/kid/search">Enter Clinic</a>
           <div class="header-mode-toggle" aria-label="Prescription header mode">
             <button id="with-header-btn" class="header-mode-btn" type="button">With Header</button>
             <button id="without-header-btn" class="header-mode-btn" type="button">Without Header</button>
@@ -2463,7 +2463,7 @@
         return '';
       }
 
-      const url = new URL('rx', window.location.href);
+      const url = new URL('/emr/kid/rx', window.location.origin);
       url.searchParams.set('i', saveId);
       return url.toString();
     }

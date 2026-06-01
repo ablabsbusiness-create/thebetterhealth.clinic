@@ -2053,10 +2053,10 @@
 
       
       <nav id="primary-nav" class="nav-links" aria-label="Primary">
-        <a class="nav-link" href="index">Dashboard</a>
-        <a class="nav-link active" href="search">Enter Clinic</a>
-        <a class="nav-link" href="pending-approvals">Approvals</a>
-        <a class="nav-link" href="settings">Settings</a>
+        <a class="nav-link" href="/emr/kid/">Dashboard</a>
+        <a class="nav-link active" href="/emr/kid/search">Enter Clinic</a>
+        <a class="nav-link" href="/emr/kid/pending-approvals">Approvals</a>
+        <a class="nav-link" href="/emr/kid/settings">Settings</a>
       </nav>
 
     </div>
@@ -5100,8 +5100,8 @@
       if (generateBtn.textContent.trim() === 'Continue') {
         const patientId = patientIdInput.value.trim().toUpperCase();
         const targetUrl = patientId
-          ? `prescription?patientId=${encodeURIComponent(patientId)}`
-          : 'prescription';
+          ? `/emr/kid/prescription?patientId=${encodeURIComponent(patientId)}`
+          : '/emr/kid/prescription';
         window.location.href = targetUrl;
         return;
       }

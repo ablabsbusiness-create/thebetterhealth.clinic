@@ -1993,10 +1993,10 @@
 
       
       <nav id="primary-nav" class="nav-links" aria-label="Primary">
-        <a class="nav-link" href="index">Dashboard</a>
-        <a class="nav-link active" href="search">Enter Clinic</a>
-        <a class="nav-link" href="pending-approvals">Approvals</a>
-        <a class="nav-link" href="settings">Settings</a>
+        <a class="nav-link" href="/emr/kid/">Dashboard</a>
+        <a class="nav-link active" href="/emr/kid/search">Enter Clinic</a>
+        <a class="nav-link" href="/emr/kid/pending-approvals">Approvals</a>
+        <a class="nav-link" href="/emr/kid/settings">Settings</a>
       </nav>
 
 
@@ -2012,7 +2012,7 @@
       <div class="search-row">
         <input id="search-input" type="text" placeholder="Search by child name or phone number or patient id" autocomplete="off">
         <button id="clear-btn" class="btn-primary" type="button">Clear Search</button>
-        <a id="new-patient-btn" class="btn-secondary" href="new-patient">New Patient</a>
+        <a id="new-patient-btn" class="btn-secondary" href="/emr/kid/new-patient">New Patient</a>
       </div>
 
       <div id="status-note" class="status-note">Loading patients...</div>
@@ -2264,7 +2264,7 @@
       }
 
       const query = params.toString();
-      return query ? `new-patient?${query}` : 'new-patient';
+      return query ? `/emr/kid/new-patient?${query}` : '/emr/kid/new-patient';
     }
 
     function updateNewPatientButton() {
@@ -3877,7 +3877,7 @@
       if (patients.length === 0) {
         renderPlaceholder('No patients matched that search.', {
           title: searchValue ? `"${searchValue}" was not found.` : 'No patients found.',
-          actionHref: searchValue ? getNewPatientUrl(searchValue) : 'new-patient',
+          actionHref: searchValue ? getNewPatientUrl(searchValue) : '/emr/kid/new-patient',
           actionLabel: 'Add New Patient'
         });
         return;
@@ -3916,7 +3916,7 @@
                 <strong>${phone}</strong>
                 ${parentNameHtml}
               </div>
-              <a class="continue-link" href="prescription-growth-chart-dashboard?patientId=${encodeURIComponent(patientId)}">Continue</a>
+              <a class="continue-link" href="/emr/kid/prescription-growth-chart-dashboard?patientId=${encodeURIComponent(patientId)}">Continue</a>
             </div>
 
             ${isExpanded ? `
@@ -3952,7 +3952,7 @@
       if (patients.length === 0) {
         renderPlaceholder('No patients matched that search.', {
           title: searchValue ? `"${searchValue}" was not found.` : 'No patients found.',
-          actionHref: searchValue ? getNewPatientUrl(searchValue) : 'new-patient',
+          actionHref: searchValue ? getNewPatientUrl(searchValue) : '/emr/kid/new-patient',
           actionLabel: 'Add New Patient'
         });
         return;
@@ -4021,8 +4021,8 @@
                 <div class="doctor-patient-meta">
                   ${parentName ? `<span class="doctor-meta-chip">${parentName}</span>` : ''}
                   <span class="doctor-meta-chip">${phone}</span>
-                  <a class="continue-link" href="vaccination?patientId=${encodeURIComponent(selectedPatientIdValue)}">Vaccination</a>
-                  <a class="continue-link" href="prescription-growth-chart-dashboard?patientId=${encodeURIComponent(selectedPatientIdValue)}">Start Consult</a>
+                  <a class="continue-link" href="/emr/kid/vaccination?patientId=${encodeURIComponent(selectedPatientIdValue)}">Vaccination</a>
+                  <a class="continue-link" href="/emr/kid/prescription-growth-chart-dashboard?patientId=${encodeURIComponent(selectedPatientIdValue)}">Start Consult</a>
                 </div>
               </div>
 

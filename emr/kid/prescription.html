@@ -1340,10 +1340,10 @@
 
       
       <nav id="primary-nav" class="nav-links" aria-label="Primary">
-        <a class="nav-link" href="index">Dashboard</a>
-        <a class="nav-link active" href="search">Enter Clinic</a>
-        <a class="nav-link" href="pending-approvals">Approvals</a>
-        <a class="nav-link" href="settings">Settings</a>
+        <a class="nav-link" href="/emr/kid/">Dashboard</a>
+        <a class="nav-link active" href="/emr/kid/search">Enter Clinic</a>
+        <a class="nav-link" href="/emr/kid/pending-approvals">Approvals</a>
+        <a class="nav-link" href="/emr/kid/settings">Settings</a>
       </nav>
 
     </div>
@@ -1510,7 +1510,7 @@
       </div>
 
       <div class="page-action-row">
-        <a id="continue-preview-btn" class="btn-primary" href="preview">Continue</a>
+            <a id="continue-preview-btn" class="btn-primary" href="/emr/kid/preview">Continue</a>
       </div>
     </section>
   </div>
@@ -2397,8 +2397,8 @@
     function getPreviewTargetUrl() {
       const patientId = getCurrentPatientId() || getActiveChartRecord()?.patientId || '';
       return isValidPatientId(patientId)
-        ? `preview?patientId=${encodeURIComponent(patientId)}`
-        : 'preview';
+        ? `/emr/kid/preview?patientId=${encodeURIComponent(patientId)}`
+        : '/emr/kid/preview';
     }
 
     function readLocalJson(key, fallback = null) {

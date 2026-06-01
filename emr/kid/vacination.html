@@ -73,9 +73,9 @@
   <link rel="stylesheet" href="mobile-app.css" />
 </head>
 <body>
-  <p>Redirecting to <a id="vaccination-link" href="vaccination">Vaccination</a>...</p>
+  <p>Redirecting to <a id="vaccination-link" href="/emr/kid/vaccination">Vaccination</a>...</p>
   <script>
-    document.getElementById('vaccination-link').href = `vaccination${window.location.search || ''}`;
+    document.getElementById('vaccination-link').href = `/emr/kid/vaccination${window.location.search || ''}`;
   </script>
 </body>
 </html>
