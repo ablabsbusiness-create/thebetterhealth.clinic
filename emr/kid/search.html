@@ -3490,7 +3490,7 @@
       const filtered = hasSearch
         ? [...patients]
         : !historyLoaded
-          ? [...patients]
+          ? []
         : mode === 'queue'
           ? patients.filter((patient) => patientIsQueuedOnDate(patient, dateValue, queuedIds))
           : patients.filter((patient) => patientHasSeenActivityOnDate(patient, dateValue));
@@ -4027,7 +4027,7 @@
             <div class="worklist-list">
               ${renderedWorklistPatients.length
                 ? renderedWorklistPatients.map((patient) => renderWorklistItemHtml(patient, selectedWorklistDate)).join('')
-                : `<div class="worklist-empty">${searchValue ? 'No matching patients were found.' : selectedWorklistMode === 'queue' ? 'No patients were added to queue for this date yet.' : 'No patients have been seen on this date yet.'}</div>`}
+                : `<div class="worklist-empty">${searchValue ? 'No matching patients were found.' : !historyLoaded ? 'Loading clinic list...' : selectedWorklistMode === 'queue' ? 'No patients were added to queue for this date yet.' : 'No patients have been seen on this date yet.'}</div>`}
             </div>
           </aside>
 

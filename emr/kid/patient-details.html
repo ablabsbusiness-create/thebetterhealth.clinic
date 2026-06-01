@@ -1046,6 +1046,223 @@
       line-height: 1.7;
     }
 
+    body.patient-details-page .search-head,
+    body.patient-details-page .search-row,
+    body.patient-details-page .status-note,
+    body.patient-details-page .worklist-sidebar {
+      display: none !important;
+    }
+
+    body.patient-details-page .search-shell {
+      min-height: auto;
+      background: #eef5f1;
+    }
+
+    body.patient-details-page .results-dashboard {
+      display: block;
+      min-height: auto;
+    }
+
+    .patient-profile-page {
+      width: min(1040px, calc(100vw - 32px));
+      margin: 22px auto 110px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .patient-profile-hero {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: center;
+      padding: 22px;
+      border: 1px solid rgba(22, 101, 52, 0.12);
+      background: #ffffff;
+      box-shadow: 0 18px 40px rgba(22, 38, 29, 0.08);
+    }
+
+    .patient-profile-avatar {
+      width: 64px;
+      height: 64px;
+      display: grid;
+      place-items: center;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #0f7a3b, #18bd62);
+      color: #ffffff;
+      font-size: 28px;
+      font-weight: 800;
+      box-shadow: 0 14px 28px rgba(15, 122, 59, 0.2);
+    }
+
+    .patient-profile-title {
+      min-width: 0;
+      display: grid;
+      gap: 7px;
+    }
+
+    .patient-profile-title h2 {
+      margin: 0;
+      font-size: 30px;
+      line-height: 1.05;
+      color: var(--ink);
+    }
+
+    .patient-profile-title p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.45;
+    }
+
+    .patient-profile-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .patient-profile-action {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 16px;
+      border-radius: 12px;
+      background: #15803d;
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 800;
+      box-shadow: 0 12px 24px rgba(21, 128, 61, 0.16);
+    }
+
+    .patient-profile-action.is-muted {
+      background: #ffffff;
+      color: var(--brand-strong);
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+
+    .patient-info-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .patient-info-tile {
+      min-height: 78px;
+      padding: 14px;
+      border: 1px solid rgba(22, 101, 52, 0.11);
+      background: #ffffff;
+      display: grid;
+      align-content: center;
+      gap: 6px;
+    }
+
+    .patient-info-tile span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .patient-info-tile strong {
+      min-width: 0;
+      color: var(--ink);
+      font-size: 16px;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+    }
+
+    .patient-profile-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 16px;
+    }
+
+    .patient-profile-page .doctor-card {
+      border-radius: 0;
+      box-shadow: 0 14px 34px rgba(22, 38, 29, 0.06);
+    }
+
+    .patient-profile-page .doctor-card-head {
+      padding: 18px 20px 14px;
+    }
+
+    .patient-profile-page .doctor-card-body {
+      padding: 16px 20px 20px;
+    }
+
+    .patient-profile-page .prescription-carousel {
+      justify-content: start;
+    }
+
+    @media (max-width: 760px) {
+      .patient-profile-page {
+        width: 100%;
+        margin: 0;
+        padding: 12px 12px calc(112px + env(safe-area-inset-bottom));
+        gap: 12px;
+      }
+
+      .patient-profile-hero {
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 12px;
+        padding: 16px;
+        border-radius: 20px;
+      }
+
+      .patient-profile-avatar {
+        width: 54px;
+        height: 54px;
+        border-radius: 14px;
+        font-size: 22px;
+      }
+
+      .patient-profile-title h2 {
+        font-size: 22px;
+      }
+
+      .patient-profile-title p {
+        font-size: 13px;
+      }
+
+      .patient-profile-actions {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+      }
+
+      .patient-profile-action {
+        min-height: 46px;
+        border-radius: 14px;
+        font-size: 13px;
+      }
+
+      .patient-info-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .patient-info-tile {
+        min-height: 68px;
+        padding: 12px;
+        border-radius: 16px;
+      }
+
+      .patient-profile-page .doctor-card {
+        border-radius: 20px;
+      }
+
+      .patient-profile-page .doctor-card-head,
+      .patient-profile-page .doctor-card-body {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+    }
+
     .results-list {
       display: grid;
       gap: 12px;
@@ -3991,6 +4208,92 @@
           actionHref: searchValue ? getNewPatientUrl(searchValue) : '/emr/kid/new-patient',
           actionLabel: 'Add New Patient'
         });
+        return;
+      }
+
+      if (IS_PATIENT_DETAILS_PAGE) {
+        const selectedPatient = patients.find((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId) || null;
+        if (!selectedPatient) {
+          renderPlaceholder('This patient record was not found.', {
+            title: selectedPatientId ? `${selectedPatientId} was not found.` : 'No patient selected.',
+            actionHref: '/emr/kid/search',
+            actionLabel: 'Back to Search'
+          });
+          return;
+        }
+
+        const selectedPatientIdValue = formatMissing(selectedPatient.patientId, 'ID not saved');
+        const selectedHistoryDate = historyDateFilters[selectedPatientIdValue] || '';
+        const childName = getPatientDisplayName(selectedPatient);
+        const parentName = getSavedParentName(selectedPatient);
+        const phone = formatMissing(selectedPatient.phone, 'Phone not saved');
+        const gender = formatMissing(selectedPatient.gender, 'Gender not saved');
+        const dob = formatDateDisplay(selectedPatient.dob);
+        const measurements = getMeasurementEntries(selectedPatient);
+        const latestMeasurement = measurements[0] || null;
+        const latestVisitText = latestMeasurement ? formatHistoryDateTime(latestMeasurement) : 'No vitals saved';
+        const prescriptionCount = getPrescriptionEntries(selectedPatientIdValue).length;
+        const avatarLetter = childName.charAt(0).toUpperCase() || 'P';
+
+        resultsPanel.innerHTML = `
+          <div class="patient-profile-page">
+            <section class="patient-profile-hero">
+              <div class="patient-profile-avatar">${escapeHtml(avatarLetter)}</div>
+              <div class="patient-profile-title">
+                <h2>${escapeHtml(childName)}</h2>
+                <p>${escapeHtml(gender)} | ${escapeHtml(dob)} | ${escapeHtml(selectedPatientIdValue)}</p>
+              </div>
+              <div class="patient-profile-actions">
+                <a class="patient-profile-action is-muted" href="/emr/kid/search">Back</a>
+                <a class="patient-profile-action is-muted" href="/emr/kid/vaccination?patientId=${encodeURIComponent(selectedPatientIdValue)}">Vaccination</a>
+                <a class="patient-profile-action" href="/emr/kid/prescription-growth-chart-dashboard?patientId=${encodeURIComponent(selectedPatientIdValue)}">Start Consult</a>
+              </div>
+            </section>
+
+            <section class="patient-info-grid" aria-label="Patient information">
+              <div class="patient-info-tile">
+                <span>Patient ID</span>
+                <strong>${escapeHtml(selectedPatientIdValue)}</strong>
+              </div>
+              <div class="patient-info-tile">
+                <span>Parent</span>
+                <strong>${escapeHtml(parentName || 'Not saved')}</strong>
+              </div>
+              <div class="patient-info-tile">
+                <span>Phone</span>
+                <strong>${escapeHtml(phone)}</strong>
+              </div>
+              <div class="patient-info-tile">
+                <span>Latest Visit</span>
+                <strong>${escapeHtml(latestVisitText)}</strong>
+              </div>
+            </section>
+
+            <div class="patient-profile-grid">
+              <section class="doctor-card">
+                <div class="doctor-card-head">
+                  <h3>Vitals</h3>
+                </div>
+                <div class="doctor-card-body is-compact">
+                  ${renderMeasurementTableHtml(selectedPatient, selectedHistoryDate) || '<p class="doctor-card-note">No vitals have been saved for this patient yet.</p>'}
+                </div>
+              </section>
+
+              <section class="doctor-card">
+                <div class="doctor-card-head">
+                  <h3>Prescriptions</h3>
+                  <span class="doctor-card-note">${prescriptionCount} saved</span>
+                </div>
+                <div class="doctor-card-body">
+                  ${renderPrescriptionListHtml(selectedPatientIdValue)}
+                </div>
+              </section>
+            </div>
+          </div>
+        `;
+
+        attachPrescriptionPreviewRendering();
+        ensureStoragePrescriptionsForPatient(selectedPatient);
         return;
       }
 
