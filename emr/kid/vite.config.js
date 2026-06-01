@@ -252,6 +252,7 @@ export default defineConfig({
         preview: resolve(__dirname, 'preview.html'),
         pdfViewer: resolve(__dirname, 'pdf-viewer.html'),
         pendingApprovals: resolve(__dirname, 'pending-approvals.html'),
+        patientDetails: resolve(__dirname, 'patient-details.html'),
         receptionQr: resolve(__dirname, 'reception-qr.html'),
         intake: resolve(__dirname, 'intake.html'),
         rx: resolve(__dirname, 'rx.html'),

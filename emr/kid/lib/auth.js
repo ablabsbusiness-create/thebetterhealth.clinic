@@ -14,6 +14,7 @@ const PROTECTED_PATHS = new Set([
   '/preview',
   '/KID/preview',
   '/pending-approvals',
+  '/patient-details',
   '/reception-qr',
   '/search',
   '/settings',
