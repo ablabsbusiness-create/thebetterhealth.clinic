@@ -4,6 +4,7 @@ __pycache__/
 
 node_modules/
 dist/
+vercel-dist/
 
 Template/dist/
 Template/node_modules/

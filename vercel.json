@@ -1,0 +1,21 @@
+{
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
+  "outputDirectory": "vercel-dist",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/emr/kid",
+      "destination": "/emr/kid/index.html"
+    },
+    {
+      "source": "/emr/lungs",
+      "destination": "/emr/lungs/index.html"
+    },
+    {
+      "source": "/emr/ab-labs",
+      "destination": "/emr/ab-labs/index.html"
+    }
+  ]
+}
