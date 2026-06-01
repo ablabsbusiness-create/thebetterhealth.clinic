@@ -4031,25 +4031,6 @@
             </div>
           </aside>
 
-          <main class="worklist-main">
-            ${selectedPatient ? `
-              <div class="doctor-main-head">
-                <div>
-                  <h2>${childName}</h2>
-                  <p>${gender} | ${dob} | ${selectedPatientIdValue}</p>
-                </div>
-                <div class="doctor-patient-meta">
-                  ${parentName ? `<span class="doctor-meta-chip">${parentName}</span>` : ''}
-                  <span class="doctor-meta-chip">${phone}</span>
-                  <a class="continue-link" href="/emr/kid/vaccination?patientId=${encodeURIComponent(selectedPatientIdValue)}">Vaccination</a>
-                  <a class="continue-link" href="/emr/kid/prescription-growth-chart-dashboard?patientId=${encodeURIComponent(selectedPatientIdValue)}">Start Consult</a>
-                </div>
-              </div>
-
-            ` : `
-              <div class="doctor-empty-state">Select a patient from the left list.</div>
-            `}
-          </main>
         </div>
       `;
 
