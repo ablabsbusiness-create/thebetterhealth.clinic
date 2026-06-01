@@ -3344,7 +3344,15 @@
       }
     }
 
-    initPrescriptionData();
+    async function openInitialPrescriptionAction() {
+      await initPrescriptionData();
+
+      if (window.location.hash === '#add-medicine') {
+        openAddMedicineModal('', document.body);
+      }
+    }
+
+    openInitialPrescriptionAction();
     continuePreviewBtn.addEventListener('click', () => {
       syncMedicineDetailsFromDom();
       savePrescriptionDraft();
