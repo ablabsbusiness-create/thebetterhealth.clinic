@@ -1944,7 +1944,8 @@
 
   body:has(#search-input) .doctor-card .record-table thead tr {
     display: grid !important;
-    grid-template-columns: 92px 36px repeat(var(--history-entry-count, 1), minmax(104px, 1fr)) !important;
+    grid-template-columns: 82px 28px repeat(var(--history-entry-count, 1), 78px) !important;
+    gap: 6px !important;
     align-items: end !important;
     padding: 0 0 8px !important;
   }
@@ -1962,11 +1963,15 @@
   }
 
   body:has(#search-input) .doctor-card .record-table thead th:nth-child(n+3) {
+    width: 78px !important;
+    min-width: 78px !important;
+    max-width: 78px !important;
     text-align: center !important;
     color: var(--mobile-green-dark) !important;
-    font-size: 12px !important;
+    font-size: 11px !important;
     font-weight: 900 !important;
     white-space: nowrap !important;
+    overflow: visible !important;
   }
 
   body:has(#search-input) .doctor-card .record-table tbody {
@@ -1976,8 +1981,8 @@
 
   body:has(#search-input) .doctor-card .record-table tbody tr {
     display: grid !important;
-    grid-template-columns: 92px 36px repeat(var(--history-entry-count, 1), minmax(104px, 1fr)) !important;
-    gap: 8px !important;
+    grid-template-columns: 82px 28px repeat(var(--history-entry-count, 1), 78px) !important;
+    gap: 6px !important;
     align-items: center !important;
     padding: 0 !important;
     border: 0 !important;
@@ -1992,29 +1997,32 @@
   }
 
   body:has(#search-input) .doctor-card .record-table .metric-name {
-    font-size: 13px !important;
+    font-size: 12px !important;
     line-height: 1.1 !important;
     font-weight: 900 !important;
   }
 
   body:has(#search-input) .doctor-card .record-table .metric-unit {
     color: var(--mobile-muted) !important;
-    font-size: 11px !important;
+    font-size: 10px !important;
     text-align: center !important;
     font-weight: 900 !important;
   }
 
   body:has(#search-input) .doctor-card .record-table .metric-value {
-    min-width: 0 !important;
+    width: 78px !important;
+    min-width: 78px !important;
+    max-width: 78px !important;
   }
 
   body:has(#search-input) .doctor-card .record-table-input {
-    width: 100% !important;
-    height: 48px !important;
-    min-height: 48px !important;
-    padding: 0 12px !important;
+    width: 78px !important;
+    max-width: 78px !important;
+    height: 46px !important;
+    min-height: 46px !important;
+    padding: 0 10px !important;
     border-radius: 12px !important;
-    font-size: 16px !important;
+    font-size: 15px !important;
     box-shadow: none !important;
   }
 
