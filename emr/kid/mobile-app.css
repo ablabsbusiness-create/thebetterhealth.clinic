@@ -1243,8 +1243,8 @@
 
   #primary-nav,
   .nav-links {
-    top: auto !important;
-    bottom: calc(8px + env(safe-area-inset-bottom)) !important;
+    top: calc(100dvh - 84px - env(safe-area-inset-bottom)) !important;
+    bottom: auto !important;
     left: 16px !important;
     right: auto !important;
     width: calc(100vw - 32px) !important;
