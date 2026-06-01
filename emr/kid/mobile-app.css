@@ -913,4 +913,394 @@
     height: 44px !important;
     border-radius: 8px !important;
   }
+
+  /* Reference-inspired phone UI polish for all Kid EMR pages. */
+  :root {
+    --mobile-bg: #f7f8f7;
+    --mobile-surface: #ffffff;
+    --mobile-surface-soft: #f8fbf9;
+    --mobile-border: rgba(20, 74, 43, 0.10);
+    --mobile-text: #101d16;
+    --mobile-muted: #65736a;
+    --mobile-green: #079246;
+    --mobile-green-dark: #06763a;
+    --mobile-green-soft: #e9f8ef;
+    --mobile-shadow: 0 12px 32px rgba(16, 29, 22, 0.08);
+    --mobile-card-radius: 16px;
+    --mobile-control-radius: 10px;
+  }
+
+  body {
+    background: var(--mobile-bg) !important;
+    color: var(--mobile-text) !important;
+    font-family: Inter, Poppins, "Segoe UI", Arial, sans-serif !important;
+  }
+
+  .site-header,
+  .viewer-header {
+    background: rgba(255, 255, 255, 0.96) !important;
+    border-bottom: 0 !important;
+    box-shadow: 0 8px 28px rgba(16, 29, 22, 0.05) !important;
+  }
+
+  .topbar,
+  .viewer-header {
+    min-height: 72px !important;
+    padding: calc(12px + env(safe-area-inset-top)) 18px 12px !important;
+  }
+
+  .brand-icon,
+  .brand-mark,
+  .logo-mark {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    border-radius: 10px !important;
+    background: linear-gradient(145deg, #049947, #057c3d) !important;
+    box-shadow: 0 10px 22px rgba(5, 124, 61, 0.24) !important;
+  }
+
+  .brand h1,
+  .brand strong,
+  .brand-title,
+  .clinic-brand strong,
+  .viewer-header strong {
+    font-size: 15px !important;
+    font-weight: 900 !important;
+    letter-spacing: 0 !important;
+  }
+
+  .brand p,
+  .brand span,
+  .brand-subtitle,
+  .clinic-brand span {
+    color: var(--mobile-muted) !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+  }
+
+  main,
+  .page-shell,
+  .shell,
+  .workspace,
+  .dashboard-shell,
+  .content-shell,
+  .panel,
+  .page,
+  .app-shell {
+    padding: 14px 14px 100px !important;
+  }
+
+  h1 {
+    font-size: 25px !important;
+    font-weight: 900 !important;
+  }
+
+  h2 {
+    font-size: 18px !important;
+    font-weight: 900 !important;
+  }
+
+  h3 {
+    font-size: 15px !important;
+    font-weight: 900 !important;
+  }
+
+  p,
+  li,
+  label,
+  small,
+  .muted,
+  .field-hint,
+  .status-note {
+    color: var(--mobile-muted) !important;
+  }
+
+  .card,
+  .app-card,
+  .overview-card,
+  .action-card,
+  .form-card,
+  .preview-card,
+  .metric-card,
+  .summary-card,
+  .setting-card,
+  .stat-card,
+  .rx-card,
+  .medicine-detail-card,
+  .growth-summary-card,
+  .queue-card,
+  .review-card,
+  .qr-card,
+  .info-card,
+  .access-card,
+  .skeleton-card,
+  .worklist-summary-card,
+  .question-space-card,
+  .prescription-ui-card,
+  .storage-alert-card,
+  .account-card,
+  .patient-hero,
+  .patient-detail,
+  .patient-summary,
+  .selected-patient,
+  .detail-panel,
+  .doctor-card,
+  .history-panel,
+  .info-panel {
+    border-radius: var(--mobile-card-radius) !important;
+    border: 1px solid var(--mobile-border) !important;
+    background: var(--mobile-surface) !important;
+    box-shadow: var(--mobile-shadow) !important;
+  }
+
+  .action-card,
+  .app-card,
+  .overview-card,
+  .info-card,
+  .qr-card,
+  .setting-card,
+  .review-card,
+  .rx-card {
+    padding: 20px !important;
+  }
+
+  .action-card {
+    min-height: 142px !important;
+    display: grid !important;
+    grid-template-columns: 58px 1fr 20px !important;
+    align-items: center !important;
+    column-gap: 16px !important;
+    text-decoration: none !important;
+  }
+
+  .action-card::before,
+  .app-card::before,
+  .overview-card::before {
+    border-radius: 12px !important;
+  }
+
+  .action-card h3,
+  .action-card strong {
+    font-size: 17px !important;
+    line-height: 1.15 !important;
+    margin: 0 0 6px !important;
+  }
+
+  .action-card p {
+    font-size: 13px !important;
+    line-height: 1.45 !important;
+  }
+
+  input,
+  select,
+  textarea {
+    border: 1px solid rgba(20, 74, 43, 0.12) !important;
+    background: #fff !important;
+    border-radius: var(--mobile-control-radius) !important;
+    box-shadow: inset 0 1px 0 rgba(16, 29, 22, 0.02) !important;
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    border-color: rgba(7, 146, 70, 0.44) !important;
+    box-shadow: 0 0 0 3px rgba(7, 146, 70, 0.10) !important;
+  }
+
+  button,
+  .button,
+  .btn,
+  .action-btn,
+  .primary-btn,
+  .secondary-btn,
+  .ghost-btn,
+  .filter-clear-btn,
+  .continue-link,
+  .submit-btn,
+  .btn-primary,
+  .btn-secondary {
+    border-radius: var(--mobile-control-radius) !important;
+    font-weight: 900 !important;
+  }
+
+  .primary-btn,
+  .submit-btn,
+  .btn-primary,
+  .continue-link,
+  button[type="submit"] {
+    background: linear-gradient(180deg, #08a64e, #07833f) !important;
+    color: #fff !important;
+    box-shadow: 0 12px 22px rgba(7, 131, 63, 0.22) !important;
+  }
+
+  .secondary-btn,
+  .btn-secondary,
+  .ghost-btn,
+  .filter-clear-btn {
+    background: #fff !important;
+    color: var(--mobile-green-dark) !important;
+    border: 1px solid rgba(7, 131, 63, 0.22) !important;
+  }
+
+  #primary-nav,
+  .nav-links {
+    top: calc(100dvh - 72px - env(safe-area-inset-bottom)) !important;
+    height: 62px !important;
+    padding: 6px !important;
+    border-radius: 16px !important;
+    background: rgba(255, 255, 255, 0.98) !important;
+    border: 1px solid rgba(20, 74, 43, 0.10) !important;
+    box-shadow: 0 14px 34px rgba(16, 29, 22, 0.14) !important;
+  }
+
+  #primary-nav a,
+  #primary-nav button,
+  .nav-links a,
+  .nav-links button,
+  .nav-link {
+    min-width: 0 !important;
+    max-width: none !important;
+    height: 50px !important;
+    padding: 5px 4px !important;
+    display: grid !important;
+    grid-template-rows: 18px 1fr !important;
+    place-items: center !important;
+    gap: 3px !important;
+    border-radius: 12px !important;
+    font-size: 9px !important;
+    font-weight: 800 !important;
+    color: #5d6d63 !important;
+  }
+
+  #primary-nav a::before,
+  .nav-links a::before,
+  .nav-link::before {
+    display: block;
+    font-size: 16px;
+    line-height: 1;
+    color: currentColor;
+  }
+
+  #primary-nav a:nth-child(1)::before,
+  .nav-links a:nth-child(1)::before {
+    content: "▦";
+  }
+
+  #primary-nav a:nth-child(2)::before,
+  .nav-links a:nth-child(2)::before {
+    content: "▥";
+  }
+
+  #primary-nav a:nth-child(3)::before,
+  .nav-links a:nth-child(3)::before {
+    content: "▣";
+  }
+
+  #primary-nav a:nth-child(4)::before,
+  .nav-links a:nth-child(4)::before {
+    content: "⚙";
+  }
+
+  #primary-nav a[aria-current="page"],
+  #primary-nav a.is-active,
+  #primary-nav a.active,
+  .nav-links a[aria-current="page"],
+  .nav-links a.is-active,
+  .nav-links a.active,
+  .nav-link.is-active,
+  .nav-link.active {
+    background: var(--mobile-green-soft) !important;
+    color: var(--mobile-green-dark) !important;
+  }
+
+  .summary-card,
+  .worklist-summary-card,
+  .stat-card,
+  .metric-card {
+    min-height: 112px !important;
+    padding: 16px !important;
+  }
+
+  .summary-card strong,
+  .worklist-summary-card strong,
+  .stat-card strong {
+    font-size: 30px !important;
+    line-height: 1 !important;
+    color: var(--mobile-text) !important;
+  }
+
+  .summary-card span,
+  .worklist-summary-card span,
+  .status-chip {
+    color: var(--mobile-green-dark) !important;
+    background: var(--mobile-green-soft) !important;
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.02em !important;
+  }
+
+  .qr-card img {
+    border-radius: 12px !important;
+    box-shadow: none !important;
+  }
+
+  .access-card {
+    margin-top: 18px !important;
+    padding: 28px 20px !important;
+  }
+
+  .access-card h1 {
+    text-align: center !important;
+  }
+
+  .access-card .intro {
+    text-align: center !important;
+  }
+
+  body:has(#search-input) .search-row {
+    grid-template-columns: 1fr 48px !important;
+    border-radius: 0 0 16px 16px !important;
+    box-shadow: 0 12px 26px rgba(16, 29, 22, 0.06) !important;
+  }
+
+  body:has(#search-input) #search-input {
+    border-radius: 12px !important;
+  }
+
+  body:has(#search-input) #clear-btn {
+    border-radius: 12px !important;
+  }
+
+  body:has(#search-input) #new-patient-btn {
+    min-height: 44px !important;
+    border-radius: 12px !important;
+    background: #fff !important;
+  }
+
+  body:has(#search-input) .worklist-datebar,
+  body:has(#search-input) .worklist-item,
+  body:has(#search-input) .worklist-summary-card,
+  body:has(#search-input) .doctor-card {
+    border-radius: var(--mobile-card-radius) !important;
+  }
+
+  body:has(#search-input) .worklist-item {
+    min-height: 92px !important;
+  }
+
+  body:has(#search-input) .worklist-item-name {
+    font-size: 16px !important;
+    font-weight: 900 !important;
+  }
+
+  body:has(#search-input) .doctor-patient-meta .continue-link {
+    border-radius: 12px !important;
+  }
+
+  .prescription-preview-card,
+  .pdf-preview-card,
+  .preview-card {
+    border-radius: var(--mobile-card-radius) !important;
+  }
 }

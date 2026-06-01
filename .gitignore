@@ -1,5 +1,15 @@
 __pycache__/
-$null
+*.py[cod]
 *.log
+
+node_modules/
+dist/
+
 Template/dist/
 Template/node_modules/
+emr/*/node_modules/
+emr/*/dist/
+
+kid-emr-phone-screenshots-*/
+*.zip
+.codex-remote-attachments/
