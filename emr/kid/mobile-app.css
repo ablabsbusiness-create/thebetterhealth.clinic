@@ -1837,10 +1837,32 @@
 
   body:has(#chart-form) .metric-master-toggle {
     grid-column: 1 / -1 !important;
-    justify-self: end !important;
-    width: auto !important;
-    min-width: 150px !important;
-    box-shadow: 0 8px 18px rgba(17, 37, 27, 0.07) !important;
+    justify-self: stretch !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    justify-content: space-between !important;
+    padding: 0 14px !important;
+    border-radius: 13px !important;
+    background: #f7fbf8 !important;
+    box-shadow: none !important;
+  }
+
+  body:has(#chart-form) .metric-master-toggle .metric-toggle-ui {
+    order: 2 !important;
+    width: 38px !important;
+    min-width: 38px !important;
+    height: 22px !important;
+  }
+
+  body:has(#chart-form) .metric-master-toggle .metric-toggle-ui::after {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  body:has(#chart-form) .metric-master-toggle input:checked + .metric-toggle-ui::after {
+    transform: translateX(16px) !important;
   }
 
   body:has(#chart-form) .field.field-full > label {
@@ -1865,27 +1887,30 @@
   }
 
   body:has(#chart-form) .metric-history-control {
-    min-width: 82px !important;
-    max-width: 82px !important;
-    padding: 5px !important;
-    border: 0 !important;
-    background: transparent !important;
+    width: 78px !important;
+    min-width: 78px !important;
+    max-width: 78px !important;
+    padding: 4px 5px !important;
+    border: 1px solid rgba(20, 74, 43, 0.08) !important;
+    border-radius: 999px !important;
+    background: #f8fbf9 !important;
   }
 
   body:has(#chart-form) .metric-history-control-head {
-    display: block !important;
+    display: flex !important;
+    justify-content: center !important;
   }
 
   body:has(#chart-form) .metric-history-toggle {
-    min-height: 26px !important;
+    min-height: 22px !important;
     padding: 0 !important;
-    justify-content: flex-end !important;
+    justify-content: center !important;
     font-size: 0 !important;
   }
 
   body:has(#chart-form) .metric-history-toggle::after {
     content: "Past";
-    margin-left: 5px;
+    margin-left: 4px;
     color: var(--mobile-muted);
     font-size: 10px;
     font-weight: 900;
