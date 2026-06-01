@@ -2088,6 +2088,15 @@
     font-size: var(--rx-font-size, 12px) !important;
   }
 
+  body.rendering-prescription-download:has(#preview-status) .rx-sheet {
+    width: 794px !important;
+    min-width: 794px !important;
+    max-width: none !important;
+    min-height: 1123px !important;
+    transform: none !important;
+    margin: 0 !important;
+  }
+
   body:has(#preview-status) .rx-sheet-header {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
