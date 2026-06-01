@@ -2516,4 +2516,127 @@
     line-height: 1.1 !important;
     text-decoration: none !important;
   }
+
+  body.search-page {
+    min-height: 100dvh !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body.search-page .site-header {
+    position: sticky !important;
+    top: 0 !important;
+  }
+
+  body.search-page main,
+  body.search-page .page-shell,
+  body.search-page .search-shell {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: auto !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+
+  body.search-page .page-shell {
+    padding: 10px 10px calc(108px + env(safe-area-inset-bottom)) !important;
+  }
+
+  body.search-page .search-row {
+    position: sticky !important;
+    top: calc(64px + env(safe-area-inset-top)) !important;
+    z-index: 70 !important;
+    width: calc(100% + 20px) !important;
+    grid-template-columns: minmax(0, 1fr) 48px !important;
+    box-shadow: 0 10px 24px rgba(17, 37, 27, 0.08) !important;
+  }
+
+  body.search-page #search-input {
+    min-width: 0 !important;
+    font-size: 15px !important;
+    line-height: 1.2 !important;
+    text-overflow: ellipsis !important;
+  }
+
+  body.search-page .results-dashboard {
+    display: block !important;
+    min-height: auto !important;
+    width: 100% !important;
+    overflow: visible !important;
+  }
+
+  body.search-page .worklist-sidebar {
+    display: block !important;
+    width: 100% !important;
+    max-height: none !important;
+    min-height: auto !important;
+    position: static !important;
+    overflow: visible !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  body.search-page .worklist-datebar {
+    margin: 0 0 10px !important;
+  }
+
+  body.search-page .worklist-summary {
+    display: none !important;
+  }
+
+  body.search-page .worklist-list {
+    max-height: none !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    gap: 10px !important;
+    padding: 0 0 8px !important;
+  }
+
+  body.search-page .worklist-item {
+    width: 100% !important;
+    border: 1px solid rgba(35, 83, 55, 0.12) !important;
+    border-radius: 14px !important;
+  }
+
+  body.search-page .worklist-item.is-active {
+    border-color: rgba(15, 122, 59, 0.32) !important;
+    box-shadow: 0 12px 28px rgba(15, 122, 59, 0.1) !important;
+  }
+
+  body.search-page .worklist-item-main {
+    min-height: 88px !important;
+    padding: 14px !important;
+    border-radius: 14px !important;
+  }
+
+  body.search-page .worklist-item-head {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: start !important;
+  }
+
+  body.search-page .worklist-item-name {
+    font-size: 17px !important;
+  }
+
+  body.search-page .worklist-item-phone {
+    max-width: 112px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  body.search-page .worklist-item-sub {
+    row-gap: 4px !important;
+  }
+
+  body.search-page .worklist-empty {
+    border: 1px solid rgba(35, 83, 55, 0.1) !important;
+    border-radius: 14px !important;
+    background: rgba(255, 255, 255, 0.78) !important;
+  }
+
+  body.search-page .worklist-main {
+    display: none !important;
+  }
 }
