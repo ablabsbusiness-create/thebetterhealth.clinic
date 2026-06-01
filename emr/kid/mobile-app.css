@@ -1438,6 +1438,10 @@
     font-size: 26px !important;
   }
 
+  body:has(#search-input) .worklist-summary {
+    display: none !important;
+  }
+
   body:has(.measurement-table) .measurement-table-wrap {
     border-radius: 14px !important;
     overflow: hidden !important;
