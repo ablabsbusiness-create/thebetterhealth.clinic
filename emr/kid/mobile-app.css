@@ -1442,6 +1442,60 @@
     display: none !important;
   }
 
+  body:has(#tables-root) [data-vaccination-table-wrap] {
+    width: calc(100vw - 32px) !important;
+    max-width: calc(100vw - 32px) !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body:has(#tables-root) .schedule-table {
+    width: max-content !important;
+    min-width: 1880px !important;
+    table-layout: fixed !important;
+  }
+
+  body:has(#tables-root) .schedule-table th:first-child,
+  body:has(#tables-root) .schedule-table td:first-child {
+    width: 96px !important;
+    min-width: 96px !important;
+    max-width: 96px !important;
+  }
+
+  body:has(#tables-root) .schedule-table th:not(:first-child),
+  body:has(#tables-root) .schedule-table td:not(:first-child) {
+    width: 118px !important;
+    min-width: 118px !important;
+    max-width: 118px !important;
+  }
+
+  body:has(#tables-root) .schedule-cell {
+    min-height: 118px !important;
+    padding: 8px !important;
+    overflow: visible !important;
+  }
+
+  body:has(#tables-root) .cell-vaccine,
+  body:has(#tables-root) .cell-date,
+  body:has(#tables-root) .cell-note {
+    overflow-wrap: normal !important;
+    word-break: normal !important;
+  }
+
+  body:has(#tables-root) .chart-head-actions {
+    display: grid !important;
+    grid-template-columns: 1fr 48px 48px !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+
+  body:has(#tables-root) .chart-scroll-btn {
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 12px !important;
+  }
+
   body:has(.measurement-table) .measurement-table-wrap {
     border-radius: 14px !important;
     overflow: hidden !important;
