@@ -3348,7 +3348,7 @@
       await initPrescriptionData();
 
       if (window.location.hash === '#add-medicine') {
-        openAddMedicineModal('', document.body);
+        history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
       }
     }
 

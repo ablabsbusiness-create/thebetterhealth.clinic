@@ -245,7 +245,6 @@ export default defineConfig({
         password: resolve(__dirname, 'password.html'),
         download: resolve(__dirname, 'download.html'),
         entryDashboard: resolve(__dirname, 'index.html'),
-        dashboard: resolve(__dirname, 'clinci.html'),
         newPatient: resolve(__dirname, 'new-patient.html'),
         growthChart: resolve(__dirname, 'growth-chart-dashboard.html'),
         growthChartPreview: resolve(__dirname, 'growth-chart-preview.html'),

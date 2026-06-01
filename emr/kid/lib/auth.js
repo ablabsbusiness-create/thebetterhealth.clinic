@@ -6,7 +6,6 @@ const APP_BASE_SEGMENT = '/emr/kid';
 const PROTECTED_PATHS = new Set([
   '/',
   '/index',
-  '/clinci',
   '/new-patient',
   '/growth-chart-dashboard',
   '/KID/growth-chart-dashboard',
