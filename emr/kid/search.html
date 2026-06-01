@@ -3957,13 +3957,6 @@
 
             ${isExpanded ? `
               <div class="result-layout">
-                <section class="info-panel">
-                  <div class="panel-content">
-                    <h3>Info regarding patient details and current clinic record.</h3>
-                    ${renderMeasurementTableHtml(patient, selectedHistoryDate)}
-                  </div>
-                </section>
-
                 <section class="history-panel">
                   <div class="panel-content">
                     <h3>Past prescription</h3>
@@ -4063,18 +4056,7 @@
                 </div>
               </div>
 
-              <div class="doctor-detail-grid">
-                <div class="doctor-detail-stack">
-                  <section class="doctor-card">
-                    <div class="doctor-card-head">
-                      <h3>Vitals Trend</h3>
-                    </div>
-                    <div class="doctor-card-body is-compact">
-                      ${renderMeasurementTableHtml(selectedPatient, selectedHistoryDate) || '<p class="doctor-card-note">No vitals trend has been saved yet.</p>'}
-                    </div>
-                  </section>
-                </div>
-
+              <div class="doctor-detail-grid is-single">
                 <section class="doctor-card">
                   <div class="doctor-card-head">
                     <h3>Past Prescriptions</h3>
