@@ -2100,4 +2100,118 @@
   body:has(#preview-status) .medicine-table-wrap .medicine-table {
     min-width: 620px !important;
   }
+
+  body:has(#password-form) {
+    min-height: 100dvh !important;
+    display: block !important;
+    padding: calc(28px + env(safe-area-inset-top)) 18px calc(28px + env(safe-area-inset-bottom)) !important;
+    background:
+      radial-gradient(circle at 20% 4%, rgba(7, 146, 70, 0.12), transparent 28%),
+      linear-gradient(180deg, #f8faf9 0%, #eef4f0 100%) !important;
+  }
+
+  body:has(#password-form) .access-card {
+    width: 100% !important;
+    max-width: 430px !important;
+    min-height: auto !important;
+    margin: min(11dvh, 76px) auto 0 !important;
+    padding: 24px 20px 22px !important;
+    border-radius: 22px !important;
+    background: rgba(255, 255, 255, 0.96) !important;
+    box-shadow: 0 20px 44px rgba(16, 29, 22, 0.10) !important;
+  }
+
+  body:has(#password-form) .brand {
+    margin-bottom: 28px !important;
+    gap: 12px !important;
+    align-items: center !important;
+  }
+
+  body:has(#password-form) .brand-mark {
+    width: 54px !important;
+    height: 54px !important;
+    border-radius: 15px !important;
+    font-size: 24px !important;
+    flex: 0 0 auto !important;
+  }
+
+  body:has(#password-form) .brand-copy strong {
+    font-size: 18px !important;
+    line-height: 1.1 !important;
+  }
+
+  body:has(#password-form) .brand-copy span {
+    margin-top: 5px !important;
+    font-size: 13px !important;
+  }
+
+  body:has(#password-form) h1 {
+    margin: 0 !important;
+    text-align: left !important;
+    font-size: 31px !important;
+    line-height: 1.06 !important;
+  }
+
+  body:has(#password-form) .intro {
+    max-width: 310px !important;
+    margin: 8px 0 24px !important;
+    text-align: left !important;
+    font-size: 14px !important;
+    line-height: 1.45 !important;
+  }
+
+  body:has(#password-form) form {
+    gap: 14px !important;
+  }
+
+  body:has(#password-form) label {
+    margin-bottom: 8px !important;
+    font-size: 13px !important;
+    color: var(--mobile-text) !important;
+  }
+
+  body:has(#password-form) .pin-input {
+    height: 56px !important;
+    min-height: 56px !important;
+    padding: 0 16px !important;
+    border-radius: 14px !important;
+    font-size: 22px !important;
+    line-height: 1 !important;
+    letter-spacing: 0.18em !important;
+    text-align: center !important;
+  }
+
+  body:has(#password-form) .helper {
+    margin-top: 8px !important;
+    font-size: 12px !important;
+    line-height: 1.35 !important;
+  }
+
+  body:has(#password-form) .error {
+    min-height: 18px !important;
+    font-size: 12px !important;
+  }
+
+  body:has(#password-form) .submit-btn {
+    width: 100% !important;
+    height: 52px !important;
+    min-height: 52px !important;
+    border-radius: 14px !important;
+    font-size: 15px !important;
+    box-shadow: 0 14px 24px rgba(7, 131, 63, 0.22) !important;
+  }
+
+  body:has(#password-form) .download-link {
+    min-height: 44px !important;
+    margin-top: 12px !important;
+    display: grid !important;
+    place-items: center !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(7, 131, 63, 0.16) !important;
+    background: #fff !important;
+    color: var(--mobile-green-dark) !important;
+    font-size: 13px !important;
+    line-height: 1.1 !important;
+    text-decoration: none !important;
+  }
 }
