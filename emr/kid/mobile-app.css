@@ -846,15 +846,42 @@
 
   body:has(#search-input) .doctor-patient-meta {
     display: grid !important;
-    grid-template-columns: 1fr !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 8px !important;
-    margin-top: 12px !important;
+    width: 100% !important;
+    margin-top: 14px !important;
+    align-items: stretch !important;
+  }
+
+  body:has(#search-input) .doctor-meta-chip {
+    min-height: 40px !important;
+    width: 100% !important;
+    display: grid !important;
+    place-items: center !important;
+    padding: 0 12px !important;
+    border-radius: 12px !important;
+    font-size: 13px !important;
+    line-height: 1.15 !important;
+    white-space: normal !important;
+    text-align: center !important;
   }
 
   body:has(#search-input) .doctor-patient-meta .continue-link {
     width: 100% !important;
-    min-height: 44px !important;
-    border-radius: 8px !important;
+    min-height: 48px !important;
+    height: 48px !important;
+    padding: 0 10px !important;
+    border-radius: 12px !important;
+    display: grid !important;
+    place-items: center !important;
+    text-align: center !important;
+    font-size: 14px !important;
+    line-height: 1.1 !important;
+  }
+
+  body:has(#search-input) .doctor-patient-meta .doctor-meta-chip:first-child:last-of-type,
+  body:has(#search-input) .doctor-patient-meta .doctor-meta-chip:first-child:nth-last-child(3) {
+    grid-column: 1 / -1 !important;
   }
 
   body:has(#search-input) .history-grid {
@@ -1302,5 +1329,775 @@
   .pdf-preview-card,
   .preview-card {
     border-radius: var(--mobile-card-radius) !important;
+  }
+
+  body:has(.dashboard-panel) .dashboard-panel {
+    padding: 14px !important;
+  }
+
+  body:has(.dashboard-panel) .action-grid {
+    gap: 12px !important;
+  }
+
+  body:has(.dashboard-panel) .action-card {
+    min-height: 0 !important;
+    padding: 14px !important;
+    display: grid !important;
+    grid-template-columns: 48px minmax(0, 1fr) 18px !important;
+    grid-template-areas:
+      "icon title arrow"
+      "icon text arrow"
+      "cta cta cta" !important;
+    align-items: center !important;
+    gap: 6px 12px !important;
+  }
+
+  body:has(.dashboard-panel) .action-icon {
+    grid-area: icon !important;
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 14px !important;
+    font-size: 20px !important;
+  }
+
+  body:has(.dashboard-panel) .action-card h3 {
+    grid-area: title !important;
+    margin: 0 !important;
+    font-size: 16px !important;
+    line-height: 1.15 !important;
+  }
+
+  body:has(.dashboard-panel) .action-card p {
+    grid-area: text !important;
+    margin: 0 !important;
+    font-size: 12px !important;
+    line-height: 1.35 !important;
+  }
+
+  body:has(.dashboard-panel) .action-footer {
+    grid-area: cta !important;
+    width: fit-content !important;
+    margin-top: 4px !important;
+    padding: 7px 10px !important;
+    border-radius: 10px !important;
+    background: var(--mobile-green-soft) !important;
+    color: var(--mobile-green-dark) !important;
+    font-size: 12px !important;
+    line-height: 1 !important;
+    font-weight: 900 !important;
+  }
+
+  body:has(.dashboard-panel) .action-card::after {
+    content: "›";
+    grid-area: arrow !important;
+    justify-self: end !important;
+    color: var(--mobile-green-dark) !important;
+    font-size: 24px !important;
+    line-height: 1 !important;
+  }
+
+  body:has(#search-input) .worklist-datebar {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  body:has(#search-input) .worklist-date-top {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: 56px minmax(0, 1fr) 56px !important;
+    gap: 10px !important;
+  }
+
+  body:has(#search-input) .worklist-date-nav,
+  body:has(#search-input) .worklist-date-pill {
+    height: 48px !important;
+    min-height: 48px !important;
+    border-radius: 12px !important;
+  }
+
+  body:has(#search-input) .worklist-date-pill {
+    display: grid !important;
+    place-items: center !important;
+    padding: 0 10px !important;
+    font-size: 14px !important;
+    line-height: 1.05 !important;
+    white-space: normal !important;
+  }
+
+  body:has(#search-input) .worklist-summary {
+    gap: 8px !important;
+  }
+
+  body:has(#search-input) .worklist-summary-card {
+    min-height: 78px !important;
+    padding: 12px !important;
+  }
+
+  body:has(#search-input) .worklist-summary-card strong {
+    font-size: 26px !important;
+  }
+
+  body:has(.measurement-table) .measurement-table-wrap {
+    border-radius: 14px !important;
+    overflow: hidden !important;
+  }
+
+  body:has(.measurement-table) .measurement-table tr {
+    padding: 14px !important;
+    display: grid !important;
+    gap: 10px !important;
+  }
+
+  body:has(.measurement-table) .measurement-table th {
+    margin: 0 !important;
+  }
+
+  body:has(.measurement-table) .measurement-head-stack {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: start !important;
+    gap: 10px !important;
+  }
+
+  body:has(.measurement-table) .measurement-type {
+    min-height: 24px !important;
+    padding: 5px 10px !important;
+    margin: 0 0 6px !important;
+    font-size: 10px !important;
+    line-height: 1 !important;
+  }
+
+  body:has(.measurement-table) .measurement-label {
+    font-size: 15px !important;
+    line-height: 1.2 !important;
+  }
+
+  body:has(.measurement-table) .metric-history-control {
+    width: auto !important;
+    min-width: 104px !important;
+    max-width: 116px !important;
+    padding: 6px 8px !important;
+    border-radius: 12px !important;
+    align-self: start !important;
+  }
+
+  body:has(.measurement-table) .metric-history-toggle {
+    min-height: 28px !important;
+    gap: 6px !important;
+    font-size: 11px !important;
+    line-height: 1.1 !important;
+    white-space: normal !important;
+  }
+
+  body:has(.measurement-table) .metric-history-toggle .metric-toggle-ui {
+    width: 26px !important;
+    min-width: 26px !important;
+    height: 16px !important;
+  }
+
+  body:has(.measurement-table) .metric-history-toggle .metric-toggle-ui::after {
+    width: 12px !important;
+    height: 12px !important;
+    top: 2px !important;
+    left: 2px !important;
+  }
+
+  body:has(.measurement-table) .metric-history-toggle input:checked + .metric-toggle-ui::after {
+    transform: translateX(10px) !important;
+  }
+
+  body:has(.measurement-table) .measurement-table td input:not([type="checkbox"]) {
+    min-height: 54px !important;
+    height: 54px !important;
+    padding: 0 16px !important;
+    border-radius: 12px !important;
+    font-size: 18px !important;
+  }
+
+  body:has(.measurement-table) .measurement-hint {
+    margin-top: 8px !important;
+    font-size: 12px !important;
+    line-height: 1.35 !important;
+  }
+
+  body:has(#chart-form) .page-intro {
+    margin-bottom: 14px !important;
+  }
+
+  body:has(#chart-form) .form-card {
+    padding: 12px !important;
+  }
+
+  body:has(#chart-form) .section {
+    padding: 14px !important;
+    border-radius: 16px !important;
+  }
+
+  body:has(#chart-form) .section-head {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+    align-items: stretch !important;
+  }
+
+  body:has(#chart-form) .section-title {
+    font-size: 24px !important;
+    line-height: 1.05 !important;
+  }
+
+  body:has(#chart-form) .section-head-actions {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(112px, 0.72fr) !important;
+    gap: 10px !important;
+    align-items: stretch !important;
+  }
+
+  body:has(#chart-form) .record-date-chip,
+  body:has(#chart-form) #add-record-btn,
+  body:has(#chart-form) .metric-master-toggle {
+    min-height: 48px !important;
+    height: 48px !important;
+    margin: 0 !important;
+    border-radius: 14px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    padding: 0 12px !important;
+    font-size: 13px !important;
+    line-height: 1.05 !important;
+    white-space: nowrap !important;
+  }
+
+  body:has(#chart-form) .record-date-chip {
+    justify-content: center !important;
+  }
+
+  body:has(#chart-form) .record-date-chip span {
+    margin-left: 2px !important;
+    font-size: 13px !important;
+  }
+
+  body:has(#chart-form) .metric-master-toggle {
+    grid-column: 1 / -1 !important;
+    justify-self: end !important;
+    width: auto !important;
+    min-width: 150px !important;
+    box-shadow: 0 8px 18px rgba(17, 37, 27, 0.07) !important;
+  }
+
+  body:has(#chart-form) .field.field-full > label {
+    margin: 14px 0 8px !important;
+    font-size: 14px !important;
+  }
+
+  body:has(#chart-form) .measurement-table-wrap {
+    border-radius: 16px !important;
+    border: 1px solid rgba(20, 74, 43, 0.12) !important;
+    background: #fff !important;
+  }
+
+  body:has(#chart-form) .measurement-table tr {
+    padding: 12px !important;
+    border-bottom: 1px solid rgba(20, 74, 43, 0.10) !important;
+  }
+
+  body:has(#chart-form) .measurement-head-stack {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 8px !important;
+  }
+
+  body:has(#chart-form) .metric-history-control {
+    min-width: 82px !important;
+    max-width: 82px !important;
+    padding: 5px !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  body:has(#chart-form) .metric-history-control-head {
+    display: block !important;
+  }
+
+  body:has(#chart-form) .metric-history-toggle {
+    min-height: 26px !important;
+    padding: 0 !important;
+    justify-content: flex-end !important;
+    font-size: 0 !important;
+  }
+
+  body:has(#chart-form) .metric-history-toggle::after {
+    content: "Past";
+    margin-left: 5px;
+    color: var(--mobile-muted);
+    font-size: 10px;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  body:has(#search-input) .doctor-card .doctor-card-body {
+    overflow: visible !important;
+  }
+
+  body:has(#search-input) .doctor-card .history-controls {
+    padding: 0 0 14px !important;
+  }
+
+  body:has(#search-input) .doctor-card .history-filter-row {
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    gap: 8px !important;
+    align-items: end !important;
+  }
+
+  body:has(#search-input) .doctor-card .history-filter-row label {
+    grid-column: 1 / -1 !important;
+    margin: 0 !important;
+  }
+
+  body:has(#search-input) .doctor-card .history-date-input {
+    height: 46px !important;
+    min-height: 46px !important;
+    border-radius: 12px !important;
+  }
+
+  body:has(#search-input) .doctor-card .history-filter-row .filter-clear-btn {
+    min-width: 98px !important;
+    height: 46px !important;
+    min-height: 46px !important;
+    border-radius: 12px !important;
+  }
+
+  body:has(#search-input) .doctor-card .record-table-wrap {
+    width: 100% !important;
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+
+  body:has(#search-input) .doctor-card .record-table,
+  body:has(#search-input) .doctor-card .record-table thead,
+  body:has(#search-input) .doctor-card .record-table tbody,
+  body:has(#search-input) .doctor-card .record-table tr {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  body:has(#search-input) .doctor-card .record-table thead tr {
+    display: grid !important;
+    grid-template-columns: minmax(92px, 1fr) 38px minmax(118px, 1.2fr) !important;
+    align-items: end !important;
+    padding: 0 0 8px !important;
+  }
+
+  body:has(#search-input) .doctor-card .record-table thead th {
+    display: none !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  body:has(#search-input) .doctor-card .record-table thead th:nth-child(3) {
+    display: block !important;
+    grid-column: 3 !important;
+    text-align: center !important;
+    color: var(--mobile-green-dark) !important;
+    font-size: 12px !important;
+    font-weight: 900 !important;
+    white-space: nowrap !important;
+  }
+
+  body:has(#search-input) .doctor-card .record-table tbody {
+    display: grid !important;
+    gap: 8px !important;
+  }
+
+  body:has(#search-input) .doctor-card .record-table tbody tr {
+    display: grid !important;
+    grid-template-columns: minmax(92px, 1fr) 38px minmax(118px, 1.2fr) !important;
+    gap: 8px !important;
+    align-items: center !important;
+    padding: 0 !important;
+    border: 0 !important;
+  }
+
+  body:has(#search-input) .doctor-card .record-table th,
+  body:has(#search-input) .doctor-card .record-table td {
+    display: block !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  body:has(#search-input) .doctor-card .record-table .metric-name {
+    font-size: 13px !important;
+    line-height: 1.1 !important;
+    font-weight: 900 !important;
+  }
+
+  body:has(#search-input) .doctor-card .record-table .metric-unit {
+    color: var(--mobile-muted) !important;
+    font-size: 11px !important;
+    text-align: center !important;
+    font-weight: 900 !important;
+  }
+
+  body:has(#search-input) .doctor-card .record-table .metric-value {
+    min-width: 0 !important;
+  }
+
+  body:has(#search-input) .doctor-card .record-table-input {
+    width: 100% !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    padding: 0 12px !important;
+    border-radius: 12px !important;
+    font-size: 16px !important;
+    box-shadow: none !important;
+  }
+
+  body:has(#medicine-detail-content) {
+    padding-bottom: calc(106px + env(safe-area-inset-bottom)) !important;
+  }
+
+  body:has(#medicine-detail-content) .page-shell,
+  body:has(#medicine-detail-content) main,
+  body:has(#medicine-detail-content) .content-layout {
+    padding-bottom: calc(112px + env(safe-area-inset-bottom)) !important;
+  }
+
+  body:has(#medicine-detail-content) .medicine-detail-card,
+  body:has(#medicine-detail-content) .medicine-table-body,
+  body:has(#medicine-detail-content) .medicine-question,
+  body:has(#medicine-detail-content) .note-area {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  body:has(#medicine-detail-content) .medicine-detail-card {
+    padding: 12px !important;
+    border-radius: 16px !important;
+  }
+
+  body:has(#medicine-detail-content) .medicine-meta-strip {
+    padding: 10px !important;
+    gap: 6px !important;
+    font-size: 11px !important;
+    line-height: 1.25 !important;
+  }
+
+  body:has(#medicine-detail-content) .medicine-table-body {
+    display: grid !important;
+    gap: 12px !important;
+  }
+
+  body:has(#medicine-detail-content) .medicine-question {
+    border-radius: 14px !important;
+  }
+
+  body:has(#medicine-detail-content) .question-bar {
+    min-height: 40px !important;
+    padding: 7px 10px !important;
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) !important;
+    gap: 8px !important;
+    align-items: center !important;
+    font-size: 12px !important;
+  }
+
+  body:has(#medicine-detail-content) .dose-unit-select,
+  body:has(#medicine-detail-content) .timing-mode-select {
+    width: 100% !important;
+    max-width: none !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 0 30px 0 10px !important;
+    border-radius: 10px !important;
+    font-size: 13px !important;
+  }
+
+  body:has(#medicine-detail-content) .dose-row {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    padding: 10px !important;
+    border-bottom: 1px solid rgba(20, 74, 43, 0.08) !important;
+  }
+
+  body:has(#medicine-detail-content) .timing-main-row {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  body:has(#medicine-detail-content) .timing-food-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  body:has(#medicine-detail-content) .timing-extra-row,
+  body:has(#medicine-detail-content) .duration-third-row,
+  body:has(#medicine-detail-content) .duration-final-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  body:has(#medicine-detail-content) .duration-row,
+  body:has(#medicine-detail-content) .timing-interval-row,
+  body:has(#medicine-detail-content) .timing-frequency-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  body:has(#medicine-detail-content) .timing-row,
+  body:has(#medicine-detail-content) .duration-row {
+    gap: 1px !important;
+  }
+
+  body:has(#medicine-detail-content) .option-pill {
+    min-height: 38px !important;
+    height: 38px !important;
+    padding: 0 6px !important;
+    border-radius: 0 !important;
+    font-size: 12px !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+  }
+
+  body:has(#medicine-detail-content) .dose-row .option-pill {
+    width: 40px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    justify-self: center !important;
+    border-radius: 999px !important;
+  }
+
+  body:has(#medicine-detail-content) .dose-entry-row {
+    grid-template-columns: minmax(0, 1fr) 64px !important;
+  }
+
+  body:has(#medicine-detail-content) .medicine-question input[type="text"] {
+    height: 42px !important;
+    min-height: 42px !important;
+    font-size: 14px !important;
+  }
+
+  body:has(#medicine-detail-content) .note-area textarea {
+    min-height: 90px !important;
+    font-size: 14px !important;
+  }
+
+  body:has(#selection-detail-content) .medicine-detail-panel {
+    width: min(100% - 24px, 420px) !important;
+    max-height: calc(100dvh - 104px) !important;
+    overflow: hidden !important;
+  }
+
+  body:has(#selection-detail-content) .medicine-modal-head {
+    min-height: 72px !important;
+    padding: 12px 14px !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 48px !important;
+    gap: 10px !important;
+    align-items: center !important;
+  }
+
+  body:has(#selection-detail-content) .medicine-modal-title-wrap {
+    text-align: center !important;
+  }
+
+  body:has(#selection-detail-content) .medicine-modal-title-wrap h2 {
+    font-size: 20px !important;
+  }
+
+  body:has(#selection-detail-content) .modal-close-btn {
+    width: 48px !important;
+    min-width: 48px !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    border-radius: 12px !important;
+  }
+
+  body:has(#selection-detail-content) #selection-detail-content {
+    padding: 10px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    max-height: calc(100dvh - 190px) !important;
+  }
+
+  body:has(#selection-detail-content) #selection-detail-content .medicine-detail-card {
+    gap: 10px !important;
+    padding: 10px !important;
+    border-radius: 14px !important;
+  }
+
+  body:has(#selection-detail-content) #selection-detail-content .medicine-question,
+  body:has(#selection-detail-content) #selection-detail-content .note-area {
+    border-radius: 14px !important;
+  }
+
+  body:has(#selection-detail-content) #selection-detail-content .question-bar {
+    min-height: 38px !important;
+    padding: 7px 10px !important;
+    font-size: 13px !important;
+  }
+
+  body:has(#selection-detail-content) #selection-detail-content .selection-pill-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    padding: 10px !important;
+  }
+
+  body:has(#selection-detail-content) #selection-detail-content .selection-pill-grid.days-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  body:has(#selection-detail-content) #selection-detail-content .selection-pill {
+    min-height: 44px !important;
+    height: 44px !important;
+    width: 100% !important;
+    padding: 0 8px !important;
+    border-radius: 12px !important;
+    font-size: 14px !important;
+    line-height: 1 !important;
+    box-shadow: none !important;
+  }
+
+  body:has(#selection-detail-content) #selection-detail-content .days-custom-input {
+    min-height: 46px !important;
+    height: 46px !important;
+    margin: 0 10px 10px !important;
+    width: calc(100% - 20px) !important;
+    padding: 0 12px !important;
+    border-radius: 12px !important;
+    font-size: 14px !important;
+  }
+
+  body:has(#selection-detail-content) #selection-detail-content textarea {
+    min-height: 104px !important;
+    padding: 12px !important;
+    font-size: 14px !important;
+  }
+
+  body:has(#preview-status) {
+    padding-bottom: calc(112px + env(safe-area-inset-bottom)) !important;
+  }
+
+  body:has(#preview-status) .page-shell {
+    padding-bottom: calc(118px + env(safe-area-inset-bottom)) !important;
+  }
+
+  body:has(#preview-status) .content-panel {
+    padding: 12px !important;
+    border-radius: 16px !important;
+  }
+
+  body:has(#preview-status) .preview-workbar {
+    gap: 10px !important;
+    padding: 12px !important;
+    border-radius: 16px !important;
+  }
+
+  body:has(#preview-status) #preview-status {
+    width: 100% !important;
+    min-height: 42px !important;
+    padding: 8px 10px !important;
+    border-radius: 10px !important;
+    font-size: 12px !important;
+    line-height: 1.15 !important;
+    letter-spacing: 0 !important;
+    white-space: normal !important;
+    text-align: center !important;
+  }
+
+  body:has(#preview-status) .preview-actions {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  body:has(#preview-status) .header-mode-toggle {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    height: 50px !important;
+    min-height: 50px !important;
+    padding: 4px !important;
+    border-radius: 14px !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  body:has(#preview-status) .header-mode-btn {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 42px !important;
+    min-height: 42px !important;
+    padding: 0 8px !important;
+    border-radius: 10px !important;
+    font-size: 12px !important;
+    line-height: 1.05 !important;
+    white-space: normal !important;
+    text-align: center !important;
+  }
+
+  body:has(#preview-status) #download-pdf-btn,
+  body:has(#preview-status) #whatsapp-btn {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    padding: 0 8px !important;
+    border-radius: 12px !important;
+    font-size: 13px !important;
+    line-height: 1.05 !important;
+    white-space: normal !important;
+    text-align: center !important;
+  }
+
+  body:has(#preview-status) .document-stage {
+    padding: 14px 0 !important;
+    margin-top: 12px !important;
+    border-radius: 16px !important;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    display: grid !important;
+    justify-items: center !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body:has(#preview-status) .rx-sheet {
+    --mobile-a4-width: 794px;
+    width: var(--mobile-a4-width) !important;
+    min-width: var(--mobile-a4-width) !important;
+    max-width: none !important;
+    min-height: 1123px !important;
+    padding: var(--rx-margin-top, 38px) var(--rx-margin-right, 42px) var(--rx-margin-bottom, 38px) var(--rx-margin-left, 42px) !important;
+    transform: scale(calc((100vw - 58px) / 794)) !important;
+    transform-origin: top center !important;
+    margin: 0 auto calc((1123px * ((100vw - 58px) / 794)) - 1123px + 18px) !important;
+    border-radius: 4px !important;
+    font-size: var(--rx-font-size, 12px) !important;
+  }
+
+  body:has(#preview-status) .rx-sheet-header {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  }
+
+  body:has(#preview-status) .patient-band {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 0.9fr) !important;
+  }
+
+  body:has(#preview-status) .mini-chart-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  body:has(#preview-status) .medicine-table-wrap {
+    overflow: visible !important;
+  }
+
+  body:has(#preview-status) .medicine-table-wrap .medicine-table {
+    min-width: 620px !important;
   }
 }
