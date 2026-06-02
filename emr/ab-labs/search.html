@@ -1839,6 +1839,10 @@
         padding: 0;
       }
 
+      .worklist-main {
+        display: none;
+      }
+
       .worklist-sidebar,
       .worklist-main {
         padding: 0;
@@ -3653,11 +3657,12 @@
       const renderedWorklistPatients = searchValue
         ? worklistPatients.slice(0, SEARCH_RENDER_LIMIT)
         : worklistPatients;
-      if ((!selectedPatientId || !patients.some((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId)) && worklistPatients[0]) {
-        selectedPatientId = formatMissing(worklistPatients[0].patientId, 'ID not saved');
+      const selectedPatientPool = worklistPatients.length ? worklistPatients : patients;
+      if ((!selectedPatientId || !patients.some((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId)) && selectedPatientPool[0]) {
+        selectedPatientId = formatMissing(selectedPatientPool[0].patientId, 'ID not saved');
       }
 
-      const selectedPatient = worklistPatients.find((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId) || worklistPatients[0] || null;
+      const selectedPatient = selectedPatientPool.find((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId) || selectedPatientPool[0] || null;
       const selectedPatientIdValue = selectedPatient ? formatMissing(selectedPatient.patientId, 'ID not saved') : '';
       const selectedHistoryDate = selectedPatientIdValue ? historyDateFilters[selectedPatientIdValue] || '' : '';
       const childName = selectedPatient ? getPatientDisplayName(selectedPatient) : 'Select a patient';

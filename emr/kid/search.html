@@ -3980,12 +3980,12 @@
       const counts = getWorklistCounts(patients, selectedWorklistDate);
       const worklistPatients = getWorklistPatients(patients, selectedWorklistDate, selectedWorklistMode, searchValue);
       const renderedWorklistPatients = worklistPatients.slice(0, SEARCH_RENDER_LIMIT);
-      const selectedPatientPool = IS_PATIENT_DETAILS_PAGE ? patients : worklistPatients;
-      if (!IS_PATIENT_DETAILS_PAGE && (!selectedPatientId || !patients.some((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId)) && worklistPatients[0]) {
-        selectedPatientId = formatMissing(worklistPatients[0].patientId, 'ID not saved');
+      const selectedPatientPool = IS_PATIENT_DETAILS_PAGE ? patients : (worklistPatients.length ? worklistPatients : patients);
+      if (!IS_PATIENT_DETAILS_PAGE && (!selectedPatientId || !patients.some((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId)) && selectedPatientPool[0]) {
+        selectedPatientId = formatMissing(selectedPatientPool[0].patientId, 'ID not saved');
       }
 
-      const selectedPatient = selectedPatientPool.find((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId) || (IS_PATIENT_DETAILS_PAGE ? null : worklistPatients[0]) || null;
+      const selectedPatient = selectedPatientPool.find((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId) || (IS_PATIENT_DETAILS_PAGE ? null : selectedPatientPool[0]) || null;
       const selectedPatientIdValue = selectedPatient ? formatMissing(selectedPatient.patientId, 'ID not saved') : '';
       const selectedHistoryDate = selectedPatientIdValue ? historyDateFilters[selectedPatientIdValue] || '' : '';
       const childName = selectedPatient ? getPatientDisplayName(selectedPatient) : 'Select a patient';
