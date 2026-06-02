@@ -2225,20 +2225,52 @@
       await waitForAnimationFrame();
     }
 
+    function applyPrescriptionCaptureLayout() {
+      const previousStyle = rxSheet.getAttribute('style') || '';
+      const previousScrollX = window.scrollX;
+      const previousScrollY = window.scrollY;
+
+      rxSheet.style.width = '794px';
+      rxSheet.style.minWidth = '794px';
+      rxSheet.style.maxWidth = '794px';
+      rxSheet.style.minHeight = '1123px';
+      rxSheet.style.transform = 'none';
+      rxSheet.style.margin = '0';
+      rxSheet.style.border = '0';
+      rxSheet.style.borderRadius = '0';
+      rxSheet.style.boxShadow = 'none';
+
+      return () => {
+        if (previousStyle) {
+          rxSheet.setAttribute('style', previousStyle);
+        } else {
+          rxSheet.removeAttribute('style');
+        }
+        window.scrollTo(previousScrollX, previousScrollY);
+      };
+    }
+
     async function renderPrescriptionSheetCanvas() {
       document.body.classList.add('rendering-prescription-download');
+      const restoreCaptureLayout = applyPrescriptionCaptureLayout();
 
       try {
         await waitForPrescriptionSheetAssets();
         await waitForAnimationFrame();
+        const captureHeight = Math.max(1123, rxSheet.scrollHeight);
 
         return await html2canvas(rxSheet, {
           backgroundColor: '#ffffff',
           scale: Math.max(2, Math.min(window.devicePixelRatio || 1, 3)),
           useCORS: true,
-          logging: false
+          logging: false,
+          width: 794,
+          height: captureHeight,
+          windowWidth: 794,
+          windowHeight: captureHeight
         });
       } finally {
+        restoreCaptureLayout();
         document.body.classList.remove('rendering-prescription-download');
       }
     }
