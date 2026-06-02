@@ -2675,11 +2675,20 @@
     display: none !important;
   }
 
+  body.search-page .doctor-detail-grid > .doctor-card:last-child {
+    width: calc(100% + 24px) !important;
+    margin-inline: -12px !important;
+  }
+
+  body.search-page .doctor-detail-grid > .doctor-card:last-child .doctor-card-body {
+    padding-inline: 8px !important;
+  }
+
   body.search-page .doctor-card .prescription-carousel {
     position: relative !important;
     display: block !important;
-    width: calc(100% + 24px) !important;
-    margin-inline: -12px !important;
+    width: 100% !important;
+    margin-inline: 0 !important;
     min-height: 0 !important;
     height: auto !important;
     overflow: visible !important;
@@ -2722,7 +2731,7 @@
 
   body.search-page .doctor-card .prescription-preview-card {
     aspect-ratio: auto !important;
-    padding: 6px !important;
+    padding: 4px !important;
     border-radius: 12px !important;
     background: #f6faf7 !important;
     border: 1px solid var(--mobile-border) !important;
