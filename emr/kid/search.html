@@ -2565,7 +2565,7 @@
     }
 
     function getEmbeddedPrescriptionPreviewUrl(downloadUrl, viewerUrl) {
-      return downloadUrl || viewerUrl;
+      return viewerUrl ? `${viewerUrl}&embed=1` : downloadUrl;
     }
 
     function getPrescriptionPreviewImageUrl(entry) {

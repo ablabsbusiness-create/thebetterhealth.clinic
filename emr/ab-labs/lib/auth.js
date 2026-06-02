@@ -1,7 +1,7 @@
 export const SESSION_COOKIE_NAME = 'clinic_session';
 export const SESSION_TTL_SECONDS = 60 * 60 * 12;
 
-const APP_BASE_SEGMENT = '/emr/kid';
+const APP_BASE_SEGMENT = '/emr/ab-labs';
 
 const PROTECTED_PATHS = new Set([
   '/',

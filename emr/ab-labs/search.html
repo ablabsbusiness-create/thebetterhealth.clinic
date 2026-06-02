@@ -6,14 +6,14 @@
   
   <title>Search | Ab Labs EMR</title>
   <link rel="icon" href="/favicon.ico" sizes="any" />
-  <link rel="manifest" href="/emr/kid/site.webmanifest" />
+  <link rel="manifest" href="/emr/ab-labs/site.webmanifest" />
   <meta name="description" content="Search page for Ab Labs EMR, supporting clinic workflows and patient care operations at Ab Labs EMR." />
-  <link rel="canonical" href="https://www.thebetterhealth.clinic/emr/kid/search" />
+  <link rel="canonical" href="https://www.thebetterhealth.clinic/emr/ab-labs/search" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Ab Labs EMR" />
   <meta property="og:title" content="Search | Ab Labs EMR" />
   <meta property="og:description" content="Search page for Ab Labs EMR, supporting clinic workflows and patient care operations at Ab Labs EMR." />
-  <meta property="og:url" content="https://www.thebetterhealth.clinic/emr/kid/search" />
+  <meta property="og:url" content="https://www.thebetterhealth.clinic/emr/ab-labs/search" />
   <meta property="og:locale" content="en_IN" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Search | Ab Labs EMR" />
@@ -51,8 +51,8 @@
     },
     {
       "@type": "WebPage",
-      "@id": "https://www.thebetterhealth.clinic/emr/kid/search#webpage",
-      "url": "https://www.thebetterhealth.clinic/emr/kid/search",
+      "@id": "https://www.thebetterhealth.clinic/emr/ab-labs/search#webpage",
+      "url": "https://www.thebetterhealth.clinic/emr/ab-labs/search",
       "name": "Search | Ab Labs EMR",
       "description": "Search page for Ab Labs EMR, supporting clinic workflows and patient care operations at Ab Labs EMR.",
       "isPartOf": {
@@ -1839,8 +1839,24 @@
         padding: 0;
       }
 
-      .worklist-main {
+      body:not(.patient-details-page) .worklist-main {
         display: none;
+      }
+
+      body.patient-details-page .search-head,
+      body.patient-details-page .search-row,
+      body.patient-details-page .status-note,
+      body.patient-details-page .worklist-sidebar {
+        display: none;
+      }
+
+      body.patient-details-page .results-dashboard {
+        display: block;
+      }
+
+      body.patient-details-page .worklist-main {
+        display: block;
+        min-height: auto;
       }
 
       .worklist-sidebar,
@@ -1953,7 +1969,7 @@
   <header class="site-header">
     <div class="topbar">
       <div class="brand">
-        <div class="brand-mark"><img class="brand-logo" src="/emr/kid/ab-labs-logo.png" alt="Ab Labs logo"></div>
+        <div class="brand-mark"><img class="brand-logo" src="/emr/ab-labs/ab-labs-logo.png" alt="Ab Labs logo"></div>
         <div class="brand-copy">
           <strong>Ab Labs EMR</strong>
           <span>EMR Portal</span>
@@ -2060,9 +2076,27 @@
     const historyDateFilters = {};
     const historyShowAll = {};
     const historyPageIndexes = {};
-    let selectedPatientId = String(new URLSearchParams(window.location.search).get('patientId') || '').trim().toUpperCase();
+    const MOBILE_DETAIL_QUERY = window.matchMedia('(max-width: 640px)');
+    const urlParams = new URLSearchParams(window.location.search);
+    const IS_PATIENT_DETAILS_PAGE = Boolean(urlParams.get('patientId')) && MOBILE_DETAIL_QUERY.matches;
+    document.body.classList.toggle('patient-details-page', IS_PATIENT_DETAILS_PAGE);
+    let selectedPatientId = String(urlParams.get('patientId') || '').trim().toUpperCase();
+
+    function getPatientDetailsUrl(patientId) {
+      return `/emr/ab-labs/search?patientId=${encodeURIComponent(patientId || '')}`;
+    }
+
+    function openPatientDetailsOnPhone(patientId) {
+      if (!patientId || IS_PATIENT_DETAILS_PAGE || !MOBILE_DETAIL_QUERY.matches) {
+        return false;
+      }
+
+      window.location.href = getPatientDetailsUrl(patientId);
+      return true;
+    }
     let selectedWorklistDate = getTodayIsoDate();
     let selectedWorklistMode = 'seen';
+    const SEARCH_RENDER_LIMIT = 80;
     const TEST_PAST_CHARTS_PATIENT_ID = 'TESTPAST001';
     const HISTORY_DEFAULT_VISIBLE_COUNT = 3;
     const HISTORY_PAGE_SIZE = 4;
@@ -2486,7 +2520,7 @@
     }
 
     function getEmbeddedPrescriptionPreviewUrl(downloadUrl, viewerUrl) {
-      return downloadUrl || viewerUrl;
+      return viewerUrl ? `${viewerUrl}&embed=1` : downloadUrl;
     }
 
     function getPrescriptionPreviewImageUrl(entry) {
@@ -3656,12 +3690,12 @@
       const renderedWorklistPatients = searchValue
         ? worklistPatients.slice(0, SEARCH_RENDER_LIMIT)
         : worklistPatients;
-      const selectedPatientPool = worklistPatients.length ? worklistPatients : patients;
-      if ((!selectedPatientId || !patients.some((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId)) && selectedPatientPool[0]) {
+      const selectedPatientPool = IS_PATIENT_DETAILS_PAGE ? patients : (worklistPatients.length ? worklistPatients : patients);
+      if (!IS_PATIENT_DETAILS_PAGE && (!selectedPatientId || !patients.some((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId)) && selectedPatientPool[0]) {
         selectedPatientId = formatMissing(selectedPatientPool[0].patientId, 'ID not saved');
       }
 
-      const selectedPatient = selectedPatientPool.find((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId) || selectedPatientPool[0] || null;
+      const selectedPatient = selectedPatientPool.find((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId) || (IS_PATIENT_DETAILS_PAGE ? null : selectedPatientPool[0]) || null;
       const selectedPatientIdValue = selectedPatient ? formatMissing(selectedPatient.patientId, 'ID not saved') : '';
       const selectedHistoryDate = selectedPatientIdValue ? historyDateFilters[selectedPatientIdValue] || '' : '';
       const childName = selectedPatient ? getPatientDisplayName(selectedPatient) : 'Select a patient';
@@ -3852,6 +3886,9 @@
 
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
+        if (openPatientDetailsOnPhone(selectedWorklistPatientId)) {
+          return;
+        }
         selectedPatientId = selectedWorklistPatientId;
         filterPatients();
       }
@@ -3893,6 +3930,9 @@
       }
 
       if (selectedWorklistPatientId) {
+        if (openPatientDetailsOnPhone(selectedWorklistPatientId)) {
+          return;
+        }
         selectedPatientId = selectedWorklistPatientId;
         filterPatients();
         return;

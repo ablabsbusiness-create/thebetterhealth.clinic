@@ -65,15 +65,22 @@
     }
 
     body.embed #pages {
+      width: 100%;
       gap: 0;
       padding: 0;
       align-items: start;
+      overflow: hidden;
     }
 
     body.embed canvas {
       width: 100%;
       max-width: none;
       box-shadow: none;
+      display: block;
+    }
+
+    body.embed canvas + canvas {
+      display: none;
     }
 
     .fallback-viewer {

@@ -90,7 +90,7 @@ export default defineConfig({
   root: __dirname,
   envDir: __dirname,
   publicDir: resolve(__dirname, 'public'),
-  base: '/emr/kid/',
+  base: '/emr/ab-labs/',
   resolve: {
     alias: {
       jspdf: resolve(nodeModulesRoot, 'node_modules/jspdf/dist/jspdf.es.min.js')

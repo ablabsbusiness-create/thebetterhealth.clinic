@@ -1,8 +1,8 @@
 const CACHE_NAME = 'ab-labs-emr-v1';
 const APP_SHELL = [
-  '/emr/kid/site.webmanifest',
-  '/emr/kid/icons/icon-192.png',
-  '/emr/kid/icons/icon-512.png'
+  '/emr/ab-labs/site.webmanifest',
+  '/emr/ab-labs/icons/icon-192.png',
+  '/emr/ab-labs/icons/icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {

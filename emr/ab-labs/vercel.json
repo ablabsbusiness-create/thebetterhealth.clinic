@@ -2,11 +2,11 @@
   "cleanUrls": true,
   "rewrites": [
     {
-      "source": "/emr/kid",
+      "source": "/emr/ab-labs",
       "destination": "/index"
     },
     {
-      "source": "/emr/kid/:path*",
+      "source": "/emr/ab-labs/:path*",
       "destination": "/:path*"
     }
   ]
