@@ -2690,17 +2690,14 @@
   }
 
   body.patient-details-page .patient-profile-page .prescription-carousel {
-    display: grid !important;
-    grid-template-columns: minmax(44px, auto) 1fr minmax(44px, auto) !important;
-    gap: 8px !important;
-    align-items: center !important;
+    position: relative !important;
+    display: block !important;
     min-height: 0 !important;
     height: auto !important;
     overflow: visible !important;
   }
 
   body.patient-details-page .patient-profile-page .prescription-list {
-    grid-column: 1 / -1 !important;
     display: flex !important;
     min-height: 0 !important;
     height: auto !important;
@@ -2759,27 +2756,29 @@
   }
 
   body.patient-details-page .patient-profile-page .carousel-arrow {
-    position: static !important;
-    transform: none !important;
-    z-index: 1 !important;
+    position: absolute !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    z-index: 3 !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    width: 44px !important;
-    height: 38px !important;
-    border-radius: 12px !important;
-    border: 1px solid var(--mobile-border) !important;
-    background: #ffffff !important;
+    width: 52px !important;
+    height: 54px !important;
+    border-radius: 16px !important;
+    border: 1px solid rgba(216, 226, 220, 0.85) !important;
+    background: rgba(255, 255, 255, 0.92) !important;
     color: var(--mobile-green) !important;
-    box-shadow: none !important;
+    box-shadow: 0 12px 28px rgba(18, 48, 29, 0.12) !important;
+    backdrop-filter: blur(8px) !important;
   }
 
   body.patient-details-page .patient-profile-page .carousel-arrow-left {
-    justify-self: start !important;
+    left: 10px !important;
   }
 
   body.patient-details-page .patient-profile-page .carousel-arrow-right {
-    justify-self: end !important;
+    right: 10px !important;
   }
 
   body.patient-details-page .patient-profile-page .prescription-preview-open-chip {
