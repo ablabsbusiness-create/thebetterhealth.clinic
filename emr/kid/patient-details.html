@@ -4489,7 +4489,7 @@
           .map((entry) => entry.patient);
       }
 
-      if (selectedPatientId && !filteredPatients.some((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId)) {
+      if (!IS_PATIENT_DETAILS_PAGE && selectedPatientId && !filteredPatients.some((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId)) {
         selectedPatientId = '';
       }
 
