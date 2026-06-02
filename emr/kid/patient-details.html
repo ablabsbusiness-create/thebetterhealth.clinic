@@ -2397,6 +2397,7 @@
     let prescriptionHistoryByPatientDate = new Map();
     const storagePrescriptionPatientIdsLoaded = new Set();
     const storagePrescriptionPatientLoads = new Map();
+    const prescriptionDownloadUrlLoads = new Map();
     const historyDateFilters = {};
     const historyShowAll = {};
     const historyPageIndexes = {};
@@ -2829,21 +2830,68 @@
       }
     }
 
+    function isPrescriptionShareUrl(value) {
+      return /(^|\/)rx\.html(?:\?|$)/i.test(String(value || ''));
+    }
+
+    function isPublicPdfUrl(value) {
+      return /^(https?:|blob:|data:)/i.test(String(value || '').trim());
+    }
+
+    function normalizeStoragePath(value) {
+      const rawValue = String(value || '').trim();
+      if (!rawValue || isPrescriptionShareUrl(rawValue) || isPublicPdfUrl(rawValue)) {
+        return '';
+      }
+
+      try {
+        return decodeURIComponent(rawValue).replace(/^\/+/, '');
+      } catch {
+        return rawValue.replace(/^\/+/, '');
+      }
+    }
+
     function getPrescriptionDownloadUrl(entry) {
-      return String(
-        entry?.downloadURL
-        || entry?.downloadUrl
-        || entry?.pdfURL
-        || entry?.pdfUrl
-        || entry?.fileURL
-        || entry?.fileUrl
-        || entry?.url
-        || ''
-      ).trim();
+      const candidates = [
+        entry?.downloadURL,
+        entry?.downloadUrl,
+        entry?.pdfURL,
+        entry?.pdfUrl,
+        entry?.fileURL,
+        entry?.fileUrl,
+        entry?.url
+      ];
+
+      return String(candidates.find((value) => value && !isPrescriptionShareUrl(value) && isPublicPdfUrl(value)) || '').trim();
+    }
+
+    function getPrescriptionStoragePath(entry) {
+      const candidates = [
+        entry?.storagePath,
+        entry?.fullPath,
+        entry?.filePath,
+        entry?.pdfPath,
+        entry?.path,
+        entry?.prescriptionSaveId
+      ];
+
+      return normalizeStoragePath(candidates.find((value) => normalizeStoragePath(value)) || '');
     }
 
     function getPdfViewerUrl(pdfUrl) {
       return pdfUrl ? `pdf-viewer.html?url=${encodeURIComponent(pdfUrl)}` : '';
+    }
+
+    function isMobilePdfPreview() {
+      return window.matchMedia('(max-width: 640px), (pointer: coarse)').matches;
+    }
+
+    function getGoogleDocsViewerUrl(pdfUrl) {
+      return pdfUrl ? `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(pdfUrl)}` : '';
+    }
+
+    function getPrescriptionOpenUrl(downloadUrl, viewerUrl) {
+      return isMobilePdfPreview() ? getGoogleDocsViewerUrl(downloadUrl) : (viewerUrl || downloadUrl);
     }
 
     function shouldEmbedPrescriptionPdfPreview() {
@@ -2851,7 +2899,42 @@
     }
 
     function getEmbeddedPrescriptionPreviewUrl(downloadUrl, viewerUrl) {
-      return viewerUrl ? `${viewerUrl}&embed=1` : downloadUrl;
+      if (!downloadUrl) {
+        return '';
+      }
+      return isMobilePdfPreview() ? getGoogleDocsViewerUrl(downloadUrl) : (viewerUrl ? `${viewerUrl}&embed=1` : downloadUrl);
+    }
+
+    function ensurePrescriptionDownloadUrl(entry) {
+      const existingUrl = getPrescriptionDownloadUrl(entry);
+      const storagePath = getPrescriptionStoragePath(entry);
+
+      if (existingUrl || !storage || !storagePath || prescriptionDownloadUrlLoads.has(storagePath)) {
+        return existingUrl;
+      }
+
+      // Firebase Storage PDFs must use Content-Type: application/pdf and Content-Disposition: inline.
+      // If Google Viewer or iframe access still fails, configure CORS: gsutil cors set cors.json gs://YOUR_BUCKET_NAME
+      const loadPromise = getDownloadURL(ref(storage, storagePath))
+        .then((downloadURL) => {
+          entry.downloadURL = downloadURL;
+          allHistory.forEach((historyEntry) => {
+            if (getPrescriptionStoragePath(historyEntry) === storagePath) {
+              historyEntry.downloadURL = downloadURL;
+            }
+          });
+          prescriptionDownloadUrlLoads.delete(storagePath);
+          filterPatients();
+          return downloadURL;
+        })
+        .catch((error) => {
+          prescriptionDownloadUrlLoads.delete(storagePath);
+          console.warn(`Unable to resolve prescription PDF URL for ${storagePath}: ${error.message}`);
+          return '';
+        });
+
+      prescriptionDownloadUrlLoads.set(storagePath, loadPromise);
+      return '';
     }
 
     function getPrescriptionPreviewImageUrl(entry) {
@@ -3021,6 +3104,7 @@
       return entry?.prescriptionSaveId
         || entry?.id
         || getPrescriptionDownloadUrl(entry)
+        || getPrescriptionStoragePath(entry)
         || `${entry?.patientId || fallbackPrefix}-${entry?.createdAtIso || index}`;
     }
 
@@ -3139,7 +3223,7 @@
         }
       }, 3500);
 
-      frameElement.src = pdfUrl.includes('pdf-viewer.html') || pdfUrl.includes('#')
+      frameElement.src = pdfUrl.includes('pdf-viewer.html') || pdfUrl.includes('docs.google.com/gview') || pdfUrl.includes('#')
         ? pdfUrl
         : `${pdfUrl}#page=1&toolbar=0&navpanes=0&scrollbar=0&view=FitH`;
     }
@@ -4079,13 +4163,14 @@
           ${entries.length > 1 ? '<button class="carousel-arrow carousel-arrow-left" type="button" data-carousel-direction="-1" aria-label="Previous prescription">‹</button>' : ''}
           <div class="prescription-list">
             ${entries.map((entry, index) => {
-              const downloadUrl = getPrescriptionDownloadUrl(entry);
+              const downloadUrl = ensurePrescriptionDownloadUrl(entry);
               const previewImageUrl = getPrescriptionPreviewImageUrl(entry);
               const viewerUrl = getPdfViewerUrl(downloadUrl);
-              const cardUrl = escapeHtml(viewerUrl);
+              const cardUrl = escapeHtml(getPrescriptionOpenUrl(downloadUrl, viewerUrl));
               const embeddedPdfUrl = escapeHtml(getEmbeddedPrescriptionPreviewUrl(downloadUrl, viewerUrl));
               const cardPreviewUrl = escapeHtml(previewImageUrl);
               const shouldEmbedPdf = Boolean(downloadUrl && shouldEmbedPrescriptionPdfPreview());
+              const hasResolvablePdf = Boolean(downloadUrl || getPrescriptionStoragePath(entry));
 
               return `
                 <div class="prescription-preview-entry">
@@ -4098,6 +4183,7 @@
                           <img class="prescription-preview-frame" data-preview-image-url="${cardPreviewUrl}" alt="Prescription preview ${index + 1}" loading="eager" decoding="async" fetchpriority="high">
                         </div>
                       </div>
+                      ${downloadUrl ? `<a class="prescription-preview-open-chip" href="${cardUrl}" target="_blank" rel="noopener noreferrer">Open</a>` : ''}
                     `
                     : `
                       <div class="prescription-preview-card" data-open-prescription-url="${cardUrl}" data-preview-image-url="${cardPreviewUrl}">
@@ -4107,11 +4193,12 @@
                               <div class="prescription-preview-placeholder">Loading prescription preview...</div>
                               <iframe class="prescription-preview-embed" data-preview-pdf-url="${embeddedPdfUrl}" title="Prescription PDF preview ${index + 1}" loading="eager" fetchpriority="high"></iframe>
                             `
-                            : downloadUrl
+                            : hasResolvablePdf
                               ? '<div class="prescription-preview-placeholder is-static">Loading prescription preview...</div>'
                               : '<div class="prescription-preview-placeholder is-error">Prescription PDF could not be loaded for this record.</div>'}
                         </div>
                       </div>
+                      ${downloadUrl ? `<a class="prescription-preview-open-chip" href="${cardUrl}" target="_blank" rel="noopener noreferrer">Open</a>` : ''}
                     `}
                 </div>
               `;
@@ -4673,7 +4760,7 @@
       const prescriptionCard = target.closest('.prescription-preview-card');
       const prescriptionUrl = prescriptionCard?.dataset.openPrescriptionUrl;
       if (prescriptionUrl && prescriptionCard) {
-        openPrescriptionPreview(prescriptionUrl);
+        window.open(prescriptionUrl, '_blank', 'noopener,noreferrer');
         return;
       }
 
