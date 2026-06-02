@@ -1175,6 +1175,18 @@
       overflow-wrap: anywhere;
     }
 
+    .patient-info-link {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .patient-info-link:hover,
+    .patient-info-link:focus-visible {
+      color: var(--brand-strong);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
     .patient-profile-grid {
       display: grid;
       grid-template-columns: minmax(0, 1fr);
@@ -1196,6 +1208,36 @@
 
     .patient-profile-page .prescription-carousel {
       justify-content: start;
+    }
+
+    .patient-profile-page .prescription-list {
+      overflow-x: visible;
+      scroll-snap-type: none;
+    }
+
+    .patient-profile-page .prescription-preview-entry {
+      width: 100%;
+      justify-items: center;
+    }
+
+    .patient-profile-page .prescription-preview-card,
+    .patient-profile-page .prescription-preview-surface {
+      width: 100%;
+      aspect-ratio: 210 / 297;
+      height: auto;
+    }
+
+    .patient-profile-page .prescription-preview-frame,
+    .patient-profile-page .prescription-preview-embed {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: top center;
+    }
+
+    .patient-profile-page .prescription-preview-open-chip,
+    .patient-profile-page .carousel-arrow {
+      display: none;
     }
 
     @media (max-width: 760px) {
@@ -1231,14 +1273,19 @@
       .patient-profile-actions {
         grid-column: 1 / -1;
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
         width: 100%;
       }
 
       .patient-profile-action {
         min-height: 46px;
+        width: 100%;
+        padding: 0 8px;
         border-radius: 14px;
-        font-size: 13px;
+        font-size: 12px;
+        line-height: 1.08;
+        text-align: center;
       }
 
       .patient-info-grid {
@@ -1260,6 +1307,10 @@
       .patient-profile-page .doctor-card-body {
         padding-left: 14px;
         padding-right: 14px;
+      }
+
+      .patient-profile-page .prescription-preview-card {
+        max-width: min(100%, 430px);
       }
     }
 
@@ -3762,6 +3813,8 @@
       const visibleCount = showAll ? HISTORY_PAGE_SIZE : HISTORY_DEFAULT_VISIBLE_COUNT;
       const filteredEntries = allFilteredEntries.slice(startIndex, startIndex + visibleCount);
       const canToggleAllEntries = !selectedDate && allFilteredEntries.length > 0;
+      const dateControlIso = selectedDate || getIsoDatePart(allFilteredEntries[0]?.createdAtIso) || '';
+      const dateControlLabel = dateControlIso ? formatDateDisplay(dateControlIso, 'Select date') : 'Select date';
 
       const rows = [
         {
@@ -3826,7 +3879,10 @@
         <div class="history-controls">
           <div class="history-filter-row">
             <label for="history-date-${patient.patientId}">Change date</label>
-            <input id="history-date-${patient.patientId}" class="history-date-input" data-patient-id="${patient.patientId}" type="date" value="${selectedDate}">
+            <div class="history-date-shell">
+              <span class="history-date-visible">${escapeHtml(dateControlLabel)}</span>
+              <input id="history-date-${patient.patientId}" class="history-date-input" data-patient-id="${patient.patientId}" type="date" value="${selectedDate}">
+            </div>
             ${selectedDate ? `<button class="filter-clear-btn" type="button" data-clear-history-date="${patient.patientId}">Show all</button>` : ''}
             ${canToggleAllEntries ? `<button class="filter-clear-btn ${showAll ? 'is-active' : ''}" type="button" data-toggle-history-all="${escapeHtml(patientId)}">${showAll ? 'Fit view' : 'Show all'}</button>` : ''}
           </div>
@@ -4025,7 +4081,6 @@
                           <img class="prescription-preview-frame" data-preview-image-url="${cardPreviewUrl}" alt="Prescription preview ${index + 1}" loading="eager" decoding="async" fetchpriority="high">
                         </div>
                       </div>
-                      ${downloadUrl ? `<a class="prescription-preview-open-chip" href="${cardUrl}" target="_blank" rel="noopener noreferrer">Open prescription</a>` : ''}
                     `
                     : `
                       <div class="prescription-preview-card" data-open-prescription-url="${cardUrl}" data-preview-image-url="${cardPreviewUrl}">
@@ -4036,11 +4091,10 @@
                               <iframe class="prescription-preview-embed" data-preview-pdf-url="${embeddedPdfUrl}" title="Prescription PDF preview ${index + 1}" loading="eager" fetchpriority="high"></iframe>
                             `
                             : downloadUrl
-                              ? '<div class="prescription-preview-placeholder is-static">Prescription PDF</div>'
+                              ? '<div class="prescription-preview-placeholder is-static">Loading prescription preview...</div>'
                               : '<div class="prescription-preview-placeholder is-error">Prescription PDF could not be loaded for this record.</div>'}
                         </div>
                       </div>
-                      ${downloadUrl ? `<a class="prescription-preview-open-chip" href="${cardUrl}" target="_blank" rel="noopener noreferrer">Open prescription</a>` : ''}
                     `}
                 </div>
               `;
@@ -4227,6 +4281,7 @@
         const childName = getPatientDisplayName(selectedPatient);
         const parentName = getSavedParentName(selectedPatient);
         const phone = formatMissing(selectedPatient.phone, 'Phone not saved');
+        const phoneHref = phone && phone !== 'Phone not saved' ? phone.replace(/[^\d+]/g, '') : '';
         const gender = formatMissing(selectedPatient.gender, 'Gender not saved');
         const dob = formatDateDisplay(selectedPatient.dob);
         const measurements = getMeasurementEntries(selectedPatient);
@@ -4261,7 +4316,7 @@
               </div>
               <div class="patient-info-tile">
                 <span>Phone</span>
-                <strong>${escapeHtml(phone)}</strong>
+                <strong>${phoneHref ? `<a class="patient-info-link" href="tel:${escapeHtml(phoneHref)}">${escapeHtml(phone)}</a>` : escapeHtml(phone)}</strong>
               </div>
               <div class="patient-info-tile">
                 <span>Latest Visit</span>
