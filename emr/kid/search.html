@@ -2565,8 +2565,7 @@
     }
 
     function getEmbeddedPrescriptionPreviewUrl(downloadUrl, viewerUrl) {
-      const isTouchPreview = window.matchMedia('(max-width: 820px), (pointer: coarse)').matches;
-      return isTouchPreview && viewerUrl ? `${viewerUrl}&embed=1` : downloadUrl;
+      return downloadUrl || viewerUrl;
     }
 
     function getPrescriptionPreviewImageUrl(entry) {
