@@ -1207,12 +1207,16 @@
     }
 
     .patient-profile-page .prescription-carousel {
-      justify-content: start;
+      display: grid;
+      grid-template-columns: minmax(44px, auto) 1fr minmax(44px, auto);
+      gap: 8px;
+      align-items: center;
     }
 
     .patient-profile-page .prescription-list {
-      overflow-x: visible;
-      scroll-snap-type: none;
+      grid-column: 1 / -1;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
     }
 
     .patient-profile-page .prescription-preview-entry {
@@ -1235,8 +1239,22 @@
       object-position: top center;
     }
 
-    .patient-profile-page .prescription-preview-open-chip,
     .patient-profile-page .carousel-arrow {
+      position: static;
+      transform: none;
+      width: 44px;
+      height: 38px;
+      justify-self: start;
+      border-color: rgba(22, 101, 52, 0.16);
+      color: var(--brand-strong);
+      box-shadow: none;
+    }
+
+    .patient-profile-page .carousel-arrow-right {
+      justify-self: end;
+    }
+
+    .patient-profile-page .prescription-preview-open-chip {
       display: none;
     }
 

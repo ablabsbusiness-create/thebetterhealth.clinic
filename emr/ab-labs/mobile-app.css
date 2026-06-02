@@ -1943,6 +1943,41 @@
     border-radius: 12px !important;
   }
 
+  body:has(#search-input) .doctor-card .history-date-shell {
+    position: relative !important;
+    min-width: 0 !important;
+    height: 46px !important;
+  }
+
+  body:has(#search-input) .doctor-card .history-date-visible {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 0 44px 0 14px !important;
+    border: 1px solid var(--mobile-border) !important;
+    border-radius: 12px !important;
+    background: #ffffff !important;
+    color: var(--mobile-text) !important;
+    font-size: 15px !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    pointer-events: none !important;
+  }
+
+  body:has(#search-input) .doctor-card .history-date-input {
+    position: relative !important;
+    z-index: 2 !important;
+    width: 100% !important;
+    opacity: 0 !important;
+    color: transparent !important;
+    background: transparent !important;
+  }
+
   body:has(#search-input) .doctor-card .history-filter-row .filter-clear-btn {
     min-width: 98px !important;
     height: 46px !important;
@@ -2637,6 +2672,103 @@
   }
 
   body.search-page .worklist-main {
+    display: none !important;
+  }
+
+  body.search-page .doctor-card .prescription-carousel {
+    display: grid !important;
+    grid-template-columns: minmax(44px, auto) 1fr minmax(44px, auto) !important;
+    gap: 8px !important;
+    align-items: center !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  body.search-page .doctor-card .prescription-list {
+    grid-column: 1 / -1 !important;
+    display: flex !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scroll-snap-type: x mandatory !important;
+    scrollbar-width: none !important;
+  }
+
+  body.search-page .doctor-card .prescription-list::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  body.search-page .doctor-card .prescription-preview-entry {
+    display: grid !important;
+    flex: 0 0 100% !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+    scroll-snap-align: start !important;
+  }
+
+  body.search-page .doctor-card .prescription-preview-entry {
+    margin: 0 !important;
+  }
+
+  body.search-page .doctor-card .prescription-preview-card,
+  body.search-page .doctor-card .prescription-preview-surface {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  body.search-page .doctor-card .prescription-preview-card {
+    aspect-ratio: auto !important;
+    padding: 8px !important;
+    border-radius: 12px !important;
+    background: #f6faf7 !important;
+    border: 1px solid var(--mobile-border) !important;
+    box-shadow: 0 12px 28px rgba(18, 48, 29, 0.08) !important;
+  }
+
+  body.search-page .doctor-card .prescription-preview-surface {
+    aspect-ratio: 210 / 297 !important;
+    overflow: hidden !important;
+  }
+
+  body.search-page .doctor-card .prescription-preview-frame,
+  body.search-page .doctor-card .prescription-preview-embed {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    object-fit: contain !important;
+    object-position: top center !important;
+  }
+
+  body.search-page .doctor-card .carousel-arrow {
+    position: static !important;
+    transform: none !important;
+    z-index: 1 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 44px !important;
+    height: 38px !important;
+    border-radius: 12px !important;
+    border: 1px solid var(--mobile-border) !important;
+    background: #ffffff !important;
+    color: var(--mobile-green) !important;
+    box-shadow: none !important;
+  }
+
+  body.search-page .doctor-card .carousel-arrow-left {
+    justify-self: start !important;
+  }
+
+  body.search-page .doctor-card .carousel-arrow-right {
+    justify-self: end !important;
+  }
+
+  body.search-page .doctor-card .prescription-preview-open-chip {
     display: none !important;
   }
 }

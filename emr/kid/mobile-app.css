@@ -2689,13 +2689,38 @@
     padding-bottom: 14px !important;
   }
 
-  body.patient-details-page .patient-profile-page .prescription-carousel,
-  body.patient-details-page .patient-profile-page .prescription-list,
-  body.patient-details-page .patient-profile-page .prescription-preview-entry {
-    display: block !important;
+  body.patient-details-page .patient-profile-page .prescription-carousel {
+    display: grid !important;
+    grid-template-columns: minmax(44px, auto) 1fr minmax(44px, auto) !important;
+    gap: 8px !important;
+    align-items: center !important;
     min-height: 0 !important;
     height: auto !important;
     overflow: visible !important;
+  }
+
+  body.patient-details-page .patient-profile-page .prescription-list {
+    grid-column: 1 / -1 !important;
+    display: flex !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scroll-snap-type: x mandatory !important;
+    scrollbar-width: none !important;
+  }
+
+  body.patient-details-page .patient-profile-page .prescription-list::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  body.patient-details-page .patient-profile-page .prescription-preview-entry {
+    display: grid !important;
+    flex: 0 0 100% !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+    scroll-snap-align: start !important;
   }
 
   body.patient-details-page .patient-profile-page .prescription-preview-entry {
@@ -2706,9 +2731,21 @@
   body.patient-details-page .patient-profile-page .prescription-preview-surface {
     width: 100% !important;
     max-width: 100% !important;
-    aspect-ratio: 210 / 297 !important;
     height: auto !important;
     min-height: 0 !important;
+  }
+
+  body.patient-details-page .patient-profile-page .prescription-preview-card {
+    aspect-ratio: auto !important;
+    padding: 8px !important;
+    border-radius: 12px !important;
+    background: #f6faf7 !important;
+    border: 1px solid var(--mobile-border) !important;
+    box-shadow: 0 12px 28px rgba(18, 48, 29, 0.08) !important;
+  }
+
+  body.patient-details-page .patient-profile-page .prescription-preview-surface {
+    aspect-ratio: 210 / 297 !important;
     overflow: hidden !important;
   }
 
@@ -2721,7 +2758,30 @@
     object-position: top center !important;
   }
 
-  body.patient-details-page .patient-profile-page .carousel-arrow,
+  body.patient-details-page .patient-profile-page .carousel-arrow {
+    position: static !important;
+    transform: none !important;
+    z-index: 1 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 44px !important;
+    height: 38px !important;
+    border-radius: 12px !important;
+    border: 1px solid var(--mobile-border) !important;
+    background: #ffffff !important;
+    color: var(--mobile-green) !important;
+    box-shadow: none !important;
+  }
+
+  body.patient-details-page .patient-profile-page .carousel-arrow-left {
+    justify-self: start !important;
+  }
+
+  body.patient-details-page .patient-profile-page .carousel-arrow-right {
+    justify-self: end !important;
+  }
+
   body.patient-details-page .patient-profile-page .prescription-preview-open-chip {
     display: none !important;
   }
