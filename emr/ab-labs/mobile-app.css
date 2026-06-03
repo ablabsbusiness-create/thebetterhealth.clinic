@@ -2376,10 +2376,10 @@
     align-items: center !important;
     justify-content: center !important;
     border-radius: 12px !important;
-    border: 1px solid rgba(15, 122, 59, 0.18) !important;
-    background: #ffffff !important;
+    border: 1px solid rgba(15, 122, 59, 0.22) !important;
+    background: linear-gradient(180deg, #f0fff6, #dff8e8) !important;
     color: #0f6b3a !important;
-    box-shadow: none !important;
+    box-shadow: 0 8px 18px rgba(15, 122, 59, 0.1) !important;
     font-size: 13px !important;
     font-weight: 800 !important;
     line-height: 1 !important;
@@ -2716,6 +2716,47 @@
 
   body.search-page .worklist-main {
     display: none !important;
+  }
+
+  body.search-page:not(.patient-details-page) {
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    overflow: hidden !important;
+  }
+
+  body.search-page:not(.patient-details-page) main,
+  body.search-page:not(.patient-details-page) .page-shell,
+  body.search-page:not(.patient-details-page) .search-shell {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  body.search-page:not(.patient-details-page) #results-panel {
+    min-height: 0 !important;
+    max-height: calc(100dvh - 248px - env(safe-area-inset-bottom)) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  body.search-page:not(.patient-details-page) .results-dashboard,
+  body.search-page:not(.patient-details-page) .worklist-sidebar {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  body.search-page:not(.patient-details-page) .worklist-list {
+    max-height: calc(100dvh - 370px - env(safe-area-inset-bottom)) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding-bottom: calc(92px + env(safe-area-inset-bottom)) !important;
+  }
+
+  body.search-page:not(.patient-details-page) .worklist-empty {
+    margin-bottom: 0 !important;
   }
 }
 

@@ -2356,10 +2356,10 @@
     align-items: center !important;
     justify-content: center !important;
     border-radius: 12px !important;
-    border: 1px solid rgba(15, 122, 59, 0.18) !important;
-    background: #ffffff !important;
+    border: 1px solid rgba(15, 122, 59, 0.22) !important;
+    background: linear-gradient(180deg, #f0fff6, #dff8e8) !important;
     color: #0f6b3a !important;
-    box-shadow: none !important;
+    box-shadow: 0 8px 18px rgba(15, 122, 59, 0.1) !important;
     font-size: 13px !important;
     font-weight: 800 !important;
     line-height: 1 !important;
