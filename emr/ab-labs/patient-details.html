@@ -4,20 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Search | Ab Labs EMR</title>
+  <title>Patient Details | Ab Labs EMR</title>
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="manifest" href="site.webmanifest" />
-  <meta name="description" content="Search page for Ab Labs EMR, supporting clinic workflows and patient care operations at Ab Labs EMR." />
-  <link rel="canonical" href="https://www.thebetterhealth.clinic/emr/ab-labs/search" />
+  <meta name="description" content="Patient vitals and prescription details for Ab Labs EMR at The Better Health Clinic." />
+  <link rel="canonical" href="https://www.thebetterhealth.clinic/emr/ab-labs/patient-details" />
   <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="Ab Labs EMR" />
-  <meta property="og:title" content="Search | Ab Labs EMR" />
-  <meta property="og:description" content="Search page for Ab Labs EMR, supporting clinic workflows and patient care operations at Ab Labs EMR." />
-  <meta property="og:url" content="https://www.thebetterhealth.clinic/emr/ab-labs/search" />
+  <meta property="og:site_name" content="The Better Health Clinic" />
+  <meta property="og:title" content="Patient Details | Ab Labs EMR" />
+  <meta property="og:description" content="Patient vitals and prescription details for Ab Labs EMR at The Better Health Clinic." />
+  <meta property="og:url" content="https://www.thebetterhealth.clinic/emr/ab-labs/patient-details" />
   <meta property="og:locale" content="en_IN" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Search | Ab Labs EMR" />
-  <meta name="twitter:description" content="Search page for Ab Labs EMR, supporting clinic workflows and patient care operations at Ab Labs EMR." />
+  <meta name="twitter:title" content="Patient Details | Ab Labs EMR" />
+  <meta name="twitter:description" content="Patient vitals and prescription details for Ab Labs EMR at The Better Health Clinic." />
   <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -25,13 +25,13 @@
     {
       "@type": "WebSite",
       "@id": "https://www.thebetterhealth.clinic/#website",
-      "name": "Ab Labs EMR",
+      "name": "The Better Health Clinic",
       "url": "https://www.thebetterhealth.clinic/"
     },
     {
       "@type": "MedicalClinic",
       "@id": "https://www.thebetterhealth.clinic/#clinic",
-      "name": "Ab Labs EMR",
+      "name": "The Better Health Clinic",
       "url": "https://www.thebetterhealth.clinic/",
       "telephone": [
         "+919686183999",
@@ -51,10 +51,10 @@
     },
     {
       "@type": "WebPage",
-      "@id": "https://www.thebetterhealth.clinic/emr/ab-labs/search#webpage",
-      "url": "https://www.thebetterhealth.clinic/emr/ab-labs/search",
-      "name": "Search | Ab Labs EMR",
-      "description": "Search page for Ab Labs EMR, supporting clinic workflows and patient care operations at Ab Labs EMR.",
+      "@id": "https://www.thebetterhealth.clinic/emr/ab-labs/patient-details#webpage",
+      "url": "https://www.thebetterhealth.clinic/emr/ab-labs/patient-details",
+      "name": "Patient Details | Ab Labs EMR",
+      "description": "Patient vitals and prescription details for Ab Labs EMR at The Better Health Clinic.",
       "isPartOf": {
         "@id": "https://www.thebetterhealth.clinic/#website"
       },
@@ -135,6 +135,14 @@
       box-shadow: 0 10px 22px rgba(22, 101, 52, 0.22);
     }
 
+    .brand-logo {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border-radius: inherit;
+      object-fit: cover;
+    }
+
     .brand-copy strong {
       display: block;
       font-size: 15px;
@@ -151,6 +159,7 @@
     .nav-links {
       display: flex;
       align-items: center;
+      justify-content: flex-end;
       gap: 6px;
       margin-left: auto;
       min-width: 0;
@@ -428,6 +437,103 @@
       background: #fff7ed;
       border-color: #fed7aa;
       color: #9a3412;
+    }
+
+    .skeleton-shell {
+      display: grid;
+      grid-template-columns: 340px minmax(0, 1fr);
+      min-height: calc(100vh - 121px);
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .skeleton-sidebar,
+    .skeleton-main {
+      padding: 18px;
+    }
+
+    .skeleton-sidebar {
+      border-right: 1px solid var(--line);
+      background: #fbfdfb;
+    }
+
+    .skeleton-main {
+      display: grid;
+      gap: 16px;
+      align-content: start;
+    }
+
+    .skeleton-tabs,
+    .skeleton-pills,
+    .skeleton-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .skeleton-tabs {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      margin-bottom: 18px;
+    }
+
+    .skeleton-pills {
+      grid-template-columns: repeat(2, minmax(96px, 112px));
+    }
+
+    .skeleton-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .skeleton-item,
+    .skeleton-card {
+      padding: 14px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .skeleton-item + .skeleton-item {
+      margin-top: 10px;
+    }
+
+    .skeleton-tab,
+    .skeleton-pill,
+    .skeleton-line,
+    .skeleton-block {
+      position: relative;
+      overflow: hidden;
+      border-radius: 4px;
+      background: #edf3ef;
+    }
+
+    .skeleton-tab,
+    .skeleton-pill {
+      height: 34px;
+    }
+
+    .skeleton-line {
+      height: 12px;
+      margin-bottom: 10px;
+    }
+
+    .skeleton-block {
+      min-height: 74px;
+    }
+
+    .skeleton-tab::after,
+    .skeleton-pill::after,
+    .skeleton-line::after,
+    .skeleton-block::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      transform: translateX(-100%);
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.74), transparent);
+      animation: skeleton-shimmer 1.35s ease-in-out infinite;
+    }
+
+    @keyframes skeleton-shimmer {
+      100% {
+        transform: translateX(100%);
+      }
     }
 
     .results-dashboard {
@@ -937,50 +1043,144 @@
       height: 100%;
     }
 
-    .doctor-card .prescription-carousel,
-    .doctor-card .prescription-list,
-    .doctor-card .prescription-preview-entry {
-      min-height: 0;
-      height: auto;
-    }
-
-    .doctor-card .prescription-carousel {
+    .doctor-empty-state {
+      min-height: 420px;
       display: grid;
-      grid-template-columns: minmax(44px, auto) 1fr minmax(44px, auto);
-      gap: 8px;
+      place-items: center;
+      text-align: center;
+      padding: 28px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    body.patient-details-page .search-head,
+    body.patient-details-page .search-row,
+    body.patient-details-page .status-note,
+    body.patient-details-page .worklist-sidebar {
+      display: none !important;
+    }
+
+    body.patient-details-page .search-shell {
+      min-height: auto;
+      background: #eef5f1;
+    }
+
+    body.patient-details-page .results-dashboard {
+      display: block;
+      min-height: auto;
+    }
+
+    .patient-profile-page {
+      width: min(1040px, calc(100vw - 32px));
+      margin: 22px auto 110px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .patient-profile-hero {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 18px;
       align-items: center;
+      padding: 22px;
+      border: 1px solid rgba(22, 101, 52, 0.12);
+      background: #ffffff;
+      box-shadow: 0 18px 40px rgba(22, 38, 29, 0.08);
     }
 
-    .doctor-card .prescription-list {
-      grid-column: 1 / -1;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
+    .patient-profile-avatar {
+      width: 64px;
+      height: 64px;
+      display: grid;
+      place-items: center;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #0f7a3b, #18bd62);
+      color: #ffffff;
+      font-size: 28px;
+      font-weight: 800;
+      box-shadow: 0 14px 28px rgba(15, 122, 59, 0.2);
     }
 
-    .doctor-card .carousel-arrow {
-      position: static;
-      transform: none;
-      width: 44px;
-      height: 38px;
-      justify-self: start;
-      border-color: rgba(22, 101, 52, 0.16);
+    .patient-profile-title {
+      min-width: 0;
+      display: grid;
+      gap: 7px;
+    }
+
+    .patient-profile-title h2 {
+      margin: 0;
+      font-size: 30px;
+      line-height: 1.05;
+      color: var(--ink);
+    }
+
+    .patient-profile-title p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.45;
+    }
+
+    .patient-profile-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .patient-profile-action {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 16px;
+      border-radius: 12px;
+      background: #15803d;
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 800;
+      box-shadow: 0 12px 24px rgba(21, 128, 61, 0.16);
+    }
+
+    .patient-profile-action.is-muted {
+      background: #ffffff;
       color: var(--brand-strong);
+      border: 1px solid var(--line);
       box-shadow: none;
     }
 
-    .doctor-card .carousel-arrow-right {
-      justify-self: end;
+    .patient-info-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
     }
 
-    .doctor-card .prescription-preview-card,
-    .doctor-card .prescription-preview-surface {
-      width: 100%;
-      aspect-ratio: 210 / 297;
-      height: auto;
+    .patient-info-tile {
+      min-height: 78px;
+      padding: 14px;
+      border: 1px solid rgba(22, 101, 52, 0.11);
+      background: #ffffff;
+      display: grid;
+      align-content: center;
+      gap: 6px;
     }
 
-    .doctor-card .prescription-preview-open-chip {
-      display: none;
+    .patient-info-tile span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .patient-info-tile strong {
+      min-width: 0;
+      color: var(--ink);
+      font-size: 16px;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
     }
 
     .patient-info-link {
@@ -995,15 +1195,149 @@
       text-underline-offset: 3px;
     }
 
-    .doctor-empty-state {
-      min-height: 420px;
+    .patient-profile-grid {
       display: grid;
-      place-items: center;
-      text-align: center;
-      padding: 28px;
-      color: var(--muted);
-      font-size: 15px;
-      line-height: 1.7;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 16px;
+    }
+
+    .patient-profile-page .doctor-card {
+      border-radius: 0;
+      box-shadow: 0 14px 34px rgba(22, 38, 29, 0.06);
+    }
+
+    .patient-profile-page .doctor-card-head {
+      padding: 18px 20px 14px;
+    }
+
+    .patient-profile-page .doctor-card-body {
+      padding: 16px 20px 20px;
+    }
+
+    .patient-profile-page .prescription-carousel {
+      display: grid;
+      grid-template-columns: minmax(44px, auto) 1fr minmax(44px, auto);
+      gap: 8px;
+      align-items: center;
+    }
+
+    .patient-profile-page .prescription-list {
+      grid-column: 1 / -1;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+    }
+
+    .patient-profile-page .prescription-preview-entry {
+      width: 100%;
+      justify-items: center;
+    }
+
+    .patient-profile-page .prescription-preview-card,
+    .patient-profile-page .prescription-preview-surface {
+      width: 100%;
+      aspect-ratio: 210 / 297;
+      height: auto;
+    }
+
+    .patient-profile-page .prescription-preview-frame,
+    .patient-profile-page .prescription-preview-embed {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: top center;
+    }
+
+    .patient-profile-page .carousel-arrow {
+      position: static;
+      transform: none;
+      width: 44px;
+      height: 38px;
+      justify-self: start;
+      border-color: rgba(22, 101, 52, 0.16);
+      color: var(--brand-strong);
+      box-shadow: none;
+    }
+
+    .patient-profile-page .carousel-arrow-right {
+      justify-self: end;
+    }
+
+    .patient-profile-page .prescription-preview-open-chip {
+      display: none;
+    }
+
+    @media (max-width: 760px) {
+      .patient-profile-page {
+        width: 100%;
+        margin: 0;
+        padding: 12px 12px calc(112px + env(safe-area-inset-bottom));
+        gap: 12px;
+      }
+
+      .patient-profile-hero {
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 12px;
+        padding: 16px;
+        border-radius: 20px;
+      }
+
+      .patient-profile-avatar {
+        width: 54px;
+        height: 54px;
+        border-radius: 14px;
+        font-size: 22px;
+      }
+
+      .patient-profile-title h2 {
+        font-size: 22px;
+      }
+
+      .patient-profile-title p {
+        font-size: 13px;
+      }
+
+      .patient-profile-actions {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        width: 100%;
+      }
+
+      .patient-profile-action {
+        min-height: 46px;
+        width: 100%;
+        padding: 0 8px;
+        border-radius: 14px;
+        font-size: 12px;
+        line-height: 1.08;
+        text-align: center;
+      }
+
+      .patient-info-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .patient-info-tile {
+        min-height: 68px;
+        padding: 12px;
+        border-radius: 16px;
+      }
+
+      .patient-profile-page .doctor-card {
+        border-radius: 20px;
+      }
+
+      .patient-profile-page .doctor-card-head,
+      .patient-profile-page .doctor-card-body {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
+      .patient-profile-page .prescription-preview-card {
+        max-width: min(100%, 430px);
+      }
     }
 
     .results-list {
@@ -1754,10 +2088,20 @@
 
     @media (max-width: 960px) {
       .results-dashboard,
+      .skeleton-shell,
       .doctor-detail-grid,
       .result-top,
       .result-layout,
       .search-row {
+        grid-template-columns: 1fr;
+      }
+
+      .skeleton-sidebar {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .skeleton-grid {
         grid-template-columns: 1fr;
       }
 
@@ -1947,25 +2291,10 @@
       }
     }
 
-  
-    .brand-mark {
-      background: #fff !important;
-      color: var(--brand, #166534);
-      overflow: hidden;
-      border: 1px solid rgba(22, 101, 52, 0.14);
-    }
-
-    .brand-logo {
-      width: 78%;
-      height: 78%;
-      object-fit: contain;
-      display: block;
-    }
-
   </style>
   <link rel="stylesheet" href="mobile-app.css" />
 </head>
-<body>
+<body class="search-page">
   <header class="site-header">
     <div class="topbar">
       <div class="brand">
@@ -1978,10 +2307,10 @@
 
       
       <nav id="primary-nav" class="nav-links" aria-label="Primary">
-        <a class="nav-link" href="index">Dashboard</a>
-        <a class="nav-link active" href="search">Enter Clinic</a>
-        <a class="nav-link" href="pending-approvals">Approvals</a>
-        <a class="nav-link" href="settings">Settings</a>
+        <a class="nav-link" href="index.html">Dashboard</a>
+        <a class="nav-link active" href="search.html">Enter Clinic</a>
+        <a class="nav-link" href="pending-approvals.html">Approvals</a>
+        <a class="nav-link" href="settings.html">Settings</a>
       </nav>
 
 
@@ -1997,7 +2326,7 @@
       <div class="search-row">
         <input id="search-input" type="text" placeholder="Search by child name or phone number or patient id" autocomplete="off">
         <button id="clear-btn" class="btn-primary" type="button">Clear Search</button>
-        <a id="new-patient-btn" class="btn-secondary" href="new-patient">New Patient</a>
+        <a id="new-patient-btn" class="btn-secondary" href="new-patient.html">New Patient</a>
       </div>
 
       <div id="status-note" class="status-note">Loading patients...</div>
@@ -2051,12 +2380,12 @@
     const LOCAL_PRESCRIPTION_HISTORY_KEY = clinicStorageKey('savedPrescriptionHistory');
     const LOCAL_WORKLIST_QUEUE_KEY = clinicStorageKey('patientWorklistQueueByDate');
     const LOCAL_SEARCH_CACHE_KEY = clinicStorageKey('patientSearchCache');
-    const SEARCH_CACHE_TTL_MS = 2 * 60 * 1000;
-    const SEARCH_CACHE_PATIENT_LIMIT = 250;
+    const SEARCH_CACHE_TTL_MS = 10 * 60 * 1000;
+    const SEARCH_CACHE_PATIENT_LIMIT = 2000;
 
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
-      apiKey: firebaseEnv.VITE_FIREBASE_API_KEY || 'AIzaSyCvwytPdDs4354JyBufZR1A-roYK95EQ6c',
+      apiKey: firebaseEnv.VITE_FIREBASE_API_KEY || 'AIzaSyDX2kqKakWnwk2JK9mnQ1aBaQXC0IBtS0U',
       authDomain: firebaseEnv.VITE_FIREBASE_AUTH_DOMAIN || 'ab-labs-91f38.firebaseapp.com',
       projectId: firebaseEnv.VITE_FIREBASE_PROJECT_ID || 'ab-labs-91f38',
       storageBucket: firebaseEnv.VITE_FIREBASE_STORAGE_BUCKET || 'ab-labs-91f38.firebasestorage.app',
@@ -2071,20 +2400,22 @@
     const storage = firebaseApp ? getStorage(firebaseApp) : null;
     let allPatients = [];
     let allHistory = [];
+    let historyLoaded = false;
+    let prescriptionHistoryByPatientId = new Map();
+    let prescriptionHistoryByPatientDate = new Map();
     const storagePrescriptionPatientIdsLoaded = new Set();
     const storagePrescriptionPatientLoads = new Map();
     const prescriptionDownloadUrlLoads = new Map();
     const historyDateFilters = {};
     const historyShowAll = {};
     const historyPageIndexes = {};
-    const MOBILE_DETAIL_QUERY = window.matchMedia('(max-width: 640px)');
-    const urlParams = new URLSearchParams(window.location.search);
-    const IS_PATIENT_DETAILS_PAGE = Boolean(urlParams.get('patientId')) && MOBILE_DETAIL_QUERY.matches;
+    const IS_PATIENT_DETAILS_PAGE = window.location.pathname.includes('/patient-details');
     document.body.classList.toggle('patient-details-page', IS_PATIENT_DETAILS_PAGE);
-    let selectedPatientId = String(urlParams.get('patientId') || '').trim().toUpperCase();
+    const MOBILE_DETAIL_QUERY = window.matchMedia('(max-width: 640px)');
+    let selectedPatientId = String(new URLSearchParams(window.location.search).get('patientId') || '').trim().toUpperCase();
 
     function getPatientDetailsUrl(patientId) {
-      return `patient-details.html?patientId=${encodeURIComponent(patientId || '')}`;
+      return `patient-details?patientId=${encodeURIComponent(patientId || '')}`;
     }
 
     function openPatientDetailsOnPhone(patientId) {
@@ -2097,7 +2428,9 @@
     }
     let selectedWorklistDate = getTodayIsoDate();
     let selectedWorklistMode = 'seen';
+    let searchInputTimer = null;
     const SEARCH_RENDER_LIMIT = 80;
+    const SEARCH_INPUT_DEBOUNCE_MS = 180;
     const TEST_PAST_CHARTS_PATIENT_ID = 'TESTPAST001';
     const HISTORY_DEFAULT_VISIBLE_COUNT = 3;
     const HISTORY_PAGE_SIZE = 4;
@@ -2262,7 +2595,7 @@
       }
 
       const query = params.toString();
-      return query ? `new-patient?${query}` : 'new-patient';
+      return query ? `new-patient.html?${query}` : 'new-patient.html';
     }
 
     function updateNewPatientButton() {
@@ -2294,7 +2627,7 @@
 
       return {
         patients: Array.isArray(cache.patients) ? cache.patients : [],
-        history: Array.isArray(cache.history) ? cache.history : []
+        selectedPatientId: String(cache.selectedPatientId || '').trim().toUpperCase()
       };
     }
 
@@ -2316,7 +2649,8 @@
         doctorName: patient.doctorName || '',
         status: patient.status || '',
         lastMeasurementRecord: patient.lastMeasurementRecord || null,
-        measurementHistory: Array.isArray(patient.measurementHistory) ? patient.measurementHistory.slice(0, 2) : []
+        measurementHistory: Array.isArray(patient.measurementHistory) ? patient.measurementHistory.slice(0, 2) : [],
+        cachedAt: new Date().toISOString()
       }));
     }
 
@@ -2324,8 +2658,8 @@
       try {
         localStorage.setItem(LOCAL_SEARCH_CACHE_KEY, JSON.stringify({
           savedAt: Date.now(),
-          patients: getCacheablePatients(),
-          history: []
+          selectedPatientId,
+          patients: getCacheablePatients()
         }));
       } catch (error) {
         localStorage.removeItem(LOCAL_SEARCH_CACHE_KEY);
@@ -2339,10 +2673,15 @@
         return false;
       }
 
-      allPatients = cache.patients;
-      allHistory = cache.history;
+      selectedPatientId = cache.selectedPatientId || selectedPatientId;
+      allPatients = withTestPastChartsPatient(cache.patients)
+        .filter((patient) => patient.status !== 'pending' && patient.status !== 'rejected')
+        .map(preparePatientForSearch)
+        .sort(sortByPatientName);
+      allHistory = [];
+      historyLoaded = false;
+      rebuildHistoryIndexes();
       filterPatients();
-      setStatus('Showing recent records while updating...');
       return true;
     }
 
@@ -2622,6 +2961,14 @@
       return String(value || '').trim().toUpperCase();
     }
 
+    function isUsablePatientId(value) {
+      const patientId = getNormalizedPatientId(value);
+      return Boolean(patientId)
+        && patientId !== '-'
+        && patientId !== 'ID NOT SAVED'
+        && patientId !== 'UNKNOWN';
+    }
+
     function isPrescriptionHistoryEntry(entry) {
       if (!entry || typeof entry !== 'object') {
         return false;
@@ -2645,7 +2992,7 @@
         || fallbackId
       );
 
-      if (!normalizedPatientId) {
+      if (!isUsablePatientId(normalizedPatientId)) {
         return null;
       }
 
@@ -2694,7 +3041,7 @@
       }
 
       const patientId = getNormalizedPatientId(patient.patientId || patient.id || '');
-      if (!patientId || patientId === 'ID NOT SAVED') {
+      if (!isUsablePatientId(patientId)) {
         return [];
       }
 
@@ -2793,6 +3140,7 @@
       }
 
       allHistory = [...existingHistoryById.values()];
+      rebuildHistoryIndexes();
       saveSearchCache();
       return true;
     }
@@ -2993,6 +3341,64 @@
       return String(value || '').replace(/\D+/g, '');
     }
 
+    function normalizeSearchText(value) {
+      return String(value || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim()
+        .replace(/\s+/g, ' ');
+    }
+
+    function buildPatientSearchMeta(patient) {
+      const displayName = normalizeSearchText(getPatientDisplayName(patient));
+      const explicitNames = [
+        patient.childName,
+        patient.firstName,
+        patient.middleName,
+        patient.lastName
+      ].map(normalizeSearchText).filter(Boolean);
+      const names = [...new Set([displayName, ...explicitNames].filter(Boolean))];
+      const tokens = [...new Set(names.flatMap((value) => value.split(/\s+/)).filter(Boolean))];
+      const patientId = getNormalizedPatientId(patient.patientId);
+      const phones = [patient.phone, patient.mobileNumber].map(normalizeSearchValue).filter(Boolean);
+
+      return {
+        names,
+        tokens,
+        patientId,
+        phones,
+        sortName: getPatientDisplayName(patient)
+      };
+    }
+
+    function preparePatientForSearch(patient) {
+      if (!patient || typeof patient !== 'object') {
+        return patient;
+      }
+
+      Object.defineProperty(patient, '__searchMeta', {
+        value: buildPatientSearchMeta(patient),
+        configurable: true
+      });
+      if (Object.prototype.hasOwnProperty.call(patient, '__measurementEntries')) {
+        delete patient.__measurementEntries;
+      }
+      return patient;
+    }
+
+    function getPatientSearchMeta(patient) {
+      if (!patient?.__searchMeta) {
+        preparePatientForSearch(patient);
+      }
+
+      return patient.__searchMeta || buildPatientSearchMeta(patient || {});
+    }
+
+    function getPatientNameParts(patient) {
+      const { names, tokens } = getPatientSearchMeta(patient);
+      return { names, tokens };
+    }
+
     function getPatientSearchTokens(patient) {
       if (Array.isArray(patient.__searchTokens)) {
         return patient.__searchTokens;
@@ -3016,27 +3422,67 @@
       return tokens;
     }
 
-    function patientMatchesSearch(patient, rawSearchValue) {
-      const loweredSearchValue = rawSearchValue.trim().toLowerCase();
+    function getPatientSearchRank(patient, rawSearchValue) {
+      const loweredSearchValue = normalizeSearchText(rawSearchValue);
       if (!loweredSearchValue) {
+        return 0;
+      }
+
+      const searchMeta = getPatientSearchMeta(patient);
+      const normalizedPatientId = searchMeta.patientId;
+      const normalizedSearchPatientId = getNormalizedPatientId(rawSearchValue);
+      const normalizedSearchValue = normalizeSearchValue(rawSearchValue);
+      const normalizedPatientPhones = searchMeta.phones;
+      const isLikelyPatientIdSearch = /^(GS|SAC|SX|TEST)[A-Z0-9]*/.test(normalizedSearchPatientId)
+        || /\d/.test(normalizedSearchPatientId);
+      const { names, tokens } = searchMeta;
+
+      if (names.some((name) => name === loweredSearchValue)) {
+        return 100;
+      }
+      if (names.some((name) => name.startsWith(loweredSearchValue))) {
+        return 90;
+      }
+      if (tokens.some((token) => token === loweredSearchValue)) {
+        return 80;
+      }
+      if (tokens.some((token) => token.startsWith(loweredSearchValue))) {
+        return 70;
+      }
+      if (isLikelyPatientIdSearch && normalizedPatientId && normalizedSearchPatientId && normalizedPatientId === normalizedSearchPatientId) {
+        return 65;
+      }
+      if (isLikelyPatientIdSearch && normalizedPatientId && normalizedSearchPatientId && normalizedPatientId.startsWith(normalizedSearchPatientId)) {
+        return 60;
+      }
+      if (normalizedSearchValue && normalizedPatientPhones.some((phone) => phone === normalizedSearchValue)) {
+        return 58;
+      }
+      if (normalizedSearchValue && normalizedPatientPhones.some((phone) => phone.includes(normalizedSearchValue))) {
+        return 50;
+      }
+      if (isLikelyPatientIdSearch && normalizedPatientId && normalizedSearchPatientId && normalizedPatientId.includes(normalizedSearchPatientId)) {
+        return 40;
+      }
+
+      return 0;
+    }
+
+    function isExactPatientIdSearch(rawSearchValue) {
+      const normalizedSearchPatientId = getNormalizedPatientId(rawSearchValue);
+      return /^(GS|SAC|SX|TEST)[A-Z0-9]*\d[A-Z0-9]*$/.test(normalizedSearchPatientId);
+    }
+
+    function patientMatchesSearch(patient, rawSearchValue) {
+      if (!rawSearchValue.trim()) {
         return true;
       }
 
-      const normalizedPatientId = getNormalizedPatientId(patient.patientId);
-      const normalizedSearchPatientId = getNormalizedPatientId(rawSearchValue);
-      if (/^SX[A-Z0-9]+$/.test(normalizedSearchPatientId)) {
-        return normalizedPatientId === normalizedSearchPatientId;
-      }
-
-      const normalizedSearchValue = normalizeSearchValue(rawSearchValue);
-      const normalizedPatientPhone = normalizeSearchValue(patient.phone);
-
-      return getPatientSearchTokens(patient).some((token) => token.startsWith(loweredSearchValue))
-        || Boolean(normalizedSearchValue && normalizedPatientPhone.includes(normalizedSearchValue));
+      return getPatientSearchRank(patient, rawSearchValue) > 0;
     }
 
     function sortByPatientName(left, right) {
-      return getPatientDisplayName(left).localeCompare(getPatientDisplayName(right));
+      return getPatientSearchMeta(left).sortName.localeCompare(getPatientSearchMeta(right).sortName);
     }
 
     function getImportedVitalNumber(value) {
@@ -3170,6 +3616,168 @@
       return sortedEntries;
     }
 
+    function isMeasurementHistoryEntry(entry) {
+      if (!entry || typeof entry !== 'object') {
+        return false;
+      }
+
+      if (entry.type === 'prescription' || entry.source === 'prescription-pdf') {
+        return false;
+      }
+
+      return ['weight', 'height', 'head', 'spo2', 'pulse', 'systolic', 'diastolic', 'temp']
+        .some((key) => String(entry[key] || '').trim());
+    }
+
+    function rebuildHistoryIndexes() {
+      const byPatientId = new Map();
+      const byPatientDate = new Map();
+
+      allHistory
+        .filter((entry) => isPrescriptionHistoryEntry(entry))
+        .forEach((entry) => {
+          const patientId = getNormalizedPatientId(entry.patientId);
+          if (!patientId) {
+            return;
+          }
+
+          const entries = byPatientId.get(patientId) || [];
+          entries.push(entry);
+          byPatientId.set(patientId, entries);
+
+          const dateValue = getIsoDatePart(entry.createdAtIso);
+          if (dateValue) {
+            const dateKey = `${patientId}|${dateValue}`;
+            const dateEntries = byPatientDate.get(dateKey) || [];
+            dateEntries.push(entry);
+            byPatientDate.set(dateKey, dateEntries);
+          }
+        });
+
+      byPatientId.forEach((entries) => {
+        entries.sort((a, b) => new Date(b.createdAtIso || 0) - new Date(a.createdAtIso || 0));
+      });
+
+      prescriptionHistoryByPatientId = byPatientId;
+      prescriptionHistoryByPatientDate = byPatientDate;
+    }
+
+    function getHistoryEntriesByPatientId(historyEntries) {
+      const historyByPatientId = new Map();
+
+      historyEntries.forEach((entry) => {
+        const patientId = getNormalizedPatientId(entry.patientId);
+        if (!isUsablePatientId(patientId)) {
+          return;
+        }
+
+        const entries = historyByPatientId.get(patientId) || [];
+        entries.push(entry);
+        historyByPatientId.set(patientId, entries);
+      });
+
+      historyByPatientId.forEach((entries) => {
+        entries.sort((left, right) => {
+          const leftTime = Date.parse(left.createdAtIso || '') || 0;
+          const rightTime = Date.parse(right.createdAtIso || '') || 0;
+          return rightTime - leftTime;
+        });
+      });
+
+      return historyByPatientId;
+    }
+
+    function getMergedHistoryEntries(remoteHistory, patientRecords) {
+      const localHistory = getLocalPrescriptionEntries()
+        .map((entry) => normalizePrescriptionEntry(entry))
+        .filter(Boolean);
+      const mergedHistoryById = new Map();
+
+      [...remoteHistory, ...localHistory].forEach((entry, index) => {
+        const key = entry.prescriptionSaveId
+          || entry.id
+          || getPrescriptionDownloadUrl(entry)
+          || `${entry.patientId || 'history'}-${entry.createdAtIso || index}`;
+        mergedHistoryById.set(key, entry);
+      });
+
+      patientRecords.forEach((patient) => {
+        getPatientPrescriptionHistoryEntries(patient).forEach((entry, index) => {
+          const key = entry.prescriptionSaveId
+            || entry.id
+            || getPrescriptionDownloadUrl(entry)
+            || `${entry.patientId || 'patient'}-embedded-${index}`;
+          if (!mergedHistoryById.has(key)) {
+            mergedHistoryById.set(key, entry);
+          }
+        });
+      });
+
+      return [...mergedHistoryById.values()];
+    }
+
+    function buildPatientsFromRecords(patientRecords, historyEntries = []) {
+      const historyByPatientId = getHistoryEntriesByPatientId(historyEntries);
+      const mergedPatients = [];
+      const seenPatientIds = new Set();
+
+      patientRecords.forEach((patient) => {
+        if (patient.status === 'pending' || patient.status === 'rejected') {
+          return;
+        }
+        const patientId = getNormalizedPatientId(patient.patientId);
+        const patientHistoryEntries = patientId ? historyByPatientId.get(patientId) || [] : [];
+
+        const measurementEntries = Array.isArray(patient.measurementHistory)
+          ? [...patient.measurementHistory]
+          : [];
+        patientHistoryEntries
+          .filter(isMeasurementHistoryEntry)
+          .forEach((entry) => {
+            const entryKey = createMeasurementEntryKey(entry);
+            const alreadyIncluded = measurementEntries.some((candidate) => createMeasurementEntryKey(candidate) === entryKey);
+            if (!alreadyIncluded) {
+              measurementEntries.push(entry);
+            }
+          });
+
+        mergedPatients.push(preparePatientForSearch({
+          ...patient,
+          measurementHistory: measurementEntries,
+          lastMeasurementRecord: patient.lastMeasurementRecord || measurementEntries[0] || null
+        }));
+
+        if (isUsablePatientId(patientId)) {
+          seenPatientIds.add(patientId);
+        }
+      });
+
+      historyByPatientId.forEach((entries, patientId) => {
+        if (seenPatientIds.has(patientId)) {
+          return;
+        }
+
+        const latest = entries[0] || {};
+        mergedPatients.push(preparePatientForSearch({
+          id: `history-${patientId}`,
+          patientId: latest.patientId || patientId,
+          childName: latest.childName || latest.patientName || '',
+          firstName: latest.firstName || '',
+          middleName: latest.middleName || '',
+          lastName: latest.lastName || '',
+          parentName: latest.parentName || '',
+          phone: latest.phone || '',
+          gender: latest.gender || '',
+          dob: latest.dob || '',
+          measurementHistory: entries.filter(isMeasurementHistoryEntry),
+          lastMeasurementRecord: entries.find(isMeasurementHistoryEntry) || null,
+          fromHistoryOnly: true
+        }));
+      });
+
+      return withTestPastChartsPatient(mergedPatients).map(preparePatientForSearch).sort(sortByPatientName);
+    }
+
     function getDateLabel(dateValue) {
       const parsed = new Date(`${dateValue}T12:00:00`);
       if (Number.isNaN(parsed.getTime())) {
@@ -3258,6 +3866,8 @@
       const queuedIds = getQueuedPatientIdSet(dateValue);
       const filtered = hasSearch
         ? [...patients]
+        : !historyLoaded
+          ? [...patients]
         : mode === 'queue'
           ? patients.filter((patient) => patientIsQueuedOnDate(patient, dateValue, queuedIds))
           : patients.filter((patient) => patientHasSeenActivityOnDate(patient, dateValue));
@@ -3394,7 +4004,7 @@
           ` : ''}
         </div>
         <div class="record-table-wrap">
-          <table class="record-table">
+          <table class="record-table" style="--history-entry-count: ${Math.max(filteredEntries.length, 1)};">
             <thead>
               <tr>
                 <th></th>
@@ -3453,10 +4063,7 @@
     }
 
     function getPrescriptionEntries(patientId) {
-      return allHistory
-        .filter((entry) => isPrescriptionHistoryEntry(entry))
-        .filter((entry) => getNormalizedPatientId(entry.patientId) === getNormalizedPatientId(patientId))
-        .sort((a, b) => new Date(b.createdAtIso || 0) - new Date(a.createdAtIso || 0));
+      return prescriptionHistoryByPatientId.get(getNormalizedPatientId(patientId)) || [];
     }
 
     function createMeasurementEntryKey(entry) {
@@ -3533,7 +4140,7 @@
     }
 
     function getPrescriptionEntriesForDate(patientId, dateValue) {
-      return getPrescriptionEntries(patientId).filter((entry) => getIsoDatePart(entry.createdAtIso) === dateValue);
+      return prescriptionHistoryByPatientDate.get(`${getNormalizedPatientId(patientId)}|${dateValue}`) || [];
     }
 
     function patientHasSeenActivityOnDate(patient, dateValue) {
@@ -3645,7 +4252,6 @@
       const gender = formatMissing(patient.gender, 'Gender not saved');
       const dob = formatDateDisplay(patient.dob);
       const phone = formatMissing(patient.phone, 'Phone not saved');
-      const phoneHref = phone && phone !== 'Phone not saved' ? phone.replace(/[^\d+]/g, '') : '';
       const visits = getPatientVisitEntriesForDate(patient, dateValue);
       const prescriptions = getPrescriptionEntriesForDate(patientId, dateValue);
       const hasAppointment = patientHasAppointmentOnDate(patient, dateValue);
@@ -3656,7 +4262,7 @@
       const subtitleParts = [patientId];
       if (parentNameValue) subtitleParts.push(parentNameValue);
       const phoneHtml = phone && phone !== 'Phone not saved'
-        ? `<a class="worklist-item-phone patient-info-link" href="tel:${escapeHtml(phoneHref)}">${escapeHtml(phone)}</a>`
+        ? `<div class="worklist-item-phone">${phone}</div>`
         : '';
       const idLineHtml = subtitleParts.length
         ? `<div class="worklist-item-sub">${subtitleParts.map((part) => `<span>${part}</span>`).join('')}</div>`
@@ -3690,7 +4296,7 @@
       if (patients.length === 0) {
         renderPlaceholder('No patients matched that search.', {
           title: searchValue ? `"${searchValue}" was not found.` : 'No patients found.',
-          actionHref: searchValue ? getNewPatientUrl(searchValue) : 'new-patient',
+          actionHref: searchValue ? getNewPatientUrl(searchValue) : 'new-patient.html',
           actionLabel: 'Add New Patient'
         });
         return;
@@ -3699,7 +4305,6 @@
       resultsPanel.innerHTML = patients.map((patient) => {
         const childName = getPatientDisplayName(patient);
         const phone = formatMissing(patient.phone, 'Phone not saved');
-        const phoneHref = phone && phone !== 'Phone not saved' ? phone.replace(/[^\d+]/g, '') : '';
         const parentName = getSavedParentName(patient);
         const parentNameHtml = parentName ? `<small>${parentName}</small>` : '';
         const dob = formatDateDisplay(patient.dob);
@@ -3727,10 +4332,10 @@
               </button>
               <div class="result-meta">
                 <span class="result-meta-label">Phone number</span>
-                <strong>${phoneHref ? `<a class="patient-info-link" href="tel:${escapeHtml(phoneHref)}">${escapeHtml(phone)}</a>` : escapeHtml(phone)}</strong>
+                <strong>${phone}</strong>
                 ${parentNameHtml}
               </div>
-              <a class="continue-link" href="prescription-growth-chart-dashboard?patientId=${encodeURIComponent(patientId)}">Continue</a>
+              <a class="continue-link" href="prescription-growth-chart-dashboard.html?patientId=${encodeURIComponent(patientId)}">Continue</a>
             </div>
 
             ${isExpanded ? `
@@ -3766,29 +4371,113 @@
       if (patients.length === 0) {
         renderPlaceholder('No patients matched that search.', {
           title: searchValue ? `"${searchValue}" was not found.` : 'No patients found.',
-          actionHref: searchValue ? getNewPatientUrl(searchValue) : 'new-patient',
+          actionHref: searchValue ? getNewPatientUrl(searchValue) : 'new-patient.html',
           actionLabel: 'Add New Patient'
         });
         return;
       }
 
-      const counts = getWorklistCounts(patients, selectedWorklistDate);
-      const worklistPatients = getWorklistPatients(patients, selectedWorklistDate, selectedWorklistMode, searchValue);
-      const renderedWorklistPatients = searchValue
-        ? worklistPatients.slice(0, SEARCH_RENDER_LIMIT)
-        : worklistPatients;
-      const selectedPatientPool = IS_PATIENT_DETAILS_PAGE ? patients : (worklistPatients.length ? worklistPatients : patients);
-      if (!IS_PATIENT_DETAILS_PAGE && (!selectedPatientId || !patients.some((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId)) && selectedPatientPool[0]) {
-        selectedPatientId = formatMissing(selectedPatientPool[0].patientId, 'ID not saved');
+      if (IS_PATIENT_DETAILS_PAGE) {
+        const selectedPatient = patients.find((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId) || null;
+        if (!selectedPatient) {
+          renderPlaceholder('This patient record was not found.', {
+            title: selectedPatientId ? `${selectedPatientId} was not found.` : 'No patient selected.',
+            actionHref: 'search.html',
+            actionLabel: 'Back to Search'
+          });
+          return;
+        }
+
+        const selectedPatientIdValue = formatMissing(selectedPatient.patientId, 'ID not saved');
+        const selectedHistoryDate = historyDateFilters[selectedPatientIdValue] || '';
+        const childName = getPatientDisplayName(selectedPatient);
+        const parentName = getSavedParentName(selectedPatient);
+        const phone = formatMissing(selectedPatient.phone, 'Phone not saved');
+        const phoneHref = phone && phone !== 'Phone not saved' ? phone.replace(/[^\d+]/g, '') : '';
+        const gender = formatMissing(selectedPatient.gender, 'Gender not saved');
+        const dob = formatDateDisplay(selectedPatient.dob);
+        const measurements = getMeasurementEntries(selectedPatient);
+        const latestMeasurement = measurements[0] || null;
+        const latestVisitText = latestMeasurement ? formatHistoryDateTime(latestMeasurement) : 'No vitals saved';
+        const prescriptionCount = getPrescriptionEntries(selectedPatientIdValue).length;
+        const avatarLetter = childName.charAt(0).toUpperCase() || 'P';
+
+        resultsPanel.innerHTML = `
+          <div class="patient-profile-page">
+            <section class="patient-profile-hero">
+              <div class="patient-profile-avatar">${escapeHtml(avatarLetter)}</div>
+              <div class="patient-profile-title">
+                <h2>${escapeHtml(childName)}</h2>
+                <p>${escapeHtml(gender)} | ${escapeHtml(dob)} | ${escapeHtml(selectedPatientIdValue)}</p>
+              </div>
+              <div class="patient-profile-actions">
+                <a class="patient-profile-action is-muted" href="search.html">Back</a>
+                <a class="patient-profile-action is-muted" href="vaccination.html?patientId=${encodeURIComponent(selectedPatientIdValue)}">Vaccination</a>
+                <a class="patient-profile-action" href="prescription-growth-chart-dashboard.html?patientId=${encodeURIComponent(selectedPatientIdValue)}">Start Consult</a>
+              </div>
+            </section>
+
+            <section class="patient-info-grid" aria-label="Patient information">
+              <div class="patient-info-tile">
+                <span>Patient ID</span>
+                <strong>${escapeHtml(selectedPatientIdValue)}</strong>
+              </div>
+              <div class="patient-info-tile">
+                <span>Parent</span>
+                <strong>${escapeHtml(parentName || 'Not saved')}</strong>
+              </div>
+              <div class="patient-info-tile">
+                <span>Phone</span>
+                <strong>${phoneHref ? `<a class="patient-info-link" href="tel:${escapeHtml(phoneHref)}">${escapeHtml(phone)}</a>` : escapeHtml(phone)}</strong>
+              </div>
+              <div class="patient-info-tile">
+                <span>Latest Visit</span>
+                <strong>${escapeHtml(latestVisitText)}</strong>
+              </div>
+            </section>
+
+            <div class="patient-profile-grid">
+              <section class="doctor-card">
+                <div class="doctor-card-head">
+                  <h3>Vitals</h3>
+                </div>
+                <div class="doctor-card-body is-compact">
+                  ${renderMeasurementTableHtml(selectedPatient, selectedHistoryDate) || '<p class="doctor-card-note">No vitals have been saved for this patient yet.</p>'}
+                </div>
+              </section>
+
+              <section class="doctor-card">
+                <div class="doctor-card-head">
+                  <h3>Prescriptions</h3>
+                  <span class="doctor-card-note">${prescriptionCount} saved</span>
+                </div>
+                <div class="doctor-card-body">
+                  ${renderPrescriptionListHtml(selectedPatientIdValue)}
+                </div>
+              </section>
+            </div>
+          </div>
+        `;
+
+        attachPrescriptionPreviewRendering();
+        ensureStoragePrescriptionsForPatient(selectedPatient);
+        return;
       }
 
-      const selectedPatient = selectedPatientPool.find((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId) || (IS_PATIENT_DETAILS_PAGE ? null : selectedPatientPool[0]) || null;
+      const counts = getWorklistCounts(patients, selectedWorklistDate);
+      const worklistPatients = getWorklistPatients(patients, selectedWorklistDate, selectedWorklistMode, searchValue);
+      const renderedWorklistPatients = worklistPatients.slice(0, SEARCH_RENDER_LIMIT);
+      const selectedPatientPool = IS_PATIENT_DETAILS_PAGE ? patients : worklistPatients;
+      if (!IS_PATIENT_DETAILS_PAGE && (!selectedPatientId || !patients.some((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId)) && worklistPatients[0]) {
+        selectedPatientId = formatMissing(worklistPatients[0].patientId, 'ID not saved');
+      }
+
+      const selectedPatient = selectedPatientPool.find((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId) || (IS_PATIENT_DETAILS_PAGE ? null : worklistPatients[0]) || null;
       const selectedPatientIdValue = selectedPatient ? formatMissing(selectedPatient.patientId, 'ID not saved') : '';
       const selectedHistoryDate = selectedPatientIdValue ? historyDateFilters[selectedPatientIdValue] || '' : '';
       const childName = selectedPatient ? getPatientDisplayName(selectedPatient) : 'Select a patient';
       const parentName = getSavedParentName(selectedPatient);
       const phone = selectedPatient ? formatMissing(selectedPatient.phone, 'Phone not saved') : '';
-      const phoneHref = phone && phone !== 'Phone not saved' ? phone.replace(/[^\d+]/g, '') : '';
       const gender = selectedPatient ? formatMissing(selectedPatient.gender, 'Gender not saved') : '';
       const dob = selectedPatient ? formatDateDisplay(selectedPatient.dob) : '';
 
@@ -3838,9 +4527,9 @@
                 </div>
                 <div class="doctor-patient-meta">
                   ${parentName ? `<span class="doctor-meta-chip">${parentName}</span>` : ''}
-                  <span class="doctor-meta-chip">${phoneHref ? `<a class="patient-info-link" href="tel:${escapeHtml(phoneHref)}">${escapeHtml(phone)}</a>` : escapeHtml(phone)}</span>
-                  <a class="continue-link" href="vaccination?patientId=${encodeURIComponent(selectedPatientIdValue)}">Vaccination</a>
-                  <a class="continue-link" href="prescription-growth-chart-dashboard?patientId=${encodeURIComponent(selectedPatientIdValue)}">Start Consult</a>
+                  <span class="doctor-meta-chip">${phone}</span>
+                  <a class="continue-link" href="vaccination.html?patientId=${encodeURIComponent(selectedPatientIdValue)}">Vaccination</a>
+                  <a class="continue-link" href="prescription-growth-chart-dashboard.html?patientId=${encodeURIComponent(selectedPatientIdValue)}">Start Consult</a>
                 </div>
               </div>
 
@@ -3880,11 +4569,21 @@
 
     function filterPatients() {
       const searchValue = searchInput.value.trim();
-      const filteredPatients = searchValue
-        ? allPatients.filter((patient) => patientMatchesSearch(patient, searchValue))
-        : allPatients;
+      let filteredPatients = allPatients;
+      if (searchValue) {
+        const normalizedSearchPatientId = getNormalizedPatientId(searchValue);
+        const rankedPatients = allPatients
+          .map((patient) => ({ patient, rank: getPatientSearchRank(patient, searchValue) }))
+          .filter((entry) => entry.rank > 0);
+        const exactPatientIdMatches = isExactPatientIdSearch(searchValue)
+          ? rankedPatients.filter((entry) => getNormalizedPatientId(entry.patient.patientId) === normalizedSearchPatientId)
+          : [];
+        filteredPatients = (exactPatientIdMatches.length ? exactPatientIdMatches : rankedPatients)
+          .sort((left, right) => right.rank - left.rank || sortByPatientName(left.patient, right.patient))
+          .map((entry) => entry.patient);
+      }
 
-      if (selectedPatientId && !filteredPatients.some((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId)) {
+      if (!IS_PATIENT_DETAILS_PAGE && selectedPatientId && !filteredPatients.some((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId)) {
         selectedPatientId = '';
       }
 
@@ -4074,6 +4773,9 @@
       }
 
       if (openProfilePatientId) {
+        if (openPatientDetailsOnPhone(openProfilePatientId)) {
+          return;
+        }
         selectedPatientId = selectedPatientId === openProfilePatientId ? '' : openProfilePatientId;
         filterPatients();
         return;
@@ -4117,20 +4819,29 @@
       setStatus(showedCache ? 'Updating records...' : 'Loading patients...');
 
       try {
-        const [
-          { snapshot, usedLegacy: usedLegacyPatients },
-          { snapshot: historySnapshot, usedLegacy: usedLegacyHistory }
-        ] = await Promise.all([
-          getDocsWithLegacyFallback(FIREBASE_COLLECTIONS.patients, 'patients'),
-          getDocsWithLegacyFallback(FIREBASE_COLLECTIONS.history, 'history').catch((error) => {
-            console.warn(`Unable to load history records: ${error.message}`);
-            return { snapshot: { docs: [] }, usedLegacy: false };
-          })
-        ]);
+        const { snapshot, usedLegacy: usedLegacyPatients } = await getDocsWithLegacyFallback(FIREBASE_COLLECTIONS.patients, 'patients');
         const patientRecords = snapshot.docs.map((docSnapshot) => ({
           id: docSnapshot.id,
           ...docSnapshot.data()
         })).filter((patient) => !usedLegacyPatients || recordBelongsToCurrentClinic(patient));
+
+        allHistory = getMergedHistoryEntries([], patientRecords);
+        historyLoaded = false;
+        rebuildHistoryIndexes();
+        allPatients = buildPatientsFromRecords(patientRecords, allHistory);
+        saveSearchCache();
+
+        if (allPatients.length === 0) {
+          updateCount(0);
+          renderPlaceholder('No patients have been saved yet.');
+          setStatus('No patients were found in online records.');
+        } else {
+          filterPatients();
+          setStatus(showedCache ? 'Records updated. Loading visit history...' : 'Patients loaded. Loading visit history...');
+        }
+
+        getDocsWithLegacyFallback(FIREBASE_COLLECTIONS.history, 'history')
+          .then(({ snapshot: historySnapshot, usedLegacy: usedLegacyHistory }) => {
         const remoteHistory = historySnapshot.docs
           .map((docSnapshot) => normalizePrescriptionEntry({
             id: docSnapshot.id,
@@ -4142,108 +4853,10 @@
           clearLocalPrescriptionEntries();
         }
 
-        const localHistory = getLocalPrescriptionEntries()
-          .map((entry) => normalizePrescriptionEntry(entry))
-          .filter(Boolean);
-        const mergedHistoryById = new Map();
-        [...remoteHistory, ...localHistory].forEach((entry, index) => {
-          const key = entry.prescriptionSaveId
-            || entry.id
-            || getPrescriptionDownloadUrl(entry)
-            || `${entry.patientId || 'history'}-${entry.createdAtIso || index}`;
-          mergedHistoryById.set(key, entry);
-        });
-        patientRecords.forEach((patient) => {
-          getPatientPrescriptionHistoryEntries(patient).forEach((entry, index) => {
-            const key = entry.prescriptionSaveId
-              || entry.id
-              || getPrescriptionDownloadUrl(entry)
-              || `${entry.patientId || 'patient'}-embedded-${index}`;
-            if (!mergedHistoryById.has(key)) {
-              mergedHistoryById.set(key, entry);
-            }
-          });
-        });
-        allHistory = [...mergedHistoryById.values()];
-        const historyByPatientId = new Map();
-
-        allHistory.forEach((entry) => {
-          const patientId = String(entry.patientId || '').trim().toUpperCase();
-          if (!patientId) {
-            return;
-          }
-
-          const entries = historyByPatientId.get(patientId) || [];
-          entries.push(entry);
-          historyByPatientId.set(patientId, entries);
-        });
-
-        historyByPatientId.forEach((entries) => {
-          entries.sort((left, right) => {
-            const leftTime = Date.parse(left.createdAtIso || '') || 0;
-            const rightTime = Date.parse(right.createdAtIso || '') || 0;
-            return rightTime - leftTime;
-          });
-        });
-
-        const mergedPatients = [];
-        const seenPatientIds = new Set();
-
-        patientRecords.forEach((patient) => {
-          if (patient.status === 'pending' || patient.status === 'rejected') {
-            return;
-          }
-          const patientId = String(patient.patientId || '').trim().toUpperCase();
-          const historyEntries = patientId ? historyByPatientId.get(patientId) || [] : [];
-
-          const measurementEntries = Array.isArray(patient.measurementHistory)
-            ? [...patient.measurementHistory]
-            : [];
-          historyEntries
-            .filter((entry) => entry.type !== 'prescription' && entry.source !== 'prescription-pdf')
-            .forEach((entry) => {
-              const entryKey = createMeasurementEntryKey(entry);
-              const alreadyIncluded = measurementEntries.some((candidate) => createMeasurementEntryKey(candidate) === entryKey);
-              if (!alreadyIncluded) {
-                measurementEntries.push(entry);
-              }
-            });
-
-          mergedPatients.push({
-            ...patient,
-            measurementHistory: measurementEntries,
-            lastMeasurementRecord: patient.lastMeasurementRecord || measurementEntries[0] || null
-          });
-
-          if (patientId) {
-            seenPatientIds.add(patientId);
-          }
-        });
-
-        historyByPatientId.forEach((entries, patientId) => {
-          if (seenPatientIds.has(patientId)) {
-            return;
-          }
-
-          const latest = entries[0] || {};
-          mergedPatients.push({
-            id: `history-${patientId}`,
-            patientId: latest.patientId || patientId,
-            childName: latest.childName || latest.patientName || '',
-            firstName: latest.firstName || '',
-            middleName: latest.middleName || '',
-            lastName: latest.lastName || '',
-            parentName: latest.parentName || '',
-            phone: latest.phone || '',
-            gender: latest.gender || '',
-            dob: latest.dob || '',
-            measurementHistory: entries.filter((entry) => entry.type !== 'prescription' && entry.source !== 'prescription-pdf'),
-            lastMeasurementRecord: entries.find((entry) => entry.type !== 'prescription' && entry.source !== 'prescription-pdf') || latest,
-            fromHistoryOnly: true
-          });
-        });
-
-        allPatients = mergedPatients.sort(sortByPatientName);
+        allHistory = getMergedHistoryEntries(remoteHistory, patientRecords);
+        historyLoaded = true;
+        rebuildHistoryIndexes();
+        allPatients = buildPatientsFromRecords(patientRecords, allHistory);
         saveSearchCache();
 
         if (allPatients.length === 0) {
@@ -4256,11 +4869,19 @@
         filterPatients();
         if (usedLegacyPatients || usedLegacyHistory) {
           setStatus('Showing patients from older shared records. Ask support to finish separating clinic records.', 'warning');
+          return;
         }
+        setStatus('Showing all patients.');
+          })
+          .catch((error) => {
+            console.warn(`Unable to load history records: ${error.message}`);
+            setStatus('Patients loaded. Visit history will appear when the connection allows it.', 'warning');
+          });
       } catch (error) {
         if (!showedCache) {
           allPatients = [];
           allHistory = [];
+          historyLoaded = false;
           filterPatients();
         }
         setStatus(`Unable to load patient records: ${error.message}.`, 'warning');
@@ -4303,7 +4924,8 @@
 
     searchInput.addEventListener('input', () => {
       updateNewPatientButton();
-      filterPatients();
+      window.clearTimeout(searchInputTimer);
+      searchInputTimer = window.setTimeout(filterPatients, SEARCH_INPUT_DEBOUNCE_MS);
     });
     clearBtn.addEventListener('click', clearSearch);
     updateNewPatientButton();

@@ -2616,7 +2616,7 @@
       if (!downloadUrl) {
         return '';
       }
-      return isMobilePdfPreview() ? getGoogleDocsViewerUrl(downloadUrl) : (viewerUrl ? `${viewerUrl}&embed=1` : downloadUrl);
+      return viewerUrl ? `${viewerUrl}&embed=1` : downloadUrl;
     }
 
     function ensurePrescriptionDownloadUrl(entry) {

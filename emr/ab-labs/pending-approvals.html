@@ -6,7 +6,7 @@
   
   <title>Pending Approvals | Ab Labs EMR</title>
   <link rel="icon" href="/favicon.ico" sizes="any" />
-  <link rel="manifest" href="/emr/ab-labs/site.webmanifest" />
+  <link rel="manifest" href="site.webmanifest" />
   <meta name="description" content="Pending Approvals page for Ab Labs EMR, supporting clinic workflows and patient care operations at Ab Labs EMR." />
   <link rel="canonical" href="https://www.thebetterhealth.clinic/emr/ab-labs/pending-approvals" />
   <meta property="og:type" content="website" />
@@ -153,7 +153,7 @@
 <body>
   <header class="site-header">
     <div class="topbar">
-      <div class="brand"><div class="brand-mark"><img class="brand-logo" src="/emr/ab-labs/ab-labs-logo.png" alt="Ab Labs logo"></div><div class="brand-copy"><strong>Ab Labs EMR</strong><span>Pending Intake Approvals</span></div></div>
+      <div class="brand"><div class="brand-mark"><img class="brand-logo" src="ab-labs-logo.png" alt="Ab Labs logo"></div><div class="brand-copy"><strong>Ab Labs EMR</strong><span>Pending Intake Approvals</span></div></div>
       <nav id="primary-nav" class="nav-links" aria-label="Primary">
         <a class="nav-link" href="index">Dashboard</a>
         <a class="nav-link" href="search">Enter Clinic</a>
@@ -197,7 +197,7 @@
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
     import { collection, doc, getDoc, getDocs, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
-    const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
+    const CLINIC_FIREBASE_NAMESPACE = 'clinics/ab-labs';
     const FIREBASE_COLLECTIONS = {
       patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
       pendingPatients: `${CLINIC_FIREBASE_NAMESPACE}/pendingPatients`,

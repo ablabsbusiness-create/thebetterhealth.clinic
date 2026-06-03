@@ -9,12 +9,10 @@ const PROTECTED_PATHS = new Set([
   '/clinci',
   '/new-patient',
   '/growth-chart-dashboard',
-  '/KID/growth-chart-dashboard',
   '/prescription',
-  '/KID/prescription',
   '/preview',
-  '/KID/preview',
   '/pending-approvals',
+  '/patient-details',
   '/reception-qr',
   '/search',
   '/settings',
@@ -22,7 +20,6 @@ const PROTECTED_PATHS = new Set([
   '/vaccination',
   '/vacination',
   '/prescription-growth-chart-dashboard',
-  '/KID/prescription-growth-chart-dashboard',
   '/api/growth_charts'
 ]);
 
@@ -30,7 +27,6 @@ const PUBLIC_PATHS = new Set([
   '/password',
   '/intake',
   '/rx',
-  '/KID/rx',
   '/api/auth/login',
   '/api/auth/logout'
 ]);
@@ -68,12 +64,6 @@ export function normalizeAppPath(pathname) {
   }
 
   normalized = normalizeSlashes(normalized);
-
-  if (normalized.startsWith('/KID/')) {
-    normalized = normalized.slice('/KID'.length);
-  } else if (normalized === '/KID') {
-    normalized = '/';
-  }
 
   if (normalized.length > 1 && normalized.endsWith('/')) {
     normalized = normalized.slice(0, -1);

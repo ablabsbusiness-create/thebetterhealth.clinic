@@ -2674,17 +2674,31 @@
   body.search-page .worklist-main {
     display: none !important;
   }
+}
 
-  body.search-page .doctor-detail-grid > .doctor-card:last-child {
+@media (max-width: 760px) {
+  body.patient-details-page .patient-profile-page {
+    padding-bottom: calc(92px + env(safe-area-inset-bottom)) !important;
+  }
+
+  body.patient-details-page .patient-profile-page .doctor-card {
+    padding: 0 !important;
+  }
+
+  body.patient-details-page .patient-profile-page .doctor-card-body {
+    padding-bottom: 14px !important;
+  }
+
+  body.patient-details-page .patient-profile-grid > .doctor-card:last-child {
     width: calc(100% + 24px) !important;
     margin-inline: -12px !important;
   }
 
-  body.search-page .doctor-detail-grid > .doctor-card:last-child .doctor-card-body {
+  body.patient-details-page .patient-profile-grid > .doctor-card:last-child .doctor-card-body {
     padding-inline: 8px !important;
   }
 
-  body.search-page .doctor-card .prescription-carousel {
+  body.patient-details-page .patient-profile-page .prescription-carousel {
     position: relative !important;
     display: block !important;
     width: 100% !important;
@@ -2694,7 +2708,7 @@
     overflow: visible !important;
   }
 
-  body.search-page .doctor-card .prescription-list {
+  body.patient-details-page .patient-profile-page .prescription-list {
     display: flex !important;
     min-height: 0 !important;
     height: auto !important;
@@ -2704,11 +2718,11 @@
     scrollbar-width: none !important;
   }
 
-  body.search-page .doctor-card .prescription-list::-webkit-scrollbar {
+  body.patient-details-page .patient-profile-page .prescription-list::-webkit-scrollbar {
     display: none !important;
   }
 
-  body.search-page .doctor-card .prescription-preview-entry {
+  body.patient-details-page .patient-profile-page .prescription-preview-entry {
     display: grid !important;
     flex: 0 0 100% !important;
     min-height: 0 !important;
@@ -2717,19 +2731,19 @@
     scroll-snap-align: start !important;
   }
 
-  body.search-page .doctor-card .prescription-preview-entry {
+  body.patient-details-page .patient-profile-page .prescription-preview-entry {
     margin: 0 !important;
   }
 
-  body.search-page .doctor-card .prescription-preview-card,
-  body.search-page .doctor-card .prescription-preview-surface {
+  body.patient-details-page .patient-profile-page .prescription-preview-card,
+  body.patient-details-page .patient-profile-page .prescription-preview-surface {
     width: 100% !important;
     max-width: 100% !important;
     height: auto !important;
     min-height: 0 !important;
   }
 
-  body.search-page .doctor-card .prescription-preview-card {
+  body.patient-details-page .patient-profile-page .prescription-preview-card {
     aspect-ratio: auto !important;
     padding: 4px !important;
     border-radius: 12px !important;
@@ -2738,13 +2752,13 @@
     box-shadow: 0 12px 28px rgba(18, 48, 29, 0.08) !important;
   }
 
-  body.search-page .doctor-card .prescription-preview-surface {
+  body.patient-details-page .patient-profile-page .prescription-preview-surface {
     aspect-ratio: 210 / 297 !important;
     overflow: hidden !important;
   }
 
-  body.search-page .doctor-card .prescription-preview-frame,
-  body.search-page .doctor-card .prescription-preview-embed {
+  body.patient-details-page .patient-profile-page .prescription-preview-frame,
+  body.patient-details-page .patient-profile-page .prescription-preview-embed {
     width: 100% !important;
     height: 100% !important;
     min-height: 0 !important;
@@ -2752,7 +2766,7 @@
     object-position: top center !important;
   }
 
-  body.search-page .doctor-card .carousel-arrow {
+  body.patient-details-page .patient-profile-page .carousel-arrow {
     position: absolute !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
@@ -2770,15 +2784,15 @@
     backdrop-filter: blur(8px) !important;
   }
 
-  body.search-page .doctor-card .carousel-arrow-left {
+  body.patient-details-page .patient-profile-page .carousel-arrow-left {
     left: 12px !important;
   }
 
-  body.search-page .doctor-card .carousel-arrow-right {
+  body.patient-details-page .patient-profile-page .carousel-arrow-right {
     right: 12px !important;
   }
 
-  body.search-page .doctor-card .prescription-preview-open-chip {
+  body.patient-details-page .patient-profile-page .prescription-preview-open-chip {
     display: none !important;
   }
 }
