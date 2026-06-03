@@ -2086,12 +2086,17 @@
     const historyPageIndexes = {};
     const MOBILE_DETAIL_QUERY = window.matchMedia('(max-width: 640px)');
     const urlParams = new URLSearchParams(window.location.search);
-    const IS_PATIENT_DETAILS_PAGE = Boolean(urlParams.get('patientId')) && MOBILE_DETAIL_QUERY.matches;
+    const requestedPatientId = String(urlParams.get('patientId') || '').trim().toUpperCase();
+    const IS_PATIENT_DETAILS_PAGE = false;
     document.body.classList.toggle('patient-details-page', IS_PATIENT_DETAILS_PAGE);
-    let selectedPatientId = String(urlParams.get('patientId') || '').trim().toUpperCase();
+    let selectedPatientId = requestedPatientId;
 
     function getPatientDetailsUrl(patientId) {
       return `patient-details.html?patientId=${encodeURIComponent(patientId || '')}`;
+    }
+
+    if (requestedPatientId && MOBILE_DETAIL_QUERY.matches) {
+      window.location.replace(getPatientDetailsUrl(requestedPatientId));
     }
 
     function openPatientDetailsOnPhone(patientId) {
