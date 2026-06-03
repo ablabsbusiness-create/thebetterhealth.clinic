@@ -3791,6 +3791,7 @@
       const phoneHref = phone && phone !== 'Phone not saved' ? phone.replace(/[^\d+]/g, '') : '';
       const gender = selectedPatient ? formatMissing(selectedPatient.gender, 'Gender not saved') : '';
       const dob = selectedPatient ? formatDateDisplay(selectedPatient.dob) : '';
+      const shouldRenderSearchDetails = !MOBILE_DETAIL_QUERY.matches;
 
       resultsPanel.innerHTML = `
         <div class="results-dashboard">
@@ -3829,6 +3830,7 @@
             </div>
           </aside>
 
+          ${shouldRenderSearchDetails ? `
           <main class="worklist-main">
             ${selectedPatient ? `
               <div class="doctor-main-head">
@@ -3869,11 +3871,12 @@
               <div class="doctor-empty-state">Select a patient from the left list.</div>
             `}
           </main>
+          ` : ''}
         </div>
       `;
 
       attachPrescriptionPreviewRendering();
-      if (selectedPatient) {
+      if (shouldRenderSearchDetails && selectedPatient) {
         ensureStoragePrescriptionsForPatient(selectedPatient);
       }
     }
@@ -4306,6 +4309,9 @@
       filterPatients();
     });
     clearBtn.addEventListener('click', clearSearch);
+    MOBILE_DETAIL_QUERY.addEventListener('change', () => {
+      filterPatients();
+    });
     updateNewPatientButton();
     pdfPreviewClose.addEventListener('click', closePrescriptionPreview);
     pdfPreviewModal.addEventListener('click', (event) => {
