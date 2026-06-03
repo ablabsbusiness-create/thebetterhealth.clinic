@@ -2898,15 +2898,15 @@
     }
 
     function getPrescriptionOpenUrl(downloadUrl) {
-      return isMobilePdfPreview() ? getGoogleDocsViewerUrl(downloadUrl) : (downloadUrl || '');
+      return downloadUrl || '';
     }
 
     function shouldEmbedPrescriptionPdfPreview() {
-      return true;
+      return !isMobilePdfPreview();
     }
 
     function getEmbeddedPrescriptionPreviewUrl(downloadUrl) {
-      return isMobilePdfPreview() ? getGoogleDocsViewerUrl(downloadUrl) : (downloadUrl || '');
+      return shouldEmbedPrescriptionPdfPreview() ? (downloadUrl || '') : '';
     }
 
     function ensurePrescriptionDownloadUrl(entry) {
@@ -4198,7 +4198,7 @@
                               <iframe class="prescription-preview-embed" data-preview-pdf-url="${embeddedPdfUrl}" title="Prescription PDF preview ${index + 1}" loading="eager" fetchpriority="high"></iframe>
                             `
                             : hasResolvablePdf
-                              ? '<div class="prescription-preview-placeholder is-static">Loading prescription preview...</div>'
+                              ? '<div class="prescription-preview-placeholder is-static">Prescription PDF</div>'
                               : '<div class="prescription-preview-placeholder is-error">Prescription PDF could not be loaded for this record.</div>'}
                         </div>
                       </div>

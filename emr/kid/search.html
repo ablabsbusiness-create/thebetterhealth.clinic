@@ -2604,15 +2604,15 @@
     }
 
     function getPrescriptionOpenUrl(downloadUrl) {
-      return isMobilePdfPreview() ? getGoogleDocsViewerUrl(downloadUrl) : (downloadUrl || '');
+      return downloadUrl || '';
     }
 
     function shouldEmbedPrescriptionPdfPreview() {
-      return true;
+      return !isMobilePdfPreview();
     }
 
     function getEmbeddedPrescriptionPreviewUrl(downloadUrl) {
-      return isMobilePdfPreview() ? getGoogleDocsViewerUrl(downloadUrl) : (downloadUrl || '');
+      return shouldEmbedPrescriptionPdfPreview() ? (downloadUrl || '') : '';
     }
 
     function ensurePrescriptionDownloadUrl(entry) {

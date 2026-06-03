@@ -2089,7 +2089,7 @@
     const requestedPatientId = String(urlParams.get('patientId') || '').trim().toUpperCase();
     const IS_PATIENT_DETAILS_PAGE = false;
     document.body.classList.toggle('patient-details-page', IS_PATIENT_DETAILS_PAGE);
-    let selectedPatientId = requestedPatientId;
+    let selectedPatientId = MOBILE_DETAIL_QUERY.matches ? '' : requestedPatientId;
 
     function getPatientDetailsUrl(patientId) {
       return `patient-details.html?patientId=${encodeURIComponent(patientId || '')}`;
@@ -2568,15 +2568,15 @@
     }
 
     function getPrescriptionOpenUrl(downloadUrl) {
-      return isMobilePdfPreview() ? getGoogleDocsViewerUrl(downloadUrl) : (downloadUrl || '');
+      return downloadUrl || '';
     }
 
     function shouldEmbedPrescriptionPdfPreview() {
-      return true;
+      return !isMobilePdfPreview();
     }
 
     function getEmbeddedPrescriptionPreviewUrl(downloadUrl) {
-      return isMobilePdfPreview() ? getGoogleDocsViewerUrl(downloadUrl) : (downloadUrl || '');
+      return shouldEmbedPrescriptionPdfPreview() ? (downloadUrl || '') : '';
     }
 
     function ensurePrescriptionDownloadUrl(entry) {
@@ -3600,7 +3600,7 @@
                               <iframe class="prescription-preview-embed" data-preview-pdf-url="${embeddedPdfUrl}" title="Prescription PDF preview ${index + 1}" loading="eager" fetchpriority="high"></iframe>
                             `
                             : hasResolvablePdf
-                              ? '<div class="prescription-preview-placeholder is-static">Loading prescription preview...</div>'
+                              ? '<div class="prescription-preview-placeholder is-static">Prescription PDF</div>'
                               : '<div class="prescription-preview-placeholder is-error">Prescription PDF could not be loaded for this record.</div>'}
                         </div>
                       </div>
@@ -3782,12 +3782,15 @@
       const renderedWorklistPatients = searchValue
         ? worklistPatients.slice(0, SEARCH_RENDER_LIMIT)
         : worklistPatients;
-      const selectedPatientPool = IS_PATIENT_DETAILS_PAGE ? patients : (worklistPatients.length ? worklistPatients : patients);
-      if (!IS_PATIENT_DETAILS_PAGE && (!selectedPatientId || !patients.some((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId)) && selectedPatientPool[0]) {
+      const shouldRenderSearchDetails = !MOBILE_DETAIL_QUERY.matches;
+      const selectedPatientPool = shouldRenderSearchDetails ? (worklistPatients.length ? worklistPatients : patients) : patients;
+      if (shouldRenderSearchDetails && (!selectedPatientId || !patients.some((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId)) && selectedPatientPool[0]) {
         selectedPatientId = formatMissing(selectedPatientPool[0].patientId, 'ID not saved');
       }
 
-      const selectedPatient = selectedPatientPool.find((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId) || (IS_PATIENT_DETAILS_PAGE ? null : selectedPatientPool[0]) || null;
+      const selectedPatient = shouldRenderSearchDetails
+        ? selectedPatientPool.find((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId) || selectedPatientPool[0] || null
+        : null;
       const selectedPatientIdValue = selectedPatient ? formatMissing(selectedPatient.patientId, 'ID not saved') : '';
       const selectedHistoryDate = selectedPatientIdValue ? historyDateFilters[selectedPatientIdValue] || '' : '';
       const childName = selectedPatient ? getPatientDisplayName(selectedPatient) : 'Select a patient';
@@ -3796,7 +3799,6 @@
       const phoneHref = phone && phone !== 'Phone not saved' ? phone.replace(/[^\d+]/g, '') : '';
       const gender = selectedPatient ? formatMissing(selectedPatient.gender, 'Gender not saved') : '';
       const dob = selectedPatient ? formatDateDisplay(selectedPatient.dob) : '';
-      const shouldRenderSearchDetails = !MOBILE_DETAIL_QUERY.matches;
 
       resultsPanel.innerHTML = `
         <div class="results-dashboard">
@@ -4318,6 +4320,9 @@
     });
     clearBtn.addEventListener('click', clearSearch);
     MOBILE_DETAIL_QUERY.addEventListener('change', () => {
+      if (MOBILE_DETAIL_QUERY.matches) {
+        selectedPatientId = '';
+      }
       filterPatients();
     });
     updateNewPatientButton();

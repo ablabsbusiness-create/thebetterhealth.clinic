@@ -158,7 +158,7 @@
     }
 
     function getPrescriptionViewerUrl(pdfUrl) {
-      return isMobilePdfPreview() ? getGoogleDocsViewerUrl(pdfUrl) : getPdfViewerUrl(pdfUrl);
+      return isMobilePdfPreview() ? (pdfUrl || '') : getPdfViewerUrl(pdfUrl);
     }
 
     function normalizeStoragePath(value) {
