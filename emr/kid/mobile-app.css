@@ -2444,6 +2444,15 @@
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
   }
 
+  body.preview-without-header:has(#preview-status) .rx-sheet-header,
+  body:not(.print-with-header):has(#preview-status) .rx-sheet-header {
+    display: none !important;
+  }
+
+  body.print-with-header:has(#preview-status):not(.preview-without-header) .rx-sheet-header {
+    display: grid !important;
+  }
+
   body:has(#preview-status) .patient-band {
     display: grid !important;
     grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 0.9fr) !important;
