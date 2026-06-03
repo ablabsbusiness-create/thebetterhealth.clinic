@@ -1560,6 +1560,9 @@
       box-shadow: 0 10px 22px rgba(5, 18, 11, 0.16);
       width: 100%;
       max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .prescription-preview-surface {
@@ -2596,8 +2599,12 @@
       return window.matchMedia('(max-width: 640px), (pointer: coarse)').matches;
     }
 
+    function getGoogleDocsViewerUrl(pdfUrl) {
+      return pdfUrl ? `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(pdfUrl)}` : '';
+    }
+
     function getPrescriptionOpenUrl(downloadUrl) {
-      return downloadUrl || '';
+      return isMobilePdfPreview() ? getGoogleDocsViewerUrl(downloadUrl) : (downloadUrl || '');
     }
 
     function shouldEmbedPrescriptionPdfPreview() {
@@ -2605,7 +2612,7 @@
     }
 
     function getEmbeddedPrescriptionPreviewUrl(downloadUrl) {
-      return downloadUrl || '';
+      return isMobilePdfPreview() ? getGoogleDocsViewerUrl(downloadUrl) : (downloadUrl || '');
     }
 
     function ensurePrescriptionDownloadUrl(entry) {
@@ -2616,8 +2623,9 @@
         return existingUrl;
       }
 
-      // Firebase Storage PDFs must use Content-Type: application/pdf and Content-Disposition: inline.
-      // If inline PDF access still fails, configure CORS: gsutil cors set cors.json gs://YOUR_BUCKET_NAME
+      // If PDFs still download instead of opening, set Firebase Storage metadata:
+      // Content-Type: application/pdf; Content-Disposition: inline.
+      // Configure CORS: gsutil cors set cors.json gs://YOUR_BUCKET_NAME
       const loadPromise = getDownloadURL(ref(storage, storagePath))
         .then((downloadURL) => {
           entry.downloadURL = downloadURL;
@@ -2926,7 +2934,7 @@
         }
       }, 3500);
 
-      frameElement.src = pdfUrl.includes('#')
+      frameElement.src = pdfUrl.includes('docs.google.com/gview') || pdfUrl.includes('#')
         ? pdfUrl
         : `${pdfUrl}#page=1&toolbar=0&navpanes=0&scrollbar=0&view=FitH`;
     }
@@ -4331,7 +4339,10 @@
         return;
       }
 
-      if (target.closest('.prescription-preview-open-chip')) {
+      const prescriptionOpenChip = target.closest('.prescription-preview-open-chip');
+      if (prescriptionOpenChip) {
+        event.preventDefault();
+        window.open(prescriptionOpenChip.href, '_blank', 'noopener,noreferrer');
         return;
       }
 
