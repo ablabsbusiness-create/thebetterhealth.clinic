@@ -102,6 +102,26 @@
     border-radius: 12px !important;
   }
 
+  .brand-mark:has(.brand-logo) {
+    display: grid !important;
+    place-items: center !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: var(--mobile-green-dark) !important;
+    overflow: hidden !important;
+    border: 1px solid rgba(22, 101, 52, 0.14) !important;
+    box-shadow: 0 10px 22px rgba(22, 101, 52, 0.12) !important;
+  }
+
+  .brand-mark:has(.brand-logo) .brand-logo {
+    width: 78% !important;
+    height: 78% !important;
+    max-width: 78% !important;
+    max-height: 78% !important;
+    display: block !important;
+    object-fit: contain !important;
+  }
+
   .menu-toggle {
     display: none !important;
   }
