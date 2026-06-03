@@ -1966,6 +1966,10 @@
       let downloadURL = '';
       let warning = '';
 
+      if (!storage) {
+        return { ok: false, reason: 'Firebase Storage is not configured.' };
+      }
+
       if (storage) {
         try {
           const storageRef = ref(storage, storagePath);
@@ -1979,6 +1983,10 @@
           warning = error.message;
           console.warn(`Prescription PDF upload skipped: ${error.message}`);
         }
+      }
+
+      if (!downloadURL) {
+        return { ok: false, reason: warning || 'Unable to upload prescription PDF to Firebase Storage.' };
       }
 
       const historyRecord = {
@@ -2092,16 +2100,6 @@
       window.open(targetUrl, '_blank', 'noopener,noreferrer');
     }
 
-    function buildShortPrescriptionLink(saveId) {
-      if (!saveId) {
-        return '';
-      }
-
-      const url = new URL('rx', window.location.href);
-      url.searchParams.set('i', saveId);
-      return url.toString();
-    }
-
     downloadPdfBtn.addEventListener('click', async () => {
       downloadPdfBtn.disabled = true;
       downloadPdfBtn.textContent = 'Preparing...';
@@ -2126,7 +2124,10 @@
         const savedRecord = await ensurePrescriptionSaved();
         const chartRecord = getCurrentChartRecord();
         const branding = getPrescriptionBranding();
-        const prescriptionLink = savedRecord.downloadURL || buildShortPrescriptionLink(savedRecord.saveId);
+        const prescriptionLink = savedRecord.downloadURL;
+        if (!prescriptionLink) {
+          throw new Error('Firebase PDF link is not available yet.');
+        }
         const message = [
           `Hello ${chartRecord?.patientName || chartRecord?.childName || 'Patient'},`,
           '',

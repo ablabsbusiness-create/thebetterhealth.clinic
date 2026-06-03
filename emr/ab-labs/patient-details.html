@@ -2886,31 +2886,20 @@
       return normalizeStoragePath(candidates.find((value) => normalizeStoragePath(value)) || '');
     }
 
-    function getPdfViewerUrl(pdfUrl) {
-      return pdfUrl ? `pdf-viewer.html?url=${encodeURIComponent(pdfUrl)}` : '';
-    }
-
     function isMobilePdfPreview() {
       return window.matchMedia('(max-width: 640px), (pointer: coarse)').matches;
     }
 
-    function getGoogleDocsViewerUrl(pdfUrl) {
-      return pdfUrl ? `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(pdfUrl)}` : '';
-    }
-
-    function getPrescriptionOpenUrl(downloadUrl, viewerUrl) {
-      return isMobilePdfPreview() ? getGoogleDocsViewerUrl(downloadUrl) : (viewerUrl || downloadUrl);
+    function getPrescriptionOpenUrl(downloadUrl) {
+      return downloadUrl || '';
     }
 
     function shouldEmbedPrescriptionPdfPreview() {
       return true;
     }
 
-    function getEmbeddedPrescriptionPreviewUrl(downloadUrl, viewerUrl) {
-      if (!downloadUrl) {
-        return '';
-      }
-      return viewerUrl ? `${viewerUrl}&embed=1` : downloadUrl;
+    function getEmbeddedPrescriptionPreviewUrl(downloadUrl) {
+      return downloadUrl || '';
     }
 
     function ensurePrescriptionDownloadUrl(entry) {
@@ -2922,7 +2911,7 @@
       }
 
       // Firebase Storage PDFs must use Content-Type: application/pdf and Content-Disposition: inline.
-      // If Google Viewer or iframe access still fails, configure CORS: gsutil cors set cors.json gs://YOUR_BUCKET_NAME
+      // If inline PDF access still fails, configure CORS: gsutil cors set cors.json gs://YOUR_BUCKET_NAME
       const loadPromise = getDownloadURL(ref(storage, storagePath))
         .then((downloadURL) => {
           entry.downloadURL = downloadURL;
@@ -3231,7 +3220,7 @@
         }
       }, 3500);
 
-      frameElement.src = pdfUrl.includes('pdf-viewer.html') || pdfUrl.includes('docs.google.com/gview') || pdfUrl.includes('#')
+      frameElement.src = pdfUrl.includes('#')
         ? pdfUrl
         : `${pdfUrl}#page=1&toolbar=0&navpanes=0&scrollbar=0&view=FitH`;
     }
@@ -4173,9 +4162,8 @@
             ${entries.map((entry, index) => {
               const downloadUrl = ensurePrescriptionDownloadUrl(entry);
               const previewImageUrl = getPrescriptionPreviewImageUrl(entry);
-              const viewerUrl = getPdfViewerUrl(downloadUrl);
-              const cardUrl = escapeHtml(getPrescriptionOpenUrl(downloadUrl, viewerUrl));
-              const embeddedPdfUrl = escapeHtml(getEmbeddedPrescriptionPreviewUrl(downloadUrl, viewerUrl));
+              const cardUrl = escapeHtml(getPrescriptionOpenUrl(downloadUrl));
+              const embeddedPdfUrl = escapeHtml(getEmbeddedPrescriptionPreviewUrl(downloadUrl));
               const cardPreviewUrl = escapeHtml(previewImageUrl);
               const shouldEmbedPdf = Boolean(downloadUrl && shouldEmbedPrescriptionPdfPreview());
               const hasResolvablePdf = Boolean(downloadUrl || getPrescriptionStoragePath(entry));
