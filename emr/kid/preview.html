@@ -2355,6 +2355,7 @@
         return { ok: false, reason: 'Select a valid patient before saving a prescription.' };
       }
       const storagePath = `${CLINIC_STORAGE_PREFIX}/prescriptions/${patientId}/${fileName}`;
+      const previewPath = `${CLINIC_STORAGE_PREFIX}/prescription-previews/${patientId}/${saveId}.jpg`;
       let persistedStoragePath = '';
       let previewImageURL = '';
       let previewImagePath = '';
@@ -2377,6 +2378,22 @@
         } catch (error) {
           warning = error.message;
           console.warn(`Prescription PDF upload skipped: ${error.message}`);
+        }
+
+        if (details.previewBlob) {
+          try {
+            const previewRef = ref(storage, previewPath);
+            await uploadBytes(previewRef, details.previewBlob, {
+              contentType: 'image/jpeg',
+              contentDisposition: 'inline'
+            });
+            previewImageURL = await getDownloadURL(previewRef);
+            previewImagePath = previewPath;
+          } catch (error) {
+            const previewWarning = `Preview image upload skipped: ${error.message}`;
+            warning = warning ? `${warning} ${previewWarning}` : previewWarning;
+            console.warn(previewWarning);
+          }
         }
       }
 
