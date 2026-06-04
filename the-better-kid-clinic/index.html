@@ -119,6 +119,7 @@
     body { font-family: 'Nunito', sans-serif; color: #1F2937; background: #fff; }
     h1, h2, h3 { font-family: 'Playfair Display', serif; }
     html { scroll-behavior: smooth; }
+    section[id] { scroll-margin-top: 5.75rem; }
 
     /* Nav shadow on scroll */
     .navbar-scrolled { box-shadow: 0 4px 24px rgba(46,125,107,0.10); }
@@ -779,7 +780,7 @@
 </div>
 </a> <!-- Desktop Nav -->
 <nav class="hidden lg:flex items-center gap-8 text-sm font-semibold text-brand-dark">
-<a class="hover:text-brand-green transition-colors" href="#home">Home</a> <a class="hover:text-brand-green transition-colors" href="#services">Services</a> <a class="hover:text-brand-green transition-colors" href="#about">About</a> <a class="hover:text-brand-green transition-colors" href="#gallery">Gallery</a> <a class="hover:text-brand-green transition-colors" href="#testimonials">Testimonials</a> <a class="hover:text-brand-green transition-colors" href="https://www.thebetterhealth.clinic/the-better-kid-clinic/blog">Blog</a> <a class="bg-brand-orange hover:bg-brand-orange-dark text-white font-bold px-5 py-2.5 rounded-full transition-colors shadow-orange" href="#contact"> Book Appointment </a>
+<a class="hover:text-brand-green transition-colors" href="#home">Home</a> <a class="hover:text-brand-green transition-colors" href="#services">Services</a> <a class="hover:text-brand-green transition-colors" href="#about">About</a> <a class="hover:text-brand-green transition-colors" href="#videos">Videos</a> <a class="hover:text-brand-green transition-colors" href="#gallery">Gallery</a> <a class="hover:text-brand-green transition-colors" href="#testimonials">Testimonials</a> <a class="hover:text-brand-green transition-colors" href="https://www.thebetterhealth.clinic/the-better-kid-clinic/blog">Blog</a> <a class="bg-brand-orange hover:bg-brand-orange-dark text-white font-bold px-5 py-2.5 rounded-full transition-colors shadow-orange" href="#contact"> Book Appointment </a>
 </nav>
 <!-- Mobile Hamburger -->
 <button aria-label="Toggle menu" class="lg:hidden p-2 rounded-xl hover:bg-brand-cream transition-colors" id="menu-btn">
@@ -791,7 +792,7 @@
 <!-- Mobile Menu -->
 <div class="lg:hidden border-t border-gray-100 bg-white px-4 pb-4" id="mobile-menu">
 <nav class="flex flex-col gap-3 pt-4 text-sm font-semibold text-brand-dark">
-<a class="py-2 hover:text-brand-green transition-colors" href="#home" onclick="closeMobileMenu()">Home</a> <a class="py-2 hover:text-brand-green transition-colors" href="#services" onclick="closeMobileMenu()">Services</a> <a class="py-2 hover:text-brand-green transition-colors" href="#about" onclick="closeMobileMenu()">About</a> <a class="py-2 hover:text-brand-green transition-colors" href="#gallery" onclick="closeMobileMenu()">Gallery</a> <a class="py-2 hover:text-brand-green transition-colors" href="#testimonials" onclick="closeMobileMenu()">Testimonials</a> <a class="py-2 hover:text-brand-green transition-colors" href="https://www.thebetterhealth.clinic/the-better-kid-clinic/blog" onclick="closeMobileMenu()">Blog</a> <a class="bg-brand-orange text-white font-bold px-5 py-3 rounded-full text-center mt-2" href="#contact" onclick="closeMobileMenu()"> Book Appointment </a>
+<a class="py-2 hover:text-brand-green transition-colors" href="#home" onclick="closeMobileMenu()">Home</a> <a class="py-2 hover:text-brand-green transition-colors" href="#services" onclick="closeMobileMenu()">Services</a> <a class="py-2 hover:text-brand-green transition-colors" href="#about" onclick="closeMobileMenu()">About</a> <a class="py-2 hover:text-brand-green transition-colors" href="#videos" onclick="closeMobileMenu()">Videos</a> <a class="py-2 hover:text-brand-green transition-colors" href="#gallery" onclick="closeMobileMenu()">Gallery</a> <a class="py-2 hover:text-brand-green transition-colors" href="#testimonials" onclick="closeMobileMenu()">Testimonials</a> <a class="py-2 hover:text-brand-green transition-colors" href="https://www.thebetterhealth.clinic/the-better-kid-clinic/blog" onclick="closeMobileMenu()">Blog</a> <a class="bg-brand-orange text-white font-bold px-5 py-3 rounded-full text-center mt-2" href="#contact" onclick="closeMobileMenu()"> Book Appointment </a>
 </nav>
 </div>
 </header>
@@ -963,6 +964,119 @@
 <div class="mt-10 text-center fade-in">
 <a class="section-open-link inline-flex items-center gap-2 border-2 border-brand-green text-brand-green hover:bg-brand-green hover:text-white font-bold px-7 py-3.5 rounded-full transition-colors" href="https://www.thebetterhealth.clinic/the-better-kid-clinic/about"> Open About Page </a>
 </div>
+</div>
+</div>
+</section>
+<section class="bg-white py-20" id="videos">
+<div class="max-w-6xl mx-auto px-4">
+<div class="text-center mb-12 fade-in">
+<div class="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-wide text-brand-green bg-brand-cream border border-brand-green/10 rounded-full px-4 py-2 mb-4">
+<i class="fa-solid fa-play" aria-hidden="true"></i>
+      Parent Education
+    </div>
+<h2 class="text-3xl md:text-4xl font-bold text-brand-dark mb-4">Videos by Dr. Gunda Srinivas</h2>
+<p class="text-gray-600 max-w-2xl mx-auto text-base leading-relaxed">Helpful parent education and pediatric emergency awareness content selected by Dr. Gunda.</p>
+</div>
+<div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+<a class="hover-lift fade-in group rounded-lg overflow-hidden bg-brand-cream border border-brand-green/10 shadow-soft flex flex-col" data-video-card href="https://www.youtube.com/watch?v=4Ykqf9D-ll0" rel="noopener" target="_blank">
+<div class="relative aspect-video bg-gray-100 overflow-hidden">
+<img alt="Smart Parenting Tips for Healthy Vacations video thumbnail" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" src="https://img.youtube.com/vi/4Ykqf9D-ll0/hqdefault.jpg"/>
+<span class="absolute inset-0 flex items-center justify-center bg-black/10"><span class="w-12 h-12 rounded-full bg-white/95 text-brand-green flex items-center justify-center shadow-soft"><i class="fa-solid fa-play text-sm" aria-hidden="true"></i></span></span>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<div class="text-xs font-bold uppercase tracking-wide text-brand-green">YouTube</div>
+<h3 class="mt-2 text-lg font-bold text-brand-dark leading-snug">Smart Parenting Tips for Healthy Vacations</h3>
+<p class="mt-2 text-sm text-gray-500 leading-relaxed flex-1">Practical child health guidance for safer, calmer family travel.</p>
+<span class="mt-4 inline-flex items-center gap-2 text-sm font-bold text-brand-green">Watch Video <i class="fa-solid fa-arrow-up-right-from-square text-xs" aria-hidden="true"></i></span>
+</div>
+</a>
+<a class="hover-lift fade-in group rounded-lg overflow-hidden bg-brand-cream border border-brand-green/10 shadow-soft flex flex-col" data-video-card href="https://www.youtube.com/watch?v=Dji-KqVHCRs" rel="noopener" target="_blank">
+<div class="relative aspect-video bg-gray-100 overflow-hidden">
+<img alt="World Autism Awareness Day video thumbnail" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" src="https://img.youtube.com/vi/Dji-KqVHCRs/hqdefault.jpg"/>
+<span class="absolute inset-0 flex items-center justify-center bg-black/10"><span class="w-12 h-12 rounded-full bg-white/95 text-brand-green flex items-center justify-center shadow-soft"><i class="fa-solid fa-play text-sm" aria-hidden="true"></i></span></span>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<div class="text-xs font-bold uppercase tracking-wide text-brand-green">YouTube</div>
+<h3 class="mt-2 text-lg font-bold text-brand-dark leading-snug">World Autism Awareness Day</h3>
+<p class="mt-2 text-sm text-gray-500 leading-relaxed flex-1">Insights from Dr. Gunda Srinivas on autism awareness and child development.</p>
+<span class="mt-4 inline-flex items-center gap-2 text-sm font-bold text-brand-green">Watch Video <i class="fa-solid fa-arrow-up-right-from-square text-xs" aria-hidden="true"></i></span>
+</div>
+</a>
+<a class="hover-lift fade-in group rounded-lg overflow-hidden bg-brand-cream border border-brand-green/10 shadow-soft flex flex-col" data-video-card href="https://www.youtube.com/watch?v=20MLdqzd39o" rel="noopener" target="_blank">
+<div class="relative aspect-video bg-gray-100 overflow-hidden">
+<img alt="Trauma in Children webinar video thumbnail" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" src="https://img.youtube.com/vi/20MLdqzd39o/hqdefault.jpg"/>
+<span class="absolute inset-0 flex items-center justify-center bg-black/10"><span class="w-12 h-12 rounded-full bg-white/95 text-brand-green flex items-center justify-center shadow-soft"><i class="fa-solid fa-play text-sm" aria-hidden="true"></i></span></span>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<div class="text-xs font-bold uppercase tracking-wide text-brand-green">YouTube</div>
+<h3 class="mt-2 text-lg font-bold text-brand-dark leading-snug">Trauma in Children</h3>
+<p class="mt-2 text-sm text-gray-500 leading-relaxed flex-1">A pediatric emergency webinar on trauma awareness and early response.</p>
+<span class="mt-4 inline-flex items-center gap-2 text-sm font-bold text-brand-green">Watch Video <i class="fa-solid fa-arrow-up-right-from-square text-xs" aria-hidden="true"></i></span>
+</div>
+</a>
+<a class="hover-lift fade-in group rounded-lg overflow-hidden bg-brand-cream border border-brand-green/10 shadow-soft flex flex-col" data-video-card href="https://www.youtube.com/watch?v=0_Cap3rcVBw" rel="noopener" target="_blank">
+<div class="relative aspect-video bg-gray-100 overflow-hidden">
+<img alt="Baby sleep habits video thumbnail" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" src="https://img.youtube.com/vi/0_Cap3rcVBw/hqdefault.jpg"/>
+<span class="absolute inset-0 flex items-center justify-center bg-black/10"><span class="w-12 h-12 rounded-full bg-white/95 text-brand-green flex items-center justify-center shadow-soft"><i class="fa-solid fa-play text-sm" aria-hidden="true"></i></span></span>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<div class="text-xs font-bold uppercase tracking-wide text-brand-green">YouTube</div>
+<h3 class="mt-2 text-lg font-bold text-brand-dark leading-snug">How to Establish the Right Baby Sleep Habits?</h3>
+<p class="mt-2 text-sm text-gray-500 leading-relaxed flex-1">Simple guidance for healthier sleep routines in early childhood.</p>
+<span class="mt-4 inline-flex items-center gap-2 text-sm font-bold text-brand-green">Watch Video <i class="fa-solid fa-arrow-up-right-from-square text-xs" aria-hidden="true"></i></span>
+</div>
+</a>
+<a class="hover-lift fade-in group rounded-lg overflow-hidden bg-brand-cream border border-brand-green/10 shadow-soft flex flex-col" data-video-card href="https://www.facebook.com/AsterBangalore/posts/with-the-rapid-virus-spreading-around-the-globe-the-shortage-of-emergency-rooms-/1845232359011645/" rel="noopener" target="_blank">
+<div class="relative aspect-video bg-brand-green text-white overflow-hidden flex items-center justify-center">
+<div class="absolute inset-0 opacity-20" style="background: radial-gradient(circle at 18% 24%, #ffffff 0%, transparent 24%), radial-gradient(circle at 82% 72%, #ff8a4c 0%, transparent 28%);"></div>
+<div class="relative text-center px-6">
+<div class="mx-auto w-14 h-14 rounded-full bg-white text-brand-green flex items-center justify-center shadow-soft"><i class="fa-brands fa-facebook-f text-xl" aria-hidden="true"></i></div>
+<div class="mt-4 text-sm font-extrabold uppercase tracking-wide">Facebook Video</div>
+</div>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<div class="text-xs font-bold uppercase tracking-wide text-brand-green">Facebook</div>
+<h3 class="mt-2 text-lg font-bold text-brand-dark leading-snug">Emergency Room Awareness During Rapid Virus Spread</h3>
+<p class="mt-2 text-sm text-gray-500 leading-relaxed flex-1">Aster Hospitals feature on emergency room readiness and care access.</p>
+<span class="mt-4 inline-flex items-center gap-2 text-sm font-bold text-brand-green">Watch Video <i class="fa-solid fa-arrow-up-right-from-square text-xs" aria-hidden="true"></i></span>
+</div>
+</a>
+<a class="hover-lift fade-in group rounded-lg overflow-hidden bg-brand-cream border border-brand-green/10 shadow-soft flex flex-col" data-video-card href="https://www.youtube.com/watch?v=EJDEPLB9vf0" rel="noopener" target="_blank">
+<div class="relative aspect-video bg-gray-100 overflow-hidden">
+<img alt="Baby Safety Basics video thumbnail" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" src="https://img.youtube.com/vi/EJDEPLB9vf0/hqdefault.jpg"/>
+<span class="absolute inset-0 flex items-center justify-center bg-black/10"><span class="w-12 h-12 rounded-full bg-white/95 text-brand-green flex items-center justify-center shadow-soft"><i class="fa-solid fa-play text-sm" aria-hidden="true"></i></span></span>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<div class="text-xs font-bold uppercase tracking-wide text-brand-green">YouTube</div>
+<h3 class="mt-2 text-lg font-bold text-brand-dark leading-snug">Baby Safety Basics Every New Parent Must Know</h3>
+<p class="mt-2 text-sm text-gray-500 leading-relaxed flex-1">Safety basics for new parents caring for babies at home.</p>
+<span class="mt-4 inline-flex items-center gap-2 text-sm font-bold text-brand-green">Watch Video <i class="fa-solid fa-arrow-up-right-from-square text-xs" aria-hidden="true"></i></span>
+</div>
+</a>
+<a class="hover-lift fade-in group rounded-lg overflow-hidden bg-brand-cream border border-brand-green/10 shadow-soft flex flex-col" data-video-card href="https://www.youtube.com/watch?v=z_ZB9581bNQ" rel="noopener" target="_blank">
+<div class="relative aspect-video bg-gray-100 overflow-hidden">
+<img alt="Common Baby Sleep Mistakes video thumbnail" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" src="https://img.youtube.com/vi/z_ZB9581bNQ/hqdefault.jpg"/>
+<span class="absolute inset-0 flex items-center justify-center bg-black/10"><span class="w-12 h-12 rounded-full bg-white/95 text-brand-green flex items-center justify-center shadow-soft"><i class="fa-solid fa-play text-sm" aria-hidden="true"></i></span></span>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<div class="text-xs font-bold uppercase tracking-wide text-brand-green">YouTube</div>
+<h3 class="mt-2 text-lg font-bold text-brand-dark leading-snug">Common Baby Sleep Mistakes New Parents Make</h3>
+<p class="mt-2 text-sm text-gray-500 leading-relaxed flex-1">Parent-friendly tips for avoiding common baby sleep routine mistakes.</p>
+<span class="mt-4 inline-flex items-center gap-2 text-sm font-bold text-brand-green">Watch Video <i class="fa-solid fa-arrow-up-right-from-square text-xs" aria-hidden="true"></i></span>
+</div>
+</a>
+<a class="hover-lift fade-in group rounded-lg overflow-hidden bg-brand-cream border border-brand-green/10 shadow-soft flex flex-col" data-video-card href="https://www.youtube.com/watch?v=_zWUCjb3ETY" rel="noopener" target="_blank">
+<div class="relative aspect-video bg-gray-100 overflow-hidden">
+<img alt="What You Can Do At Home If Your Kid Is Not Feeling Well video thumbnail" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" src="https://img.youtube.com/vi/_zWUCjb3ETY/hqdefault.jpg"/>
+<span class="absolute inset-0 flex items-center justify-center bg-black/10"><span class="w-12 h-12 rounded-full bg-white/95 text-brand-green flex items-center justify-center shadow-soft"><i class="fa-solid fa-play text-sm" aria-hidden="true"></i></span></span>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<div class="text-xs font-bold uppercase tracking-wide text-brand-green">YouTube</div>
+<h3 class="mt-2 text-lg font-bold text-brand-dark leading-snug">What You Can Do At Home If Your Kid Is Not Feeling Well</h3>
+<p class="mt-2 text-sm text-gray-500 leading-relaxed flex-1">Home-care guidance for common child health worries before a review.</p>
+<span class="mt-4 inline-flex items-center gap-2 text-sm font-bold text-brand-green">Watch Video <i class="fa-solid fa-arrow-up-right-from-square text-xs" aria-hidden="true"></i></span>
+</div>
+</a>
 </div>
 </div>
 </section>
@@ -1302,7 +1416,7 @@
 </div>
 <!-- Copyright -->
 <div class="border-t border-white/10 pt-6 flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-white/50">
-<div>Â© 2026 The Better Kids Clinic. All rights reserved.</div>
+<div>&copy; 2026 The Better Kids Clinic. All rights reserved.</div>
 <div class="flex gap-4">
 <a class="hover:text-white/80 transition-colors" href="https://www.thebetterhealth.clinic/the-better-kid-clinic/about">Privacy Policy</a> <a class="hover:text-white/80 transition-colors" href="https://www.thebetterhealth.clinic/the-better-kid-clinic/contact">Terms of Service</a>
 </div>
@@ -1332,6 +1446,20 @@
     function closeMobileMenu() {
       mobileMenu.classList.remove('open');
     }
+
+    document.querySelectorAll('a[href^="#"]').forEach((link) => {
+      link.addEventListener('click', (event) => {
+        const target = document.querySelector(link.getAttribute('href'));
+        if (!target) return;
+
+        event.preventDefault();
+        target.scrollIntoView({
+          behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+          block: 'start'
+        });
+        history.pushState(null, '', link.getAttribute('href'));
+      });
+    });
 
     if (!document.getElementById('booking-submit-frame')) {
       document.body.insertAdjacentHTML('beforeend', '<iframe name="booking-submit-frame" id="booking-submit-frame" class="hidden" tabindex="-1" aria-hidden="true"></iframe>');
@@ -1541,55 +1669,16 @@
     const heroName = document.getElementById('hero-name');
     const heroNames = [
       'Kuttu',
-      'à²šà²¿à²¨à³à²¨à³',
       'Putta',
-      'à²…à²ªà³à²ªà³',
       'Gubbi',
-      'à²¬à²‚à²—à²¾à²°à²¿',
       'Puttu',
-      'à²šà²¿à²•à³à²•à²¿',
-      'Kanna',
-      'à²…à²®à³à²®à³',
-      'Magu',
-      'à²ªà³à²Ÿà³à²Ÿà²¿',
-      'Mani',
-      'à²¨à²¾à²¨à²¿',
-      'Minku',
-      'à²¬à²¨à³à²¨à²¿',
-      'Kushi',
-      'à²²à²¾à²²à²¿',
-      'Tingu',
-      'à²—à³à²‚à²¡à³',
-      'Chotu',
-      'à¤¬à¤¿à¤Ÿà¥à¤Ÿà¥‚',
-      'Tinku',
-      'à¤®à¥‹à¤¨à¥‚',
-      'Sonu',
-      'à¤—à¥‹à¤²à¥‚',
-      'Guddu',
-      'à¤¬à¤¬à¤²à¥‚',
-      'Pappu',
-      'à¤²à¤¡à¥à¤¡à¥‚',
-      'Munna',
-      'à¤°à¤¾à¤¨à¥€',
-      'Raja',
-      'à¤ªà¤¿à¤‚à¤•à¥‚',
-      'Tanu',
-      'à°¬à±à°œà±à°œà°¿',
       'Chinni',
-      'à°¨à°¾à°¨à±à°¨',
-      'Bangaram',
-      'à°ªà°¾à°ª',
-      'Kutty',
-      'à®šà®¿à®©à¯à®©à®¾',
-      'Chellam',
-      'à®ªà¯Šà®£à¯à®£à¯',
-      'Thambi',
-      'à´…à´®àµà´®àµà´•àµà´•àµà´Ÿàµà´Ÿà´¿',
-      'Mon',
-      'à´®àµ‹àµ¾',
-      'Kunjumon',
-      'à´•àµà´žàµà´žàµà´®àµ‹àµ¾'
+      'Chinnu',
+      'Appu',
+      'Bittu',
+      'Mittu',
+      'Ammu',
+      'Papu'
     ];
     let heroNameIndex = 0;
 
@@ -1621,7 +1710,7 @@
         });
       };
 
-      window.requestAnimationFrame(loopHeroNames);
+      loopHeroNames();
     }
 
   </script>
