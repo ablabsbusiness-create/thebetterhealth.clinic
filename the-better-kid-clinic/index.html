@@ -1639,11 +1639,12 @@
 
         const iframe = document.createElement('iframe');
         iframe.className = 'aspect-video w-full border-0 bg-black';
-        iframe.src = `https://www.youtube.com/embed/${encodeURIComponent(videoId)}?autoplay=1&rel=0`;
+        iframe.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
         iframe.title = videoTitle;
         iframe.loading = 'lazy';
         iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
         iframe.allowFullscreen = true;
+        iframe.sandbox = 'allow-scripts allow-same-origin allow-presentation';
         trigger.replaceWith(iframe);
       });
     });
