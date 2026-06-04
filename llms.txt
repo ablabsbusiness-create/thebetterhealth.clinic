@@ -5,16 +5,16 @@
 ## Public Pages
 
 - [The Better Health Clinic](https://www.thebetterhealth.clinic/)
-- [The Better Kids Clinic](https://www.thebetterhealth.clinic/the-better-kid-clinic/)
-- [About Dr. Gunda Srinivas](https://www.thebetterhealth.clinic/the-better-kid-clinic/about/)
-- [Kids Clinic Services](https://www.thebetterhealth.clinic/the-better-kid-clinic/services/)
-- [Kids Clinic Reviews](https://www.thebetterhealth.clinic/the-better-kid-clinic/testimonials/)
-- [Contact The Better Kids Clinic](https://www.thebetterhealth.clinic/the-better-kid-clinic/contact/)
-- [The Better Lungs Clinic](https://www.thebetterhealth.clinic/the-better-lungs-clinic/)
-- [About Dr. Chaitanya Sravanthi R](https://www.thebetterhealth.clinic/the-better-lungs-clinic/about/)
-- [Lungs Clinic Services](https://www.thebetterhealth.clinic/the-better-lungs-clinic/services/)
-- [Lungs Clinic Reviews](https://www.thebetterhealth.clinic/the-better-lungs-clinic/testimonials/)
-- [Contact The Better Lungs Clinic](https://www.thebetterhealth.clinic/the-better-lungs-clinic/contact/)
+- [The Better Kids Clinic](https://www.thebetterhealth.clinic/the-better-kid-clinic)
+- [About Dr. Gunda Srinivas](https://www.thebetterhealth.clinic/the-better-kid-clinic/about)
+- [Kids Clinic Services](https://www.thebetterhealth.clinic/the-better-kid-clinic/services)
+- [Kids Clinic Reviews](https://www.thebetterhealth.clinic/the-better-kid-clinic/testimonials)
+- [Contact The Better Kids Clinic](https://www.thebetterhealth.clinic/the-better-kid-clinic/contact)
+- [The Better Lungs Clinic](https://www.thebetterhealth.clinic/the-better-lungs-clinic)
+- [About Dr. Chaitanya Sravanthi R](https://www.thebetterhealth.clinic/the-better-lungs-clinic/about)
+- [Lungs Clinic Services](https://www.thebetterhealth.clinic/the-better-lungs-clinic/services)
+- [Lungs Clinic Reviews](https://www.thebetterhealth.clinic/the-better-lungs-clinic/testimonials)
+- [Contact The Better Lungs Clinic](https://www.thebetterhealth.clinic/the-better-lungs-clinic/contact)
 
 ## Clinic Details
 
