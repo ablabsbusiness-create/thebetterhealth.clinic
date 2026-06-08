@@ -29,8 +29,7 @@ const sharedEmrEntries = [
 
 const emrApps = [
   { name: 'kid', dir: 'emr/kid', outputPath: 'emr/kid' },
-  { name: 'lungs', dir: 'emr/lungs', outputPath: 'emr/lungs' },
-  { name: 'ab-labs', dir: 'emr/ab-labs', outputPath: 'emr/ab-labs', replaceBase: true }
+  { name: 'lungs', dir: 'emr/lungs', outputPath: 'emr/lungs' }
 ];
 
 const textExtensions = new Set([
@@ -124,13 +123,6 @@ for (const app of emrApps) {
   const target = resolve(outputRoot, app.outputPath);
   mkdirSync(target, { recursive: true });
   cpSync(resolve(appDir, 'dist'), target, { recursive: true, force: true });
-
-  if (app.replaceBase) {
-    replaceInTextFiles(target, [
-      ['/emr/kid/', '/emr/ab-labs/'],
-      ['/emr/kid', '/emr/ab-labs']
-    ]);
-  }
 }
 
 console.log(`Built combined Vercel output at ${outputRoot}`);
