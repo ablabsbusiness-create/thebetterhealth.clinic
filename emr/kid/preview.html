@@ -176,15 +176,20 @@
       color: #14532d;
     }
 
-    .nav-enter-clinic {
-      background: linear-gradient(135deg, #166534, #22c55e);
+    .nav-link.nav-enter-clinic {
+      flex: 0 1 220px;
+      width: min(100%, 220px);
+      justify-self: center;
+      margin-inline: auto;
+      background: linear-gradient(135deg, #0f766e, #14b8a6);
       color: #ffffff;
-      box-shadow: 0 10px 22px rgba(22, 101, 52, 0.22);
+      box-shadow: 0 10px 22px rgba(15, 118, 110, 0.22);
       padding-inline: 18px;
     }
 
-    .nav-enter-clinic:hover {
-      background: linear-gradient(135deg, #14532d, #16a34a);
+    .nav-link.nav-enter-clinic:hover,
+    .nav-link.nav-enter-clinic.active {
+      background: linear-gradient(135deg, #0f5f59, #0d9488);
       color: #ffffff;
     }
 
@@ -312,6 +317,7 @@
       justify-content: flex-end;
       gap: 12px;
       flex-wrap: wrap;
+      min-width: min(100%, 420px);
     }
 
     .btn-primary,
