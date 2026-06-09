@@ -1266,6 +1266,39 @@
       display: none;
     }
 
+    @media (min-width: 761px) {
+      .patient-profile-page .prescription-carousel {
+        position: relative;
+        display: flex;
+        grid-template-columns: none;
+        gap: 0;
+      }
+
+      .patient-profile-page .prescription-list {
+        grid-column: auto;
+        width: 100%;
+      }
+
+      .patient-profile-page .carousel-arrow {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 38px;
+        height: 38px;
+        border-color: rgba(22, 101, 52, 0.16);
+        background: rgba(255, 255, 255, 0.94);
+        box-shadow: 0 10px 24px rgba(5, 18, 11, 0.16);
+      }
+
+      .patient-profile-page .carousel-arrow-left {
+        left: 10px;
+      }
+
+      .patient-profile-page .carousel-arrow-right {
+        right: 10px;
+      }
+    }
+
     @media (max-width: 760px) {
       .patient-profile-page {
         width: 100%;

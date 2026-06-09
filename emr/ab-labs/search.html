@@ -983,6 +983,39 @@
       display: none;
     }
 
+    @media (min-width: 761px) {
+      .doctor-card .prescription-carousel {
+        position: relative;
+        display: flex;
+        grid-template-columns: none;
+        gap: 0;
+      }
+
+      .doctor-card .prescription-list {
+        grid-column: auto;
+        width: 100%;
+      }
+
+      .doctor-card .carousel-arrow {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 38px;
+        height: 38px;
+        border-color: rgba(22, 101, 52, 0.16);
+        background: rgba(255, 255, 255, 0.94);
+        box-shadow: 0 10px 24px rgba(5, 18, 11, 0.16);
+      }
+
+      .doctor-card .carousel-arrow-left {
+        left: 10px;
+      }
+
+      .doctor-card .carousel-arrow-right {
+        right: 10px;
+      }
+    }
+
     .patient-info-link {
       color: inherit;
       text-decoration: none;
