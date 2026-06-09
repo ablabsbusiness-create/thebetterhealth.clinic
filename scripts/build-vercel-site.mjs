@@ -29,7 +29,8 @@ const sharedEmrEntries = [
 
 const emrApps = [
   { name: 'kid', dir: 'emr/kid', outputPath: 'emr/kid' },
-  { name: 'lungs', dir: 'emr/lungs', outputPath: 'emr/lungs' }
+  { name: 'lungs', dir: 'emr/lungs', outputPath: 'emr/lungs' },
+  { name: 'ab-labs', dir: 'emr/ab-labs', outputPath: 'emr/ab-labs' }
 ];
 
 const textExtensions = new Set([

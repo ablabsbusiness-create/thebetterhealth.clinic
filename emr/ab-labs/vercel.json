@@ -1,0 +1,13 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/emr/ab-labs",
+      "destination": "/index"
+    },
+    {
+      "source": "/emr/ab-labs/:path*",
+      "destination": "/:path*"
+    }
+  ]
+}

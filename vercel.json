@@ -12,6 +12,10 @@
     {
       "source": "/emr/lungs",
       "destination": "/emr/lungs/index.html"
+    },
+    {
+      "source": "/emr/ab-labs",
+      "destination": "/emr/ab-labs/index.html"
     }
   ]
 }
