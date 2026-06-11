@@ -2614,6 +2614,7 @@
     const CLINIC_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE;
     const CLINIC_LOCAL_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE.replace(/\//g, ':');
     const clinicStorageKey = (key) => `${CLINIC_LOCAL_STORAGE_PREFIX}:${key}`;
+    const VITALS_DRAFT_STORAGE_PREFIX = clinicStorageKey('consultVitalsDraft');
 
     const metricInputs = {
       weight: document.getElementById('weight'),
@@ -2701,6 +2702,8 @@
     let historyPageIndex = 0;
     let selectedMeasurementDateIso = '';
     let lastHistoryDebug = null;
+    let isRestoringVitalsDraft = false;
+    let vitalsDraftCloudTimer = 0;
     const CHART_ASSET_VERSION = '2026-05-22-growth-recalibrated';
     const CHART_PREVIEW_VERSION = 'preview-rebuilt-2026-05-iap-no-ofc-5-18';
     const TEST_PAST_CHARTS_PATIENT_ID = 'TESTPAST001';
@@ -3483,7 +3486,7 @@
     }
 
     function setSelectedMeasurementDate(dateLike, options = {}) {
-      const { refresh = true } = options;
+      const { refresh = true, autosave = true } = options;
       const parsedDate = dateLike instanceof Date ? new Date(dateLike) : new Date(dateLike);
       const nextDate = Number.isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
       nextDate.setHours(12, 0, 0, 0);
@@ -3499,6 +3502,10 @@
       if (refresh) {
         updatePreview();
         refreshGeneratedChartsIfPresent();
+      }
+
+      if (autosave) {
+        saveVitalsDraft();
       }
     }
 
@@ -4062,7 +4069,7 @@
       Object.values(metricInputs).forEach((input) => {
         input.value = '';
       });
-      setSelectedMeasurementDate(new Date(), { refresh: false });
+      setSelectedMeasurementDate(new Date(), { refresh: false, autosave: false });
       activeHistoryEditKey = '';
       generatedTemplates = [];
       generatedPreviewPages = [];
@@ -4070,6 +4077,124 @@
       updatePreview();
       renderPreviewGallery();
       drawBaseTemplate(null);
+    }
+
+    function getVitalsDraftKey(patientId) {
+      const normalizedPatientId = String(patientId || '').trim().toUpperCase();
+      return normalizedPatientId ? `${VITALS_DRAFT_STORAGE_PREFIX}:${normalizedPatientId}` : '';
+    }
+
+    function collectVitalsDraft() {
+      return {
+        patientId: patientIdInput.value.trim().toUpperCase(),
+        savedAtIso: new Date().toISOString(),
+        measuredAt: getSelectedMeasurementDate().toISOString(),
+        values: Object.fromEntries(
+          Object.entries(metricInputs).map(([metricKey, input]) => [metricKey, input.value])
+        )
+      };
+    }
+
+    function hasVitalsDraftValues(draft) {
+      return Boolean(draft?.values)
+        && Object.values(draft.values).some((value) => String(value || '').trim());
+    }
+
+    function getDraftTimestamp(draft) {
+      const timestamp = new Date(draft?.savedAtIso || 0).getTime();
+      return Number.isNaN(timestamp) ? 0 : timestamp;
+    }
+
+    async function saveVitalsDraftToCloud(draft) {
+      const patientId = String(draft?.patientId || '').trim().toUpperCase();
+      if (!db || !patientId || !hasVitalsDraftValues(draft)) {
+        return;
+      }
+
+      try {
+        await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId), {
+          activeConsultVitalsDraft: draft,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+      } catch (error) {
+        console.warn(`Unable to save vitals draft to patient record: ${error.message}`);
+      }
+    }
+
+    function queueVitalsDraftCloudSave(draft) {
+      if (vitalsDraftCloudTimer) {
+        window.clearTimeout(vitalsDraftCloudTimer);
+      }
+
+      vitalsDraftCloudTimer = window.setTimeout(() => {
+        vitalsDraftCloudTimer = 0;
+        saveVitalsDraftToCloud(draft);
+      }, 800);
+    }
+
+    function saveVitalsDraft() {
+      if (isRestoringVitalsDraft) {
+        return;
+      }
+
+      const patientId = patientIdInput.value.trim().toUpperCase();
+      const draftKey = getVitalsDraftKey(patientId);
+      if (!draftKey) {
+        return;
+      }
+
+      const draft = collectVitalsDraft();
+      try {
+        if (hasVitalsDraftValues(draft)) {
+          localStorage.setItem(draftKey, JSON.stringify(draft));
+          queueVitalsDraftCloudSave(draft);
+        } else {
+          localStorage.removeItem(draftKey);
+        }
+      } catch (error) {
+        console.warn(`Unable to save vitals draft: ${error.message}`);
+      }
+    }
+
+    function readVitalsDraft(patientId) {
+      const draftKey = getVitalsDraftKey(patientId);
+      if (!draftKey) {
+        return null;
+      }
+
+      try {
+        const raw = localStorage.getItem(draftKey);
+        if (!raw) {
+          return null;
+        }
+
+        const draft = JSON.parse(raw);
+        return hasVitalsDraftValues(draft) ? draft : null;
+      } catch (error) {
+        console.warn(`Unable to read vitals draft: ${error.message}`);
+        localStorage.removeItem(draftKey);
+        return null;
+      }
+    }
+
+    function restoreVitalsDraft(patientId, cloudDraft = null) {
+      const localDraft = readVitalsDraft(patientId);
+      const draft = hasVitalsDraftValues(cloudDraft) && getDraftTimestamp(cloudDraft) > getDraftTimestamp(localDraft)
+        ? cloudDraft
+        : localDraft;
+      if (!draft) {
+        return false;
+      }
+
+      isRestoringVitalsDraft = true;
+      Object.entries(metricInputs).forEach(([metricKey, input]) => {
+        input.value = draft.values?.[metricKey] || '';
+      });
+      setSelectedMeasurementDate(draft.measuredAt || new Date(), { refresh: false, autosave: false });
+      isRestoringVitalsDraft = false;
+      updatePreview();
+      refreshGeneratedChartsIfPresent();
+      return true;
     }
 
     function applyPatientRecord(patientRecord) {
@@ -4082,6 +4207,7 @@
       updateAge();
       updatePageMeta(patientRecord);
       setPatientGrowthHistory(patientRecord.measurementHistory || (patientRecord.lastMeasurementRecord ? [patientRecord.lastMeasurementRecord] : []));
+      restoreVitalsDraft(patientRecord.patientId || patientIdInput.value, patientRecord.activeConsultVitalsDraft || null);
     }
 
     async function fetchPatientRecord(patientId) {
@@ -5256,8 +5382,14 @@
     }
 
     Object.values(metricInputs).forEach((input) => {
-      input.addEventListener('input', updatePreview);
-      input.addEventListener('change', updatePreview);
+      input.addEventListener('input', () => {
+        updatePreview();
+        saveVitalsDraft();
+      });
+      input.addEventListener('change', () => {
+        updatePreview();
+        saveVitalsDraft();
+      });
     });
     if (metricHistoryMasterToggle) {
       metricHistoryMasterToggle.addEventListener('change', () => {
@@ -5369,6 +5501,7 @@
       const metricValue = getMeasurementMetricValue(targetEntry, metricKey);
       metricInputs[metricKey].value = metricValue;
       updatePreview();
+      saveVitalsDraft();
       statusNote.textContent = `Loaded ${formatMetricValue(metricValue, getMetricUnit(metricKey))} from ${formatHistoryEntryDate(targetEntry)}.`;
       statusNote.classList.add('visible');
       metricInputs[metricKey].focus();
@@ -5417,7 +5550,7 @@
       input.required = false;
     });
     updatePreview();
-    setSelectedMeasurementDate(new Date(), { refresh: false });
+    setSelectedMeasurementDate(new Date(), { refresh: false, autosave: false });
     updateAge();
     drawBaseTemplate(null);
     renderPreviewGallery();
