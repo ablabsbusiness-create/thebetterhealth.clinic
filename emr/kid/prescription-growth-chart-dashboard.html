@@ -253,7 +253,7 @@
 
     .page-shell {
       width: min(1120px, calc(100% - 32px));
-      margin: 34px auto;
+      margin: -10px auto 34px;
     }
 
     .page-intro {
@@ -265,7 +265,7 @@
     }
 
     .page-intro h1 {
-      margin: 10px 0 6px;
+      margin: 0;
       font-size: clamp(28px, 3.4vw, 40px);
       line-height: 1.05;
     }
@@ -279,17 +279,29 @@
     }
 
     .page-meta {
+      display: block;
       padding: 14px 16px;
       min-width: 320px;
       border-radius: 18px;
       background: rgba(255, 255, 255, 0.72);
       border: 1px solid rgba(215, 226, 217, 0.95);
       box-shadow: var(--shadow);
+      color: inherit;
+      text-decoration: none;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+    }
+
+    .page-meta:hover,
+    .page-meta:focus-visible {
+      border-color: rgba(22, 101, 52, 0.28);
+      box-shadow: 0 18px 45px rgba(22, 101, 52, 0.12);
+      transform: translateY(-1px);
+      outline: none;
     }
 
     .page-meta strong {
       display: block;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       font-size: 16px;
       line-height: 1.4;
     }
@@ -300,6 +312,17 @@
       font-size: 14px;
       line-height: 1.55;
       margin-top: 4px;
+    }
+
+    .page-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 2px 14px;
+      margin-top: 4px;
+    }
+
+    .page-meta-grid span {
+      margin-top: 0;
     }
 
     .dashboard-skeleton[hidden] {
@@ -421,6 +444,10 @@
       grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
       gap: 22px;
       align-items: start;
+    }
+
+    .preview-card {
+      margin-top: 34px;
     }
 
     .section-head-actions {
@@ -793,6 +820,35 @@
       box-shadow: inset 0 0 0 1px rgba(22, 101, 52, 0.1);
     }
 
+    .measurement-group-stack {
+      display: grid;
+      gap: 14px;
+    }
+
+    .measurement-group-card {
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    .measurement-group-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .measurement-group-title {
+      margin: 0;
+      color: var(--ink);
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
     .measurement-table-wrap {
       overflow-x: hidden;
       border: 1px solid var(--line);
@@ -810,8 +866,8 @@
     .measurement-table td {
       padding: 9px 12px;
       border-bottom: 1px solid #dbe7de;
-      vertical-align: top;
-      text-align: left;
+      vertical-align: middle;
+      text-align: center;
     }
 
     .measurement-table tr:last-child th,
@@ -840,15 +896,23 @@
 
     .measurement-label {
       display: block;
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 700;
       color: var(--ink);
+      line-height: 1.25;
+    }
+
+    .measurement-table td input {
+      font-size: 16px;
+      font-weight: 600;
+      text-align: center;
     }
 
     .measurement-head-stack {
       display: grid;
       gap: 5px;
-      align-content: start;
+      align-content: center;
+      justify-items: center;
     }
 
     .measurement-hint {
@@ -860,7 +924,7 @@
     }
 
     .metric-history-control {
-      display: grid;
+      display: none;
       gap: 4px;
       width: min(100%, 104px);
       margin-top: 0;
@@ -1101,6 +1165,31 @@
       color: var(--ink);
     }
 
+    .preview-frame-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .preview-frame-head strong {
+      margin-bottom: 0;
+    }
+
+    .chart-fullscreen-btn {
+      min-height: 30px;
+      width: auto;
+      padding: 0 10px;
+      border-radius: 999px;
+      border: 1px solid #d7e2d9;
+      background: #ffffff;
+      color: var(--brand-strong);
+      font-size: 11px;
+      font-weight: 800;
+      box-shadow: none;
+    }
+
     .preview-frame img {
       display: block;
       width: 100%;
@@ -1108,6 +1197,64 @@
       border: 1px solid rgba(124, 149, 129, 0.18);
       background: #ffffff;
       box-shadow: inset 0 0 0 1px rgba(255,255,255,0.5);
+      cursor: zoom-in;
+    }
+
+    .chart-fullscreen-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 12px;
+      padding: 18px;
+      background: rgba(9, 18, 13, 0.92);
+    }
+
+    .chart-fullscreen-backdrop[hidden] {
+      display: none;
+    }
+
+    .chart-fullscreen-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: #ffffff;
+    }
+
+    .chart-fullscreen-head strong {
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .chart-fullscreen-close {
+      min-height: 40px;
+      width: auto;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 800;
+      box-shadow: none;
+    }
+
+    .chart-fullscreen-stage {
+      min-height: 0;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .chart-fullscreen-stage img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      border-radius: 10px;
+      background: #ffffff;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
     }
 
     .summary-count {
@@ -1778,6 +1925,7 @@
 
       .preview-card {
         position: static;
+        margin-top: 0;
       }
 
       .section-head {
@@ -2065,14 +2213,18 @@
   <div class="page-shell">
     <section class="page-intro">
       <div>
-        <div class="eyebrow">Pediatric Growth Records</div>
-        <h1>Prescription Chart</h1>
+        <h1>Consultation</h1>
       </div>
-      <div class="page-meta">
+      <a id="page-meta-link" class="page-meta" href="parent-details.html" aria-label="Edit parent details">
         <strong id="page-meta-child">Child -</strong>
-        <span id="page-meta-parent">Age (years) -</span>
         <span id="page-meta-phone">Ph -</span>
-      </div>
+        <div class="page-meta-grid">
+          <span id="page-meta-parent">Age -</span>
+          <span id="page-meta-weight">Weight -</span>
+          <span id="page-meta-height">Height -</span>
+          <span id="page-meta-head">Head -</span>
+        </div>
+      </a>
     </section>
 
     <div id="dashboard-skeleton" class="dashboard-skeleton" hidden aria-label="Loading patient growth chart data">
@@ -2125,11 +2277,7 @@
               <div class="section-head-actions">
                 <div id="record-date-chip" class="record-date-chip">Record date <span>Today</span></div>
                 <button id="add-record-btn" class="btn-secondary btn-inline" type="button">Add Record</button>
-                <label class="metric-master-toggle" for="toggle-all-past-history">
-                  <input id="toggle-all-past-history" type="checkbox" checked>
-                  <span class="metric-toggle-ui" aria-hidden="true"></span>
-                  Past growth
-                </label>
+                <input id="toggle-all-past-history" type="checkbox" checked hidden>
               </div>
             </div>
 
@@ -2143,27 +2291,29 @@
               <input id="age" name="age" type="hidden">
 
               <div class="field field-full">
-                <label for="weight">Vitals</label>
-                <div class="measurement-table-wrap">
-                  <table class="measurement-table">
-                    <tbody>
+                <div class="measurement-group-stack">
+                  <section class="measurement-group-card" aria-labelledby="anthropometry-heading">
+                    <div class="measurement-group-head">
+                      <div>
+                        <div class="section-kicker">Step 1.1</div>
+                        <h3 id="anthropometry-heading" class="measurement-group-title">Anthropometry</h3>
+                      </div>
+                    </div>
+                    <div class="measurement-table-wrap">
+                      <table class="measurement-table">
+                        <tbody>
                       <tr data-metric-history-row="weight">
                         <th scope="row">
                           <div class="measurement-head-stack">
                             <div>
-                              <span class="measurement-type">Growth</span>
                               <span class="measurement-label">Weight (kg)</span>
                             </div>
                             <div class="metric-history-control">
                               <div class="metric-history-control-head">
-                                <label class="metric-history-toggle" for="metric-history-weight">
-                                  <input id="metric-history-weight" type="checkbox" data-metric-toggle="weight" checked>
-                                  <span class="metric-toggle-ui" aria-hidden="true"></span>
-                                  Past growth
-                                </label>
+                                <input id="metric-history-weight" type="checkbox" data-metric-toggle="weight" checked hidden>
                                 <label class="metric-date-count" data-metric-count-group="weight">
                                   <span class="metric-date-count-label">Dates</span>
-                                  <input class="metric-date-input" type="number" min="1" max="30" step="1" value="11" data-metric-count-input="weight" aria-label="Past growth dates to show for weight">
+                                  <input class="metric-date-input" type="number" min="1" max="30" step="1" value="11" data-metric-count-input="weight" aria-label="History dates to show for weight">
                                 </label>
                               </div>
                               <div class="metric-history-list" data-metric-history-list="weight"></div>
@@ -2172,26 +2322,20 @@
                         </th>
                         <td>
                           <input id="weight" name="weight" type="number" min="0" step="0.1" placeholder="e.g. 12.4">
-                          <span class="measurement-hint">Enter the most recent measured weight in kilograms.</span>
                         </td>
                       </tr>
                       <tr data-metric-history-row="height">
                         <th scope="row">
                           <div class="measurement-head-stack">
                             <div>
-                              <span class="measurement-type">Growth</span>
-                              <span class="measurement-label">Height (cm)</span>
+                              <span class="measurement-label">Length/Height (cm)</span>
                             </div>
                             <div class="metric-history-control">
                               <div class="metric-history-control-head">
-                                <label class="metric-history-toggle" for="metric-history-height">
-                                  <input id="metric-history-height" type="checkbox" data-metric-toggle="height" checked>
-                                  <span class="metric-toggle-ui" aria-hidden="true"></span>
-                                  Past growth
-                                </label>
+                                <input id="metric-history-height" type="checkbox" data-metric-toggle="height" checked hidden>
                                 <label class="metric-date-count" data-metric-count-group="height">
                                   <span class="metric-date-count-label">Dates</span>
-                                  <input class="metric-date-input" type="number" min="1" max="30" step="1" value="11" data-metric-count-input="height" aria-label="Past growth dates to show for height">
+                                  <input class="metric-date-input" type="number" min="1" max="30" step="1" value="11" data-metric-count-input="height" aria-label="History dates to show for height">
                                 </label>
                               </div>
                               <div class="metric-history-list" data-metric-history-list="height"></div>
@@ -2200,26 +2344,20 @@
                         </th>
                         <td>
                           <input id="height" name="height" type="number" min="0" step="0.1" placeholder="e.g. 88.0">
-                          <span class="measurement-hint">Enter height or length in centimeters.</span>
                         </td>
                       </tr>
                       <tr data-metric-history-row="head">
                         <th scope="row">
                           <div class="measurement-head-stack">
                             <div>
-                              <span class="measurement-type">Growth</span>
-                              <span class="measurement-label">OFC (cm)</span>
+                              <span class="measurement-label">Head c. (cm)</span>
                             </div>
                             <div class="metric-history-control">
                               <div class="metric-history-control-head">
-                                <label class="metric-history-toggle" for="metric-history-head">
-                                  <input id="metric-history-head" type="checkbox" data-metric-toggle="head" checked>
-                                  <span class="metric-toggle-ui" aria-hidden="true"></span>
-                                  Past growth
-                                </label>
+                                <input id="metric-history-head" type="checkbox" data-metric-toggle="head" checked hidden>
                                 <label class="metric-date-count" data-metric-count-group="head">
                                   <span class="metric-date-count-label">Dates</span>
-                                  <input class="metric-date-input" type="number" min="1" max="30" step="1" value="11" data-metric-count-input="head" aria-label="Past growth dates to show for OFC">
+                                  <input class="metric-date-input" type="number" min="1" max="30" step="1" value="11" data-metric-count-input="head" aria-label="History dates to show for OFC">
                                 </label>
                               </div>
                               <div class="metric-history-list" data-metric-history-list="head"></div>
@@ -2228,54 +2366,57 @@
                         </th>
                         <td>
                           <input id="head" name="head" type="number" min="0" step="0.1" placeholder="e.g. 48.5">
-                          <span class="measurement-hint">Occipito-frontal circumference in centimeters.</span>
                         </td>
                       </tr>
-                      <tr data-metric-history-row="spo2">
+                        </tbody>
+                      </table>
+                    </div>
+                  </section>
+
+                  <section class="measurement-group-card" aria-labelledby="vitals-heading">
+                    <div class="measurement-group-head">
+                      <div>
+                        <div class="section-kicker">Step 1.2</div>
+                        <h3 id="vitals-heading" class="measurement-group-title">Vitals</h3>
+                      </div>
+                    </div>
+                    <div class="measurement-table-wrap">
+                      <table class="measurement-table">
+                        <tbody>
+                      <tr data-metric-history-row="temp">
                         <th scope="row">
                           <div class="measurement-head-stack">
                             <div>
-                              <span class="measurement-type">Vitals</span>
-                              <span class="measurement-label">SpO2 (%)</span>
+                              <span class="measurement-label">Temp (F.)</span>
                             </div>
                             <div class="metric-history-control">
                               <div class="metric-history-control-head">
-                                <label class="metric-history-toggle" for="metric-history-spo2">
-                                  <input id="metric-history-spo2" type="checkbox" data-metric-toggle="spo2" checked>
-                                  <span class="metric-toggle-ui" aria-hidden="true"></span>
-                                  Past growth
-                                </label>
-                                <label class="metric-date-count" data-metric-count-group="spo2">
+                                <input id="metric-history-temp" type="checkbox" data-metric-toggle="temp" checked hidden>
+                                <label class="metric-date-count" data-metric-count-group="temp">
                                   <span class="metric-date-count-label">Dates</span>
-                                  <input class="metric-date-input" type="number" min="1" max="30" step="1" value="11" data-metric-count-input="spo2" aria-label="Past growth dates to show for SpO2">
+                                  <input class="metric-date-input" type="number" min="1" max="30" step="1" value="11" data-metric-count-input="temp" aria-label="History dates to show for temperature">
                                 </label>
                               </div>
-                              <div class="metric-history-list" data-metric-history-list="spo2"></div>
+                              <div class="metric-history-list" data-metric-history-list="temp"></div>
                             </div>
                           </div>
                         </th>
                         <td>
-                          <input id="spo2" name="spo2" type="number" min="0" step="1" placeholder="e.g. 98">
-                          <span class="measurement-hint">Peripheral oxygen saturation percentage.</span>
+                          <input id="temp" name="temp" type="number" min="0" step="0.1" placeholder="e.g. 98.6">
                         </td>
                       </tr>
                       <tr data-metric-history-row="pulse">
                         <th scope="row">
                           <div class="measurement-head-stack">
                             <div>
-                              <span class="measurement-type">Vitals</span>
-                              <span class="measurement-label">Pulse (bpm)</span>
+                              <span class="measurement-label">Heart rate(bpm)</span>
                             </div>
                             <div class="metric-history-control">
                               <div class="metric-history-control-head">
-                                <label class="metric-history-toggle" for="metric-history-pulse">
-                                  <input id="metric-history-pulse" type="checkbox" data-metric-toggle="pulse" checked>
-                                  <span class="metric-toggle-ui" aria-hidden="true"></span>
-                                  Past growth
-                                </label>
+                                <input id="metric-history-pulse" type="checkbox" data-metric-toggle="pulse" checked hidden>
                                 <label class="metric-date-count" data-metric-count-group="pulse">
                                   <span class="metric-date-count-label">Dates</span>
-                                  <input class="metric-date-input" type="number" min="1" max="30" step="1" value="11" data-metric-count-input="pulse" aria-label="Past growth dates to show for pulse">
+                                  <input class="metric-date-input" type="number" min="1" max="30" step="1" value="11" data-metric-count-input="pulse" aria-label="History dates to show for pulse">
                                 </label>
                               </div>
                               <div class="metric-history-list" data-metric-history-list="pulse"></div>
@@ -2284,26 +2425,64 @@
                         </th>
                         <td>
                           <input id="pulse" name="pulse" type="number" min="0" step="1" placeholder="e.g. 96">
-                          <span class="measurement-hint">Heart rate in beats per minute.</span>
+                        </td>
+                      </tr>
+                      <tr data-metric-history-row="respiratoryRate">
+                        <th scope="row">
+                          <div class="measurement-head-stack">
+                            <div>
+                              <span class="measurement-label">Respi rate (cpm)</span>
+                            </div>
+                            <div class="metric-history-control">
+                              <div class="metric-history-control-head">
+                                <input id="metric-history-respiratory-rate" type="checkbox" data-metric-toggle="respiratoryRate" checked hidden>
+                                <label class="metric-date-count" data-metric-count-group="respiratoryRate">
+                                  <span class="metric-date-count-label">Dates</span>
+                                  <input class="metric-date-input" type="number" min="1" max="30" step="1" value="11" data-metric-count-input="respiratoryRate" aria-label="History dates to show for respiratory rate">
+                                </label>
+                              </div>
+                              <div class="metric-history-list" data-metric-history-list="respiratoryRate"></div>
+                            </div>
+                          </div>
+                        </th>
+                        <td>
+                          <input id="respiratory-rate" name="respiratoryRate" type="number" min="0" step="1" placeholder="ADD">
+                        </td>
+                      </tr>
+                      <tr data-metric-history-row="spo2">
+                        <th scope="row">
+                          <div class="measurement-head-stack">
+                            <div>
+                              <span class="measurement-label">SpO2 (%)</span>
+                            </div>
+                            <div class="metric-history-control">
+                              <div class="metric-history-control-head">
+                                <input id="metric-history-spo2" type="checkbox" data-metric-toggle="spo2" checked hidden>
+                                <label class="metric-date-count" data-metric-count-group="spo2">
+                                  <span class="metric-date-count-label">Dates</span>
+                                  <input class="metric-date-input" type="number" min="1" max="30" step="1" value="11" data-metric-count-input="spo2" aria-label="History dates to show for SpO2">
+                                </label>
+                              </div>
+                              <div class="metric-history-list" data-metric-history-list="spo2"></div>
+                            </div>
+                          </div>
+                        </th>
+                        <td>
+                          <input id="spo2" name="spo2" type="number" min="0" step="1" placeholder="e.g. 98">
                         </td>
                       </tr>
                       <tr data-metric-history-row="systolic">
                         <th scope="row">
                           <div class="measurement-head-stack">
                             <div>
-                              <span class="measurement-type">Vitals</span>
-                              <span class="measurement-label">Systolic (mmHg)</span>
+                              <span class="measurement-label">Systolic BP (mmHg)</span>
                             </div>
                             <div class="metric-history-control">
                               <div class="metric-history-control-head">
-                                <label class="metric-history-toggle" for="metric-history-systolic">
-                                  <input id="metric-history-systolic" type="checkbox" data-metric-toggle="systolic" checked>
-                                  <span class="metric-toggle-ui" aria-hidden="true"></span>
-                                  Past growth
-                                </label>
+                                <input id="metric-history-systolic" type="checkbox" data-metric-toggle="systolic" checked hidden>
                                 <label class="metric-date-count" data-metric-count-group="systolic">
                                   <span class="metric-date-count-label">Dates</span>
-                                  <input class="metric-date-input" type="number" min="1" max="30" step="1" value="11" data-metric-count-input="systolic" aria-label="Past growth dates to show for systolic pressure">
+                                  <input class="metric-date-input" type="number" min="1" max="30" step="1" value="11" data-metric-count-input="systolic" aria-label="History dates to show for systolic pressure">
                                 </label>
                               </div>
                               <div class="metric-history-list" data-metric-history-list="systolic"></div>
@@ -2312,26 +2491,20 @@
                         </th>
                         <td>
                           <input id="systolic" name="systolic" type="number" min="0" step="1" placeholder="e.g. 100">
-                          <span class="measurement-hint">Upper blood pressure reading.</span>
                         </td>
                       </tr>
                       <tr data-metric-history-row="diastolic">
                         <th scope="row">
                           <div class="measurement-head-stack">
                             <div>
-                              <span class="measurement-type">Vitals</span>
-                              <span class="measurement-label">Diastolic (mmHg)</span>
+                              <span class="measurement-label">Diastolic BP (mmHg)</span>
                             </div>
                             <div class="metric-history-control">
                               <div class="metric-history-control-head">
-                                <label class="metric-history-toggle" for="metric-history-diastolic">
-                                  <input id="metric-history-diastolic" type="checkbox" data-metric-toggle="diastolic" checked>
-                                  <span class="metric-toggle-ui" aria-hidden="true"></span>
-                                  Past growth
-                                </label>
+                                <input id="metric-history-diastolic" type="checkbox" data-metric-toggle="diastolic" checked hidden>
                                 <label class="metric-date-count" data-metric-count-group="diastolic">
                                   <span class="metric-date-count-label">Dates</span>
-                                  <input class="metric-date-input" type="number" min="1" max="30" step="1" value="11" data-metric-count-input="diastolic" aria-label="Past growth dates to show for diastolic pressure">
+                                  <input class="metric-date-input" type="number" min="1" max="30" step="1" value="11" data-metric-count-input="diastolic" aria-label="History dates to show for diastolic pressure">
                                 </label>
                               </div>
                               <div class="metric-history-list" data-metric-history-list="diastolic"></div>
@@ -2340,39 +2513,12 @@
                         </th>
                         <td>
                           <input id="diastolic" name="diastolic" type="number" min="0" step="1" placeholder="e.g. 64">
-                          <span class="measurement-hint">Lower blood pressure reading.</span>
                         </td>
                       </tr>
-                      <tr data-metric-history-row="temp">
-                        <th scope="row">
-                          <div class="measurement-head-stack">
-                            <div>
-                              <span class="measurement-type">Vitals</span>
-                              <span class="measurement-label">Temp (C)</span>
-                            </div>
-                            <div class="metric-history-control">
-                              <div class="metric-history-control-head">
-                                <label class="metric-history-toggle" for="metric-history-temp">
-                                  <input id="metric-history-temp" type="checkbox" data-metric-toggle="temp" checked>
-                                  <span class="metric-toggle-ui" aria-hidden="true"></span>
-                                  Past growth
-                                </label>
-                                <label class="metric-date-count" data-metric-count-group="temp">
-                                  <span class="metric-date-count-label">Dates</span>
-                                  <input class="metric-date-input" type="number" min="1" max="30" step="1" value="11" data-metric-count-input="temp" aria-label="Past growth dates to show for temperature">
-                                </label>
-                              </div>
-                              <div class="metric-history-list" data-metric-history-list="temp"></div>
-                            </div>
-                          </div>
-                        </th>
-                        <td>
-                          <input id="temp" name="temp" type="number" min="0" step="0.1" placeholder="e.g. 37.1">
-                          <span class="measurement-hint">Body temperature in Celsius.</span>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                        </tbody>
+                      </table>
+                    </div>
+                  </section>
                 </div>
               </div>
             </div>
@@ -2384,21 +2530,8 @@
       <aside class="preview-card">
         <div class="preview-stack">
           <div class="preview-banner">
-            <div class="eyebrow">Step 4</div>
-            <h2>Chart Actions</h2>
+            <h2>Chart preview</h2>
             <p></p>
-          </div>
-
-          <div id="chart-preview-status" class="template-status">
-            Add the available measurements, then click Generate Chart to prepare the matching IAP templates for PDF download.
-          </div>
-
-          <div class="summary-box">
-            <div id="selected-count" class="summary-count mono">0</div>
-            <div class="summary-label">auto-detected charts</div>
-            <div id="selected-list" class="chart-list">
-              <span class="placeholder-text">No chart can be made yet.</span>
-            </div>
           </div>
 
           <div id="preview-gallery" class="preview-gallery"></div>
@@ -2424,6 +2557,16 @@
     <div class="record-modal" role="dialog" aria-modal="true" aria-label="Add record"></div>
   </div>
 
+  <div id="chart-fullscreen-backdrop" class="chart-fullscreen-backdrop" hidden>
+    <div class="chart-fullscreen-head">
+      <strong id="chart-fullscreen-title">Chart preview</strong>
+      <button id="chart-fullscreen-close" class="chart-fullscreen-close" type="button">Close</button>
+    </div>
+    <div class="chart-fullscreen-stage">
+      <img id="chart-fullscreen-image" alt="Full screen chart preview">
+    </div>
+  </div>
+
   <script type="module">
     import { jsPDF } from 'https://cdn.jsdelivr.net/npm/jspdf@3.0.3/+esm';
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
@@ -2444,11 +2587,12 @@
       weight: document.getElementById('weight'),
       height: document.getElementById('height'),
       head: document.getElementById('head'),
-      spo2: document.getElementById('spo2'),
+      temp: document.getElementById('temp'),
       pulse: document.getElementById('pulse'),
+      respiratoryRate: document.getElementById('respiratory-rate'),
+      spo2: document.getElementById('spo2'),
       systolic: document.getElementById('systolic'),
-      diastolic: document.getElementById('diastolic'),
-      temp: document.getElementById('temp')
+      diastolic: document.getElementById('diastolic')
     };
     const metricHistoryMasterToggle = document.getElementById('toggle-all-past-history');
     const metricHistoryToggles = [...document.querySelectorAll('[data-metric-toggle]')];
@@ -2474,6 +2618,10 @@
     const recordDateInput = document.getElementById('record-date-input');
     const recordModalCancel = document.getElementById('record-modal-cancel');
     const recordModalSave = document.getElementById('record-modal-save');
+    const chartFullscreenBackdrop = document.getElementById('chart-fullscreen-backdrop');
+    const chartFullscreenTitle = document.getElementById('chart-fullscreen-title');
+    const chartFullscreenImage = document.getElementById('chart-fullscreen-image');
+    const chartFullscreenClose = document.getElementById('chart-fullscreen-close');
     const patientIdInput = document.getElementById('patient-id');
     const childNameInput = document.getElementById('child-name');
     const parentNameInput = document.getElementById('parent-name');
@@ -2481,6 +2629,10 @@
     const pageMetaChild = document.getElementById('page-meta-child');
     const pageMetaParent = document.getElementById('page-meta-parent');
     const pageMetaPhone = document.getElementById('page-meta-phone');
+    const pageMetaWeight = document.getElementById('page-meta-weight');
+    const pageMetaHeight = document.getElementById('page-meta-height');
+    const pageMetaHead = document.getElementById('page-meta-head');
+    const pageMetaLink = document.getElementById('page-meta-link');
     const genderInput = document.getElementById('gender-value');
     const dobInput = document.getElementById('dob');
     const ageInput = document.getElementById('age');
@@ -2546,12 +2698,12 @@
 
     function createTestPastChartsPatient() {
       const measurementHistory = [
-        buildDemoMeasurementEntry(84, { weight: '11.2', height: '84.1', head: '47.2', spo2: '99', pulse: '108', systolic: '88', diastolic: '54', temp: '36.8' }),
-        buildDemoMeasurementEntry(68, { weight: '11.4', height: '84.9', head: '47.3', spo2: '99', pulse: '104', systolic: '90', diastolic: '56', temp: '36.7' }),
-        buildDemoMeasurementEntry(52, { weight: '11.7', height: '85.7', head: '47.5', spo2: '98', pulse: '102', systolic: '90', diastolic: '58', temp: '36.9' }),
-        buildDemoMeasurementEntry(36, { weight: '12.0', height: '86.4', head: '47.6', spo2: '99', pulse: '100', systolic: '92', diastolic: '58', temp: '36.8' }),
-        buildDemoMeasurementEntry(19, { weight: '12.3', height: '87.2', head: '47.8', spo2: '98', pulse: '98', systolic: '92', diastolic: '60', temp: '36.9' }),
-        buildDemoMeasurementEntry(5, { weight: '12.6', height: '88.0', head: '48.0', spo2: '99', pulse: '96', systolic: '94', diastolic: '60', temp: '36.7' })
+        buildDemoMeasurementEntry(84, { weight: '11.2', height: '84.1', head: '47.2', temp: '98.2', pulse: '108', respiratoryRate: '24', spo2: '99', systolic: '88', diastolic: '54' }),
+        buildDemoMeasurementEntry(68, { weight: '11.4', height: '84.9', head: '47.3', temp: '98.1', pulse: '104', respiratoryRate: '23', spo2: '99', systolic: '90', diastolic: '56' }),
+        buildDemoMeasurementEntry(52, { weight: '11.7', height: '85.7', head: '47.5', temp: '98.4', pulse: '102', respiratoryRate: '24', spo2: '98', systolic: '90', diastolic: '58' }),
+        buildDemoMeasurementEntry(36, { weight: '12.0', height: '86.4', head: '47.6', temp: '98.2', pulse: '100', respiratoryRate: '22', spo2: '99', systolic: '92', diastolic: '58' }),
+        buildDemoMeasurementEntry(19, { weight: '12.3', height: '87.2', head: '47.8', temp: '98.4', pulse: '98', respiratoryRate: '22', spo2: '98', systolic: '92', diastolic: '60' }),
+        buildDemoMeasurementEntry(5, { weight: '12.6', height: '88.0', head: '48.0', temp: '98.1', pulse: '96', respiratoryRate: '21', spo2: '99', systolic: '94', diastolic: '60' })
       ].sort((left, right) => new Date(right.createdAtIso) - new Date(left.createdAtIso));
 
       return {
@@ -2949,22 +3101,77 @@
       chartPreviewStatus.textContent = message;
     }
 
+    function getPatientDetailsEditUrl(patientId) {
+      const normalizedPatientId = String(patientId || '').trim().toUpperCase();
+      const returnTo = normalizedPatientId
+        ? `prescription-growth-chart-dashboard.html?patientId=${encodeURIComponent(normalizedPatientId)}`
+        : 'prescription-growth-chart-dashboard.html';
+      const params = new URLSearchParams();
+      if (normalizedPatientId) {
+        params.set('patientId', normalizedPatientId);
+      }
+      params.set('returnTo', returnTo);
+      const pagePath = window.location.protocol === 'file:'
+        ? 'parent-details.html'
+        : '/emr/kid/parent-details';
+      return `${pagePath}?${params.toString()}`;
+    }
+
+    function getLatestPatientMeasurement(patientRecord = null) {
+      if (!patientRecord) {
+        return null;
+      }
+
+      const entries = Array.isArray(patientRecord.measurementHistory)
+        ? [...patientRecord.measurementHistory]
+        : [];
+
+      if (patientRecord.lastMeasurementRecord) {
+        entries.push(patientRecord.lastMeasurementRecord);
+      }
+
+      return entries
+        .filter(Boolean)
+        .sort((left, right) => getHistoryTimestamp(right) - getHistoryTimestamp(left))[0] || null;
+    }
+
+    function formatPageMetaMetric(value, unit) {
+      const normalized = String(value || '').trim();
+      return normalized ? `${normalized} ${unit}` : '-';
+    }
+
     function updatePageMeta(patientRecord = null) {
+      const metaPatientId = patientRecord?.patientId || patientIdInput.value.trim().toUpperCase();
+      if (pageMetaLink) {
+        pageMetaLink.href = getPatientDetailsEditUrl(metaPatientId);
+      }
+
       if (!patientRecord) {
         pageMetaChild.textContent = 'Child -';
-        pageMetaParent.textContent = 'Age (years) -';
+        pageMetaParent.textContent = 'Age -';
         pageMetaPhone.textContent = 'Ph -';
+        pageMetaWeight.textContent = 'Weight -';
+        pageMetaHeight.textContent = 'Height -';
+        pageMetaHead.textContent = 'Head -';
         return;
       }
 
       const ageYearsValue = getAgeInYearsAtDate(patientRecord.dob || dobInput.value, getSelectedMeasurementDate());
       const ageYearsLabel = Number.isFinite(ageYearsValue) ? ageYearsValue.toFixed(2) : '';
+      const latestMeasurement = getLatestPatientMeasurement(patientRecord);
       pageMetaChild.textContent = `Child - ${patientRecord.childName || ''}`;
-      pageMetaParent.textContent = `Age (years) - ${ageYearsLabel}`;
+      pageMetaParent.textContent = `Age - ${ageYearsLabel}`;
       pageMetaPhone.textContent = `Ph - ${patientRecord.phone || ''}`;
+      pageMetaWeight.textContent = `Weight - ${formatPageMetaMetric(latestMeasurement?.weight, 'kg')}`;
+      pageMetaHeight.textContent = `Height - ${formatPageMetaMetric(latestMeasurement?.height, 'cm')}`;
+      pageMetaHead.textContent = `Head - ${formatPageMetaMetric(latestMeasurement?.head, 'cm')}`;
     }
 
     function setChartPreviewMessage(message, tone = '') {
+      if (!chartPreviewStatus) {
+        return;
+      }
+
       chartPreviewStatus.textContent = message;
       chartPreviewStatus.className = 'template-status';
       if (tone) {
@@ -3298,13 +3505,14 @@
 
       const rows = [
         { label: 'Weight', unit: 'kg', getValue: (entry) => formatMetricCellValue(entry.weight) },
-        { label: 'Height', unit: 'cm', getValue: (entry) => formatMetricCellValue(entry.height) },
-        { label: 'Ofc', unit: 'cm', getValue: (entry) => formatMetricCellValue(entry.head) },
+        { label: 'Length/Height', unit: 'cm', getValue: (entry) => formatMetricCellValue(entry.height) },
+        { label: 'Head c.', unit: 'cm', getValue: (entry) => formatMetricCellValue(entry.head) },
+        { label: 'Temp', unit: 'F', getValue: (entry) => formatMetricCellValue(entry.temp) },
+        { label: 'Heart rate', unit: 'bpm', getValue: (entry) => formatMetricCellValue(entry.pulse) },
+        { label: 'Respi rate', unit: 'cpm', getValue: (entry) => formatMetricCellValue(entry.respiratoryRate) },
         { label: 'SPO2', unit: '%', getValue: (entry) => formatMetricCellValue(entry.spo2) },
-        { label: 'Pulse', unit: '/min', getValue: (entry) => formatMetricCellValue(entry.pulse) },
-        { label: 'Systolic', unit: 'mmHg', getValue: (entry) => formatMetricCellValue(entry.systolic) },
-        { label: 'Diastolic', unit: 'mmHg', getValue: (entry) => formatMetricCellValue(entry.diastolic) },
-        { label: 'Temperature', unit: '°C', getValue: (entry) => formatMetricCellValue(entry.temp) }
+        { label: 'Systolic BP', unit: 'mmHg', getValue: (entry) => formatMetricCellValue(entry.systolic) },
+        { label: 'Diastolic BP', unit: 'mmHg', getValue: (entry) => formatMetricCellValue(entry.diastolic) }
       ];
 
       return `
@@ -3530,23 +3738,25 @@
         weight: 'kg',
         height: 'cm',
         head: 'cm',
-        spo2: '%',
+        temp: 'F',
         pulse: 'bpm',
+        respiratoryRate: 'cpm',
+        spo2: '%',
         systolic: 'mmHg',
-        diastolic: 'mmHg',
-        temp: 'C'
+        diastolic: 'mmHg'
       }[metricKey] || '';
     }
 
     const RECORD_MODAL_METRICS = [
       { key: 'weight', shortLabel: 'Weight', unit: 'kg', type: 'Growth', label: 'Weight (kg)', placeholder: 'kg' },
-      { key: 'height', shortLabel: 'Height', unit: 'cm', type: 'Growth', label: 'Height (cm)', placeholder: 'cm' },
-      { key: 'head', shortLabel: 'Ofc', unit: 'cm', type: 'Growth', label: 'OFC (cm)', placeholder: 'cm' },
+      { key: 'height', shortLabel: 'Height', unit: 'cm', type: 'Growth', label: 'Length/Height (cm)', placeholder: 'cm' },
+      { key: 'head', shortLabel: 'Head c.', unit: 'cm', type: 'Growth', label: 'Head c. (cm)', placeholder: 'cm' },
+      { key: 'temp', shortLabel: 'Temp', unit: 'F', type: 'Vitals', label: 'Temp (F.)', placeholder: 'F' },
+      { key: 'pulse', shortLabel: 'Heart rate', unit: 'bpm', type: 'Vitals', label: 'Heart rate(bpm)', placeholder: 'bpm' },
+      { key: 'respiratoryRate', shortLabel: 'Respi rate', unit: 'cpm', type: 'Vitals', label: 'Respi rate (cpm)', placeholder: 'ADD' },
       { key: 'spo2', shortLabel: 'SPO2', unit: '%', type: 'Vitals', label: 'SpO2 (%)', placeholder: '%' },
-      { key: 'pulse', shortLabel: 'Pulse', unit: '/min', type: 'Vitals', label: 'Pulse (bpm)', placeholder: 'bpm' },
-      { key: 'systolic', shortLabel: 'Systolic', unit: 'mmHg', type: 'Vitals', label: 'BP Systolic (mmHg)', placeholder: 'mmHg' },
-      { key: 'diastolic', shortLabel: 'Diastolic', unit: 'mmHg', type: 'Vitals', label: 'BP Diastolic (mmHg)', placeholder: 'mmHg' },
-      { key: 'temp', shortLabel: 'Temperature', unit: '°C', type: 'Vitals', label: 'Temp (C)', placeholder: 'C' }
+      { key: 'systolic', shortLabel: 'Systolic BP', unit: 'mmHg', type: 'Vitals', label: 'Systolic BP (mmHg)', placeholder: 'mmHg' },
+      { key: 'diastolic', shortLabel: 'Diastolic BP', unit: 'mmHg', type: 'Vitals', label: 'Diastolic BP (mmHg)', placeholder: 'mmHg' }
     ];
 
     function getEditableHistoryEntries() {
@@ -3570,11 +3780,12 @@
         weight: '',
         height: '',
         head: '',
-        spo2: '',
+        temp: '',
         pulse: '',
+        respiratoryRate: '',
+        spo2: '',
         systolic: '',
         diastolic: '',
-        temp: '',
         age: calculateAgeLabelAtDate(dobInput.value, measuredAt),
         source: 'prescription-growth-chart'
       };
@@ -3638,10 +3849,11 @@
         weight: formatMetricValue(entry.weight, 'kg'),
         height: formatMetricValue(entry.height, 'cm'),
         head: formatMetricValue(entry.head, 'cm'),
-        spo2: formatMetricValue(entry.spo2, '%'),
+        temp: formatMetricValue(entry.temp, 'F'),
         pulse: formatMetricValue(entry.pulse, 'bpm'),
+        respiratoryRate: formatMetricValue(entry.respiratoryRate, 'cpm'),
+        spo2: formatMetricValue(entry.spo2, '%'),
         bp: bpValue,
-        temp: formatMetricValue(entry.temp, 'C')
       };
     }
 
@@ -3686,12 +3898,13 @@
               <tr>
                 <th scope="col">Date</th>
                 <th scope="col">Weight</th>
-                <th scope="col">Height</th>
-                <th scope="col">OFC</th>
-                <th scope="col">SpO2</th>
-                <th scope="col">Pulse</th>
-                <th scope="col">BP</th>
+                <th scope="col">Length/Height</th>
+                <th scope="col">Head c.</th>
                 <th scope="col">Temp</th>
+                <th scope="col">Heart rate</th>
+                <th scope="col">Respi rate</th>
+                <th scope="col">SpO2</th>
+                <th scope="col">BP</th>
                 <th scope="col">Edit</th>
               </tr>
             </thead>
@@ -3706,10 +3919,11 @@
                   <td>${formatHistoryCell(metrics.weight)}</td>
                   <td>${formatHistoryCell(metrics.height)}</td>
                   <td>${formatHistoryCell(metrics.head)}</td>
-                  <td>${formatHistoryCell(metrics.spo2)}</td>
-                  <td>${formatHistoryCell(metrics.pulse)}</td>
-                  <td>${formatHistoryCell(metrics.bp)}</td>
                   <td>${formatHistoryCell(metrics.temp)}</td>
+                  <td>${formatHistoryCell(metrics.pulse)}</td>
+                  <td>${formatHistoryCell(metrics.respiratoryRate)}</td>
+                  <td>${formatHistoryCell(metrics.spo2)}</td>
+                  <td>${formatHistoryCell(metrics.bp)}</td>
                   <td>
                     <button class="history-edit-btn" type="button" data-history-entry="${escapeHtml(entryKey)}">Edit</button>
                   </td>
@@ -3734,11 +3948,12 @@
       metricInputs.weight.value = entry.weight || '';
       metricInputs.height.value = entry.height || '';
       metricInputs.head.value = entry.head || '';
-      metricInputs.spo2.value = entry.spo2 || '';
+      metricInputs.temp.value = entry.temp || '';
       metricInputs.pulse.value = entry.pulse || '';
+      metricInputs.respiratoryRate.value = entry.respiratoryRate || '';
+      metricInputs.spo2.value = entry.spo2 || '';
       metricInputs.systolic.value = entry.systolic || '';
       metricInputs.diastolic.value = entry.diastolic || '';
-      metricInputs.temp.value = entry.temp || '';
       setSelectedMeasurementDate(getHistoryTimestamp(entry) ? new Date(getHistoryTimestamp(entry)) : new Date(), { refresh: false });
       activeHistoryEditKey = getHistoryEntryKey(entry);
       updatePreview();
@@ -3761,7 +3976,6 @@
       updatePreview();
       renderPreviewGallery();
       drawBaseTemplate(null);
-      setChartPreviewMessage('Add the available measurements, then click Generate Chart to prepare the matching IAP templates for PDF download.');
     }
 
     function applyPatientRecord(patientRecord) {
@@ -4016,11 +4230,12 @@
         weight: metricInputs.weight.value,
         height: metricInputs.height.value,
         head: metricInputs.head.value,
-        spo2: metricInputs.spo2.value,
+        temp: metricInputs.temp.value,
         pulse: metricInputs.pulse.value,
+        respiratoryRate: metricInputs.respiratoryRate.value,
+        spo2: metricInputs.spo2.value,
         systolic: metricInputs.systolic.value,
         diastolic: metricInputs.diastolic.value,
-        temp: metricInputs.temp.value
       };
       const records = existingRecords.filter((record) => (record.patientId || '').toUpperCase() !== patientId || record.source !== 'prescription-growth-chart');
       records.push(nextRecord);
@@ -4064,11 +4279,12 @@
         weight: metricInputs.weight.value,
         height: metricInputs.height.value,
         head: metricInputs.head.value,
-        spo2: metricInputs.spo2.value,
+        temp: metricInputs.temp.value,
         pulse: metricInputs.pulse.value,
+        respiratoryRate: metricInputs.respiratoryRate.value,
+        spo2: metricInputs.spo2.value,
         systolic: metricInputs.systolic.value,
         diastolic: metricInputs.diastolic.value,
-        temp: metricInputs.temp.value,
         source: 'prescription-growth-chart',
         measuredAt: measuredAt.toISOString(),
         measuredAtDisplay: measuredAt.toLocaleString('en-IN'),
@@ -4103,11 +4319,12 @@
         weight: metricInputs.weight.value || '',
         height: metricInputs.height.value || '',
         head: metricInputs.head.value || '',
-        spo2: metricInputs.spo2.value || '',
+        temp: metricInputs.temp.value || '',
         pulse: metricInputs.pulse.value || '',
+        respiratoryRate: metricInputs.respiratoryRate.value || '',
+        spo2: metricInputs.spo2.value || '',
         systolic: metricInputs.systolic.value || '',
         diastolic: metricInputs.diastolic.value || '',
-        temp: metricInputs.temp.value || '',
         age: ageInput.value,
         source: 'prescription-growth-chart'
       };
@@ -4125,6 +4342,15 @@
       }, { merge: true });
 
       setPatientGrowthHistory([measurementEntry, ...patientGrowthHistory]);
+      updatePageMeta({
+        patientId,
+        childName: childNameInput.value.trim(),
+        parentName: parentNameInput.value.trim(),
+        phone: phoneInput.value.trim(),
+        dob: dobInput.value,
+        lastMeasurementRecord: measurementEntry,
+        measurementHistory: [measurementEntry, ...patientGrowthHistory]
+      });
       return { ok: true };
     }
 
@@ -4336,11 +4562,12 @@
         weight: metricInputs.weight.value || '',
         height: metricInputs.height.value || '',
         head: metricInputs.head.value || '',
-        spo2: metricInputs.spo2.value || '',
+        temp: metricInputs.temp.value || '',
         pulse: metricInputs.pulse.value || '',
+        respiratoryRate: metricInputs.respiratoryRate.value || '',
+        spo2: metricInputs.spo2.value || '',
         systolic: metricInputs.systolic.value || '',
-        diastolic: metricInputs.diastolic.value || '',
-        temp: metricInputs.temp.value || ''
+        diastolic: metricInputs.diastolic.value || ''
       };
     }
 
@@ -4349,8 +4576,7 @@
     }
 
     function isMetricHistoryEnabled(metricKey) {
-      const toggle = document.querySelector(`[data-metric-toggle="${metricKey}"]`);
-      return Boolean(toggle?.checked);
+      return true;
     }
 
     function getMetricPlotHistory(metricKey, options = {}) {
@@ -4716,10 +4942,6 @@
       previewGallery.innerHTML = '';
 
       if (generatedPreviewPages.length === 0) {
-        const placeholder = document.createElement('div');
-        placeholder.className = 'template-status';
-        placeholder.textContent = 'Generate Chart to see the chart preview here.';
-        previewGallery.appendChild(placeholder);
         return;
       }
 
@@ -4727,16 +4949,54 @@
         const frame = document.createElement('div');
         frame.className = 'preview-frame';
 
+        const frameHead = document.createElement('div');
+        frameHead.className = 'preview-frame-head';
+
         const title = document.createElement('strong');
         title.textContent = preview.label;
+
+        const fullscreenButton = document.createElement('button');
+        fullscreenButton.className = 'chart-fullscreen-btn';
+        fullscreenButton.type = 'button';
+        fullscreenButton.textContent = 'Full screen';
+        fullscreenButton.addEventListener('click', () => {
+          openChartFullscreen(preview);
+        });
 
         const image = document.createElement('img');
         image.src = preview.dataUrl;
         image.alt = `${preview.label} preview`;
+        image.addEventListener('click', () => {
+          openChartFullscreen(preview);
+        });
 
-        frame.append(title, image);
+        frameHead.append(title, fullscreenButton);
+        frame.append(frameHead, image);
         previewGallery.appendChild(frame);
       });
+    }
+
+    function openChartFullscreen(preview) {
+      if (!preview?.dataUrl || !chartFullscreenBackdrop || !chartFullscreenImage || !chartFullscreenTitle) {
+        return;
+      }
+
+      chartFullscreenTitle.textContent = preview.label || 'Chart preview';
+      chartFullscreenImage.src = preview.dataUrl;
+      chartFullscreenImage.alt = `${preview.label || 'Chart'} full screen preview`;
+      chartFullscreenBackdrop.hidden = false;
+      document.body.style.overflow = 'hidden';
+      chartFullscreenClose?.focus();
+    }
+
+    function closeChartFullscreen() {
+      if (!chartFullscreenBackdrop || !chartFullscreenImage) {
+        return;
+      }
+
+      chartFullscreenBackdrop.hidden = true;
+      chartFullscreenImage.removeAttribute('src');
+      document.body.style.overflow = '';
     }
 
     async function refreshGeneratedChartsIfPresent() {
@@ -4829,6 +5089,10 @@
 
     function updatePreview() {
       const selected = getSelectedCharts();
+      if (!selectedCount || !selectedList) {
+        return;
+      }
+
       selectedCount.textContent = String(selected.length);
       selectedList.innerHTML = '';
 
@@ -4988,6 +5252,18 @@
       statusNote.textContent = `Loaded ${formatMetricValue(targetEntry[metricKey], getMetricUnit(metricKey))} from ${formatHistoryEntryDate(targetEntry)}.`;
       statusNote.classList.add('visible');
       metricInputs[metricKey].focus();
+    });
+
+    chartFullscreenClose?.addEventListener('click', closeChartFullscreen);
+    chartFullscreenBackdrop?.addEventListener('click', (event) => {
+      if (event.target === chartFullscreenBackdrop) {
+        closeChartFullscreen();
+      }
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && chartFullscreenBackdrop && !chartFullscreenBackdrop.hidden) {
+        closeChartFullscreen();
+      }
     });
 
     downloadBtn.addEventListener('click', async () => {

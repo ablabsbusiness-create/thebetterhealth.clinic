@@ -1378,7 +1378,7 @@
         </article>
 
         <div class="card-grid">
-          <article class="rx-card">
+          <article class="rx-card" data-section-name="Symptoms">
             <div class="rx-card-head">
               <h2>Symptoms</h2>
               <p></p>
@@ -1394,71 +1394,7 @@
             </div>
           </article>
 
-          <article class="rx-card">
-            <div class="rx-card-head">
-              <h2>Finding</h2>
-              <p></p>
-            </div>
-            <div class="search-row" data-search-section="finding">
-              <input type="text" placeholder="Search findings">
-            </div>
-            <div class="selected-list" data-selected-list>
-              <span class="selected-placeholder">Selected items will appear here.</span>
-            </div>
-            <div class="selection-divider" aria-hidden="true"></div>
-            <div class="bubble-wrap" data-bubble-wrap>
-            </div>
-          </article>
-
-          <article class="rx-card">
-            <div class="rx-card-head">
-              <h2>Notes</h2>
-              <p></p>
-            </div>
-            <div class="search-row" data-search-section="notes">
-              <input type="text" placeholder="Search notes">
-            </div>
-            <div class="selected-list" data-selected-list>
-              <span class="selected-placeholder">Selected items will appear here.</span>
-            </div>
-            <div class="selection-divider" aria-hidden="true"></div>
-            <div class="bubble-wrap" data-bubble-wrap>
-            </div>
-          </article>
-
-          <article class="rx-card">
-            <div class="rx-card-head">
-              <h2>Diagnosis</h2>
-              <p></p>
-            </div>
-            <div class="search-row" data-search-section="diagnosis">
-              <input type="text" placeholder="Search diagnosis">
-            </div>
-            <div class="selected-list" data-selected-list>
-              <span class="selected-placeholder">Selected items will appear here.</span>
-            </div>
-            <div class="selection-divider" aria-hidden="true"></div>
-            <div class="bubble-wrap" data-bubble-wrap>
-            </div>
-          </article>
-
-          <article class="rx-card">
-            <div class="rx-card-head">
-              <h2>Investigation</h2>
-              <p></p>
-            </div>
-            <div class="search-row" data-search-section="investigation">
-              <input type="text" placeholder="Search investigation">
-            </div>
-            <div class="selected-list" data-selected-list>
-              <span class="selected-placeholder">Selected items will appear here.</span>
-            </div>
-            <div class="selection-divider" aria-hidden="true"></div>
-            <div class="bubble-wrap" data-bubble-wrap>
-            </div>
-          </article>
-
-          <article class="rx-card">
+          <article class="rx-card" data-section-name="Past Medical History">
             <div class="rx-card-head">
               <h2>Past Medical History</h2>
               <p></p>
@@ -1474,9 +1410,73 @@
             </div>
           </article>
 
-          <article class="rx-card">
+          <article class="rx-card" data-section-name="Finding">
             <div class="rx-card-head">
-              <h2>Medication</h2>
+              <h2>Findings</h2>
+              <p></p>
+            </div>
+            <div class="search-row" data-search-section="finding">
+              <input type="text" placeholder="Search findings">
+            </div>
+            <div class="selected-list" data-selected-list>
+              <span class="selected-placeholder">Selected items will appear here.</span>
+            </div>
+            <div class="selection-divider" aria-hidden="true"></div>
+            <div class="bubble-wrap" data-bubble-wrap>
+            </div>
+          </article>
+
+          <article class="rx-card" data-section-name="Notes">
+            <div class="rx-card-head">
+              <h2>Notes</h2>
+              <p></p>
+            </div>
+            <div class="search-row" data-search-section="notes">
+              <input type="text" placeholder="Search notes">
+            </div>
+            <div class="selected-list" data-selected-list>
+              <span class="selected-placeholder">Selected items will appear here.</span>
+            </div>
+            <div class="selection-divider" aria-hidden="true"></div>
+            <div class="bubble-wrap" data-bubble-wrap>
+            </div>
+          </article>
+
+          <article class="rx-card" data-section-name="Diagnosis">
+            <div class="rx-card-head">
+              <h2>Diagnosis</h2>
+              <p></p>
+            </div>
+            <div class="search-row" data-search-section="diagnosis">
+              <input type="text" placeholder="Search diagnosis">
+            </div>
+            <div class="selected-list" data-selected-list>
+              <span class="selected-placeholder">Selected items will appear here.</span>
+            </div>
+            <div class="selection-divider" aria-hidden="true"></div>
+            <div class="bubble-wrap" data-bubble-wrap>
+            </div>
+          </article>
+
+          <article class="rx-card" data-section-name="Investigation">
+            <div class="rx-card-head">
+              <h2>Investigations</h2>
+              <p></p>
+            </div>
+            <div class="search-row" data-search-section="investigation">
+              <input type="text" placeholder="Search investigation">
+            </div>
+            <div class="selected-list" data-selected-list>
+              <span class="selected-placeholder">Selected items will appear here.</span>
+            </div>
+            <div class="selection-divider" aria-hidden="true"></div>
+            <div class="bubble-wrap" data-bubble-wrap>
+            </div>
+          </article>
+
+          <article class="rx-card" data-section-name="Medication">
+            <div class="rx-card-head">
+              <h2>Medications</h2>
               <p></p>
             </div>
             <div class="search-row" data-search-section="medication">
@@ -1490,7 +1490,7 @@
             </div>
           </article>
 
-          <article class="rx-card">
+          <article class="rx-card" data-section-name="Instruction">
             <div class="rx-card-head">
               <h2>Instruction</h2>
               <p></p>
@@ -1731,14 +1731,14 @@
       return 'Extra details for this section will appear here.';
     }
 
-    function createSectionDetailSlot(sectionName) {
+    function createSectionDetailSlot(sectionName, sectionLabel = sectionName) {
       const slot = document.createElement('aside');
       slot.className = 'section-detail-slot';
       slot.dataset.sectionSlot = sectionName;
       slot.innerHTML = `
         <div class="section-side-placeholder">
-          <div class="eyebrow">${escapeHtml(sectionName)}</div>
-          <h3>${escapeHtml(sectionName)} details</h3>
+          <div class="eyebrow">${escapeHtml(sectionLabel)}</div>
+          <h3>${escapeHtml(sectionLabel)} details</h3>
           <p>${escapeHtml(getSectionPlaceholderCopy(sectionName))}</p>
         </div>
       `;
@@ -1747,7 +1747,8 @@
 
     function setupSectionRows() {
       rxCards.forEach((card) => {
-        const sectionName = card.querySelector('h2')?.textContent.trim() || '';
+        const sectionName = card.dataset.sectionName || card.querySelector('h2')?.textContent.trim() || '';
+        const sectionLabel = card.querySelector('h2')?.textContent.trim() || sectionName;
         const row = document.createElement('div');
         row.className = 'section-row';
         row.dataset.section = sectionName;
@@ -1756,7 +1757,7 @@
 
         if (DETAIL_SECTIONS.has(sectionName)) {
           row.classList.add('has-detail-slot');
-          const slot = createSectionDetailSlot(sectionName);
+          const slot = createSectionDetailSlot(sectionName, sectionLabel);
           slot.classList.add('is-ready');
           sectionDetailSlots.set(sectionName, slot);
           row.appendChild(slot);
@@ -3088,14 +3089,14 @@
 
     setupSectionRows();
 
-    const sectionMap = new Map(rxCards.map((card) => [card.querySelector('h2').textContent.trim(), card]));
+    const sectionMap = new Map(rxCards.map((card) => [card.dataset.sectionName || card.querySelector('h2').textContent.trim(), card]));
     const sectionBindings = new Map();
 
     function bindCardSelection(card, initialItems) {
       const selectedList = card.querySelector('[data-selected-list]');
       const bubbleWrap = card.querySelector('[data-bubble-wrap]');
       const searchInput = card.querySelector('.search-row input');
-      const sectionName = card.querySelector('h2').textContent.trim();
+      const sectionName = card.dataset.sectionName || card.querySelector('h2').textContent.trim();
 
       if (sectionBindings.has(sectionName)) {
         sectionBindings.get(sectionName).updateItems(initialItems);

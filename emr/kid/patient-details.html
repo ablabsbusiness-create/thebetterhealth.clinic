@@ -3519,7 +3519,7 @@
     }
 
     function hasMeasurementValue(entry) {
-      return ['weight', 'height', 'head', 'spo2', 'pulse', 'systolic', 'diastolic', 'temp']
+      return ['weight', 'height', 'head', 'temp', 'pulse', 'respiratoryRate', 'spo2', 'systolic', 'diastolic']
         .some((key) => String(entry?.[key] || '').trim());
     }
 
@@ -3543,6 +3543,7 @@
         if (/occipital frontal circumference|ofc/i.test(label)) entry.head = getImportedVitalNumber(value);
         if (/peripheral oxygen saturation|spo2/i.test(label)) entry.spo2 = getImportedVitalNumber(value);
         if (/pulse|heart rate/i.test(label)) entry.pulse = getImportedVitalNumber(value);
+        if (/respiratory rate|respi rate|resp rate|rr\b/i.test(label)) entry.respiratoryRate = getImportedVitalNumber(value);
         if (/systolic/i.test(label)) entry.systolic = getImportedVitalNumber(value);
         if (/diastolic/i.test(label)) entry.diastolic = getImportedVitalNumber(value);
         if (/temperature|temp/i.test(label)) entry.temp = getImportedVitalNumber(value);
@@ -3647,7 +3648,7 @@
         return false;
       }
 
-      return ['weight', 'height', 'head', 'spo2', 'pulse', 'systolic', 'diastolic', 'temp']
+      return ['weight', 'height', 'head', 'temp', 'pulse', 'respiratoryRate', 'spo2', 'systolic', 'diastolic']
         .some((key) => String(entry[key] || '').trim());
     }
 
@@ -3917,8 +3918,8 @@
           ${entries.map((entry) => `
             <div class="measurement-item">
               <strong>${entry.createdAtDisplay || 'Saved measurement'}</strong>
-              <span>Wt ${entry.weight || '-'} kg • Ht ${entry.height || '-'} cm • HC ${entry.head || '-'} cm</span>
-              <span>SpO2 ${entry.spo2 || '-'}% • Pulse ${entry.pulse || '-'} bpm • BP ${entry.systolic || '-'}/${entry.diastolic || '-'} mmHg • Temp ${entry.temp || '-'}°C</span>
+              <span>Wt ${entry.weight || '-'} kg &bull; Len/Ht ${entry.height || '-'} cm &bull; Head c. ${entry.head || '-'} cm</span>
+              <span>Temp ${entry.temp || '-'} F &bull; HR ${entry.pulse || '-'} bpm &bull; RR ${entry.respiratoryRate || '-'} cpm &bull; SpO2 ${entry.spo2 || '-'}% &bull; BP ${entry.systolic || '-'}/${entry.diastolic || '-'} mmHg</span>
               <span>Charts: ${Array.isArray(entry.charts) && entry.charts.length > 0 ? entry.charts.join(', ') : 'Not saved'}</span>
             </div>
           `).join('')}
@@ -3956,18 +3957,39 @@
           getValue: (entry) => formatMetricCellValue(entry.weight)
         },
         {
-          label: 'Height',
+          label: 'Length/Height',
           unit: 'cm',
           key: 'height',
           placeholder: 'cm',
           getValue: (entry) => formatMetricCellValue(entry.height)
         },
         {
-          label: 'Ofc',
+          label: 'Head c.',
           unit: 'cm',
           key: 'head',
           placeholder: 'cm',
           getValue: (entry) => formatMetricCellValue(entry.head)
+        },
+        {
+          label: 'Temp',
+          unit: 'F',
+          key: 'temp',
+          placeholder: 'F',
+          getValue: (entry) => formatMetricCellValue(entry.temp)
+        },
+        {
+          label: 'Heart rate',
+          unit: 'bpm',
+          key: 'pulse',
+          placeholder: 'bpm',
+          getValue: (entry) => formatMetricCellValue(entry.pulse)
+        },
+        {
+          label: 'Respi rate',
+          unit: 'cpm',
+          key: 'respiratoryRate',
+          placeholder: 'ADD',
+          getValue: (entry) => formatMetricCellValue(entry.respiratoryRate)
         },
         {
           label: 'SPO2',
@@ -3977,32 +3999,18 @@
           getValue: (entry) => formatMetricCellValue(entry.spo2)
         },
         {
-          label: 'Pulse',
-          unit: '/min',
-          key: 'pulse',
-          placeholder: 'bpm',
-          getValue: (entry) => formatMetricCellValue(entry.pulse)
-        },
-        {
-          label: 'Systolic',
+          label: 'Systolic BP',
           unit: 'mmHg',
           key: 'systolic',
           placeholder: 'mmHg',
           getValue: (entry) => formatMetricCellValue(entry.systolic)
         },
         {
-          label: 'Diastolic',
+          label: 'Diastolic BP',
           unit: 'mmHg',
           key: 'diastolic',
           placeholder: 'mmHg',
           getValue: (entry) => formatMetricCellValue(entry.diastolic)
-        },
-        {
-          label: 'Temperature',
-          unit: '°C',
-          key: 'temp',
-          placeholder: 'C',
-          getValue: (entry) => formatMetricCellValue(entry.temp)
         }
       ];
 
@@ -4090,7 +4098,7 @@
 
     function createMeasurementEntryKey(entry) {
       return String(entry?.createdAtIso || '').trim()
-        || `${entry?.weight || ''}-${entry?.height || ''}-${entry?.head || ''}-${entry?.spo2 || ''}-${entry?.pulse || ''}`;
+        || `${entry?.weight || ''}-${entry?.height || ''}-${entry?.head || ''}-${entry?.temp || ''}-${entry?.pulse || ''}-${entry?.respiratoryRate || ''}-${entry?.spo2 || ''}`;
     }
 
     function buildBlankMeasurementEntry(dateValue) {
@@ -4100,11 +4108,12 @@
         weight: '',
         height: '',
         head: '',
-        spo2: '',
+        temp: '',
         pulse: '',
+        respiratoryRate: '',
+        spo2: '',
         systolic: '',
-        diastolic: '',
-        temp: ''
+        diastolic: ''
       };
     }
 
@@ -4246,12 +4255,13 @@
 
       const metrics = [
         ['Weight', entry.weight ? `${entry.weight} kg` : '-'],
-        ['Height', entry.height ? `${entry.height} cm` : '-'],
-        ['OFC', entry.head ? `${entry.head} cm` : '-'],
+        ['Length/Height', entry.height ? `${entry.height} cm` : '-'],
+        ['Head c.', entry.head ? `${entry.head} cm` : '-'],
+        ['Temp', entry.temp ? `${entry.temp} F` : '-'],
+        ['Heart rate', entry.pulse ? `${entry.pulse} bpm` : '-'],
+        ['Respi rate', entry.respiratoryRate ? `${entry.respiratoryRate} cpm` : '-'],
         ['SpO2', entry.spo2 ? `${entry.spo2}%` : '-'],
-        ['Pulse', entry.pulse ? `${entry.pulse} bpm` : '-'],
         ['BP', entry.systolic || entry.diastolic ? `${entry.systolic || '-'}/${entry.diastolic || '-'} mmHg` : '-'],
-        ['Temp', entry.temp ? `${entry.temp} C` : '-'],
         ['Time', formatHistoryDateTime(entry)]
       ];
 
