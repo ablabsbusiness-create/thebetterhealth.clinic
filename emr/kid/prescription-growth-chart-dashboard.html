@@ -1092,6 +1092,13 @@
       border: 1px solid #d7f2df;
     }
 
+    .preview-banner-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
     .preview-banner h2 {
       margin: 10px 0 6px;
       font-size: 24px;
@@ -1244,18 +1251,41 @@
 
     .chart-fullscreen-stage {
       min-height: 0;
-      display: grid;
-      place-items: center;
-      overflow: hidden;
+      overflow: auto;
+      padding: 4px;
     }
 
-    .chart-fullscreen-stage img {
-      max-width: 100%;
-      max-height: 100%;
+    .chart-fullscreen-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+      align-items: start;
+      width: 100%;
+    }
+
+    .chart-fullscreen-frame {
+      min-width: 0;
+      border-radius: 14px;
+      background: #ffffff;
+      padding: 10px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
+    }
+
+    .chart-fullscreen-frame strong {
+      display: block;
+      margin-bottom: 8px;
+      color: #111827;
+      font-size: 13px;
+      line-height: 1.25;
+    }
+
+    .chart-fullscreen-frame img {
+      display: block;
+      width: 100%;
+      max-height: calc(100vh - 132px);
       object-fit: contain;
       border-radius: 10px;
       background: #ffffff;
-      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
     }
 
     .summary-count {
@@ -2223,7 +2253,7 @@
         <div class="page-meta-grid">
           <span id="page-meta-parent">Age -</span>
           <span id="page-meta-weight">Weight -</span>
-          <span id="page-meta-height">Height -</span>
+          <span id="page-meta-height">Length/Height -</span>
           <span id="page-meta-head">Head -</span>
         </div>
       </a>
@@ -2532,7 +2562,10 @@
       <aside class="preview-card">
         <div class="preview-stack">
           <div class="preview-banner">
-            <h2>Chart preview</h2>
+            <div class="preview-banner-head">
+              <h2>Chart preview</h2>
+              <button id="chart-fullscreen-open" class="chart-fullscreen-btn" type="button" hidden>Full screen</button>
+            </div>
             <p></p>
           </div>
 
@@ -2564,9 +2597,7 @@
       <strong id="chart-fullscreen-title">Chart preview</strong>
       <button id="chart-fullscreen-close" class="chart-fullscreen-close" type="button">Close</button>
     </div>
-    <div class="chart-fullscreen-stage">
-      <img id="chart-fullscreen-image" alt="Full screen chart preview">
-    </div>
+    <div id="chart-fullscreen-stage" class="chart-fullscreen-stage"></div>
   </div>
 
   <script type="module">
@@ -2622,7 +2653,8 @@
     const recordModalSave = document.getElementById('record-modal-save');
     const chartFullscreenBackdrop = document.getElementById('chart-fullscreen-backdrop');
     const chartFullscreenTitle = document.getElementById('chart-fullscreen-title');
-    const chartFullscreenImage = document.getElementById('chart-fullscreen-image');
+    const chartFullscreenStage = document.getElementById('chart-fullscreen-stage');
+    const chartFullscreenOpen = document.getElementById('chart-fullscreen-open');
     const chartFullscreenClose = document.getElementById('chart-fullscreen-close');
     const patientIdInput = document.getElementById('patient-id');
     const childNameInput = document.getElementById('child-name');
@@ -3145,6 +3177,60 @@
         .sort((left, right) => getHistoryTimestamp(right) - getHistoryTimestamp(left))[0] || null;
     }
 
+    function getMeasurementMetricValue(entry, metricKey) {
+      if (!entry) {
+        return '';
+      }
+
+      const aliases = {
+        height: ['lengthHeight', 'lengthOrHeight', 'height'],
+        head: ['headCircumference', 'headC', 'head']
+      };
+      const keys = aliases[metricKey] || [metricKey];
+
+      for (const key of keys) {
+        const value = String(entry[key] ?? '').trim();
+        if (value) {
+          return value;
+        }
+      }
+
+      return '';
+    }
+
+    function setMeasurementMetricValue(entry, metricKey, value) {
+      const normalizedValue = String(value ?? '').trim();
+      entry[metricKey] = normalizedValue;
+
+      if (metricKey === 'height') {
+        entry.lengthHeight = normalizedValue;
+      }
+
+      if (metricKey === 'head') {
+        entry.headCircumference = normalizedValue;
+      }
+    }
+
+    function getLatestPatientMetric(patientRecord = null, metricKey) {
+      if (!patientRecord) {
+        return '';
+      }
+
+      const entries = Array.isArray(patientRecord.measurementHistory)
+        ? [...patientRecord.measurementHistory]
+        : [];
+
+      if (patientRecord.lastMeasurementRecord) {
+        entries.push(patientRecord.lastMeasurementRecord);
+      }
+
+      return entries
+        .filter(Boolean)
+        .sort((left, right) => getHistoryTimestamp(right) - getHistoryTimestamp(left))
+        .map((entry) => getMeasurementMetricValue(entry, metricKey))
+        .find(Boolean) || '';
+    }
+
     function formatPageMetaMetric(value, unit) {
       const normalized = String(value || '').trim();
       return normalized ? `${normalized} ${unit}` : '-';
@@ -3161,20 +3247,19 @@
         pageMetaParent.textContent = 'Age -';
         pageMetaPhone.textContent = 'Ph -';
         pageMetaWeight.textContent = 'Weight -';
-        pageMetaHeight.textContent = 'Height -';
+        pageMetaHeight.textContent = 'Length/Height -';
         pageMetaHead.textContent = 'Head -';
         return;
       }
 
       const ageYearsValue = getAgeInYearsAtDate(patientRecord.dob || dobInput.value, getSelectedMeasurementDate());
       const ageYearsLabel = Number.isFinite(ageYearsValue) ? ageYearsValue.toFixed(2) : '';
-      const latestMeasurement = getLatestPatientMeasurement(patientRecord);
       pageMetaChild.textContent = `Child - ${patientRecord.childName || ''}`;
       pageMetaParent.textContent = `Age - ${ageYearsLabel}`;
       pageMetaPhone.textContent = `Ph - ${patientRecord.phone || ''}`;
-      pageMetaWeight.textContent = `Weight - ${formatPageMetaMetric(latestMeasurement?.weight, 'kg')}`;
-      pageMetaHeight.textContent = `Height - ${formatPageMetaMetric(latestMeasurement?.height, 'cm')}`;
-      pageMetaHead.textContent = `Head - ${formatPageMetaMetric(latestMeasurement?.head, 'cm')}`;
+      pageMetaWeight.textContent = `Weight - ${formatPageMetaMetric(getLatestPatientMetric(patientRecord, 'weight'), 'kg')}`;
+      pageMetaHeight.textContent = `Length/Height - ${formatPageMetaMetric(getLatestPatientMetric(patientRecord, 'height'), 'cm')}`;
+      pageMetaHead.textContent = `Head - ${formatPageMetaMetric(getLatestPatientMetric(patientRecord, 'head'), 'cm')}`;
     }
 
     function setChartPreviewMessage(message, tone = '') {
@@ -3358,7 +3443,7 @@
           return;
         }
 
-        entry[metricKey] = String(input.value ?? '').trim();
+        setMeasurementMetricValue(entry, metricKey, input.value);
       });
 
       const nextEntries = normalizeGrowthHistory([...entriesByKey.values(), ...draftEntriesByKey.values()]);
@@ -3440,7 +3525,7 @@
         return entry._draftKey;
       }
 
-      return `${entry.createdAtIso || entry.savedAt || entry.createdAtDisplay || ''}-${entry.weight || ''}-${entry.height || ''}-${entry.head || ''}`;
+      return `${entry.createdAtIso || entry.savedAt || entry.createdAtDisplay || ''}-${entry.weight || ''}-${getMeasurementMetricValue(entry, 'height')}-${getMeasurementMetricValue(entry, 'head')}`;
     }
 
     function getIsoDatePart(dateValue) {
@@ -3515,8 +3600,8 @@
 
       const rows = [
         { label: 'Weight', unit: 'kg', getValue: (entry) => formatMetricCellValue(entry.weight) },
-        { label: 'Length/Height', unit: 'cm', getValue: (entry) => formatMetricCellValue(entry.height) },
-        { label: 'Head c.', unit: 'cm', getValue: (entry) => formatMetricCellValue(entry.head) },
+        { label: 'Length/Height', unit: 'cm', getValue: (entry) => formatMetricCellValue(getMeasurementMetricValue(entry, 'height')) },
+        { label: 'Head c.', unit: 'cm', getValue: (entry) => formatMetricCellValue(getMeasurementMetricValue(entry, 'head')) },
         { label: 'Temp', unit: 'F', getValue: (entry) => formatMetricCellValue(entry.temp) },
         { label: 'Heart rate', unit: 'bpm', getValue: (entry) => formatMetricCellValue(entry.pulse) },
         { label: 'Respi rate', unit: 'cpm', getValue: (entry) => formatMetricCellValue(entry.respiratoryRate) },
@@ -3759,7 +3844,7 @@
 
     const RECORD_MODAL_METRICS = [
       { key: 'weight', shortLabel: 'Weight', unit: 'kg', type: 'Growth', label: 'Weight (kg)', placeholder: 'kg' },
-      { key: 'height', shortLabel: 'Height', unit: 'cm', type: 'Growth', label: 'Length/Height (cm)', placeholder: 'cm' },
+      { key: 'height', shortLabel: 'Length/Height', unit: 'cm', type: 'Growth', label: 'Length/Height (cm)', placeholder: 'cm' },
       { key: 'head', shortLabel: 'Head c.', unit: 'cm', type: 'Growth', label: 'Head c. (cm)', placeholder: 'cm' },
       { key: 'temp', shortLabel: 'Temp', unit: 'F', type: 'Vitals', label: 'Temp (F.)', placeholder: 'F' },
       { key: 'pulse', shortLabel: 'Heart rate', unit: 'bpm', type: 'Vitals', label: 'Heart rate(bpm)', placeholder: 'bpm' },
@@ -3814,7 +3899,7 @@
     }
 
     function buildRecordGridCell(entry, metric) {
-      const rawValue = String(entry?.[metric.key] ?? '').trim();
+      const rawValue = getMeasurementMetricValue(entry, metric.key);
       return `
         <td>
           <input
@@ -3857,8 +3942,8 @@
 
       return {
         weight: formatMetricValue(entry.weight, 'kg'),
-        height: formatMetricValue(entry.height, 'cm'),
-        head: formatMetricValue(entry.head, 'cm'),
+        height: formatMetricValue(getMeasurementMetricValue(entry, 'height'), 'cm'),
+        head: formatMetricValue(getMeasurementMetricValue(entry, 'head'), 'cm'),
         temp: formatMetricValue(entry.temp, 'F'),
         pulse: formatMetricValue(entry.pulse, 'bpm'),
         respiratoryRate: formatMetricValue(entry.respiratoryRate, 'cpm'),
@@ -3956,8 +4041,8 @@
 
     function loadHistoryEntryIntoForm(entry) {
       metricInputs.weight.value = entry.weight || '';
-      metricInputs.height.value = entry.height || '';
-      metricInputs.head.value = entry.head || '';
+      metricInputs.height.value = getMeasurementMetricValue(entry, 'height');
+      metricInputs.head.value = getMeasurementMetricValue(entry, 'head');
       metricInputs.temp.value = entry.temp || '';
       metricInputs.pulse.value = entry.pulse || '';
       metricInputs.respiratoryRate.value = entry.respiratoryRate || '';
@@ -4239,7 +4324,9 @@
         })),
         weight: metricInputs.weight.value,
         height: metricInputs.height.value,
+        lengthHeight: metricInputs.height.value,
         head: metricInputs.head.value,
+        headCircumference: metricInputs.head.value,
         temp: metricInputs.temp.value,
         pulse: metricInputs.pulse.value,
         respiratoryRate: metricInputs.respiratoryRate.value,
@@ -4288,7 +4375,9 @@
         charts: getSelectedCharts().map((option) => option.value),
         weight: metricInputs.weight.value,
         height: metricInputs.height.value,
+        lengthHeight: metricInputs.height.value,
         head: metricInputs.head.value,
+        headCircumference: metricInputs.head.value,
         temp: metricInputs.temp.value,
         pulse: metricInputs.pulse.value,
         respiratoryRate: metricInputs.respiratoryRate.value,
@@ -4328,7 +4417,9 @@
         charts: getSelectedCharts().map((option) => option.value),
         weight: metricInputs.weight.value || '',
         height: metricInputs.height.value || '',
+        lengthHeight: metricInputs.height.value || '',
         head: metricInputs.head.value || '',
+        headCircumference: metricInputs.head.value || '',
         temp: metricInputs.temp.value || '',
         pulse: metricInputs.pulse.value || '',
         respiratoryRate: metricInputs.respiratoryRate.value || '',
@@ -4541,7 +4632,7 @@
     }
 
     function buildPatientDataFromValues(values = {}, measuredAt = new Date()) {
-      const height = Number.parseFloat(values.height);
+      const height = Number.parseFloat(getMeasurementMetricValue(values, 'height'));
       const weight = Number.parseFloat(values.weight);
 
       return {
@@ -4549,7 +4640,7 @@
         ageMonths: getAgeInMonthsAtDate(dobInput.value, measuredAt),
         weight,
         height,
-        head: Number.parseFloat(values.head),
+        head: Number.parseFloat(getMeasurementMetricValue(values, 'head')),
         bmi: Number.isFinite(weight) && Number.isFinite(height) && height > 0 ? weight / ((height / 100) ** 2) : NaN,
         visitDate: measuredAt instanceof Date ? measuredAt.toISOString() : new Date(measuredAt).toISOString()
       };
@@ -4571,7 +4662,9 @@
         createdAtIso: new Date().toISOString(),
         weight: metricInputs.weight.value || '',
         height: metricInputs.height.value || '',
+        lengthHeight: metricInputs.height.value || '',
         head: metricInputs.head.value || '',
+        headCircumference: metricInputs.head.value || '',
         temp: metricInputs.temp.value || '',
         pulse: metricInputs.pulse.value || '',
         respiratoryRate: metricInputs.respiratoryRate.value || '',
@@ -4593,7 +4686,7 @@
       const { includeCurrent = true } = options;
       const currentEntry = includeCurrent ? getCurrentMeasurementEntry() : null;
       if (!isMetricHistoryEnabled(metricKey)) {
-        return currentEntry && String(currentEntry?.[metricKey] ?? '').trim() ? [currentEntry] : [];
+        return currentEntry && getMeasurementMetricValue(currentEntry, metricKey) ? [currentEntry] : [];
       }
 
       const combinedEntries = [];
@@ -4616,7 +4709,7 @@
       });
 
       const entries = [...dedupedByDay.values()]
-        .filter((entry) => String(entry?.[metricKey] ?? '').trim())
+        .filter((entry) => getMeasurementMetricValue(entry, metricKey))
         .sort((left, right) => getHistoryTimestamp(right) - getHistoryTimestamp(left));
 
       return entries.reverse();
@@ -4636,7 +4729,7 @@
         });
 
         return [...combinedByDay.values()]
-          .filter((entry) => String(entry?.weight ?? '').trim() && String(entry?.height ?? '').trim())
+          .filter((entry) => String(entry?.weight ?? '').trim() && getMeasurementMetricValue(entry, 'height'))
           .sort((left, right) => getHistoryTimestamp(left) - getHistoryTimestamp(right));
       }
 
@@ -4740,8 +4833,8 @@
       return {
         measuredAt: entry.measuredAt || entry.createdAtIso || entry.savedAt || entry.createdAtDisplay || new Date().toISOString(),
         weight: entry.weight || '',
-        height: entry.height || '',
-        head: entry.head || ''
+        height: getMeasurementMetricValue(entry, 'height'),
+        head: getMeasurementMetricValue(entry, 'head')
       };
     }
 
@@ -4950,6 +5043,9 @@
 
     function renderPreviewGallery() {
       previewGallery.innerHTML = '';
+      if (chartFullscreenOpen) {
+        chartFullscreenOpen.hidden = generatedPreviewPages.length === 0;
+      }
 
       if (generatedPreviewPages.length === 0) {
         return;
@@ -4965,47 +5061,61 @@
         const title = document.createElement('strong');
         title.textContent = preview.label;
 
-        const fullscreenButton = document.createElement('button');
-        fullscreenButton.className = 'chart-fullscreen-btn';
-        fullscreenButton.type = 'button';
-        fullscreenButton.textContent = 'Full screen';
-        fullscreenButton.addEventListener('click', () => {
-          openChartFullscreen(preview);
-        });
-
         const image = document.createElement('img');
         image.src = preview.dataUrl;
         image.alt = `${preview.label} preview`;
         image.addEventListener('click', () => {
-          openChartFullscreen(preview);
+          openChartFullscreen();
         });
 
-        frameHead.append(title, fullscreenButton);
+        frameHead.append(title);
         frame.append(frameHead, image);
         previewGallery.appendChild(frame);
       });
     }
 
-    function openChartFullscreen(preview) {
-      if (!preview?.dataUrl || !chartFullscreenBackdrop || !chartFullscreenImage || !chartFullscreenTitle) {
+    function openChartFullscreen() {
+      if (!generatedPreviewPages.length || !chartFullscreenBackdrop || !chartFullscreenStage || !chartFullscreenTitle) {
         return;
       }
 
-      chartFullscreenTitle.textContent = preview.label || 'Chart preview';
-      chartFullscreenImage.src = preview.dataUrl;
-      chartFullscreenImage.alt = `${preview.label || 'Chart'} full screen preview`;
+      chartFullscreenTitle.textContent = 'Chart preview';
+      chartFullscreenStage.innerHTML = '';
+      const grid = document.createElement('div');
+      grid.className = 'chart-fullscreen-grid';
+
+      generatedPreviewPages.forEach((preview) => {
+        if (!preview?.dataUrl) {
+          return;
+        }
+
+        const frame = document.createElement('div');
+        frame.className = 'chart-fullscreen-frame';
+
+        const title = document.createElement('strong');
+        title.textContent = preview.label || 'Chart';
+
+        const image = document.createElement('img');
+        image.src = preview.dataUrl;
+        image.alt = `${preview.label || 'Chart'} full screen preview`;
+
+        frame.append(title, image);
+        grid.appendChild(frame);
+      });
+
+      chartFullscreenStage.appendChild(grid);
       chartFullscreenBackdrop.hidden = false;
       document.body.style.overflow = 'hidden';
       chartFullscreenClose?.focus();
     }
 
     function closeChartFullscreen() {
-      if (!chartFullscreenBackdrop || !chartFullscreenImage) {
+      if (!chartFullscreenBackdrop || !chartFullscreenStage) {
         return;
       }
 
       chartFullscreenBackdrop.hidden = true;
-      chartFullscreenImage.removeAttribute('src');
+      chartFullscreenStage.innerHTML = '';
       document.body.style.overflow = '';
     }
 
@@ -5257,13 +5367,15 @@
         return;
       }
 
-      metricInputs[metricKey].value = targetEntry[metricKey] || '';
+      const metricValue = getMeasurementMetricValue(targetEntry, metricKey);
+      metricInputs[metricKey].value = metricValue;
       updatePreview();
-      statusNote.textContent = `Loaded ${formatMetricValue(targetEntry[metricKey], getMetricUnit(metricKey))} from ${formatHistoryEntryDate(targetEntry)}.`;
+      statusNote.textContent = `Loaded ${formatMetricValue(metricValue, getMetricUnit(metricKey))} from ${formatHistoryEntryDate(targetEntry)}.`;
       statusNote.classList.add('visible');
       metricInputs[metricKey].focus();
     });
 
+    chartFullscreenOpen?.addEventListener('click', openChartFullscreen);
     chartFullscreenClose?.addEventListener('click', closeChartFullscreen);
     chartFullscreenBackdrop?.addEventListener('click', (event) => {
       if (event.target === chartFullscreenBackdrop) {

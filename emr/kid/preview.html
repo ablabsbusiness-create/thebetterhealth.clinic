@@ -2256,8 +2256,27 @@
       };
     }
 
-    async function renderPrescriptionSheetCanvas() {
+    function applyPrescriptionCaptureHeaderMode(forceHeader = false) {
+      if (!forceHeader) {
+        return () => {};
+      }
+
+      const hadPreviewWithoutHeader = document.body.classList.contains('preview-without-header');
+      const hadPrintWithHeader = document.body.classList.contains('print-with-header');
+
+      document.body.classList.remove('preview-without-header');
+      document.body.classList.add('print-with-header');
+
+      return () => {
+        document.body.classList.toggle('preview-without-header', hadPreviewWithoutHeader);
+        document.body.classList.toggle('print-with-header', hadPrintWithHeader);
+      };
+    }
+
+    async function renderPrescriptionSheetCanvas(options = {}) {
+      const { forceHeader = false } = options;
       document.body.classList.add('rendering-prescription-download');
+      const restoreHeaderMode = applyPrescriptionCaptureHeaderMode(forceHeader);
       const restoreCaptureLayout = applyPrescriptionCaptureLayout();
 
       try {
@@ -2277,6 +2296,7 @@
         });
       } finally {
         restoreCaptureLayout();
+        restoreHeaderMode();
         document.body.classList.remove('rendering-prescription-download');
       }
     }
@@ -2311,7 +2331,8 @@
       return pdf;
     }
 
-    async function buildPdf() {
+    async function buildPdf(options = {}) {
+      const { forceHeader = false } = options;
       const draft = getActivePrescriptionDraft();
       const activeChartRecord = getCurrentChartRecord();
       const chartRecord = await rebuildChartPages(activeChartRecord);
@@ -2324,7 +2345,7 @@
         throw new Error('Select a valid patient before saving a prescription.');
       }
       buildPreviewHtml();
-      const sheetCanvas = await renderPrescriptionSheetCanvas();
+      const sheetCanvas = await renderPrescriptionSheetCanvas({ forceHeader });
       const pdf = buildPdfFromCanvas(sheetCanvas);
       const previewBlob = await canvasToBlob(sheetCanvas, 'image/jpeg', 0.95);
 
@@ -2454,7 +2475,7 @@
 
       prescriptionSavePromise = (async () => {
         setPreviewStatus('Saving prescription...');
-        const details = await buildPdf();
+        const details = await buildPdf({ forceHeader: true });
         const { pdf, patientId, childName, phone, previewBlob } = details;
         if (!isValidPatientId(patientId)) {
           throw new Error('Select a valid patient before saving a prescription.');
@@ -2527,7 +2548,12 @@
 
       try {
         const savedRecord = await ensurePrescriptionSaved();
-        savedRecord.pdf.save(savedRecord.fileName);
+        if (printWithHeaderEnabled) {
+          savedRecord.pdf.save(savedRecord.fileName);
+        } else {
+          const downloadDetails = await buildPdf();
+          downloadDetails.pdf.save(savedRecord.fileName);
+        }
         clearPrescriptionLocalData();
       } catch (error) {
         console.warn(`Unable to save prescription PDF: ${error.message}`);
