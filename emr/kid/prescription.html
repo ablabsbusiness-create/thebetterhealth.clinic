@@ -1573,9 +1573,13 @@
                 <option value="Other">Other</option>
               </select>
             </label>
-            <label class="add-medicine-field is-full" for="add-medicine-strength">
-              <span>Medicine Strength (mg / ml)</span>
-              <input id="add-medicine-strength" name="strength" type="text" autocomplete="off" placeholder="e.g. 125 mg / 5 ml">
+            <label class="add-medicine-field" for="add-medicine-strength-mg">
+              <span>Strength (mg)</span>
+              <input id="add-medicine-strength-mg" name="strengthMg" type="text" autocomplete="off" placeholder="e.g. 125">
+            </label>
+            <label class="add-medicine-field" for="add-medicine-strength-ml">
+              <span>Strength (ml)</span>
+              <input id="add-medicine-strength-ml" name="strengthMl" type="text" autocomplete="off" placeholder="e.g. 5">
             </label>
             <label class="add-medicine-field is-full" for="add-medicine-composition">
               <span>Medicine Composition</span>
@@ -1630,7 +1634,8 @@
     const addMedicineBack = document.getElementById('add-medicine-back');
     const addMedicineName = document.getElementById('add-medicine-name');
     const addMedicineType = document.getElementById('add-medicine-type');
-    const addMedicineStrength = document.getElementById('add-medicine-strength');
+    const addMedicineStrengthMg = document.getElementById('add-medicine-strength-mg');
+    const addMedicineStrengthMl = document.getElementById('add-medicine-strength-ml');
     const addMedicineComposition = document.getElementById('add-medicine-composition');
     const addMedicineError = document.getElementById('add-medicine-error');
     const continuePreviewBtn = document.getElementById('continue-preview-btn');
@@ -2189,7 +2194,12 @@
       event.preventDefault();
       const name = toTitleCase(addMedicineName.value);
       const type = addMedicineType.value.trim();
-      const strength = addMedicineStrength.value.trim();
+      const strengthMg = addMedicineStrengthMg.value.trim();
+      const strengthMl = addMedicineStrengthMl.value.trim();
+      const strength = [
+        strengthMg ? `${strengthMg} mg` : '',
+        strengthMl ? `${strengthMl} ml` : ''
+      ].filter(Boolean).join(' / ');
       const composition = addMedicineComposition.value.trim();
 
       if (!name) {
@@ -2219,7 +2229,8 @@
       });
     });
     addMedicineName.addEventListener('input', clearAddMedicineError);
-    addMedicineStrength.addEventListener('input', clearAddMedicineError);
+    addMedicineStrengthMg.addEventListener('input', clearAddMedicineError);
+    addMedicineStrengthMl.addEventListener('input', clearAddMedicineError);
     addMedicineComposition.addEventListener('input', clearAddMedicineError);
     addMedicineType.addEventListener('change', clearAddMedicineError);
     selectionDetailContent.addEventListener('input', syncSelectionDetailsFromDom);
