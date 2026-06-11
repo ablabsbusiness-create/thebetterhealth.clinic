@@ -14,6 +14,62 @@
       "destination": "/emr/lungs/index.html"
     },
     {
+      "source": "/emr/lungs/index",
+      "destination": "/emr/lungs/index.html"
+    },
+    {
+      "source": "/emr/lungs/clinci",
+      "destination": "/emr/lungs/clinci.html"
+    },
+    {
+      "source": "/emr/lungs/search",
+      "destination": "/emr/lungs/search.html"
+    },
+    {
+      "source": "/emr/lungs/new-patient",
+      "destination": "/emr/lungs/new-patient.html"
+    },
+    {
+      "source": "/emr/lungs/prescription",
+      "destination": "/emr/lungs/prescription.html"
+    },
+    {
+      "source": "/emr/lungs/preview",
+      "destination": "/emr/lungs/preview.html"
+    },
+    {
+      "source": "/emr/lungs/pending-approvals",
+      "destination": "/emr/lungs/pending-approvals.html"
+    },
+    {
+      "source": "/emr/lungs/reception-qr",
+      "destination": "/emr/lungs/reception-qr.html"
+    },
+    {
+      "source": "/emr/lungs/settings",
+      "destination": "/emr/lungs/settings.html"
+    },
+    {
+      "source": "/emr/lungs/password",
+      "destination": "/emr/lungs/password.html"
+    },
+    {
+      "source": "/emr/lungs/download",
+      "destination": "/emr/lungs/download.html"
+    },
+    {
+      "source": "/emr/lungs/intake",
+      "destination": "/emr/lungs/intake.html"
+    },
+    {
+      "source": "/emr/lungs/rx",
+      "destination": "/emr/lungs/rx.html"
+    },
+    {
+      "source": "/emr/lungs/pdf-viewer",
+      "destination": "/emr/lungs/pdf-viewer.html"
+    },
+    {
       "source": "/emr/ab-labs",
       "destination": "/emr/ab-labs/index.html"
     }
