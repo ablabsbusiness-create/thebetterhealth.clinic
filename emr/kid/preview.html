@@ -2049,18 +2049,30 @@
       };
     }
 
+    function formatMedicineName(medicine, detail = {}, importedName = '') {
+      const brandName = detail.name || detail.displayName || importedName || medicine;
+      const type = String(detail.type || '').trim();
+      const composition = String(detail.composition || '').trim();
+      const lowerBrand = String(brandName || '').toLowerCase();
+      const lowerType = type.toLowerCase();
+      const nameWithType = type && !lowerBrand.startsWith(`${lowerType} `)
+        ? `${type} ${brandName}`
+        : brandName;
+
+      return composition ? `${nameWithType} (${composition})` : nameWithType;
+    }
+
     function getMedicineRows(draft) {
       const medicines = draft?.sections?.Medication || draft?.sections?.Medicens || [];
       const details = draft?.medicineDetails || {};
       return medicines.map((medicine) => {
         const detail = details[medicine] || {};
         const importedDose = splitImportedMedicineDose(medicine);
-        const medicineName = detail.name || detail.displayName || importedDose.name || medicine;
+        const medicineName = formatMedicineName(medicine, detail, importedDose.name);
         return {
           medicine,
           medicineName,
           medicineType: detail.type || '',
-          composition: detail.composition || '',
           dose: detail.dose || detail.doseChip || importedDose.dose || '',
           timing: Array.isArray(detail.timings) ? detail.timings.join(', ') : '',
           food: detail.food || '',
@@ -2093,7 +2105,6 @@
                 <td><strong>${index + 1}</strong></td>
                 <td class="medicine-name">
                   ${escapeHtml(row.medicineName || row.medicine)}
-                  ${row.composition ? `<span class="medicine-composition">(${escapeHtml(row.composition)})</span>` : ''}
                   ${row.note || row.food ? `<span class="medicine-sub">${escapeHtml(row.note || row.food)}</span>` : ''}
                 </td>
                 <td><strong>${escapeHtml(row.dose || '-')}</strong></td>

@@ -1492,7 +1492,7 @@
 
           <article class="rx-card" data-section-name="Instruction">
             <div class="rx-card-head">
-              <h2>Instruction</h2>
+              <h2>Instructions</h2>
               <p></p>
             </div>
             <div class="search-row" data-search-section="instruction">
@@ -1554,8 +1554,8 @@
           </div>
           <div class="add-medicine-body">
             <label class="add-medicine-field" for="add-medicine-name">
-              <span>Medicine Name</span>
-              <input id="add-medicine-name" name="name" type="text" autocomplete="off" placeholder="Enter medicine name">
+              <span>Brand Name</span>
+              <input id="add-medicine-name" name="name" type="text" autocomplete="off" placeholder="Enter brand name">
             </label>
             <label class="add-medicine-field" for="add-medicine-type">
               <span>Medicine Type</span>
@@ -1573,12 +1573,16 @@
                 <option value="Other">Other</option>
               </select>
             </label>
+            <label class="add-medicine-field is-full" for="add-medicine-strength">
+              <span>Medicine Strength (mg / ml)</span>
+              <input id="add-medicine-strength" name="strength" type="text" autocomplete="off" placeholder="e.g. 125 mg / 5 ml">
+            </label>
             <label class="add-medicine-field is-full" for="add-medicine-composition">
               <span>Medicine Composition</span>
-              <input id="add-medicine-composition" name="composition" type="text" autocomplete="off" placeholder="Enter composition">
+              <input id="add-medicine-composition" name="composition" type="text" autocomplete="off" placeholder="Enter composition" required>
             </label>
           </div>
-          <p id="add-medicine-error" class="add-medicine-error" role="alert">Medicine name is required.</p>
+          <p id="add-medicine-error" class="add-medicine-error" role="alert">Brand name is required.</p>
         </form>
       </aside>
     </div>
@@ -1626,6 +1630,7 @@
     const addMedicineBack = document.getElementById('add-medicine-back');
     const addMedicineName = document.getElementById('add-medicine-name');
     const addMedicineType = document.getElementById('add-medicine-type');
+    const addMedicineStrength = document.getElementById('add-medicine-strength');
     const addMedicineComposition = document.getElementById('add-medicine-composition');
     const addMedicineError = document.getElementById('add-medicine-error');
     const continuePreviewBtn = document.getElementById('continue-preview-btn');
@@ -1907,6 +1912,7 @@
         name,
         displayName,
         type: meta.type || '',
+        strength: meta.strength || '',
         composition: meta.composition || '',
         updatedAtIso: meta.updatedAtIso || new Date().toISOString()
       });
@@ -1923,6 +1929,19 @@
 
     function getMedicineMeta(medicine) {
       return medicineCatalog.get(medicine) || null;
+    }
+
+    function formatMedicineLabel(medicine, detail = {}) {
+      const brandName = detail.name || detail.displayName || medicine;
+      const type = String(detail.type || '').trim();
+      const composition = String(detail.composition || '').trim();
+      const lowerBrand = String(brandName || '').toLowerCase();
+      const lowerType = type.toLowerCase();
+      const nameWithType = type && !lowerBrand.startsWith(`${lowerType} `)
+        ? `${type} ${brandName}`
+        : brandName;
+
+      return composition ? `${nameWithType} (${composition})` : nameWithType;
     }
 
     function hydrateMedicineMeta(medicine) {
@@ -1955,6 +1974,7 @@
           name: medicineMeta.name || value,
           displayName: value,
           type: medicineMeta.type || '',
+          strength: medicineMeta.strength || '',
           composition: medicineMeta.composition || '',
           updatedAtIso: new Date().toISOString()
         };
@@ -1983,6 +2003,10 @@
     }
 
     function formatSelectedItemLabel(sectionName, value) {
+      if (sectionName === 'Medication') {
+        return formatMedicineLabel(value, getMedicineDetail(value));
+      }
+
       if (sectionName !== 'Symptoms') {
         return value;
       }
@@ -2165,9 +2189,11 @@
       event.preventDefault();
       const name = toTitleCase(addMedicineName.value);
       const type = addMedicineType.value.trim();
+      const strength = addMedicineStrength.value.trim();
+      const composition = addMedicineComposition.value.trim();
 
       if (!name) {
-        showAddMedicineError('Medicine name is required.');
+        showAddMedicineError('Brand name is required.');
         addMedicineName.focus();
         return;
       }
@@ -2178,14 +2204,23 @@
         return;
       }
 
+      if (!composition) {
+        showAddMedicineError('Medicine composition is required.');
+        addMedicineComposition.focus();
+        return;
+      }
+
       closeAddMedicineModal({
         name,
         displayName: buildMedicineDisplayName({ name, type }),
         type,
-        composition: addMedicineComposition.value.trim()
+        strength,
+        composition
       });
     });
     addMedicineName.addEventListener('input', clearAddMedicineError);
+    addMedicineStrength.addEventListener('input', clearAddMedicineError);
+    addMedicineComposition.addEventListener('input', clearAddMedicineError);
     addMedicineType.addEventListener('change', clearAddMedicineError);
     selectionDetailContent.addEventListener('input', syncSelectionDetailsFromDom);
     selectionDetailContent.addEventListener('change', syncSelectionDetailsFromDom);
@@ -2473,6 +2508,7 @@
           name: '',
           displayName: medicine,
           type: '',
+          strength: '',
           composition: '',
           dose: '',
           doseChip: '',
@@ -2503,6 +2539,7 @@
             name: detail.name || '',
             displayName: detail.displayName || medicine,
             type: detail.type || '',
+            strength: detail.strength || '',
             composition: detail.composition || '',
             dose: detail.dose || '',
             doseChip: detail.doseChip || '',
@@ -2595,6 +2632,7 @@
         name: meta.name || detail.name || '',
         displayName: meta.displayName || detail.displayName || medicine,
         type: meta.type || detail.type || '',
+        strength: meta.strength || detail.strength || '',
         composition: meta.composition || detail.composition || '',
         savedAt: Date.now()
       });
@@ -2905,7 +2943,7 @@
 
       const detail = getMedicineDetail(activeMedicine);
       const titleName = detail.name || detail.displayName || activeMedicine;
-      const subtitleText = detail.composition || detail.type || '';
+      const subtitleText = [detail.strength, detail.composition || detail.type].filter(Boolean).join(' | ');
       medicineModalTitle.textContent = titleName;
       if (medicineModalSubtitle) {
         medicineModalSubtitle.textContent = subtitleText;
@@ -2928,6 +2966,7 @@
           ${medicineName || detail.type || detail.composition ? `
             <div class="medicine-meta-strip">
               ${medicineName ? `<span>Name: ${escapeHtml(medicineName)}</span>` : ''}
+              ${detail.strength ? `<span>Strength: ${escapeHtml(detail.strength)}</span>` : ''}
               ${detail.composition ? `<span>Composition: ${escapeHtml(detail.composition)}</span>` : ''}
               ${detail.type ? `<span>Type: ${escapeHtml(detail.type)}</span>` : ''}
             </div>
@@ -3241,6 +3280,7 @@
                   name: medicineMeta.name || normalizedValue,
                   displayName: normalizedValue,
                   type: medicineMeta.type || '',
+                  strength: medicineMeta.strength || '',
                   composition: medicineMeta.composition || '',
                   updatedAtIso: new Date().toISOString()
                 }
