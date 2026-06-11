@@ -3100,7 +3100,15 @@
     }
 
     function setPatientHint(message) {
-      chartPreviewStatus.textContent = message;
+      if (chartPreviewStatus) {
+        chartPreviewStatus.textContent = message;
+        return;
+      }
+
+      if (message && statusNote) {
+        statusNote.textContent = message;
+        statusNote.classList.add('visible');
+      }
     }
 
     function getPatientDetailsEditUrl(patientId) {
@@ -5385,8 +5393,9 @@
       }
 
       if (!patientIdInput.value.trim() || !childNameInput.value.trim() || !form.elements.gender.value || !dobInput.value) {
-        setPatientHint('Select a patient from search before generating charts.');
-        statusNote.textContent = 'Patient details are missing. Open this page from search and choose a saved patient first.';
+        const missingDetailsMessage = 'Add child name, DOB, and gender before generating charts.';
+        setPatientHint(missingDetailsMessage);
+        statusNote.textContent = missingDetailsMessage;
         statusNote.classList.add('visible');
         return;
       }
