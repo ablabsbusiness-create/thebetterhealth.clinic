@@ -4,6 +4,83 @@
   "outputDirectory": "vercel-dist",
   "cleanUrls": true,
   "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/emr",
+      "destination": "/emr/lungs",
+      "permanent": false
+    },
+    {
+      "source": "/emr/index",
+      "destination": "/emr/lungs/index",
+      "permanent": false
+    },
+    {
+      "source": "/emr/clinci",
+      "destination": "/emr/lungs/clinci",
+      "permanent": false
+    },
+    {
+      "source": "/emr/search",
+      "destination": "/emr/lungs/search",
+      "permanent": false
+    },
+    {
+      "source": "/emr/new-patient",
+      "destination": "/emr/lungs/new-patient",
+      "permanent": false
+    },
+    {
+      "source": "/emr/prescription",
+      "destination": "/emr/lungs/prescription",
+      "permanent": false
+    },
+    {
+      "source": "/emr/preview",
+      "destination": "/emr/lungs/preview",
+      "permanent": false
+    },
+    {
+      "source": "/emr/pending-approvals",
+      "destination": "/emr/lungs/pending-approvals",
+      "permanent": false
+    },
+    {
+      "source": "/emr/reception-qr",
+      "destination": "/emr/lungs/reception-qr",
+      "permanent": false
+    },
+    {
+      "source": "/emr/settings",
+      "destination": "/emr/lungs/settings",
+      "permanent": false
+    },
+    {
+      "source": "/emr/password",
+      "destination": "/emr/lungs/password",
+      "permanent": false
+    },
+    {
+      "source": "/emr/download",
+      "destination": "/emr/lungs/download",
+      "permanent": false
+    },
+    {
+      "source": "/emr/intake",
+      "destination": "/emr/lungs/intake",
+      "permanent": false
+    },
+    {
+      "source": "/emr/rx",
+      "destination": "/emr/lungs/rx",
+      "permanent": false
+    },
+    {
+      "source": "/emr/pdf-viewer",
+      "destination": "/emr/lungs/pdf-viewer",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/emr/kid",
