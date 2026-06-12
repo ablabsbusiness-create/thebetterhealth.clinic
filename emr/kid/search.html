@@ -2121,7 +2121,8 @@
     const IS_PATIENT_DETAILS_PAGE = window.location.pathname.includes('/patient-details');
     document.body.classList.toggle('patient-details-page', IS_PATIENT_DETAILS_PAGE);
     const MOBILE_DETAIL_QUERY = window.matchMedia('(max-width: 640px)');
-    let selectedPatientId = String(new URLSearchParams(window.location.search).get('patientId') || '').trim().toUpperCase();
+    const routePatientId = String(new URLSearchParams(window.location.search).get('patientId') || '').trim().toUpperCase();
+    let selectedPatientId = IS_PATIENT_DETAILS_PAGE ? routePatientId : '';
 
     function getPatientDetailsUrl(patientId) {
       return `/emr/kid/patient-details?patientId=${encodeURIComponent(patientId || '')}`;
@@ -2336,7 +2337,7 @@
 
       return {
         patients: Array.isArray(cache.patients) ? cache.patients : [],
-        selectedPatientId: String(cache.selectedPatientId || '').trim().toUpperCase()
+        selectedPatientId: IS_PATIENT_DETAILS_PAGE ? String(cache.selectedPatientId || '').trim().toUpperCase() : ''
       };
     }
 
@@ -2367,7 +2368,7 @@
       try {
         localStorage.setItem(LOCAL_SEARCH_CACHE_KEY, JSON.stringify({
           savedAt: Date.now(),
-          selectedPatientId,
+          selectedPatientId: IS_PATIENT_DETAILS_PAGE ? selectedPatientId : '',
           patients: getCacheablePatients()
         }));
       } catch (error) {
@@ -2382,7 +2383,9 @@
         return false;
       }
 
-      selectedPatientId = cache.selectedPatientId || selectedPatientId;
+      if (IS_PATIENT_DETAILS_PAGE) {
+        selectedPatientId = cache.selectedPatientId || selectedPatientId;
+      }
       allPatients = withTestPastChartsPatient(cache.patients)
         .filter((patient) => patient.status !== 'pending' && patient.status !== 'rejected')
         .map(preparePatientForSearch)

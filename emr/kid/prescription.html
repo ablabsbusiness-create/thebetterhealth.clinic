@@ -366,9 +366,12 @@
     }
 
     .section-row.has-detail-slot {
-      grid-template-columns: minmax(0, 1fr) minmax(340px, 430px);
       position: relative;
       align-items: stretch;
+    }
+
+    .section-row.has-detail-slot.is-detail-open {
+      grid-template-columns: minmax(0, 1fr) minmax(340px, 430px);
     }
 
     .section-detail-slot {
@@ -1110,6 +1113,23 @@
       box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.1);
     }
 
+    .detail-input {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 14px;
+      border: 1px solid #dbe5f5;
+      border-radius: 14px;
+      background: #fbfdff;
+      color: var(--ink);
+      font: inherit;
+      outline: none;
+    }
+
+    .detail-input:focus {
+      border-color: rgba(22, 101, 52, 0.45);
+      box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.1);
+    }
+
     .note-area {
       display: grid;
       gap: 8px;
@@ -1292,7 +1312,8 @@
         padding: 0;
       }
 
-      .section-row.has-detail-slot {
+      .section-row.has-detail-slot,
+      .section-row.has-detail-slot.is-detail-open {
         grid-template-columns: 1fr;
       }
 
@@ -1644,7 +1665,8 @@
     const medicineCatalog = new Map();
     const sectionItemDetails = {
       Symptoms: new Map(),
-      Finding: new Map()
+      Finding: new Map(),
+      Diagnosis: new Map()
     };
     const prescriptionSelections = {};
     let activeMedicine = '';
@@ -1652,10 +1674,11 @@
     let lastAddMedicineTrigger = null;
     let pendingAddMedicineResolve = null;
     const sectionDetailSlots = new Map();
-    const DETAIL_SECTIONS = new Set(['Symptoms', 'Finding', 'Medication']);
+    const DETAIL_SECTIONS = new Set(['Symptoms', 'Finding', 'Diagnosis', 'Medication']);
     const MEDICINE_DETAIL_STORAGE_KEY = clinicStorageKey('prescriptionMedicineDetails');
     const CUSTOM_TEMPLATE_STORAGE_KEY = clinicStorageKey('prescriptionCustomTemplates');
     const PRESCRIPTION_TEMPLATE_CACHE_KEY = clinicStorageKey('prescriptionCloudTemplates');
+    const PRESCRIPTION_USAGE_STORAGE_KEY = clinicStorageKey('prescriptionUsageCounts');
     const PRESCRIPTION_DRAFT_STORAGE_KEY = clinicStorageKey('prescriptionDraft');
     const MEDICINE_DETAIL_TTL_MS = 10 * 60 * 1000;
     const PRESCRIPTION_TEMPLATE_CACHE_TTL_MS = 15 * 60 * 1000;
@@ -1738,6 +1761,10 @@
         return 'Select a finding and its note box will appear here.';
       }
 
+      if (sectionName === 'Diagnosis') {
+        return 'Select a diagnosis and its note box will appear here.';
+      }
+
       return 'Extra details for this section will appear here.';
     }
 
@@ -1768,7 +1795,6 @@
         if (DETAIL_SECTIONS.has(sectionName)) {
           row.classList.add('has-detail-slot');
           const slot = createSectionDetailSlot(sectionName, sectionLabel);
-          slot.classList.add('is-ready');
           sectionDetailSlots.set(sectionName, slot);
           row.appendChild(slot);
         }
@@ -1784,10 +1810,13 @@
       sectionDetailSlots.forEach((slot, name) => {
         const placeholder = slot.querySelector('.section-side-placeholder');
         const isTarget = name === sectionName;
-        slot.classList.toggle('is-ready', DETAIL_SECTIONS.has(name));
+        const row = slot.closest('.section-row');
+        const shouldOpen = isTarget && Boolean(activePanel);
+        slot.classList.toggle('is-ready', shouldOpen);
+        row?.classList.toggle('is-detail-open', shouldOpen);
 
         if (placeholder) {
-          placeholder.hidden = isTarget && Boolean(activePanel);
+          placeholder.hidden = true;
         }
 
         if (!isTarget) {
@@ -1899,10 +1928,20 @@
     function orderSectionItems(sectionName, items = []) {
       const commonItems = prescriptionTemplates[sectionName] || [];
       const commonRank = new Map(commonItems.map((item, index) => [String(item).toLowerCase(), index]));
+      const usageCounts = loadPrescriptionUsageCounts()[sectionName] || {};
 
       return [...items].sort((left, right) => {
-        const leftRank = commonRank.has(String(left).toLowerCase()) ? commonRank.get(String(left).toLowerCase()) : Number.MAX_SAFE_INTEGER;
-        const rightRank = commonRank.has(String(right).toLowerCase()) ? commonRank.get(String(right).toLowerCase()) : Number.MAX_SAFE_INTEGER;
+        const leftKey = String(left).toLowerCase();
+        const rightKey = String(right).toLowerCase();
+        const leftCount = Number(usageCounts[leftKey] || 0);
+        const rightCount = Number(usageCounts[rightKey] || 0);
+
+        if (leftCount !== rightCount) {
+          return rightCount - leftCount;
+        }
+
+        const leftRank = commonRank.has(leftKey) ? commonRank.get(leftKey) : Number.MAX_SAFE_INTEGER;
+        const rightRank = commonRank.has(rightKey) ? commonRank.get(rightKey) : Number.MAX_SAFE_INTEGER;
 
         if (leftRank !== rightRank) {
           return leftRank - rightRank;
@@ -1910,6 +1949,32 @@
 
         return left.localeCompare(right);
       });
+    }
+
+    function loadPrescriptionUsageCounts() {
+      const saved = readLocalJson(PRESCRIPTION_USAGE_STORAGE_KEY, {});
+      return saved && typeof saved === 'object' ? saved : {};
+    }
+
+    function savePrescriptionUsageCounts(payload) {
+      try {
+        localStorage.setItem(PRESCRIPTION_USAGE_STORAGE_KEY, JSON.stringify(payload));
+      } catch (error) {
+        console.warn(`Unable to save prescription usage counts: ${error.message}`);
+      }
+    }
+
+    function recordPrescriptionUsage(sectionName, value) {
+      const normalizedValue = String(value || '').trim();
+      if (!sectionName || !normalizedValue) {
+        return;
+      }
+
+      const saved = loadPrescriptionUsageCounts();
+      saved[sectionName] = saved[sectionName] || {};
+      const key = normalizedValue.toLowerCase();
+      saved[sectionName][key] = Number(saved[sectionName][key] || 0) + 1;
+      savePrescriptionUsageCounts(saved);
     }
 
     function loadCustomTemplates() {
@@ -2011,9 +2076,13 @@
       }
 
       if (!sectionItemDetails[sectionName].has(value)) {
-        sectionItemDetails[sectionName].set(value, sectionName === 'Symptoms'
+        const initialDetail = sectionName === 'Symptoms'
           ? { days: '', severity: '', note: '' }
-          : { note: '' });
+          : { note: '' };
+        if (sectionName === 'Diagnosis') {
+          initialDetail.status = '';
+        }
+        sectionItemDetails[sectionName].set(value, initialDetail);
       }
 
       return sectionItemDetails[sectionName].get(value);
@@ -2070,11 +2139,16 @@
       const detail = getSectionItemDetail(sectionName, value);
       const daysInput = selectionDetailContent.querySelector('[data-field="days"]');
       const severityInput = selectionDetailContent.querySelector('[data-field="severity"]:checked');
+      const diagnosisStatusInput = selectionDetailContent.querySelector('[data-field="diagnosis-status"]');
       const noteInput = selectionDetailContent.querySelector('[data-field="note"]');
 
       if (sectionName === 'Symptoms') {
         detail.days = daysInput?.value.trim() || '';
         detail.severity = severityInput?.value || '';
+      }
+
+      if (sectionName === 'Diagnosis') {
+        detail.status = diagnosisStatusInput?.value || '';
       }
 
       detail.note = noteInput?.value.trim() || '';
@@ -2121,7 +2195,7 @@
         });
       }
 
-      selectionDetailContent.querySelectorAll('[data-field="severity"], [data-field="note"]').forEach((element) => {
+      selectionDetailContent.querySelectorAll('[data-field="severity"], [data-field="diagnosis-status"], [data-field="note"]').forEach((element) => {
         element.addEventListener('input', syncSelectionDetailsFromDom);
         element.addEventListener('change', syncSelectionDetailsFromDom);
       });
@@ -2137,7 +2211,7 @@
       };
 
       const detail = getSectionItemDetail(sectionName, value);
-      selectionDetailTitle.textContent = sectionName === 'Symptoms' ? 'Symptom Details' : 'Finding Notes';
+      selectionDetailTitle.textContent = sectionName === 'Symptoms' ? 'Symptom Details' : `${sectionName} Notes`;
       selectionDetailSubtitle.textContent = value;
       selectionDetailContent.className = 'medicine-detail-content';
       selectionDetailContent.innerHTML = sectionName === 'Symptoms'
@@ -2180,6 +2254,20 @@
         `
         : `
           <div class="medicine-detail-card">
+            ${sectionName === 'Diagnosis' ? `
+              <div class="medicine-question">
+                <div class="question-bar">
+                  <span>Status</span>
+                  <span>Optional</span>
+                </div>
+                <select class="detail-input" data-field="diagnosis-status">
+                  <option value="">Select status</option>
+                  ${['Suspected', 'Recovering', 'Recovered', 'Under evaluation'].map((option) => `
+                    <option value="${option}" ${selectedAttr(detail.status === option)}>${option}</option>
+                  `).join('')}
+                </select>
+              </div>
+            ` : ''}
             <div class="note-area">
               <div class="question-bar">
                 <span>Notes</span>
@@ -3189,6 +3277,8 @@
       }
 
       function toggleValue(value, shouldSelect, trigger = document.activeElement) {
+        const isNewSelection = shouldSelect && !selectedValues.has(value);
+
         getBubbleButtons().forEach((button) => {
           if (button.textContent.trim() === value) {
             button.classList.toggle('is-selected', shouldSelect);
@@ -3204,6 +3294,12 @@
         renderSelectedItems(selectedList, [...selectedValues], sectionName);
         savePrescriptionDraft();
         const modalTrigger = clearSearchAfterSelection(shouldSelect, trigger);
+
+        if (isNewSelection) {
+          recordPrescriptionUsage(sectionName, value);
+          allItems = orderSectionItems(sectionName, allItems);
+          applySearchFilter();
+        }
 
         if (sectionName === 'Medication') {
           if (shouldSelect) {
@@ -3226,12 +3322,12 @@
           return;
         }
 
-        if ((sectionName === 'Symptoms' || sectionName === 'Finding') && shouldSelect) {
+        if ((sectionName === 'Symptoms' || sectionName === 'Finding' || sectionName === 'Diagnosis') && shouldSelect) {
           getSectionItemDetail(sectionName, value);
           openSelectionDetailModal(sectionName, value, modalTrigger);
         }
 
-        if ((sectionName === 'Symptoms' || sectionName === 'Finding') && !shouldSelect && sectionItemDetails[sectionName]) {
+        if ((sectionName === 'Symptoms' || sectionName === 'Finding' || sectionName === 'Diagnosis') && !shouldSelect && sectionItemDetails[sectionName]) {
           sectionItemDetails[sectionName].delete(value);
           saveSelectionDetailsToDraft();
         }
