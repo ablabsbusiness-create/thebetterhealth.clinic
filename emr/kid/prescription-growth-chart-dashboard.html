@@ -2381,7 +2381,7 @@
                         <th scope="row">
                           <div class="measurement-head-stack">
                             <div>
-                              <span class="measurement-label">Head c. (cm)</span>
+                              <span class="measurement-label">Head circumference (cm)</span>
                             </div>
                             <div class="metric-history-control">
                               <div class="metric-history-control-head">
@@ -2682,13 +2682,13 @@
     const IS_FILE_PROTOCOL = window.location.protocol === 'file:';
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
-      apiKey: firebaseEnv.VITE_FIREBASE_API_KEY || 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
-      authDomain: firebaseEnv.VITE_FIREBASE_AUTH_DOMAIN || 'clinci-dr-gunda.firebaseapp.com',
-      projectId: firebaseEnv.VITE_FIREBASE_PROJECT_ID || 'clinci-dr-gunda',
-      storageBucket: firebaseEnv.VITE_FIREBASE_STORAGE_BUCKET || 'clinci-dr-gunda.firebasestorage.app',
-      messagingSenderId: firebaseEnv.VITE_FIREBASE_MESSAGING_SENDER_ID || '1059959825609',
-      appId: firebaseEnv.VITE_FIREBASE_APP_ID || '1:1059959825609:web:8201599754706ac4661918',
-      measurementId: firebaseEnv.VITE_FIREBASE_MEASUREMENT_ID || 'G-4V5JMVW45E'
+      apiKey: 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
+      authDomain: 'clinci-dr-gunda.firebaseapp.com',
+      projectId: 'clinci-dr-gunda',
+      storageBucket: 'clinci-dr-gunda.firebasestorage.app',
+      messagingSenderId: '1059959825609',
+      appId: '1:1059959825609:web:8201599754706ac4661918',
+      measurementId: 'G-4V5JMVW45E'
     };
     const firebaseConfigured = !IS_FILE_PROTOCOL && Object.values(firebaseConfig).every(Boolean);
     const firebaseApp = firebaseConfigured ? initializeApp(firebaseConfig) : null;
@@ -3607,7 +3607,7 @@
       const rows = [
         { label: 'Weight', unit: 'kg', getValue: (entry) => formatMetricCellValue(entry.weight) },
         { label: 'Length/Height', unit: 'cm', getValue: (entry) => formatMetricCellValue(getMeasurementMetricValue(entry, 'height')) },
-        { label: 'Head c.', unit: 'cm', getValue: (entry) => formatMetricCellValue(getMeasurementMetricValue(entry, 'head')) },
+        { label: 'Head circumference', unit: 'cm', getValue: (entry) => formatMetricCellValue(getMeasurementMetricValue(entry, 'head')) },
         { label: 'Temp', unit: 'F', getValue: (entry) => formatMetricCellValue(entry.temp) },
         { label: 'Heart rate', unit: 'bpm', getValue: (entry) => formatMetricCellValue(entry.pulse) },
         { label: 'Respi rate', unit: 'cpm', getValue: (entry) => formatMetricCellValue(entry.respiratoryRate) },
@@ -3851,7 +3851,7 @@
     const RECORD_MODAL_METRICS = [
       { key: 'weight', shortLabel: 'Weight', unit: 'kg', type: 'Growth', label: 'Weight (kg)', placeholder: 'kg' },
       { key: 'height', shortLabel: 'Length/Height', unit: 'cm', type: 'Growth', label: 'Length/Height (cm)', placeholder: 'cm' },
-      { key: 'head', shortLabel: 'Head c.', unit: 'cm', type: 'Growth', label: 'Head c. (cm)', placeholder: 'cm' },
+      { key: 'head', shortLabel: 'Head circumference', unit: 'cm', type: 'Growth', label: 'Head circumference (cm)', placeholder: 'cm' },
       { key: 'temp', shortLabel: 'Temp', unit: 'F', type: 'Vitals', label: 'Temp (F.)', placeholder: 'F' },
       { key: 'pulse', shortLabel: 'Heart rate', unit: 'bpm', type: 'Vitals', label: 'Heart rate(bpm)', placeholder: 'bpm' },
       { key: 'respiratoryRate', shortLabel: 'Respi rate', unit: 'cpm', type: 'Vitals', label: 'Respi rate (cpm)', placeholder: 'ADD' },
@@ -4000,7 +4000,7 @@
                 <th scope="col">Date</th>
                 <th scope="col">Weight</th>
                 <th scope="col">Length/Height</th>
-                <th scope="col">Head c.</th>
+                <th scope="col">Head circumference</th>
                 <th scope="col">Temp</th>
                 <th scope="col">Heart rate</th>
                 <th scope="col">Respi rate</th>

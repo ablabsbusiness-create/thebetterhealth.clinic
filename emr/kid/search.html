@@ -2094,13 +2094,13 @@
 
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
-      apiKey: firebaseEnv.VITE_FIREBASE_API_KEY || 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
-      authDomain: firebaseEnv.VITE_FIREBASE_AUTH_DOMAIN || 'clinci-dr-gunda.firebaseapp.com',
-      projectId: firebaseEnv.VITE_FIREBASE_PROJECT_ID || 'clinci-dr-gunda',
-      storageBucket: firebaseEnv.VITE_FIREBASE_STORAGE_BUCKET || 'clinci-dr-gunda.firebasestorage.app',
-      messagingSenderId: firebaseEnv.VITE_FIREBASE_MESSAGING_SENDER_ID || '1059959825609',
-      appId: firebaseEnv.VITE_FIREBASE_APP_ID || '1:1059959825609:web:8201599754706ac4661918',
-      measurementId: firebaseEnv.VITE_FIREBASE_MEASUREMENT_ID || 'G-4V5JMVW45E'
+      apiKey: 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
+      authDomain: 'clinci-dr-gunda.firebaseapp.com',
+      projectId: 'clinci-dr-gunda',
+      storageBucket: 'clinci-dr-gunda.firebasestorage.app',
+      messagingSenderId: '1059959825609',
+      appId: '1:1059959825609:web:8201599754706ac4661918',
+      measurementId: 'G-4V5JMVW45E'
     };
 
     const firebaseConfigured = Object.values(firebaseConfig).every(Boolean);
@@ -3204,6 +3204,39 @@
         .some((key) => String(entry?.[key] || '').trim());
     }
 
+    function getMeasurementEntryTimestamp(entry) {
+      return entry?.measuredAt || entry?.createdAtIso || entry?.createdAt || entry?.savedAt || entry?.updatedAt || '';
+    }
+
+    function getMeasurementEntryDate(entry) {
+      return getIsoDatePart(getMeasurementEntryTimestamp(entry));
+    }
+
+    function buildVitalsDraftMeasurementEntry(patient) {
+      const draft = patient?.activeConsultVitalsDraft;
+      const values = draft?.values || {};
+      const entry = {
+        patientId: getNormalizedPatientId(patient?.patientId || draft?.patientId || ''),
+        measuredAt: draft?.measuredAt || draft?.savedAtIso || '',
+        createdAtIso: draft?.measuredAt || draft?.savedAtIso || '',
+        createdAtDisplay: 'Saved vitals draft',
+        source: 'active-consult-vitals-draft',
+        weight: values.weight || '',
+        height: values.height || '',
+        lengthHeight: values.height || '',
+        head: values.head || '',
+        headCircumference: values.head || '',
+        temp: values.temp || '',
+        pulse: values.pulse || '',
+        respiratoryRate: values.respiratoryRate || '',
+        spo2: values.spo2 || '',
+        systolic: values.systolic || '',
+        diastolic: values.diastolic || ''
+      };
+
+      return hasMeasurementValue(entry) ? entry : null;
+    }
+
     function buildImportedVitalEntry(rawValue, source = {}, patient = {}) {
       const rawText = String(rawValue || '').trim();
       if (!rawText) {
@@ -3292,6 +3325,10 @@
       }
 
       const entries = Array.isArray(patient.measurementHistory) ? [...patient.measurementHistory] : [];
+      const vitalsDraftEntry = buildVitalsDraftMeasurementEntry(patient);
+      if (vitalsDraftEntry) {
+        entries.push(vitalsDraftEntry);
+      }
       getImportedMeasurementEntries(patient).forEach((entry) => entries.push(entry));
       if (patient.lastMeasurementRecord && entries.length === 0) {
         entries.push(patient.lastMeasurementRecord);
@@ -3309,8 +3346,8 @@
         seenEntries.add(entryKey);
         return true;
       }).sort((a, b) => {
-        const aTime = Date.parse(a?.createdAtIso || '') || 0;
-        const bTime = Date.parse(b?.createdAtIso || '') || 0;
+        const aTime = Date.parse(getMeasurementEntryTimestamp(a)) || 0;
+        const bTime = Date.parse(getMeasurementEntryTimestamp(b)) || 0;
         return bTime - aTime;
       });
       Object.defineProperty(patient, '__measurementEntries', {
@@ -3349,7 +3386,7 @@
           entries.push(entry);
           byPatientId.set(patientId, entries);
 
-          const dateValue = getIsoDatePart(entry.createdAtIso);
+          const dateValue = getMeasurementEntryDate(entry);
           if (dateValue) {
             const dateKey = `${patientId}|${dateValue}`;
             const dateEntries = byPatientDate.get(dateKey) || [];
@@ -3520,7 +3557,7 @@
     }
 
     function getPatientVisitEntriesForDate(patient, dateValue) {
-      return getMeasurementEntries(patient).filter((entry) => getIsoDatePart(entry.createdAtIso) === dateValue);
+      return getMeasurementEntries(patient).filter((entry) => getMeasurementEntryDate(entry) === dateValue);
     }
 
     function getPatientAppointmentDates(patient) {
@@ -3599,7 +3636,7 @@
           ${entries.map((entry) => `
             <div class="measurement-item">
               <strong>${entry.createdAtDisplay || 'Saved measurement'}</strong>
-              <span>Wt ${entry.weight || '-'} kg &bull; Len/Ht ${entry.height || '-'} cm &bull; Head c. ${entry.head || '-'} cm</span>
+              <span>Wt ${entry.weight || '-'} kg &bull; Len/Ht ${entry.height || '-'} cm &bull; Head circumference ${entry.head || '-'} cm</span>
               <span>Temp ${entry.temp || '-'} F &bull; HR ${entry.pulse || '-'} bpm &bull; RR ${entry.respiratoryRate || '-'} cpm &bull; SpO2 ${entry.spo2 || '-'}% &bull; BP ${entry.systolic || '-'}/${entry.diastolic || '-'} mmHg</span>
               <span>Charts: ${Array.isArray(entry.charts) && entry.charts.length > 0 ? entry.charts.join(', ') : 'Not saved'}</span>
             </div>
@@ -3643,7 +3680,7 @@
           getValue: (entry) => formatMetricCellValue(entry.height)
         },
         {
-          label: 'Head c.',
+          label: 'Head circumference',
           unit: 'cm',
           key: 'head',
           placeholder: 'cm',
@@ -3773,7 +3810,7 @@
     }
 
     function createMeasurementEntryKey(entry) {
-      return String(entry?.createdAtIso || '').trim()
+      return String(getMeasurementEntryTimestamp(entry) || '').trim()
         || `${entry?.weight || ''}-${entry?.height || ''}-${entry?.head || ''}-${entry?.temp || ''}-${entry?.pulse || ''}-${entry?.respiratoryRate || ''}-${entry?.spo2 || ''}`;
     }
 
@@ -3932,7 +3969,7 @@
       const metrics = [
         ['Weight', entry.weight ? `${entry.weight} kg` : '-'],
         ['Length/Height', entry.height ? `${entry.height} cm` : '-'],
-        ['Head c.', entry.head ? `${entry.head} cm` : '-'],
+        ['Head circumference', entry.head ? `${entry.head} cm` : '-'],
         ['Temp', entry.temp ? `${entry.temp} F` : '-'],
         ['Heart rate', entry.pulse ? `${entry.pulse} bpm` : '-'],
         ['Respi rate', entry.respiratoryRate ? `${entry.respiratoryRate} cpm` : '-'],

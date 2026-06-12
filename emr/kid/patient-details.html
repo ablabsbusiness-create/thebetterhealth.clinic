@@ -2413,13 +2413,13 @@
 
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
-      apiKey: firebaseEnv.VITE_FIREBASE_API_KEY || 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
-      authDomain: firebaseEnv.VITE_FIREBASE_AUTH_DOMAIN || 'clinci-dr-gunda.firebaseapp.com',
-      projectId: firebaseEnv.VITE_FIREBASE_PROJECT_ID || 'clinci-dr-gunda',
-      storageBucket: firebaseEnv.VITE_FIREBASE_STORAGE_BUCKET || 'clinci-dr-gunda.firebasestorage.app',
-      messagingSenderId: firebaseEnv.VITE_FIREBASE_MESSAGING_SENDER_ID || '1059959825609',
-      appId: firebaseEnv.VITE_FIREBASE_APP_ID || '1:1059959825609:web:8201599754706ac4661918',
-      measurementId: firebaseEnv.VITE_FIREBASE_MEASUREMENT_ID || 'G-4V5JMVW45E'
+      apiKey: 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
+      authDomain: 'clinci-dr-gunda.firebaseapp.com',
+      projectId: 'clinci-dr-gunda',
+      storageBucket: 'clinci-dr-gunda.firebasestorage.app',
+      messagingSenderId: '1059959825609',
+      appId: '1:1059959825609:web:8201599754706ac4661918',
+      measurementId: 'G-4V5JMVW45E'
     };
 
     const firebaseConfigured = Object.values(firebaseConfig).every(Boolean);
@@ -3918,7 +3918,7 @@
           ${entries.map((entry) => `
             <div class="measurement-item">
               <strong>${entry.createdAtDisplay || 'Saved measurement'}</strong>
-              <span>Wt ${entry.weight || '-'} kg &bull; Len/Ht ${entry.height || '-'} cm &bull; Head c. ${entry.head || '-'} cm</span>
+              <span>Wt ${entry.weight || '-'} kg &bull; Len/Ht ${entry.height || '-'} cm &bull; Head circumference ${entry.head || '-'} cm</span>
               <span>Temp ${entry.temp || '-'} F &bull; HR ${entry.pulse || '-'} bpm &bull; RR ${entry.respiratoryRate || '-'} cpm &bull; SpO2 ${entry.spo2 || '-'}% &bull; BP ${entry.systolic || '-'}/${entry.diastolic || '-'} mmHg</span>
               <span>Charts: ${Array.isArray(entry.charts) && entry.charts.length > 0 ? entry.charts.join(', ') : 'Not saved'}</span>
             </div>
@@ -3964,7 +3964,7 @@
           getValue: (entry) => formatMetricCellValue(entry.height)
         },
         {
-          label: 'Head c.',
+          label: 'Head circumference',
           unit: 'cm',
           key: 'head',
           placeholder: 'cm',
@@ -4256,7 +4256,7 @@
       const metrics = [
         ['Weight', entry.weight ? `${entry.weight} kg` : '-'],
         ['Length/Height', entry.height ? `${entry.height} cm` : '-'],
-        ['Head c.', entry.head ? `${entry.head} cm` : '-'],
+        ['Head circumference', entry.head ? `${entry.head} cm` : '-'],
         ['Temp', entry.temp ? `${entry.temp} F` : '-'],
         ['Heart rate', entry.pulse ? `${entry.pulse} bpm` : '-'],
         ['Respi rate', entry.respiratoryRate ? `${entry.respiratoryRate} cpm` : '-'],
