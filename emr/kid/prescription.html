@@ -2097,17 +2097,20 @@
         return formatMedicineLabel(value, getMedicineDetail(value));
       }
 
-      if (sectionName !== 'Symptoms') {
+      if (sectionName !== 'Symptoms' && sectionName !== 'Diagnosis') {
         return value;
       }
 
       const detail = getSectionItemDetail(sectionName, value);
       const detailParts = [];
-      if (detail.days) {
+      if (sectionName === 'Symptoms' && detail.days) {
         detailParts.push(detail.days);
       }
-      if (detail.severity) {
+      if (sectionName === 'Symptoms' && detail.severity) {
         detailParts.push(detail.severity);
+      }
+      if (sectionName === 'Diagnosis' && detail.status) {
+        detailParts.push(detail.status);
       }
       if (detail.note) {
         detailParts.push(detail.note);
@@ -2211,7 +2214,11 @@
       };
 
       const detail = getSectionItemDetail(sectionName, value);
-      selectionDetailTitle.textContent = sectionName === 'Symptoms' ? 'Symptom Details' : `${sectionName} Notes`;
+      selectionDetailTitle.textContent = sectionName === 'Symptoms'
+        ? 'Symptom Details'
+        : sectionName === 'Diagnosis'
+          ? 'Diagnosis Details'
+          : `${sectionName} Notes`;
       selectionDetailSubtitle.textContent = value;
       selectionDetailContent.className = 'medicine-detail-content';
       selectionDetailContent.innerHTML = sectionName === 'Symptoms'
@@ -2270,10 +2277,10 @@
             ` : ''}
             <div class="note-area">
               <div class="question-bar">
-                <span>Notes</span>
+                <span>${sectionName === 'Diagnosis' ? 'Free text notes' : 'Notes'}</span>
                 <span>Optional</span>
               </div>
-              <textarea placeholder="Add note" data-field="note">${escapeHtml(detail.note || '')}</textarea>
+              <textarea placeholder="${sectionName === 'Diagnosis' ? 'Add diagnosis notes' : 'Add note'}" data-field="note">${escapeHtml(detail.note || '')}</textarea>
             </div>
           </div>
         `;
@@ -3449,7 +3456,17 @@
           return;
         }
 
-        toggleValue(selectedButton.dataset.selectedValue, false, selectedButton);
+        const selectedValue = selectedButton.dataset.selectedValue;
+        const clickedRemove = Boolean(event.target.closest('.selected-item-remove'));
+        const hasDetailPanel = sectionName === 'Symptoms' || sectionName === 'Finding' || sectionName === 'Diagnosis';
+
+        if (clickedRemove || !hasDetailPanel) {
+          toggleValue(selectedValue, false, selectedButton);
+          return;
+        }
+
+        getSectionItemDetail(sectionName, selectedValue);
+        openSelectionDetailModal(sectionName, selectedValue, selectedButton);
       });
 
       bubbleWrap.addEventListener('click', async (event) => {
