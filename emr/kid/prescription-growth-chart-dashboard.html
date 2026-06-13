@@ -330,6 +330,14 @@
       display: none;
     }
 
+    body.page-is-loading #dashboard-grid {
+      display: none;
+    }
+
+    body.page-is-loading #dashboard-skeleton {
+      display: grid;
+    }
+
     .dashboard-skeleton {
       display: grid;
       grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
@@ -2219,7 +2227,7 @@
   </style>
   <link rel="stylesheet" href="mobile-app.css" />
 </head>
-<body>
+<body class="page-is-loading">
   <header class="site-header">
     <div class="topbar">
       <div class="brand">
@@ -2258,7 +2266,7 @@
       </a>
     </section>
 
-    <div id="dashboard-skeleton" class="dashboard-skeleton" hidden aria-label="Loading patient growth chart data">
+    <div id="dashboard-skeleton" class="dashboard-skeleton" aria-label="Loading patient growth chart data">
       <section class="skeleton-card">
         <div class="skeleton-line" style="width: 120px; height: 18px;"></div>
         <div class="skeleton-line" style="width: 260px;"></div>
@@ -2709,6 +2717,9 @@
     const TEST_PAST_CHARTS_PATIENT_ID = 'TESTPAST001';
 
     function setDashboardLoading(isLoading) {
+      if (document.body) {
+        document.body.classList.toggle('page-is-loading', isLoading);
+      }
       if (dashboardSkeleton) {
         dashboardSkeleton.hidden = !isLoading;
       }
