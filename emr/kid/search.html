@@ -2664,7 +2664,129 @@
     }
 
     function getNormalizedPatientId(value) {
-      return String(value || '').trim().toUpperCase();
+      return String(value || '')
+        .trim()
+        .toUpperCase()
+        .replace(/#@#\d+$/i, '');
+    }
+
+    function normalizePatientPhone(value) {
+      const digits = String(value || '').replace(/\D/g, '');
+      if (!digits) {
+        return '';
+      }
+      return digits.length > 10 ? digits.slice(-10) : digits;
+    }
+
+    function isSyntheticPatientId(value) {
+      return /#@#\d+$/i.test(String(value || '').trim());
+    }
+
+    function mergeUniqueByJson(values) {
+      const seen = new Set();
+      const merged = [];
+      for (const value of values) {
+        const key = JSON.stringify(value);
+        if (seen.has(key)) {
+          continue;
+        }
+        seen.add(key);
+        merged.push(value);
+      }
+      return merged;
+    }
+
+    function scorePatientForSearchMerge(patient) {
+      const measurementHistoryCount = Array.isArray(patient?.measurementHistory) ? patient.measurementHistory.length : 0;
+      const historyBonus = patient?.lastMeasurementRecord ? 1 : 0;
+      const fieldCount = [
+        patient?.childName,
+        patient?.firstName,
+        patient?.middleName,
+        patient?.lastName,
+        patient?.parentName,
+        patient?.phone,
+        patient?.mobileNumber,
+        patient?.dob,
+        patient?.gender,
+        patient?.email,
+        patient?.bloodGroup,
+        patient?.abhaId,
+        patient?.tags
+      ].filter((value) => String(value || '').trim()).length;
+      const syntheticPenalty = isSyntheticPatientId(patient?.patientId) || isSyntheticPatientId(patient?.id) ? -5 : 0;
+
+      return (measurementHistoryCount * 100) + (historyBonus * 20) + fieldCount + syntheticPenalty;
+    }
+
+    function mergePatientRecordsForSearch(existing, incoming) {
+      if (!existing) {
+        return incoming;
+      }
+
+      if (!incoming) {
+        return existing;
+      }
+
+      const preferred = scorePatientForSearchMerge(incoming) > scorePatientForSearchMerge(existing)
+        ? incoming
+        : existing;
+      const merged = { ...preferred };
+
+      for (const source of [existing, incoming]) {
+        for (const [key, value] of Object.entries(source)) {
+          if (value === undefined || value === null || value === '') {
+            continue;
+          }
+          if (key === 'measurementHistory') {
+            continue;
+          }
+          if (merged[key] === undefined || merged[key] === null || merged[key] === '') {
+            merged[key] = value;
+          }
+        }
+      }
+
+      merged.measurementHistory = mergeUniqueByJson([
+        ...(Array.isArray(existing.measurementHistory) ? existing.measurementHistory : []),
+        ...(Array.isArray(incoming.measurementHistory) ? incoming.measurementHistory : [])
+      ]);
+      merged.lastMeasurementRecord = merged.lastMeasurementRecord || existing.lastMeasurementRecord || incoming.lastMeasurementRecord || null;
+
+      const existingId = getNormalizedPatientId(existing.patientId || existing.id || '');
+      const incomingId = getNormalizedPatientId(incoming.patientId || incoming.id || '');
+      const preferredId = !isSyntheticPatientId(existing.patientId || existing.id || '') && existingId
+        ? existingId
+        : (!isSyntheticPatientId(incoming.patientId || incoming.id || '') && incomingId
+          ? incomingId
+          : existingId || incomingId);
+
+      if (preferredId) {
+        merged.patientId = preferredId;
+        merged.id = preferredId;
+      }
+
+      return merged;
+    }
+
+    function getPatientIdentityKey(patient) {
+      const patientId = getNormalizedPatientId(patient?.patientId || patient?.id || '');
+      const displayName = normalizeSearchText(getPatientDisplayName(patient));
+      const phone = normalizePatientPhone(patient?.phone || patient?.mobileNumber || patient?.mobile || '');
+
+      if (patientId) {
+        return `uid:${patientId}`;
+      }
+      if (displayName && phone) {
+        return `namephone:${displayName}|${phone}`;
+      }
+      if (displayName) {
+        return `name:${displayName}`;
+      }
+      if (phone) {
+        return `phone:${phone}`;
+      }
+      return `doc:${normalizeSearchText(patient?.id || patient?.patientId || '')}`;
     }
 
     function isUsablePatientId(value) {
@@ -3463,7 +3585,7 @@
 
     function buildPatientsFromRecords(patientRecords, historyEntries = []) {
       const historyByPatientId = getHistoryEntriesByPatientId(historyEntries);
-      const mergedPatients = [];
+      const mergedPatientsByIdentity = new Map();
       const seenPatientIds = new Set();
 
       patientRecords.forEach((patient) => {
@@ -3486,11 +3608,17 @@
             }
           });
 
-        mergedPatients.push(preparePatientForSearch({
+        const preparedPatient = preparePatientForSearch({
           ...patient,
           measurementHistory: measurementEntries,
           lastMeasurementRecord: patient.lastMeasurementRecord || measurementEntries[0] || null
-        }));
+        });
+
+        const identityKey = getPatientIdentityKey(preparedPatient);
+        const existing = mergedPatientsByIdentity.get(identityKey);
+        mergedPatientsByIdentity.set(identityKey, existing
+          ? mergePatientRecordsForSearch(existing, preparedPatient)
+          : preparedPatient);
 
         if (isUsablePatientId(patientId)) {
           seenPatientIds.add(patientId);
@@ -3503,7 +3631,7 @@
         }
 
         const latest = entries[0] || {};
-        mergedPatients.push(preparePatientForSearch({
+        const preparedHistoryPatient = preparePatientForSearch({
           id: `history-${patientId}`,
           patientId: latest.patientId || patientId,
           childName: latest.childName || latest.patientName || '',
@@ -3517,10 +3645,18 @@
           measurementHistory: entries.filter(isMeasurementHistoryEntry),
           lastMeasurementRecord: entries.find(isMeasurementHistoryEntry) || null,
           fromHistoryOnly: true
-        }));
+        });
+
+        const identityKey = getPatientIdentityKey(preparedHistoryPatient);
+        const existing = mergedPatientsByIdentity.get(identityKey);
+        mergedPatientsByIdentity.set(identityKey, existing
+          ? mergePatientRecordsForSearch(existing, preparedHistoryPatient)
+          : preparedHistoryPatient);
       });
 
-      return withTestPastChartsPatient(mergedPatients).map(preparePatientForSearch).sort(sortByPatientName);
+      return withTestPastChartsPatient([...mergedPatientsByIdentity.values()])
+        .map(preparePatientForSearch)
+        .sort(sortByPatientName);
     }
 
     function getDateLabel(dateValue) {

@@ -198,8 +198,7 @@ function getPersonPhone(row) {
 }
 
 function getLookupPhone(row) {
-  const digits = getPersonPhone(row).replace(/\D/g, '');
-  return digits.length > 10 ? digits.slice(-10) : digits;
+  return getCanonicalPhone(getPersonPhone(row));
 }
 
 function personLookupKey(row) {
@@ -241,6 +240,15 @@ function resolvePatientId(row, patientIdLookup) {
   return { patientId: '', matchedFromMaster: false };
 }
 
+function generateFallbackPatientId(row) {
+  const seed = [
+    titleCase(row['Patient Name']),
+    getCanonicalPhone(row.Mobile || row['Patient Mobile'])
+  ].join('|');
+
+  return `CSV-${hashId(seed)}`;
+}
+
 function normalizeGender(value) {
   const normalized = clean(value).toLowerCase();
   if (normalized === 'm' || normalized === 'male') {
@@ -253,7 +261,16 @@ function normalizeGender(value) {
 }
 
 function normalizePhone(value) {
-  return clean(value).replace(/[\t\r\n ]+/g, '');
+  return getCanonicalPhone(value);
+}
+
+function getCanonicalPhone(value) {
+  const digits = clean(value).replace(/\D/g, '');
+  if (!digits) {
+    return '';
+  }
+
+  return digits.length > 10 ? digits.slice(-10) : digits;
 }
 
 function titleCase(value) {
@@ -537,13 +554,10 @@ function buildImportData() {
 
   for (const row of rows.patients) {
     const { patientId, matchedFromMaster } = resolvePatientId(row, patientIdLookup);
-    if (!patientId) {
-      skipped.push({ file: CSV_FILES.patients, reason: 'missing UHID and no unique master match', row });
-      continue;
-    }
+    const resolvedPatientId = patientId || generateFallbackPatientId(row);
 
-    ensurePatient(patients, patientId, {
-      legacyUhid: getUhid(row) || patientId,
+    ensurePatient(patients, resolvedPatientId, {
+      legacyUhid: getUhid(row) || resolvedPatientId,
       legacyUhidResolvedFromMaster: matchedFromMaster || undefined,
       childName: titleCase(row['Patient Name']),
       gender: normalizeGender(row.Gender),

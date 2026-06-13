@@ -440,6 +440,14 @@
       }
     }
 
+    function normalizePhone(value) {
+      const digits = String(value || '').replace(/\D/g, '');
+      if (!digits) {
+        return '';
+      }
+      return digits.length > 10 ? digits.slice(-10) : digits;
+    }
+
     function fillForm(record = {}) {
       form.elements.childName.value = record.childName || '';
       form.elements.parentName.value = record.parentName || '';
@@ -499,8 +507,8 @@
         patientId,
         childName: form.elements.childName.value.trim(),
         parentName: form.elements.parentName.value.trim(),
-        phone: form.elements.phone.value.trim(),
-        mobileNumber: form.elements.phone.value.trim(),
+        phone: normalizePhone(form.elements.phone.value),
+        mobileNumber: normalizePhone(form.elements.phone.value),
         dob: form.elements.dob.value,
         gender: form.elements.gender.value,
         email: form.elements.email.value.trim(),

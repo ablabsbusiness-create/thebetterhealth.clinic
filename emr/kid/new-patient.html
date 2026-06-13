@@ -815,6 +815,14 @@
       primaryNav.classList.toggle('is-open', !isOpen);
     }
 
+    function normalizePhone(value) {
+      const digits = String(value || '').replace(/\D/g, '');
+      if (!digits) {
+        return '';
+      }
+      return digits.length > 10 ? digits.slice(-10) : digits;
+    }
+
     function buildPatientId() {
       const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
       let suffix = '';
@@ -852,14 +860,15 @@
 
     async function savePatientToCloudRecords(patientId) {
       const normalizedDob = parseDobInput(dobDayInput.value, dobMonthInput.value, dobYearInput.value);
+      const normalizedPhone = normalizePhone(newPatientForm.elements.mobileNumber.value);
       const patientRecord = {
         patientId,
         childName: newPatientForm.elements.childName.value.trim(),
         parentName: newPatientForm.elements.parentName.value.trim(),
         gender: newPatientForm.elements.gender.value,
         dob: normalizedDob,
-        phone: newPatientForm.elements.mobileNumber.value.trim(),
-        mobileNumber: newPatientForm.elements.mobileNumber.value.trim(),
+        phone: normalizedPhone,
+        mobileNumber: normalizedPhone,
         email: newPatientForm.elements.email.value.trim(),
         bloodGroup: newPatientForm.elements.bloodGroup.value.trim(),
         createdAt: firebaseConfigured ? serverTimestamp() : new Date().toISOString()

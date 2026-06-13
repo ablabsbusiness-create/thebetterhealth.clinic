@@ -213,6 +213,15 @@
       }
       return `SX${suffix}`;
     }
+
+    function normalizePhone(value) {
+      const digits = String(value || '').replace(/\D/g, '');
+      if (!digits) {
+        return '';
+      }
+      return digits.length > 10 ? digits.slice(-10) : digits;
+    }
+
     async function buildUniquePatientId() {
       for (let attempts = 0; attempts < 20; attempts += 1) {
         const candidate = buildPatientId();
@@ -243,7 +252,8 @@
       submitBtn.disabled = true;
       submitBtn.textContent = 'Submitting...';
       setStatus('Sending your details to the clinic review queue...');
-      const payload = { childName: intakeForm.elements.childName.value.trim(), parentName: intakeForm.elements.parentName.value.trim(), gender: intakeForm.elements.gender.value, dob: normalizedDob, phone: intakeForm.elements.mobileNumber.value.trim(), mobileNumber: intakeForm.elements.mobileNumber.value.trim(), email: intakeForm.elements.email.value.trim(), bloodGroup: intakeForm.elements.bloodGroup.value.trim(), status: 'pending', decision: 'pending', submittedBy: 'qr-intake', submittedAt: serverTimestamp(), reviewedAt: null, reviewedBy: '', approvedPatientId: '', notes: '' };
+      const normalizedPhone = normalizePhone(intakeForm.elements.mobileNumber.value);
+      const payload = { childName: intakeForm.elements.childName.value.trim(), parentName: intakeForm.elements.parentName.value.trim(), gender: intakeForm.elements.gender.value, dob: normalizedDob, phone: normalizedPhone, mobileNumber: normalizedPhone, email: intakeForm.elements.email.value.trim(), bloodGroup: intakeForm.elements.bloodGroup.value.trim(), status: 'pending', decision: 'pending', submittedBy: 'qr-intake', submittedAt: serverTimestamp(), reviewedAt: null, reviewedBy: '', approvedPatientId: '', notes: '' };
       try {
         let queueId = '';
         try {
