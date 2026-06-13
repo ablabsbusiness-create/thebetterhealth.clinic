@@ -2597,6 +2597,15 @@
       return value && String(value).trim() ? value : fallback;
     }
 
+    function formatPhoneDisplay(value, fallback = 'Phone not saved') {
+      const digits = String(value || '').replace(/\D/g, '');
+      if (!digits) {
+        return fallback;
+      }
+
+      return digits.length >= 10 ? `+91 ${digits.slice(-10)}` : value;
+    }
+
     function getSavedParentName(patient) {
       const value = String(patient?.parentName || '').trim();
       return value && value.toLowerCase() !== 'parent not saved' ? value : '';
@@ -4423,7 +4432,7 @@
       const patientId = formatMissing(patient.patientId, 'ID not saved');
       const gender = formatMissing(patient.gender, 'Gender not saved');
       const dob = formatDateDisplay(patient.dob);
-      const phone = formatMissing(patient.phone, 'Phone not saved');
+      const phone = formatPhoneDisplay(patient.phone);
       const visits = getPatientVisitEntriesForDate(patient, dateValue);
       const prescriptions = getPrescriptionEntriesForDate(patientId, dateValue);
       const hasAppointment = patientHasAppointmentOnDate(patient, dateValue);
@@ -4476,7 +4485,7 @@
 
       resultsPanel.innerHTML = patients.map((patient) => {
         const childName = getPatientDisplayName(patient);
-        const phone = formatMissing(patient.phone, 'Phone not saved');
+        const phone = formatPhoneDisplay(patient.phone);
         const parentName = getSavedParentName(patient);
         const parentNameHtml = parentName ? `<small>${parentName}</small>` : '';
         const dob = formatDateDisplay(patient.dob);
@@ -4564,8 +4573,8 @@
         const selectedHistoryDate = historyDateFilters[selectedPatientIdValue] || '';
         const childName = getPatientDisplayName(selectedPatient);
         const parentName = getSavedParentName(selectedPatient);
-        const phone = formatMissing(selectedPatient.phone, 'Phone not saved');
-        const phoneHref = phone && phone !== 'Phone not saved' ? phone.replace(/[^\d+]/g, '') : '';
+        const phone = formatPhoneDisplay(selectedPatient.phone);
+        const phoneHref = phone && phone !== 'Phone not saved' ? String(selectedPatient.phone || '').replace(/\D/g, '') : '';
         const gender = formatMissing(selectedPatient.gender, 'Gender not saved');
         const dob = formatDateDisplay(selectedPatient.dob);
         const measurements = getMeasurementEntries(selectedPatient);
@@ -4649,7 +4658,7 @@
       const selectedHistoryDate = selectedPatientIdValue ? historyDateFilters[selectedPatientIdValue] || '' : '';
       const childName = selectedPatient ? getPatientDisplayName(selectedPatient) : 'Select a patient';
       const parentName = getSavedParentName(selectedPatient);
-      const phone = selectedPatient ? formatMissing(selectedPatient.phone, 'Phone not saved') : '';
+      const phone = selectedPatient ? formatPhoneDisplay(selectedPatient.phone) : '';
       const gender = selectedPatient ? formatMissing(selectedPatient.gender, 'Gender not saved') : '';
       const dob = selectedPatient ? formatDateDisplay(selectedPatient.dob) : '';
 

@@ -3249,6 +3249,15 @@
       return normalized ? `${normalized} ${unit}` : '-';
     }
 
+    function formatPhoneDisplay(value, fallback = 'Phone not saved') {
+      const digits = String(value || '').replace(/\D/g, '');
+      if (!digits) {
+        return fallback;
+      }
+
+      return digits.length >= 10 ? `+91 ${digits.slice(-10)}` : value;
+    }
+
     function updatePageMeta(patientRecord = null) {
       const metaPatientId = patientRecord?.patientId || patientIdInput.value.trim().toUpperCase();
       if (pageMetaLink) {
@@ -3269,7 +3278,7 @@
       const ageYearsLabel = Number.isFinite(ageYearsValue) ? ageYearsValue.toFixed(2) : '';
       pageMetaChild.textContent = `Child - ${patientRecord.childName || ''}`;
       pageMetaParent.textContent = `Age - ${ageYearsLabel}`;
-      pageMetaPhone.textContent = `Ph - ${patientRecord.phone || ''}`;
+      pageMetaPhone.textContent = `Ph - ${formatPhoneDisplay(patientRecord.phone, '')}`;
       pageMetaWeight.textContent = `Weight - ${formatPageMetaMetric(getLatestPatientMetric(patientRecord, 'weight'), 'kg')}`;
       pageMetaHeight.textContent = `Length/Height - ${formatPageMetaMetric(getLatestPatientMetric(patientRecord, 'height'), 'cm')}`;
       pageMetaHead.textContent = `Head - ${formatPageMetaMetric(getLatestPatientMetric(patientRecord, 'head'), 'cm')}`;

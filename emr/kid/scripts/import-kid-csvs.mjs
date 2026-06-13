@@ -27,6 +27,15 @@ const CSV_FILES = {
   drugs: 'Drugs.csv'
 };
 
+const CSV_FILE_CANDIDATES = {
+  patients: [CSV_FILES.patients],
+  appointments: [CSV_FILES.appointments],
+  vitals: [CSV_FILES.vitals],
+  symptoms: [CSV_FILES.symptoms],
+  diagnosis: ['Diagnosis (2).csv', 'Diagnosis (1).csv', CSV_FILES.diagnosis],
+  drugs: [CSV_FILES.drugs]
+};
+
 const args = parseArgs(process.argv.slice(2));
 const csvDir = path.resolve(args.csvDir || DEFAULT_CSV_DIR);
 const writeMode = Boolean(args.write);
@@ -110,6 +119,23 @@ function readCsvRows(fileName) {
   const filePath = path.join(csvDir, fileName);
   const text = fs.readFileSync(filePath, 'utf8').replace(/^\uFEFF/, '');
   return parseCsv(text);
+}
+
+function readCsvRowsFromCandidates(fileNames) {
+  const rows = [];
+  const usedFiles = [];
+
+  for (const fileName of fileNames) {
+    const filePath = path.join(csvDir, fileName);
+    if (!fs.existsSync(filePath)) {
+      continue;
+    }
+
+    rows.push(...readCsvRows(fileName));
+    usedFiles.push(fileName);
+  }
+
+  return { rows, usedFiles };
 }
 
 function parseCsv(text) {
@@ -533,7 +559,13 @@ function isJunkCatalogItem(value) {
 }
 
 function buildImportData() {
-  const rows = Object.fromEntries(Object.entries(CSV_FILES).map(([key, fileName]) => [key, readCsvRows(fileName)]));
+  const rows = {};
+  const sourceFiles = {};
+  for (const [key, fileNames] of Object.entries(CSV_FILE_CANDIDATES)) {
+    const result = readCsvRowsFromCandidates(fileNames);
+    rows[key] = result.rows;
+    sourceFiles[key] = result.usedFiles;
+  }
   const patientIdLookup = buildPatientIdLookup([
     ...rows.patients,
     ...rows.appointments,
@@ -773,11 +805,13 @@ function buildImportData() {
   historyInputRows += rows.symptoms.length + rows.diagnosis.length + rows.drugs.length
     - skipped.filter((entry) => [CSV_FILES.symptoms, CSV_FILES.diagnosis, CSV_FILES.drugs].includes(entry.file)).length;
 
-  return { rows, patients: [...patients.values()], historyDocs, catalog, skipped, historyInputRows };
+  return { rows, sourceFiles, patients: [...patients.values()], historyDocs, catalog, skipped, historyInputRows };
 }
 
-function summarize({ rows, patients, historyDocs, catalog, skipped, historyInputRows }) {
+function summarize({ rows, sourceFiles, patients, historyDocs, catalog, skipped, historyInputRows }) {
   const fileCounts = Object.entries(rows).map(([key, value]) => [CSV_FILES[key], value.length]);
+  const fileSources = Object.entries(sourceFiles)
+    .map(([key, value]) => [CSV_FILES[key], value.join(', ') || CSV_FILES[key]]);
   const duplicateGroups = Math.max(0, historyInputRows - historyDocs.length);
 
   console.log(`Kid EMR CSV import ${writeMode ? 'WRITE' : 'DRY RUN'}`);
@@ -786,7 +820,8 @@ function summarize({ rows, patients, historyDocs, catalog, skipped, historyInput
   console.log('');
   console.log('CSV row counts:');
   for (const [fileName, count] of fileCounts) {
-    console.log(`  ${fileName}: ${count}`);
+    const sourceLabel = fileSources.find(([name]) => name === fileName)?.[1] || fileName;
+    console.log(`  ${fileName} (${sourceLabel}): ${count}`);
   }
   console.log('');
   console.log(`Patients to merge: ${patients.length}`);
