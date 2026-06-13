@@ -1684,7 +1684,7 @@
     const PRESCRIPTION_TEMPLATE_CACHE_TTL_MS = 15 * 60 * 1000;
     const CHART_RECORD_STORAGE_KEY = clinicStorageKey('growthChartRecentRecords');
     const PRESCRIPTION_DRAFT_TTL_MS = 10 * 60 * 1000;
-    const VISIBLE_CHIP_LIMIT = 8;
+    const VISIBLE_CHIP_LIMIT = 18;
     const prescriptionTemplates = {
       Symptoms: ['Fever', 'Cold', 'Cough', 'Vomiting', 'Loose stools'],
       Finding: ['Throat congestion', 'Wheeze', 'Pallor', 'Dehydrated', 'Active child'],
@@ -1695,6 +1695,17 @@
       Medication: ['Paracetamol', 'Cetirizine', 'Ondansetron', 'Azithromycin', 'ORS'],
       Instruction: ['Plenty of fluids', 'Steam inhalation', 'Soft diet', 'Review if fever persists', 'Emergency visit if breathing worsens']
     };
+    const prescriptionFallbackTemplates = {
+      Symptoms: ['Abdominal pain', 'Sore throat', 'Headache', 'Body ache', 'Poor appetite', 'Nasal block', 'Running nose', 'Ear pain', 'Rash', 'Burning urine', 'Constipation', 'Accidental fall', 'Breathing difficulty', 'Crying excessively', 'Not sleeping well'],
+      'Past Medical History': ['Recurrent cough', 'Recurrent cold', 'Previous hospitalization', 'Known asthma', 'Known allergy', 'Recurrent abdominal pain', 'Recurrent UTI', 'Developmental delay', 'Birth history normal', 'No significant history', 'Vaccination delayed', 'Family history of allergy'],
+      Finding: ['Febrile', 'Afebrile', 'Chest clear', 'Crepitations', 'Abdomen soft', 'No organomegaly', 'Hydration fair', 'Oral ulcers', 'Tonsils enlarged', 'Ear normal', 'Skin rash present', 'Active and playful', 'Irritable child'],
+      Notes: ['Fever chart explained', 'Diet advice given', 'Danger signs explained', 'Hydration explained', 'Nebulization technique explained', 'Dose schedule explained', 'Follow up if symptoms worsen', 'School rest advised', 'Avoid cold drinks', 'Parent reassured'],
+      Diagnosis: ['Acute bronchitis', 'Acute gastritis', 'Tonsillitis', 'Pharyngitis', 'Bronchiolitis', 'Wheeze associated LRTI', 'Acute otitis media', 'UTI', 'Constipation', 'AGE', 'Dengue fever', 'Typhoid fever', 'Viral exanthem', 'Injury', 'Abrasion right leg'],
+      Investigation: ['CBC with smear', 'Malaria test', 'Widal test', 'LFT', 'RFT', 'Blood culture', 'Urine culture', 'Stool routine', 'Electrolytes', 'Random blood sugar', 'Throat swab', 'X-ray PNS', 'Ultrasound abdomen'],
+      Medication: ['Amoxicillin', 'Amoxicillin clavulanate', 'Cefixime', 'Levocetirizine', 'Montelukast', 'Salbutamol', 'Budesonide', 'Pantoprazole', 'Domperidone', 'Zinc', 'Probiotic', 'Vitamin D3', 'Multivitamin', 'Ibuprofen'],
+      Instruction: ['Complete medicine course', 'Tepid sponging if fever', 'Avoid oily food', 'Small frequent feeds', 'ORS after each loose stool', 'Saline nasal drops', 'Warm saline gargle', 'Avoid dust exposure', 'Monitor urine output', 'Return if breathing fast', 'Return if child is drowsy', 'Review with reports']
+    };
+    const fallbackTemplateRank = new Map();
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
       apiKey: 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
@@ -1925,9 +1936,19 @@
       return merged;
     }
 
+    function getFallbackRank(sectionName, value) {
+      const key = `${sectionName}::${String(value || '').trim().toLowerCase()}`;
+      if (!fallbackTemplateRank.has(key)) {
+        fallbackTemplateRank.set(key, Math.random());
+      }
+      return fallbackTemplateRank.get(key);
+    }
+
     function orderSectionItems(sectionName, items = []) {
       const commonItems = prescriptionTemplates[sectionName] || [];
       const commonRank = new Map(commonItems.map((item, index) => [String(item).toLowerCase(), index]));
+      const fallbackItems = prescriptionFallbackTemplates[sectionName] || [];
+      const fallbackSet = new Set(fallbackItems.map((item) => String(item).toLowerCase()));
       const usageCounts = loadPrescriptionUsageCounts()[sectionName] || {};
 
       return [...items].sort((left, right) => {
@@ -1945,6 +1966,15 @@
 
         if (leftRank !== rightRank) {
           return leftRank - rightRank;
+        }
+
+        const leftFallback = fallbackSet.has(leftKey);
+        const rightFallback = fallbackSet.has(rightKey);
+        if (leftFallback !== rightFallback) {
+          return leftFallback ? -1 : 1;
+        }
+        if (leftFallback && rightFallback) {
+          return getFallbackRank(sectionName, left) - getFallbackRank(sectionName, right);
         }
 
         return left.localeCompare(right);
@@ -2044,7 +2074,7 @@
 
       const merged = {};
       Object.entries(templates).forEach(([sectionName, items]) => {
-        merged[sectionName] = mergeUniqueItems(items, saved[sectionName] || []);
+        merged[sectionName] = mergeUniqueItems(items, saved[sectionName] || [], prescriptionFallbackTemplates[sectionName] || []);
       });
 
       return merged;
