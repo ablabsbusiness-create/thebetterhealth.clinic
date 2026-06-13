@@ -2999,7 +2999,8 @@
       return entry.type === 'prescription'
         || entry.source === 'prescription-pdf'
         || Boolean(getPrescriptionDownloadUrl(entry))
-        || Boolean(getPrescriptionPreviewImageUrl(entry));
+        || Boolean(getPrescriptionPreviewImageUrl(entry))
+        || Boolean(getPrescriptionStoragePath(entry));
     }
 
     function normalizePrescriptionEntry(entry, fallbackPatient = null, fallbackId = '') {
@@ -3022,7 +3023,7 @@
         ...entry,
         patientId: normalizedPatientId,
         type: isPrescriptionHistoryEntry(entry) ? 'prescription' : entry.type || '',
-        source: entry.source || (getPrescriptionDownloadUrl(entry) ? 'prescription-pdf' : ''),
+        source: entry.source || (getPrescriptionDownloadUrl(entry) || getPrescriptionStoragePath(entry) ? 'prescription-pdf' : ''),
         createdAtIso: entry.createdAtIso || entry.createdAt || entry.savedAt || entry.updatedAt || '',
         createdAtDisplay: entry.createdAtDisplay || entry.savedAtDisplay || entry.dateDisplay || ''
       };
@@ -4208,7 +4209,9 @@
               const embeddedPdfUrl = escapeHtml(getEmbeddedPrescriptionPreviewUrl(downloadUrl));
               const cardPreviewUrl = escapeHtml(previewImageUrl);
               const shouldEmbedPdf = Boolean(downloadUrl && shouldEmbedPrescriptionPdfPreview());
-              const hasResolvablePdf = Boolean(downloadUrl || getPrescriptionStoragePath(entry));
+              const storagePath = getPrescriptionStoragePath(entry);
+              const hasResolvablePdf = Boolean(downloadUrl || storagePath);
+              const waitingForStorageUrl = Boolean(!downloadUrl && storagePath);
 
               return `
                 <div class="prescription-preview-entry">
@@ -4231,9 +4234,11 @@
                               <div class="prescription-preview-placeholder">Loading prescription preview...</div>
                               <iframe class="prescription-preview-embed" data-preview-pdf-url="${embeddedPdfUrl}" title="Prescription PDF preview ${index + 1}" loading="eager" fetchpriority="high"></iframe>
                             `
-                            : hasResolvablePdf
-                              ? '<div class="prescription-preview-placeholder is-static">Prescription PDF</div>'
-                              : '<div class="prescription-preview-placeholder is-error">Prescription PDF could not be loaded for this record.</div>'}
+                            : waitingForStorageUrl
+                              ? '<div class="prescription-preview-placeholder is-static">Loading prescription PDF...</div>'
+                              : hasResolvablePdf
+                                ? '<div class="prescription-preview-placeholder is-static">Prescription PDF</div>'
+                                : '<div class="prescription-preview-placeholder is-error">Prescription PDF could not be loaded for this record.</div>'}
                         </div>
                       </div>
                       ${downloadUrl ? `<a class="prescription-preview-open-chip" href="${cardUrl}" target="_blank" rel="noopener noreferrer">Open</a>` : ''}

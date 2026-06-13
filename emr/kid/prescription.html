@@ -361,7 +361,7 @@
     .section-row {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 12px;
+      gap: 10px;
       align-items: start;
     }
 
@@ -371,15 +371,15 @@
     }
 
     .section-row.has-detail-slot.is-detail-open {
-      grid-template-columns: minmax(0, 1fr) minmax(340px, 430px);
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 390px);
     }
 
     .section-detail-slot {
       display: none;
-      gap: 10px;
+      gap: 8px;
       align-self: stretch;
       position: relative;
-      padding-left: 10px;
+      padding-left: 8px;
     }
 
     .section-detail-slot.is-ready {
@@ -394,8 +394,8 @@
     }
 
     .section-detail-slot::before {
-      top: 6px;
-      bottom: 6px;
+      top: 5px;
+      bottom: 5px;
       left: 0;
       width: 1px;
       background: linear-gradient(180deg, rgba(22, 101, 52, 0.06), rgba(34, 197, 94, 0.28), rgba(22, 101, 52, 0.06));
@@ -403,10 +403,10 @@
     }
 
     .section-detail-slot::after {
-      top: calc(50% - 4px);
-      left: -3px;
-      width: 7px;
-      height: 7px;
+      top: calc(50% - 3px);
+      left: -2px;
+      width: 6px;
+      height: 6px;
       border-radius: 999px;
       background: #dcfce7;
       border: 1px solid rgba(22, 101, 52, 0.18);
@@ -415,9 +415,9 @@
 
     .section-side-placeholder {
       display: grid;
-      gap: 8px;
-      padding: 14px;
-      border-radius: 16px;
+      gap: 6px;
+      padding: 12px;
+      border-radius: 14px;
       border: 1px solid rgba(215, 226, 217, 0.72);
       background: rgba(248, 252, 249, 0.88);
       box-shadow: none;
@@ -429,15 +429,15 @@
 
     .section-side-placeholder h3 {
       margin: 0;
-      font-size: 18px;
+      font-size: 16px;
       line-height: 1.2;
     }
 
     .section-side-placeholder p {
       margin: 0;
       color: var(--muted);
-      font-size: 13px;
-      line-height: 1.6;
+      font-size: 12px;
+      line-height: 1.45;
     }
 
     .page-action-row {
@@ -471,9 +471,9 @@
     .rx-card {
       display: grid;
       align-content: start;
-      gap: 12px;
-      padding: 14px;
-      border-radius: 16px;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 14px;
       border: 1px solid rgba(215, 226, 217, 0.68);
       background: rgba(255, 255, 255, 0.96);
       box-shadow: none;
@@ -485,7 +485,7 @@
 
     .rx-card-head h2 {
       margin: 0;
-      font-size: 18px;
+      font-size: 16px;
       line-height: 1.2;
     }
 
@@ -502,9 +502,9 @@
 
     .search-row input {
       width: 100%;
-      min-height: 42px;
-      padding: 0 12px;
-      border-radius: 12px;
+      min-height: 38px;
+      padding: 0 10px;
+      border-radius: 11px;
       border: 1px solid rgba(215, 226, 217, 0.88);
       background: #fff;
       color: var(--ink);
@@ -521,22 +521,22 @@
     .selected-list {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      min-height: 20px;
+      gap: 6px;
+      min-height: 18px;
     }
 
     .selected-item {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      min-height: 32px;
-      padding: 0 11px;
+      gap: 6px;
+      min-height: 28px;
+      padding: 0 10px;
       border: 0;
       border-radius: 999px;
       background: var(--brand-soft);
       color: var(--brand-strong);
       font: inherit;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
       cursor: pointer;
     }
@@ -545,11 +545,11 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 18px;
-      height: 18px;
+      width: 16px;
+      height: 16px;
       border-radius: 999px;
       background: rgba(20, 83, 45, 0.12);
-      font-size: 11px;
+      font-size: 10px;
       line-height: 1;
     }
 
@@ -565,7 +565,7 @@
     .bubble-wrap {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 6px;
     }
 
     .bubble-empty {
@@ -574,28 +574,28 @@
     }
 
     .add-option-btn {
-      min-height: 40px;
-      padding: 0 14px;
+      min-height: 36px;
+      padding: 0 12px;
       border: 1px dashed rgba(22, 101, 52, 0.35);
-      border-radius: 14px;
+      border-radius: 12px;
       background: rgba(220, 252, 231, 0.45);
       color: var(--brand-strong);
       font: inherit;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
       cursor: pointer;
       justify-self: start;
     }
 
     .bubble-btn {
-      min-height: 34px;
-      padding: 0 12px;
+      min-height: 30px;
+      padding: 0 10px;
       border: 1px solid rgba(215, 226, 217, 0.9);
       border-radius: 999px;
       background: #fff;
       color: var(--ink);
       font: inherit;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
       cursor: pointer;
       transition: border-color 0.18s ease, background 0.18s ease;
@@ -620,7 +620,7 @@
       align-content: start;
       gap: 0;
       padding: 0;
-      border-radius: 16px;
+      border-radius: 14px;
       border: 1px solid rgba(215, 226, 217, 0.72);
       background: rgba(255, 255, 255, 0.96);
       box-shadow: none;
@@ -644,7 +644,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 14px;
-      padding: 12px 14px;
+      padding: 10px 12px;
       border-bottom: 1px solid rgba(215, 226, 217, 0.82);
       background: rgba(248, 252, 249, 0.92);
       text-align: center;
@@ -658,14 +658,14 @@
 
     .medicine-modal-title-wrap h2 {
       margin: 0;
-      font-size: 17px;
+      font-size: 16px;
       line-height: 1.15;
     }
 
     .medicine-modal-title-wrap p {
       margin: 0;
       color: var(--muted);
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       line-height: 1.2;
     }
@@ -703,7 +703,7 @@
       grid-template-columns: 44px minmax(0, 1fr) auto;
       align-items: center;
       gap: 12px;
-      padding: 18px 24px;
+      padding: 14px 18px;
       border-bottom: 1px solid #edf2f7;
       background: #fff;
     }
@@ -711,7 +711,7 @@
     .add-medicine-head h2 {
       margin: 0;
       text-align: center;
-      font-size: 20px;
+      font-size: 18px;
       line-height: 1.2;
     }
 
@@ -736,13 +736,13 @@
     .add-medicine-body {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 18px 28px;
-      padding: 28px 34px 34px;
+      gap: 14px 20px;
+      padding: 22px 24px 26px;
     }
 
     .add-medicine-field {
       display: grid;
-      gap: 8px;
+      gap: 6px;
     }
 
     .add-medicine-field.is-full {
@@ -751,14 +751,14 @@
 
     .add-medicine-field span {
       color: #52606d;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
     }
 
     .add-medicine-field input,
     .add-medicine-field select {
       width: 100%;
-      min-height: 46px;
+      min-height: 40px;
       padding: 0 12px;
       border-radius: 4px;
       border: 1px solid #e5ebf2;
@@ -791,10 +791,10 @@
       grid-auto-flow: row;
       grid-auto-columns: unset;
       grid-template-columns: 1fr;
-      gap: 12px;
+      gap: 10px;
       overflow-x: auto;
       overflow-y: visible;
-      padding: 12px;
+      padding: 10px;
       scroll-snap-type: x proximity;
       scrollbar-width: thin;
       max-height: none;
@@ -802,20 +802,20 @@
 
     .medicine-detail-panel h2 {
       margin: 0;
-      font-size: 22px;
+      font-size: 19px;
       line-height: 1.1;
     }
 
     .medicine-detail-panel p {
       margin: 2px 0 0;
       color: var(--muted);
-      font-size: 13px;
+      font-size: 12px;
       line-height: 1.4;
     }
 
     .medicine-empty {
-      padding: 16px;
-      border-radius: 16px;
+      padding: 12px;
+      border-radius: 14px;
       background: #f8fbf9;
       border: 1px dashed var(--line);
       color: var(--muted);
@@ -827,9 +827,9 @@
       display: grid;
       width: 100%;
       min-width: 0;
-      gap: 10px;
-      padding: 12px;
-      border-radius: 14px;
+      gap: 8px;
+      padding: 10px;
+      border-radius: 12px;
       border: 1px solid rgba(215, 226, 217, 0.78);
       background: #ffffff;
       scroll-snap-align: start;
@@ -839,8 +839,8 @@
 
     .medicine-table-body {
       display: grid;
-      gap: 12px;
-      max-height: calc(98vh - 270px);
+      gap: 10px;
+      max-height: calc(98vh - 250px);
       overflow-y: auto;
       scrollbar-width: thin;
     }
@@ -848,18 +848,18 @@
     .medicine-meta-strip {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      padding: 12px 14px;
+      gap: 6px;
+      padding: 10px 12px;
       border: 1px solid #dbe7de;
-      border-radius: 16px;
+      border-radius: 14px;
       background: linear-gradient(180deg, #fbfdff, #f3f8ff);
       color: #475569;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
     }
 
     .medicine-meta-strip span {
-      padding: 4px 8px;
+      padding: 3px 7px;
       border-radius: 999px;
       background: #eef6ff;
     }
@@ -868,7 +868,7 @@
       display: grid;
       gap: 0;
       border: 1px solid #dbe5f5;
-      border-radius: 16px;
+      border-radius: 14px;
       overflow: hidden;
       background: #ffffff;
       box-shadow: 0 8px 18px rgba(22, 38, 29, 0.04);
@@ -878,11 +878,11 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      min-height: 40px;
-      padding: 8px 14px;
+      min-height: 36px;
+      padding: 7px 12px;
       background: #e7eefb;
       color: #1e3a5f;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
     }
 
@@ -923,9 +923,9 @@
     .dose-entry-row span {
       display: flex;
       align-items: center;
-      padding: 0 12px;
+      padding: 0 10px;
       color: #475569;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
     }
 
@@ -937,8 +937,8 @@
 
     .medicine-question input[type="text"] {
       width: 100%;
-      min-height: 38px;
-      padding: 0 12px;
+      min-height: 34px;
+      padding: 0 10px;
       border-radius: 0;
       border: 0;
       border-left: 1px solid #eef2f7;
@@ -964,7 +964,7 @@
 
     .dose-row {
       grid-template-columns: repeat(auto-fit, minmax(36px, 1fr));
-      padding: 6px 16px;
+      padding: 5px 12px;
       border-bottom: 1px solid #eef2f7;
       background: #fbfdff;
     }
@@ -998,12 +998,12 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 32px;
+      min-height: 28px;
       border-right: 1px solid #eef2f7;
       border-bottom: 1px solid #eef2f7;
       background: #f1f5fb;
       color: #1e3a5f;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 800;
     }
 
@@ -1023,9 +1023,9 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 32px;
+      min-height: 28px;
       width: 100%;
-      padding: 0 8px;
+      padding: 0 7px;
       border-radius: 0;
       border: 0;
       border-right: 1px solid #eef2f7;
@@ -1033,16 +1033,16 @@
       background: #fff;
       color: #334155;
       font: inherit;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
       cursor: pointer;
       transition: background 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
     }
 
     .dose-row .option-pill {
-      min-height: 30px;
-      width: min(30px, 100%);
-      height: 30px;
+      min-height: 28px;
+      width: min(28px, 100%);
+      height: 28px;
       justify-self: center;
       border: 1px solid #dfe6ef;
       border-radius: 999px;
@@ -1066,7 +1066,7 @@
     .selection-pill-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 10px;
+      gap: 8px;
     }
 
     .selection-pill-grid.days-grid {
@@ -1074,13 +1074,13 @@
     }
 
     .selection-pill {
-      min-height: 42px;
-      padding: 0 14px;
+      min-height: 36px;
+      padding: 0 12px;
       border: 1px solid #dfe6ef;
       border-radius: 999px;
       background: #f8fafc;
       box-shadow: 0 4px 10px rgba(22, 38, 29, 0.04);
-      font-size: 13px;
+      font-size: 12px;
     }
 
     button.selection-pill {
@@ -1408,7 +1408,6 @@
               <input type="text" placeholder="Search symptoms">
             </div>
             <div class="selected-list" data-selected-list>
-              <span class="selected-placeholder">Selected items will appear here.</span>
             </div>
             <div class="selection-divider" aria-hidden="true"></div>
             <div class="bubble-wrap" data-bubble-wrap>
@@ -1424,7 +1423,6 @@
               <input type="text" placeholder="Search past medical history">
             </div>
             <div class="selected-list" data-selected-list>
-              <span class="selected-placeholder">Selected items will appear here.</span>
             </div>
             <div class="selection-divider" aria-hidden="true"></div>
             <div class="bubble-wrap" data-bubble-wrap>
@@ -1440,7 +1438,6 @@
               <input type="text" placeholder="Search findings">
             </div>
             <div class="selected-list" data-selected-list>
-              <span class="selected-placeholder">Selected items will appear here.</span>
             </div>
             <div class="selection-divider" aria-hidden="true"></div>
             <div class="bubble-wrap" data-bubble-wrap>
@@ -1456,7 +1453,6 @@
               <input type="text" placeholder="Search notes">
             </div>
             <div class="selected-list" data-selected-list>
-              <span class="selected-placeholder">Selected items will appear here.</span>
             </div>
             <div class="selection-divider" aria-hidden="true"></div>
             <div class="bubble-wrap" data-bubble-wrap>
@@ -1472,7 +1468,6 @@
               <input type="text" placeholder="Search diagnosis">
             </div>
             <div class="selected-list" data-selected-list>
-              <span class="selected-placeholder">Selected items will appear here.</span>
             </div>
             <div class="selection-divider" aria-hidden="true"></div>
             <div class="bubble-wrap" data-bubble-wrap>
@@ -1488,7 +1483,6 @@
               <input type="text" placeholder="Search investigation">
             </div>
             <div class="selected-list" data-selected-list>
-              <span class="selected-placeholder">Selected items will appear here.</span>
             </div>
             <div class="selection-divider" aria-hidden="true"></div>
             <div class="bubble-wrap" data-bubble-wrap>
@@ -1504,7 +1498,6 @@
               <input type="text" placeholder="Search medication">
             </div>
             <div class="selected-list" data-selected-list>
-              <span class="selected-placeholder">Selected items will appear here.</span>
             </div>
             <div class="selection-divider" aria-hidden="true"></div>
             <div class="bubble-wrap" data-bubble-wrap>
@@ -1520,7 +1513,6 @@
               <input type="text" placeholder="Search instruction">
             </div>
             <div class="selected-list" data-selected-list>
-              <span class="selected-placeholder">Selected items will appear here.</span>
             </div>
             <div class="selection-divider" aria-hidden="true"></div>
             <div class="bubble-wrap" data-bubble-wrap>
@@ -1684,26 +1676,26 @@
     const PRESCRIPTION_TEMPLATE_CACHE_TTL_MS = 15 * 60 * 1000;
     const CHART_RECORD_STORAGE_KEY = clinicStorageKey('growthChartRecentRecords');
     const PRESCRIPTION_DRAFT_TTL_MS = 10 * 60 * 1000;
-    const VISIBLE_CHIP_LIMIT = 18;
+    const VISIBLE_CHIP_LIMIT = 36;
     const prescriptionTemplates = {
-      Symptoms: ['Fever', 'Cold', 'Cough', 'Vomiting', 'Loose stools'],
-      Finding: ['Throat congestion', 'Wheeze', 'Pallor', 'Dehydrated', 'Active child'],
-      Notes: ['Follow up advised', 'Review after 3 days', 'Vitals stable', 'Parent counselled', 'Medication explained'],
-      Diagnosis: ['Viral fever', 'URTI', 'Gastroenteritis', 'Allergic rhinitis', 'Observation advised'],
-      Investigation: ['CBC', 'CRP', 'Urine routine', 'Chest X-ray', 'Dengue test'],
-      'Past Medical History': ['Previous wheeze episodes', 'NICU stay', 'Febrile seizures', 'Asthma history', 'Drug allergy'],
-      Medication: ['Paracetamol', 'Cetirizine', 'Ondansetron', 'Azithromycin', 'ORS'],
-      Instruction: ['Plenty of fluids', 'Steam inhalation', 'Soft diet', 'Review if fever persists', 'Emergency visit if breathing worsens']
+      Symptoms: ['Fever', 'Cold', 'Cough', 'Vomiting', 'Loose stools', 'Abdominal pain', 'Headache', 'Body ache', 'Sore throat', 'Nasal block', 'Running nose', 'Ear pain', 'Rash', 'Burning urine', 'Poor appetite', 'Breathing difficulty', 'Accidental fall', 'Not sleeping well'],
+      Finding: ['Throat congestion', 'Wheeze', 'Pallor', 'Dehydrated', 'Active child', 'Irritable child', 'Hydration fair', 'Febrile', 'Afebrile', 'Chest clear', 'Abdomen soft', 'No organomegaly', 'Tonsils enlarged', 'Skin rash present', 'Mild dehydration', 'Conjunctival congestion'],
+      Notes: ['Follow up advised', 'Review after 3 days', 'Vitals stable', 'Parent counselled', 'Medication explained', 'Diet advice given', 'Hydration explained', 'Danger signs explained', 'Return if symptoms worsen', 'Continue breastfeeding', 'Monitor urine output', 'School rest advised'],
+      Diagnosis: ['Viral fever', 'URTI', 'Gastroenteritis', 'Allergic rhinitis', 'Observation advised', 'Acute bronchitis', 'Pharyngitis', 'Bronchiolitis', 'Tonsillitis', 'Constipation', 'AGE', 'Typhoid fever', 'UTI', 'Viral exanthem'],
+      Investigation: ['CBC', 'CRP', 'Urine routine', 'Chest X-ray', 'Dengue test', 'Widal test', 'RFT', 'LFT', 'Blood culture', 'Urine culture', 'Stool routine', 'Electrolytes', 'Random blood sugar'],
+      'Past Medical History': ['Previous wheeze episodes', 'NICU stay', 'Febrile seizures', 'Asthma history', 'Drug allergy', 'Previous hospitalization', 'Recurrent cold', 'Recurrent cough', 'Developmental delay', 'Birth history normal', 'Vaccination delayed', 'Family history of allergy'],
+      Medication: ['Paracetamol', 'Cetirizine', 'Ondansetron', 'Azithromycin', 'ORS', 'Amoxicillin', 'Cefixime', 'Ibuprofen', 'Salbutamol', 'Budesonide', 'Zinc', 'Probiotic', 'Vitamin D3', 'Multivitamin'],
+      Instruction: ['Plenty of fluids', 'Steam inhalation', 'Soft diet', 'Review if fever persists', 'Emergency visit if breathing worsens', 'Tepid sponging if fever', 'Small frequent feeds', 'ORS after each loose stool', 'Saline nasal drops', 'Warm saline gargle', 'Avoid dust exposure', 'Keep child hydrated']
     };
     const prescriptionFallbackTemplates = {
-      Symptoms: ['Abdominal pain', 'Sore throat', 'Headache', 'Body ache', 'Poor appetite', 'Nasal block', 'Running nose', 'Ear pain', 'Rash', 'Burning urine', 'Constipation', 'Accidental fall', 'Breathing difficulty', 'Crying excessively', 'Not sleeping well'],
-      'Past Medical History': ['Recurrent cough', 'Recurrent cold', 'Previous hospitalization', 'Known asthma', 'Known allergy', 'Recurrent abdominal pain', 'Recurrent UTI', 'Developmental delay', 'Birth history normal', 'No significant history', 'Vaccination delayed', 'Family history of allergy'],
-      Finding: ['Febrile', 'Afebrile', 'Chest clear', 'Crepitations', 'Abdomen soft', 'No organomegaly', 'Hydration fair', 'Oral ulcers', 'Tonsils enlarged', 'Ear normal', 'Skin rash present', 'Active and playful', 'Irritable child'],
-      Notes: ['Fever chart explained', 'Diet advice given', 'Danger signs explained', 'Hydration explained', 'Nebulization technique explained', 'Dose schedule explained', 'Follow up if symptoms worsen', 'School rest advised', 'Avoid cold drinks', 'Parent reassured'],
-      Diagnosis: ['Acute bronchitis', 'Acute gastritis', 'Tonsillitis', 'Pharyngitis', 'Bronchiolitis', 'Wheeze associated LRTI', 'Acute otitis media', 'UTI', 'Constipation', 'AGE', 'Dengue fever', 'Typhoid fever', 'Viral exanthem', 'Injury', 'Abrasion right leg'],
-      Investigation: ['CBC with smear', 'Malaria test', 'Widal test', 'LFT', 'RFT', 'Blood culture', 'Urine culture', 'Stool routine', 'Electrolytes', 'Random blood sugar', 'Throat swab', 'X-ray PNS', 'Ultrasound abdomen'],
-      Medication: ['Amoxicillin', 'Amoxicillin clavulanate', 'Cefixime', 'Levocetirizine', 'Montelukast', 'Salbutamol', 'Budesonide', 'Pantoprazole', 'Domperidone', 'Zinc', 'Probiotic', 'Vitamin D3', 'Multivitamin', 'Ibuprofen'],
-      Instruction: ['Complete medicine course', 'Tepid sponging if fever', 'Avoid oily food', 'Small frequent feeds', 'ORS after each loose stool', 'Saline nasal drops', 'Warm saline gargle', 'Avoid dust exposure', 'Monitor urine output', 'Return if breathing fast', 'Return if child is drowsy', 'Review with reports']
+      Symptoms: ['Abdominal pain', 'Sore throat', 'Headache', 'Body ache', 'Poor appetite', 'Nasal block', 'Running nose', 'Ear pain', 'Rash', 'Burning urine', 'Constipation', 'Accidental fall', 'Breathing difficulty', 'Crying excessively', 'Not sleeping well', 'Loose motion', 'Vomiting', 'Cough with cold', 'Fever for 2 days', 'Mild cough', 'Pain while passing urine', 'Weakness', 'Chest pain', 'Wheeze', 'Dizziness'],
+      'Past Medical History': ['Recurrent cough', 'Recurrent cold', 'Previous hospitalization', 'Known asthma', 'Known allergy', 'Recurrent abdominal pain', 'Recurrent UTI', 'Developmental delay', 'Birth history normal', 'No significant history', 'Vaccination delayed', 'Family history of allergy', 'Seizure history', 'Prematurity', 'NICU admission', 'Wheezing episodes', 'Frequent fever', 'Surgery history'],
+      Finding: ['Febrile', 'Afebrile', 'Chest clear', 'Crepitations', 'Abdomen soft', 'No organomegaly', 'Hydration fair', 'Oral ulcers', 'Tonsils enlarged', 'Ear normal', 'Skin rash present', 'Active and playful', 'Irritable child', 'Throat congestion', 'Wheeze present', 'Mild dehydration', 'Conjunctival congestion', 'Nasal discharge', 'Pulse regular', 'No cyanosis'],
+      Notes: ['Fever chart explained', 'Diet advice given', 'Danger signs explained', 'Hydration explained', 'Nebulization technique explained', 'Dose schedule explained', 'Follow up if symptoms worsen', 'School rest advised', 'Avoid cold drinks', 'Parent reassured', 'Monitor urine output', 'Return if breathing fast', 'Review after reports', 'Continue breastfeeding', 'Maintain hand hygiene', 'Use humidified air', 'Complete medicine course', 'Rest at home'],
+      Diagnosis: ['Acute bronchitis', 'Acute gastritis', 'Tonsillitis', 'Pharyngitis', 'Bronchiolitis', 'Wheeze associated LRTI', 'Acute otitis media', 'UTI', 'Constipation', 'AGE', 'Dengue fever', 'Typhoid fever', 'Viral exanthem', 'Injury', 'Abrasion right leg', 'Viral fever', 'Allergic rhinitis', 'Acute diarrheal illness', 'Possible dehydration', 'Observation advised', 'Suspected viral infection', 'Acute febrile illness', 'Acute tonsillopharyngitis'],
+      Investigation: ['CBC with smear', 'Malaria test', 'Widal test', 'LFT', 'RFT', 'Blood culture', 'Urine culture', 'Stool routine', 'Electrolytes', 'Random blood sugar', 'Throat swab', 'X-ray PNS', 'Ultrasound abdomen', 'Dengue NS1', 'CRP', 'Chest X-ray', 'Urine routine', 'Peripheral smear', 'Sputum culture', 'Procalcitonin'],
+      Medication: ['Amoxicillin', 'Amoxicillin clavulanate', 'Cefixime', 'Levocetirizine', 'Montelukast', 'Salbutamol', 'Budesonide', 'Pantoprazole', 'Domperidone', 'Zinc', 'Probiotic', 'Vitamin D3', 'Multivitamin', 'Ibuprofen', 'Paracetamol', 'Ondansetron', 'ORS', 'Cetirizine', 'Azithromycin', 'Metronidazole', 'Albendazole', 'Ferrous syrup', 'Prednisolone', 'Domperidone syrup', 'Ferrous ascorbate'],
+      Instruction: ['Complete medicine course', 'Tepid sponging if fever', 'Avoid oily food', 'Small frequent feeds', 'ORS after each loose stool', 'Saline nasal drops', 'Warm saline gargle', 'Avoid dust exposure', 'Monitor urine output', 'Return if breathing fast', 'Return if child is drowsy', 'Review with reports', 'Keep child hydrated', 'Use humidified air', 'Avoid cold drinks', 'Give medicine after food', 'Follow up in 2 days', 'Rest at home', 'Wash hands frequently', 'Avoid crowded places']
     };
     const fallbackTemplateRank = new Map();
     const firebaseEnv = import.meta.env || {};
@@ -2395,10 +2387,6 @@
       selectedList.innerHTML = '';
 
       if (!values.length) {
-        const placeholder = document.createElement('span');
-        placeholder.className = 'selected-placeholder';
-        placeholder.textContent = 'Selected items will appear here.';
-        selectedList.appendChild(placeholder);
         return;
       }
 
