@@ -4644,8 +4644,10 @@
 
       const now = new Date();
       const measuredAt = getSelectedMeasurementDate();
+      const patientId = patientIdInput.value.trim().toUpperCase();
+      const episodeId = buildConsultationEpisodeId(patientId, measuredAt);
       const historyRecord = {
-        patientId: patientIdInput.value.trim().toUpperCase(),
+        patientId,
         childName: childNameInput.value.trim(),
         parentName: parentNameInput.value.trim(),
         phone: phoneInput.value.trim(),
@@ -4676,7 +4678,8 @@
         chartPdfSavedAt: latestChartPdfUploadResult?.savedAt || ''
       };
 
-      await addDoc(collection(db, FIREBASE_COLLECTIONS.history), historyRecord);
+      await setDoc(doc(db, FIREBASE_COLLECTIONS.history, episodeId), historyRecord, { merge: true });
+      await syncPrescriptionPdfHistoryForPatient(historyRecord.patientId, historyRecord);
       return { ok: true };
     }
 
@@ -4732,7 +4735,75 @@
         lastMeasurementRecord: measurementEntry,
         measurementHistory: [measurementEntry, ...patientGrowthHistory]
       });
+      await syncPrescriptionPdfHistoryForPatient(patientId, measurementEntry);
       return { ok: true };
+    }
+
+    function buildConsultationEpisodeId(patientId, measuredAt = new Date()) {
+      const normalizedPatientId = String(patientId || '').trim().toUpperCase();
+      const datePart = measuredAt instanceof Date && !Number.isNaN(measuredAt.getTime())
+        ? measuredAt.toISOString().slice(0, 10)
+        : new Date().toISOString().slice(0, 10);
+      return normalizedPatientId ? `consult-${normalizedPatientId}-${datePart}` : `consult-unknown-${datePart}`;
+    }
+
+    async function syncPrescriptionPdfHistoryForPatient(patientId, vitalsPatch = {}) {
+      if (!db || !patientId) {
+        return { ok: false, reason: 'Prescription history sync skipped.' };
+      }
+
+      const normalizedPatientId = String(patientId || '').trim().toUpperCase();
+      const historyRef = collection(db, FIREBASE_COLLECTIONS.history);
+      const historyQuery = query(
+        historyRef,
+        where('patientId', '==', normalizedPatientId),
+        where('source', '==', 'prescription-pdf')
+      );
+      const snapshot = await getDocs(historyQuery);
+      const localRecords = readJson(LOCAL_PRESCRIPTION_HISTORY_KEY, []);
+      let updatedCount = 0;
+
+      for (const recordDoc of snapshot.docs) {
+        const current = recordDoc.data() || {};
+        const patch = {
+          childName: vitalsPatch.childName ?? current.childName ?? '',
+          parentName: vitalsPatch.parentName ?? current.parentName ?? '',
+          phone: vitalsPatch.phone ?? current.phone ?? '',
+          gender: vitalsPatch.gender ?? current.gender ?? '',
+          dob: vitalsPatch.dob ?? current.dob ?? '',
+          age: vitalsPatch.age ?? current.age ?? '',
+          charts: vitalsPatch.charts ?? current.charts ?? [],
+          weight: vitalsPatch.weight ?? current.weight ?? '',
+          height: vitalsPatch.height ?? current.height ?? '',
+          head: vitalsPatch.head ?? current.head ?? '',
+          spo2: vitalsPatch.spo2 ?? current.spo2 ?? '',
+          pulse: vitalsPatch.pulse ?? current.pulse ?? '',
+          systolic: vitalsPatch.systolic ?? current.systolic ?? '',
+          diastolic: vitalsPatch.diastolic ?? current.diastolic ?? '',
+          temp: vitalsPatch.temp ?? current.temp ?? '',
+          updatedAt: serverTimestamp(),
+          updatedAtIso: new Date().toISOString()
+        };
+
+        await setDoc(recordDoc.ref, patch, { merge: true });
+        updatedCount += 1;
+
+        const localIndex = localRecords.findIndex((entry) => entry?.prescriptionSaveId === current.prescriptionSaveId);
+        if (localIndex >= 0) {
+          localRecords[localIndex] = {
+            ...localRecords[localIndex],
+            ...patch,
+            patientId: normalizedPatientId,
+            savedAt: localRecords[localIndex].savedAt || new Date().toISOString()
+          };
+        }
+      }
+
+      if (updatedCount > 0) {
+        localStorage.setItem(LOCAL_PRESCRIPTION_HISTORY_KEY, JSON.stringify(localRecords));
+      }
+
+      return { ok: true, updatedCount };
     }
 
     async function uploadPdfToCloudStorage(pdfBlob) {

@@ -650,6 +650,14 @@
       text-align: center;
     }
 
+    .medicine-modal-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 84px;
+      justify-content: flex-end;
+    }
+
     .medicine-modal-title-wrap {
       display: grid;
       gap: 4px;
@@ -682,6 +690,31 @@
       font-weight: 700;
       cursor: pointer;
       box-shadow: 0 8px 18px rgba(22, 38, 29, 0.08);
+    }
+
+    .medicine-edit-btn {
+      min-width: 0;
+      padding: 0 12px;
+      border: 1px solid rgba(22, 101, 52, 0.14);
+      border-radius: 12px;
+      background: rgba(22, 163, 74, 0.08);
+      color: var(--brand-strong);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 34px;
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(22, 38, 29, 0.06);
+    }
+
+    .medicine-edit-btn:hover {
+      background: rgba(22, 163, 74, 0.14);
+    }
+
+    .medicine-edit-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      background: rgba(22, 163, 74, 0.04);
     }
 
     .add-medicine-panel {
@@ -1536,7 +1569,10 @@
             <h2 id="medicine-modal-title">Medication Details</h2>
             <p></p>
           </div>
-          <button id="medicine-modal-close" class="modal-close-btn" type="button" aria-label="Close medication details">x</button>
+          <div class="medicine-modal-actions">
+            <button id="medicine-modal-edit" class="medicine-edit-btn" type="button" aria-label="Edit selected medicine" disabled>Edit</button>
+            <button id="medicine-modal-close" class="modal-close-btn" type="button" aria-label="Close medication details">x</button>
+          </div>
         </div>
         <div id="medicine-detail-content" class="medicine-detail-content medicine-empty">
           No medication selected yet.
@@ -1627,6 +1663,7 @@
     const cardGrid = document.querySelector('.card-grid');
     const medicineModal = document.getElementById('medicine-modal');
     const medicineModalClose = document.getElementById('medicine-modal-close');
+    const medicineModalEdit = document.getElementById('medicine-modal-edit');
     const medicineModalTitle = document.getElementById('medicine-modal-title');
     const medicineModalSubtitle = medicineModalTitle?.parentElement?.querySelector('p');
     const growthSummaryCard = document.getElementById('growth-summary-card');
@@ -1665,6 +1702,8 @@
     let activeSelectionDetail = null;
     let lastAddMedicineTrigger = null;
     let pendingAddMedicineResolve = null;
+    let addMedicineMode = 'create';
+    let editingMedicineKey = '';
     const sectionDetailSlots = new Map();
     const DETAIL_SECTIONS = new Set(['Symptoms', 'Finding', 'Diagnosis', 'Medication']);
     const MEDICINE_DETAIL_STORAGE_KEY = clinicStorageKey('prescriptionMedicineDetails');
@@ -1678,7 +1717,7 @@
     const PRESCRIPTION_DRAFT_TTL_MS = 10 * 60 * 1000;
     const VISIBLE_CHIP_LIMIT = 36;
     const prescriptionTemplates = {
-      Symptoms: ['Fever', 'Cold', 'Cough', 'Vomiting', 'Loose stools', 'Abdominal pain', 'Headache', 'Body ache', 'Sore throat', 'Nasal block', 'Running nose', 'Ear pain', 'Rash', 'Burning urine', 'Poor appetite', 'Breathing difficulty', 'Accidental fall', 'Not sleeping well'],
+      Symptoms: ['Fever', 'Cough', 'Cold', 'Vomiting', 'Loose stools', 'Abdominal pain', 'Normal activity', 'No fever', 'No cough', 'No vomiting', 'No breathlessness', 'Normal urine', 'Bladder and bowel normal', 'Normal development', 'Throat pain', 'Nose block', 'Itching and rashes over body', 'Fast breathing', 'Eye redness', 'Excessive crying', 'No loose stools', 'Passing hard stools', 'Nausea', 'Productive cough', 'Ear pain', 'Headache', 'Sticky eye-discharge', 'Rashes', 'Feeding well', 'Earache', 'Decreased activity', 'Decreased urine output', 'Not eating well'],
       Finding: ['Throat congestion', 'Wheeze', 'Pallor', 'Dehydrated', 'Active child', 'Irritable child', 'Hydration fair', 'Febrile', 'Afebrile', 'Chest clear', 'Abdomen soft', 'No organomegaly', 'Tonsils enlarged', 'Skin rash present', 'Mild dehydration', 'Conjunctival congestion', 'Nasal congestion', 'Crepitations', 'Oral ulcers', 'Ear discharge', 'Mottling', 'Pulse regular', 'No cyanosis', 'Mild pallor', 'Tachypnea', 'Tonsillar exudate'],
       Notes: ['Follow up advised', 'Review after 3 days', 'Vitals stable', 'Parent counselled', 'Medication explained', 'Diet advice given', 'Hydration explained', 'Danger signs explained', 'Return if symptoms worsen', 'Continue breastfeeding', 'Monitor urine output', 'School rest advised'],
       Diagnosis: ['Viral fever', 'URTI', 'Gastroenteritis', 'Allergic rhinitis', 'Observation advised', 'Acute bronchitis', 'Pharyngitis', 'Bronchiolitis', 'Tonsillitis', 'Constipation', 'AGE', 'Typhoid fever', 'UTI', 'Viral exanthem'],
@@ -1688,7 +1727,7 @@
       Instruction: ['Plenty of fluids', 'Steam inhalation', 'Soft diet', 'Review if fever persists', 'Emergency visit if breathing worsens', 'Tepid sponging if fever', 'Small frequent feeds', 'ORS after each loose stool', 'Saline nasal drops', 'Warm saline gargle', 'Avoid dust exposure', 'Keep child hydrated']
     };
     const prescriptionFallbackTemplates = {
-      Symptoms: ['Abdominal pain', 'Sore throat', 'Headache', 'Body ache', 'Poor appetite', 'Nasal block', 'Running nose', 'Ear pain', 'Rash', 'Burning urine', 'Constipation', 'Accidental fall', 'Breathing difficulty', 'Crying excessively', 'Not sleeping well', 'Loose motion', 'Vomiting', 'Cough with cold', 'Fever for 2 days', 'Mild cough', 'Pain while passing urine', 'Weakness', 'Chest pain', 'Wheeze', 'Dizziness'],
+      Symptoms: ['Fever', 'Cough', 'Cold', 'Vomiting', 'Loose stools', 'Abdominal pain', 'Normal activity', 'No fever', 'No cough', 'No vomiting', 'No breathlessness', 'Normal urine', 'Bladder and bowel normal', 'Normal development', 'Throat pain', 'Nose block', 'Itching and rashes over body', 'Fast breathing', 'Eye redness', 'Excessive crying', 'No loose stools', 'Passing hard stools', 'Nausea', 'Productive cough', 'Ear pain', 'Headache', 'Sticky eye-discharge', 'Rashes', 'Feeding well', 'Earache', 'Decreased activity', 'Decreased urine output', 'Not eating well'],
       'Past Medical History': ['Recurrent cough', 'Recurrent cold', 'Previous hospitalization', 'Known asthma', 'Known allergy', 'Recurrent abdominal pain', 'Recurrent UTI', 'Developmental delay', 'Birth history normal', 'No significant history', 'Vaccination delayed', 'Family history of allergy', 'Seizure history', 'Prematurity', 'NICU admission', 'Wheezing episodes', 'Frequent fever', 'Surgery history'],
       Finding: ['Febrile', 'Afebrile', 'Chest clear', 'Crepitations', 'Abdomen soft', 'No organomegaly', 'Hydration fair', 'Oral ulcers', 'Tonsils enlarged', 'Ear normal', 'Skin rash present', 'Active and playful', 'Irritable child', 'Throat congestion', 'Wheeze present', 'Mild dehydration', 'Conjunctival congestion', 'Nasal discharge', 'Pulse regular', 'No cyanosis', 'Nasal congestion', 'Mild pallor', 'Tachypnea', 'Tonsillar exudate', 'Mottling', 'Ear discharge', 'Rhonchi'],
       Notes: ['Fever chart explained', 'Diet advice given', 'Danger signs explained', 'Hydration explained', 'Nebulization technique explained', 'Dose schedule explained', 'Follow up if symptoms worsen', 'School rest advised', 'Avoid cold drinks', 'Parent reassured', 'Monitor urine output', 'Return if breathing fast', 'Review after reports', 'Continue breastfeeding', 'Maintain hand hygiene', 'Use humidified air', 'Complete medicine course', 'Rest at home'],
@@ -1842,6 +1881,9 @@
     function closeMedicineModal() {
       syncMedicineDetailsFromDom();
       showSectionPanel('Medication', null);
+      if (medicineModalEdit) {
+        medicineModalEdit.disabled = true;
+      }
       if (lastMedicineTrigger && typeof lastMedicineTrigger.focus === 'function') {
         lastMedicineTrigger.focus();
       }
@@ -1872,6 +1914,17 @@
       }
 
       lastAddMedicineTrigger = null;
+      addMedicineMode = 'create';
+      editingMedicineKey = '';
+      addMedicineForm.dataset.mode = 'create';
+      const saveButton = addMedicineForm.querySelector('.add-medicine-save');
+      if (saveButton) {
+        saveButton.textContent = 'Save';
+      }
+      const title = document.getElementById('add-medicine-title');
+      if (title) {
+        title.textContent = 'Add New Medicine';
+      }
     }
 
     function openAddMedicineModal(initialName = '', trigger = document.activeElement) {
@@ -1883,6 +1936,61 @@
       addMedicineForm.reset();
       addMedicineName.value = toTitleCase(initialName || '');
       clearAddMedicineError();
+      addMedicineMode = 'create';
+      editingMedicineKey = '';
+      addMedicineForm.dataset.mode = 'create';
+      const saveButton = addMedicineForm.querySelector('.add-medicine-save');
+      if (saveButton) {
+        saveButton.textContent = 'Save';
+      }
+      const title = document.getElementById('add-medicine-title');
+      if (title) {
+        title.textContent = 'Add New Medicine';
+      }
+      lastAddMedicineTrigger = trigger instanceof HTMLElement ? trigger : null;
+      showSectionPanel('Medication', addMedicineModal);
+      window.setTimeout(() => addMedicineName.focus(), 0);
+
+      return new Promise((resolve) => {
+        pendingAddMedicineResolve = resolve;
+      });
+    }
+
+    function openEditMedicineModal(trigger = document.activeElement) {
+      if (!activeMedicine) {
+        return null;
+      }
+
+      if (pendingAddMedicineResolve) {
+        pendingAddMedicineResolve(null);
+        pendingAddMedicineResolve = null;
+      }
+
+      const detail = getMedicineDetail(activeMedicine);
+      const strengthParts = String(detail.strength || '')
+        .split(' / ')
+        .map((part) => part.replace(/\s*(mg|ml)$/i, '').trim());
+      const strengthMg = strengthParts[0] || '';
+      const strengthMl = strengthParts[1] || '';
+
+      addMedicineForm.reset();
+      addMedicineName.value = toTitleCase(detail.name || detail.displayName || activeMedicine);
+      addMedicineType.value = detail.type || '';
+      addMedicineStrengthMg.value = strengthMg;
+      addMedicineStrengthMl.value = strengthMl;
+      addMedicineComposition.value = detail.composition || '';
+      clearAddMedicineError();
+      addMedicineMode = 'edit';
+      editingMedicineKey = activeMedicine;
+      addMedicineForm.dataset.mode = 'edit';
+      const saveButton = addMedicineForm.querySelector('.add-medicine-save');
+      if (saveButton) {
+        saveButton.textContent = 'Update';
+      }
+      const title = document.getElementById('add-medicine-title');
+      if (title) {
+        title.textContent = 'Edit Medicine';
+      }
       lastAddMedicineTrigger = trigger instanceof HTMLElement ? trigger : null;
       showSectionPanel('Medication', addMedicineModal);
       window.setTimeout(() => addMedicineName.focus(), 0);
@@ -2321,6 +2429,13 @@
     }
 
     medicineModalClose.addEventListener('click', closeMedicineModal);
+    medicineModalEdit.addEventListener('click', () => {
+      if (!activeMedicine) {
+        return;
+      }
+
+      openEditMedicineModal(medicineModalEdit);
+    });
     selectionDetailClose.addEventListener('click', closeSelectionDetailModal);
     addMedicineBack.addEventListener('click', () => closeAddMedicineModal(null));
     addMedicineForm.addEventListener('submit', (event) => {
@@ -2353,13 +2468,24 @@
         return;
       }
 
-      closeAddMedicineModal({
+      const result = {
         name,
         displayName: buildMedicineDisplayName({ name, type }),
         type,
         strength,
         composition
-      });
+      };
+
+      if (addMedicineMode === 'edit' && editingMedicineKey) {
+        saveMedicineMeta(editingMedicineKey, result);
+        savePrescriptionDraft();
+        sectionBindings.get('Medication')?.refreshSelectedList?.();
+        renderMedicineDetails();
+        closeAddMedicineModal(result);
+        return;
+      }
+
+      closeAddMedicineModal(result);
     });
     addMedicineName.addEventListener('input', clearAddMedicineError);
     addMedicineStrengthMg.addEventListener('input', clearAddMedicineError);
@@ -3076,6 +3202,9 @@
         if (medicineModalSubtitle) {
           medicineModalSubtitle.textContent = '';
         }
+        if (medicineModalEdit) {
+          medicineModalEdit.disabled = true;
+        }
         medicineDetailContent.className = 'medicine-detail-content medicine-empty';
         medicineDetailContent.textContent = 'Select a medication to add its dose, timing, duration, and note.';
         return;
@@ -3087,6 +3216,9 @@
       medicineModalTitle.textContent = titleName;
       if (medicineModalSubtitle) {
         medicineModalSubtitle.textContent = subtitleText;
+      }
+      if (medicineModalEdit) {
+        medicineModalEdit.disabled = false;
       }
       medicineDetailContent.className = 'medicine-detail-content';
 
@@ -3498,7 +3630,10 @@
       });
 
       applySearchFilter();
-      sectionBindings.set(sectionName, { updateItems });
+      sectionBindings.set(sectionName, {
+        updateItems,
+        refreshSelectedList: () => renderSelectedItems(selectedList, [...selectedValues], sectionName)
+      });
     }
 
     async function initPrescriptionData() {
