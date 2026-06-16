@@ -4642,6 +4642,10 @@
         return { ok: false, reason: 'Cloud records are not configured.' };
       }
 
+      await uploadLatestChartPdfToCloudStorage().catch((error) => {
+        console.warn(`Unable to refresh chart PDF before saving history: ${error.message}`);
+      });
+
       const now = new Date();
       const measuredAt = getSelectedMeasurementDate();
       const patientId = patientIdInput.value.trim().toUpperCase();
@@ -4689,6 +4693,10 @@
       if (!db || !patientId) {
         return { ok: false, reason: 'Patient record is not available for saving measurements.' };
       }
+
+      await uploadLatestChartPdfToCloudStorage().catch((error) => {
+        console.warn(`Unable to refresh chart PDF before saving measurements: ${error.message}`);
+      });
 
       const now = new Date();
       const measuredAt = getSelectedMeasurementDate();
@@ -4812,8 +4820,7 @@
       }
 
       const patientId = patientIdInput.value.trim().toUpperCase() || 'UNKNOWN';
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const fileName = `${patientId}-${timestamp}.pdf`;
+      const fileName = `${patientId}-latest.pdf`;
       const storagePath = `${CLINIC_STORAGE_PREFIX}/chart-pdfs/${patientId}/${fileName}`;
       const storageRef = ref(storage, storagePath);
       const metadata = {
@@ -4838,6 +4845,8 @@
     }
 
     async function uploadLatestChartPdfToCloudStorage() {
+      await renderGeneratedChart();
+
       if (!generatedPreviewPages.length) {
         latestChartPdfUploadResult = null;
         return { ok: false, reason: 'No generated chart PDF is available.' };
