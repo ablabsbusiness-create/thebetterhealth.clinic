@@ -2610,7 +2610,7 @@
   <script type="module">
     import { jsPDF } from 'https://cdn.jsdelivr.net/npm/jspdf@3.0.3/+esm';
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
-    import { addDoc, arrayUnion, collection, doc, getDoc, getDocs, getFirestore, query, serverTimestamp, setDoc, where } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { addDoc, arrayUnion, collection, deleteField, doc, getDoc, getDocs, getFirestore, query, serverTimestamp, setDoc, where } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     import { getDownloadURL, getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
     const FIREBASE_COLLECTIONS = {
@@ -3012,6 +3012,7 @@
     const LOCAL_RECORD_KEY = clinicStorageKey('growthChartRecentRecords');
     const LOCAL_PATIENT_DETAIL_CACHE_PREFIX = clinicStorageKey('patientDetailCache');
     const PATIENT_DETAIL_CACHE_TTL_MS = 5 * 60 * 1000;
+    const VITALS_DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
     const MAX_LOCAL_CHART_RECORDS = 8;
 
     async function loadSharedGrowthChartConfigs() {
@@ -4243,10 +4244,15 @@
     }
 
     function collectVitalsDraft() {
+      const patientId = patientIdInput.value.trim().toUpperCase();
+      const measuredAt = getSelectedMeasurementDate();
+      const savedAtIso = new Date().toISOString();
       return {
-        patientId: patientIdInput.value.trim().toUpperCase(),
-        savedAtIso: new Date().toISOString(),
-        measuredAt: getSelectedMeasurementDate().toISOString(),
+        patientId,
+        episodeId: buildConsultationEpisodeId(patientId, measuredAt),
+        savedAtIso,
+        expiresAtIso: new Date(Date.now() + VITALS_DRAFT_TTL_MS).toISOString(),
+        measuredAt: measuredAt.toISOString(),
         values: Object.fromEntries(
           Object.entries(metricInputs).map(([metricKey, input]) => [metricKey, input.value])
         )
@@ -4261,6 +4267,51 @@
     function getDraftTimestamp(draft) {
       const timestamp = new Date(draft?.savedAtIso || 0).getTime();
       return Number.isNaN(timestamp) ? 0 : timestamp;
+    }
+
+    function getDraftExpiryTimestamp(draft) {
+      const explicitExpiry = new Date(draft?.expiresAtIso || 0).getTime();
+      if (!Number.isNaN(explicitExpiry) && explicitExpiry > 0) {
+        return explicitExpiry;
+      }
+
+      const savedAt = getDraftTimestamp(draft);
+      return savedAt > 0 ? savedAt + VITALS_DRAFT_TTL_MS : 0;
+    }
+
+    function isVitalsDraftExpired(draft, referenceTime = Date.now()) {
+      if (!draft || !hasVitalsDraftValues(draft)) {
+        return false;
+      }
+
+      const expiresAt = getDraftExpiryTimestamp(draft);
+      return expiresAt > 0 && referenceTime >= expiresAt;
+    }
+
+    async function clearExpiredVitalsDraft(patientId) {
+      const normalizedPatientId = String(patientId || '').trim().toUpperCase();
+      if (!normalizedPatientId) {
+        return;
+      }
+
+      try {
+        localStorage.removeItem(getVitalsDraftKey(normalizedPatientId));
+      } catch (error) {
+        console.warn(`Unable to remove expired vitals draft locally: ${error.message}`);
+      }
+
+      if (!db) {
+        return;
+      }
+
+      try {
+        await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, normalizedPatientId), {
+          activeConsultVitalsDraft: deleteField(),
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+      } catch (error) {
+        console.warn(`Unable to remove expired vitals draft from patient record: ${error.message}`);
+      }
     }
 
     async function saveVitalsDraftToCloud(draft) {
@@ -4327,7 +4378,16 @@
         }
 
         const draft = JSON.parse(raw);
-        return hasVitalsDraftValues(draft) ? draft : null;
+        if (!hasVitalsDraftValues(draft)) {
+          return null;
+        }
+
+        if (isVitalsDraftExpired(draft)) {
+          localStorage.removeItem(draftKey);
+          return null;
+        }
+
+        return draft;
       } catch (error) {
         console.warn(`Unable to read vitals draft: ${error.message}`);
         localStorage.removeItem(draftKey);
@@ -4337,10 +4397,20 @@
 
     function restoreVitalsDraft(patientId, cloudDraft = null) {
       const localDraft = readVitalsDraft(patientId);
-      const draft = hasVitalsDraftValues(cloudDraft) && getDraftTimestamp(cloudDraft) > getDraftTimestamp(localDraft)
-        ? cloudDraft
+      const validCloudDraft = hasVitalsDraftValues(cloudDraft) && !isVitalsDraftExpired(cloudDraft) ? cloudDraft : null;
+      const draft = validCloudDraft && getDraftTimestamp(validCloudDraft) > getDraftTimestamp(localDraft)
+        ? validCloudDraft
         : localDraft;
+
       if (!draft) {
+        if (hasVitalsDraftValues(cloudDraft) && isVitalsDraftExpired(cloudDraft)) {
+          void clearExpiredVitalsDraft(patientId);
+        }
+        return false;
+      }
+
+      if (isVitalsDraftExpired(draft)) {
+        void clearExpiredVitalsDraft(patientId);
         return false;
       }
 
