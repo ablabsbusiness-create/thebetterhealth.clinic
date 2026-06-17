@@ -3347,8 +3347,42 @@
       return getIsoDatePart(getMeasurementEntryTimestamp(entry));
     }
 
+    function getVitalsDraftTimestamp(draft) {
+      const timestamp = new Date(draft?.savedAtIso || 0).getTime();
+      return Number.isNaN(timestamp) ? 0 : timestamp;
+    }
+
+    function getVitalsDraftExpiryTimestamp(draft) {
+      const expiryCandidates = [];
+      const explicitExpiry = new Date(draft?.expiresAtIso || 0).getTime();
+      if (!Number.isNaN(explicitExpiry) && explicitExpiry > 0) {
+        expiryCandidates.push(explicitExpiry);
+      }
+
+      const savedAt = getVitalsDraftTimestamp(draft);
+      if (savedAt > 0) {
+        expiryCandidates.push(savedAt + (24 * 60 * 60 * 1000));
+      }
+
+      const measuredAt = new Date(draft?.measuredAt || 0).getTime();
+      if (!Number.isNaN(measuredAt) && measuredAt > 0) {
+        expiryCandidates.push(measuredAt + (24 * 60 * 60 * 1000));
+      }
+
+      return expiryCandidates.length ? Math.min(...expiryCandidates) : 0;
+    }
+
+    function isVitalsDraftExpired(draft, referenceTime = Date.now()) {
+      const expiresAt = getVitalsDraftExpiryTimestamp(draft);
+      return expiresAt > 0 && referenceTime >= expiresAt;
+    }
+
     function buildVitalsDraftMeasurementEntry(patient) {
       const draft = patient?.activeConsultVitalsDraft;
+      if (!draft || isVitalsDraftExpired(draft)) {
+        return null;
+      }
+
       const values = draft?.values || {};
       const entry = {
         patientId: getNormalizedPatientId(patient?.patientId || draft?.patientId || ''),

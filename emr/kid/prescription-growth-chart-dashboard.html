@@ -4271,12 +4271,22 @@
 
     function getDraftExpiryTimestamp(draft) {
       const explicitExpiry = new Date(draft?.expiresAtIso || 0).getTime();
+      const expiryCandidates = [];
       if (!Number.isNaN(explicitExpiry) && explicitExpiry > 0) {
-        return explicitExpiry;
+        expiryCandidates.push(explicitExpiry);
       }
 
       const savedAt = getDraftTimestamp(draft);
-      return savedAt > 0 ? savedAt + VITALS_DRAFT_TTL_MS : 0;
+      if (savedAt > 0) {
+        expiryCandidates.push(savedAt + VITALS_DRAFT_TTL_MS);
+      }
+
+      const measuredAt = new Date(draft?.measuredAt || 0).getTime();
+      if (!Number.isNaN(measuredAt) && measuredAt > 0) {
+        expiryCandidates.push(measuredAt + VITALS_DRAFT_TTL_MS);
+      }
+
+      return expiryCandidates.length ? Math.min(...expiryCandidates) : 0;
     }
 
     function isVitalsDraftExpired(draft, referenceTime = Date.now()) {
