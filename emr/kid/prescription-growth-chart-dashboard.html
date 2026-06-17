@@ -2470,7 +2470,7 @@
                         <th scope="row">
                           <div class="measurement-head-stack">
                             <div>
-                              <span class="measurement-label">Respi rate (cpm)</span>
+                              <span class="measurement-label">Respiratory rate (cpm)</span>
                             </div>
                             <div class="metric-history-control">
                               <div class="metric-history-control-head">
@@ -3630,7 +3630,7 @@
         { label: 'Head circumference', unit: 'cm', getValue: (entry) => formatMetricCellValue(getMeasurementMetricValue(entry, 'head')) },
         { label: 'Temp', unit: 'F', getValue: (entry) => formatMetricCellValue(entry.temp) },
         { label: 'Heart rate', unit: 'bpm', getValue: (entry) => formatMetricCellValue(entry.pulse) },
-        { label: 'Respi rate', unit: 'cpm', getValue: (entry) => formatMetricCellValue(entry.respiratoryRate) },
+        { label: 'Respiratory rate', unit: 'cpm', getValue: (entry) => formatMetricCellValue(entry.respiratoryRate) },
         { label: 'SPO2', unit: '%', getValue: (entry) => formatMetricCellValue(entry.spo2) },
         { label: 'Systolic BP', unit: 'mmHg', getValue: (entry) => formatMetricCellValue(entry.systolic) },
         { label: 'Diastolic BP', unit: 'mmHg', getValue: (entry) => formatMetricCellValue(entry.diastolic) }
@@ -4009,7 +4009,7 @@
       { key: 'head', shortLabel: 'Head circumference', unit: 'cm', type: 'Growth', label: 'Head circumference (cm)', placeholder: 'cm' },
       { key: 'temp', shortLabel: 'Temp', unit: 'F', type: 'Vitals', label: 'Temp (F.)', placeholder: 'F' },
       { key: 'pulse', shortLabel: 'Heart rate', unit: 'bpm', type: 'Vitals', label: 'Heart rate(bpm)', placeholder: 'bpm' },
-      { key: 'respiratoryRate', shortLabel: 'Respi rate', unit: 'cpm', type: 'Vitals', label: 'Respi rate (cpm)', placeholder: 'ADD' },
+      { key: 'respiratoryRate', shortLabel: 'Respiratory rate', unit: 'cpm', type: 'Vitals', label: 'Respiratory rate (cpm)', placeholder: 'ADD' },
       { key: 'spo2', shortLabel: 'SPO2', unit: '%', type: 'Vitals', label: 'SpO2 (%)', placeholder: '%' },
       { key: 'systolic', shortLabel: 'Systolic BP', unit: 'mmHg', type: 'Vitals', label: 'Systolic BP (mmHg)', placeholder: 'mmHg' },
       { key: 'diastolic', shortLabel: 'Diastolic BP', unit: 'mmHg', type: 'Vitals', label: 'Diastolic BP (mmHg)', placeholder: 'mmHg' }
@@ -4158,7 +4158,7 @@
                 <th scope="col">Head circumference</th>
                 <th scope="col">Temp</th>
                 <th scope="col">Heart rate</th>
-                <th scope="col">Respi rate</th>
+                <th scope="col">Respiratory rate</th>
                 <th scope="col">SpO2</th>
                 <th scope="col">BP</th>
                 <th scope="col">Edit</th>

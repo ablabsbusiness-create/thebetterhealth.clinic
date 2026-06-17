@@ -3464,10 +3464,10 @@
       if (vitalsDraftEntry) {
         entries.push(vitalsDraftEntry);
       }
-      getImportedMeasurementEntries(patient).forEach((entry) => entries.push(entry));
-      if (patient.lastMeasurementRecord && entries.length === 0) {
+      if (patient.lastMeasurementRecord) {
         entries.push(patient.lastMeasurementRecord);
       }
+      getImportedMeasurementEntries(patient).forEach((entry) => entries.push(entry));
 
       const seenEntries = new Set();
       const sortedEntries = entries.filter((entry) => {
@@ -3485,6 +3485,12 @@
         const bTime = Date.parse(getMeasurementEntryTimestamp(b)) || 0;
         return bTime - aTime;
       });
+
+      if (sortedEntries.length > 0) {
+        patient.lastMeasurementRecord = sortedEntries[0];
+        patient.measurementHistory = sortedEntries;
+      }
+
       Object.defineProperty(patient, '__measurementEntries', {
         value: sortedEntries,
         configurable: true
@@ -3850,7 +3856,7 @@
           getValue: (entry) => formatMetricCellValue(entry.pulse)
         },
         {
-          label: 'Respi rate',
+          label: 'Respiratory rate',
           unit: 'cpm',
           key: 'respiratoryRate',
           placeholder: 'ADD',
@@ -4125,7 +4131,7 @@
         ['Head circumference', entry.head ? `${entry.head} cm` : '-'],
         ['Temp', entry.temp ? `${entry.temp} F` : '-'],
         ['Heart rate', entry.pulse ? `${entry.pulse} bpm` : '-'],
-        ['Respi rate', entry.respiratoryRate ? `${entry.respiratoryRate} cpm` : '-'],
+        ['Respiratory rate', entry.respiratoryRate ? `${entry.respiratoryRate} cpm` : '-'],
         ['SpO2', entry.spo2 ? `${entry.spo2}%` : '-'],
         ['BP', entry.systolic || entry.diastolic ? `${entry.systolic || '-'}/${entry.diastolic || '-'} mmHg` : '-'],
         ['Time', formatHistoryDateTime(entry)]

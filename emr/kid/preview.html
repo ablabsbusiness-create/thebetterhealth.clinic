@@ -670,6 +670,31 @@
       line-height: 1.5;
     }
 
+    @media (min-width: 901px) {
+      .page-shell {
+        width: min(1240px, calc(100% - 32px));
+      }
+
+      .content-panel {
+        padding: 20px;
+        gap: 18px;
+      }
+
+      .preview-workbar {
+        grid-template-columns: auto 1fr;
+      }
+
+      .preview-actions {
+        min-width: 0;
+        justify-content: flex-end;
+      }
+
+      .document-stage {
+        display: grid;
+        place-items: start center;
+      }
+    }
+
     @media (max-width: 900px) {
       .topbar {
         width: min(100% - 24px, 100%);
