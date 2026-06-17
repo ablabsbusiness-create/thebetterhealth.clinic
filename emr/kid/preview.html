@@ -284,9 +284,9 @@
       position: sticky;
       top: 86px;
       z-index: 10;
-      display: flex;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
       align-items: center;
-      justify-content: space-between;
       gap: 16px;
       padding: 14px;
       border: 1px solid var(--line);
@@ -316,8 +316,9 @@
       display: flex;
       justify-content: flex-end;
       gap: 12px;
-      flex-wrap: wrap;
-      min-width: min(100%, 420px);
+      flex-wrap: nowrap;
+      align-items: center;
+      min-width: 0;
     }
 
     .btn-primary,
@@ -326,14 +327,21 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 44px;
-      padding: 0 18px;
+      min-height: 40px;
+      padding: 0 16px;
       border-radius: 14px;
       border: 0;
       font: inherit;
       font-weight: 700;
       cursor: pointer;
       text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .nav-enter-clinic {
+      min-height: 40px;
+      padding: 0 16px;
+      white-space: nowrap;
     }
 
     .btn-primary:disabled,
@@ -372,7 +380,7 @@
 
     .header-mode-btn {
       min-height: 36px;
-      padding: 0 12px;
+      padding: 0 10px;
       border: 0;
       border-radius: 12px;
       background: transparent;
