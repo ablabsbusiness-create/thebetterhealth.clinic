@@ -4210,7 +4210,10 @@
       metricInputs.spo2.value = entry.spo2 || '';
       metricInputs.systolic.value = entry.systolic || '';
       metricInputs.diastolic.value = entry.diastolic || '';
-      setSelectedMeasurementDate(getHistoryTimestamp(entry) ? new Date(getHistoryTimestamp(entry)) : new Date(), { refresh: false });
+      setSelectedMeasurementDate(
+        getHistoryTimestamp(entry) ? new Date(getHistoryTimestamp(entry)) : new Date(),
+        { refresh: false, autosave: false }
+      );
       activeHistoryEditKey = getHistoryEntryKey(entry);
       updatePreview();
       renderHistoryDrawer();
