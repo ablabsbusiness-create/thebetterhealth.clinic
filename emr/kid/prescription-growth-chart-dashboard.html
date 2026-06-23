@@ -2705,6 +2705,7 @@
     const HISTORY_PAGE_SIZE = 6;
     const metricHistoryCountState = Object.fromEntries(Object.keys(metricInputs).map((key) => [key, 11]));
     let patientGrowthHistory = [];
+    let currentPatientRecord = null;
     let recordModalSelectedDate = '';
     let activeHistoryEditKey = '';
     let historyPageIndex = 0;
@@ -3115,7 +3116,7 @@
     }
 
     function updateAge() {
-      ageInput.value = calculateAgeLabelAtDate(dobInput.value, getSelectedMeasurementDate());
+      ageInput.value = getPatientAgeLabelAtDate(getSelectedMeasurementDate(), currentPatientRecord || {});
     }
 
     function getAgeInYearsAtDate(dobValue, referenceDate = new Date()) {
@@ -3143,6 +3144,87 @@
     function getAgeInMonths(dobValue) {
       const ageYears = getAgeInYears(dobValue);
       return Number.isFinite(ageYears) ? ageYears * 12 : NaN;
+    }
+
+    function normalizeAgeUnit(value) {
+      return String(value || '').toLowerCase() === 'months' ? 'months' : 'years';
+    }
+
+    function parseAgeValue(value) {
+      const numeric = Number.parseFloat(String(value || '').replace(',', '.'));
+      return Number.isFinite(numeric) && numeric >= 0 ? numeric : NaN;
+    }
+
+    function formatAgeSummaryLabelFromMonths(months) {
+      if (!Number.isFinite(months) || months < 0) {
+        return '';
+      }
+
+      if (months < 12) {
+        const ageMonths = Math.min(11, Math.max(1, Math.round(months)));
+        return `${ageMonths} mnths`;
+      }
+
+      const roundedYears = Math.round((months / 12) * 10) / 10;
+      const yearsText = Number.isInteger(roundedYears) ? String(Math.trunc(roundedYears)) : roundedYears.toFixed(1);
+      return `${yearsText} yrs`;
+    }
+
+    function getAgeSnapshotAtDate(referenceDate = new Date(), record = currentPatientRecord || {}) {
+      const dobValue = String(record.dob || dobInput.value || '').trim();
+      const ageMonthsFromDob = getAgeInMonthsAtDate(dobValue, referenceDate);
+      if (Number.isFinite(ageMonthsFromDob)) {
+        return {
+          source: 'dob',
+          ageMonths: ageMonthsFromDob,
+          ageYears: ageMonthsFromDob / 12,
+          ageValue: ageMonthsFromDob < 12
+            ? Math.min(11, Math.max(1, Math.round(ageMonthsFromDob)))
+            : Math.round((ageMonthsFromDob / 12) * 10) / 10,
+          ageUnit: ageMonthsFromDob < 12 ? 'months' : 'years',
+          ageRecordedAt: '',
+          label: formatAgeSummaryLabelFromMonths(ageMonthsFromDob)
+        };
+      }
+
+      const storedAgeValue = parseAgeValue(record.ageValue ?? record.age ?? '');
+      if (!Number.isFinite(storedAgeValue)) {
+        return {
+          source: '',
+          ageMonths: NaN,
+          ageYears: NaN,
+          ageValue: '',
+          ageUnit: 'years',
+          ageRecordedAt: '',
+          label: ''
+        };
+      }
+
+      const storedAgeUnit = normalizeAgeUnit(record.ageUnit);
+      const referenceTime = referenceDate instanceof Date ? referenceDate.getTime() : new Date(referenceDate).getTime();
+      const recordedAt = new Date(record.ageRecordedAt || record.updatedAt || record.savedAt || referenceDate);
+      const recordedAtTime = recordedAt.getTime();
+      const elapsedMonths = Number.isFinite(referenceTime) && !Number.isNaN(recordedAtTime)
+        ? ((referenceTime - recordedAtTime) / (365.25 * 24 * 60 * 60 * 1000)) * 12
+        : 0;
+      const baseMonths = storedAgeUnit === 'months' ? storedAgeValue : storedAgeValue * 12;
+      const ageMonths = Math.max(0, baseMonths + elapsedMonths);
+
+      return {
+        source: 'age',
+        ageMonths,
+        ageYears: ageMonths / 12,
+        ageValue: ageMonths < 12
+          ? Math.min(11, Math.max(1, Math.round(ageMonths)))
+          : Math.round((ageMonths / 12) * 10) / 10,
+        ageUnit: ageMonths < 12 ? 'months' : 'years',
+        ageRecordedAt: Number.isNaN(recordedAtTime) ? '' : recordedAt.toISOString(),
+        label: formatAgeSummaryLabelFromMonths(ageMonths)
+      };
+    }
+
+    function getPatientAgeLabelAtDate(referenceDate = new Date(), record = currentPatientRecord || {}) {
+      return getAgeSnapshotAtDate(referenceDate, record).label;
     }
 
     function setPatientHint(message) {
@@ -3260,12 +3342,13 @@
     }
 
     function updatePageMeta(patientRecord = null) {
-      const metaPatientId = patientRecord?.patientId || patientIdInput.value.trim().toUpperCase();
+      const resolvedPatientRecord = patientRecord || currentPatientRecord || null;
+      const metaPatientId = resolvedPatientRecord?.patientId || patientIdInput.value.trim().toUpperCase();
       if (pageMetaLink) {
         pageMetaLink.href = getPatientDetailsEditUrl(metaPatientId);
       }
 
-      if (!patientRecord) {
+      if (!resolvedPatientRecord) {
         pageMetaChild.textContent = 'Child -';
         pageMetaParent.textContent = 'Age -';
         pageMetaPhone.textContent = 'Ph -';
@@ -3275,14 +3358,13 @@
         return;
       }
 
-      const ageYearsValue = getAgeInYearsAtDate(patientRecord.dob || dobInput.value, getSelectedMeasurementDate());
-      const ageYearsLabel = Number.isFinite(ageYearsValue) ? ageYearsValue.toFixed(2) : '';
-      pageMetaChild.textContent = `Child - ${patientRecord.childName || ''}`;
+      const ageYearsLabel = getPatientAgeLabelAtDate(getSelectedMeasurementDate(), resolvedPatientRecord);
+      pageMetaChild.textContent = `Child - ${resolvedPatientRecord.childName || ''}`;
       pageMetaParent.textContent = `Age - ${ageYearsLabel}`;
-      pageMetaPhone.textContent = `Ph - ${formatPhoneDisplay(patientRecord.phone, '')}`;
-      pageMetaWeight.textContent = `Weight - ${formatPageMetaMetric(getLatestPatientMetric(patientRecord, 'weight'), 'kg')}`;
-      pageMetaHeight.textContent = `Length/Height - ${formatPageMetaMetric(getLatestPatientMetric(patientRecord, 'height'), 'cm')}`;
-      pageMetaHead.textContent = `Head - ${formatPageMetaMetric(getLatestPatientMetric(patientRecord, 'head'), 'cm')}`;
+      pageMetaPhone.textContent = `Ph - ${formatPhoneDisplay(resolvedPatientRecord.phone, '')}`;
+      pageMetaWeight.textContent = `Weight - ${formatPageMetaMetric(getLatestPatientMetric(resolvedPatientRecord, 'weight'), 'kg')}`;
+      pageMetaHeight.textContent = `Length/Height - ${formatPageMetaMetric(getLatestPatientMetric(resolvedPatientRecord, 'height'), 'cm')}`;
+      pageMetaHead.textContent = `Head - ${formatPageMetaMetric(getLatestPatientMetric(resolvedPatientRecord, 'head'), 'cm')}`;
     }
 
     function setChartPreviewMessage(message, tone = '') {
@@ -4043,7 +4125,7 @@
         spo2: '',
         systolic: '',
         diastolic: '',
-        age: calculateAgeLabelAtDate(dobInput.value, measuredAt),
+        age: getPatientAgeLabelAtDate(measuredAt, currentPatientRecord || {}),
         source: 'prescription-growth-chart'
       };
     }
@@ -4437,6 +4519,7 @@
 
     function applyPatientRecord(patientRecord) {
       clearMeasurementInputs();
+      currentPatientRecord = patientRecord || null;
       childNameInput.value = patientRecord.childName || '';
       parentNameInput.value = patientRecord.parentName || '';
       phoneInput.value = patientRecord.phone || '';
@@ -4493,6 +4576,9 @@
         phone: patientHistoryEntries[0].phone || '',
         gender: patientHistoryEntries[0].gender || '',
         dob: patientHistoryEntries[0].dob || '',
+        ageValue: patientHistoryEntries[0].ageValue ?? patientHistoryEntries[0].age ?? '',
+        ageUnit: patientHistoryEntries[0].ageUnit || '',
+        ageRecordedAt: patientHistoryEntries[0].ageRecordedAt || patientHistoryEntries[0].createdAtIso || '',
         fromHistoryOnly: true
       } : null);
       lastHistoryDebug.mergedPatientFound = !!patientRecord;
@@ -4577,6 +4663,7 @@
           phoneInput.value = '';
           genderInput.value = '';
           dobInput.value = '';
+          currentPatientRecord = null;
           updateAge();
           setPatientHint('No patient record was found for that ID.');
           updatePageMeta();
@@ -4661,6 +4748,7 @@
       const existingRecords = cleanupExpiredLocalRecords();
       const patientId = patientIdInput.value.trim().toUpperCase();
       const measuredAt = getSelectedMeasurementDate();
+      const ageSnapshot = getAgeSnapshotAtDate(measuredAt, currentPatientRecord || {});
       const nextRecord = {
         source: 'prescription-growth-chart',
         chartFormatVersion: CHART_PREVIEW_VERSION,
@@ -4677,7 +4765,10 @@
         phone: phoneInput.value.trim(),
         gender: genderInput.value,
         dob: dobInput.value,
-        age: ageInput.value,
+        age: ageSnapshot.label || ageInput.value,
+        ageValue: ageSnapshot.ageValue,
+        ageUnit: ageSnapshot.ageUnit,
+        ageRecordedAt: ageSnapshot.ageRecordedAt || new Date().toISOString(),
         charts: getSelectedCharts().map((option) => option.value),
         chartPages: generatedPreviewPages.map((page) => ({
           label: page.label,
@@ -4731,6 +4822,7 @@
 
       const now = new Date();
       const measuredAt = getSelectedMeasurementDate();
+      const ageSnapshot = getAgeSnapshotAtDate(measuredAt, currentPatientRecord || {});
       const patientId = patientIdInput.value.trim().toUpperCase();
       const episodeId = buildConsultationEpisodeId(patientId, measuredAt);
       const historyRecord = {
@@ -4740,7 +4832,10 @@
         phone: phoneInput.value.trim(),
         gender: form.elements.gender.value,
         dob: dobInput.value,
-        age: ageInput.value,
+        age: ageSnapshot.label || ageInput.value,
+        ageValue: ageSnapshot.ageValue,
+        ageUnit: ageSnapshot.ageUnit,
+        ageRecordedAt: ageSnapshot.ageRecordedAt || now.toISOString(),
         charts: getSelectedCharts().map((option) => option.value),
         weight: metricInputs.weight.value,
         height: metricInputs.height.value,
@@ -4783,6 +4878,7 @@
 
       const now = new Date();
       const measuredAt = getSelectedMeasurementDate();
+      const ageSnapshot = getAgeSnapshotAtDate(measuredAt, currentPatientRecord || {});
       const measurementEntry = {
         measuredAt: measuredAt.toISOString(),
         measuredAtDisplay: measuredAt.toLocaleString('en-IN'),
@@ -4800,7 +4896,10 @@
         spo2: metricInputs.spo2.value || '',
         systolic: metricInputs.systolic.value || '',
         diastolic: metricInputs.diastolic.value || '',
-        age: ageInput.value,
+        age: ageSnapshot.label || ageInput.value,
+        ageValue: ageSnapshot.ageValue,
+        ageUnit: ageSnapshot.ageUnit,
+        ageRecordedAt: ageSnapshot.ageRecordedAt || now.toISOString(),
         source: 'prescription-growth-chart'
       };
       if (latestChartPdfUploadResult?.ok) {
@@ -5077,10 +5176,11 @@
     function buildPatientDataFromValues(values = {}, measuredAt = new Date()) {
       const height = Number.parseFloat(getMeasurementMetricValue(values, 'height'));
       const weight = Number.parseFloat(values.weight);
+      const ageSnapshot = getAgeSnapshotAtDate(measuredAt, currentPatientRecord || {});
 
       return {
-        ageYears: getAgeInYearsAtDate(dobInput.value, measuredAt),
-        ageMonths: getAgeInMonthsAtDate(dobInput.value, measuredAt),
+        ageYears: ageSnapshot.ageYears,
+        ageMonths: ageSnapshot.ageMonths,
         weight,
         height,
         head: Number.parseFloat(getMeasurementMetricValue(values, 'head')),
@@ -5626,7 +5726,7 @@
 
     function getSelectedCharts() {
       const selected = [];
-      const ageYears = getAgeInYearsAtDate(dobInput.value, getSelectedMeasurementDate());
+      const ageYears = getAgeSnapshotAtDate(getSelectedMeasurementDate(), currentPatientRecord || {}).ageYears;
       const weight = Number.parseFloat(metricInputs.weight.value);
       const height = Number.parseFloat(metricInputs.height.value);
       const head = Number.parseFloat(metricInputs.head.value);

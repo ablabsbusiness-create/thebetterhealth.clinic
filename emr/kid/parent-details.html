@@ -167,6 +167,12 @@
       gap: 7px;
     }
 
+    .age-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 104px;
+      gap: 10px;
+    }
+
     .field-full {
       grid-column: 1 / -1;
     }
@@ -342,6 +348,17 @@
           </div>
 
           <div class="field">
+            <label for="age-value">Age</label>
+            <div class="age-row">
+              <input id="age-value" name="ageValue" type="number" min="0" step="0.1" inputmode="decimal" placeholder="e.g. 7.5">
+              <select id="age-unit" name="ageUnit">
+                <option value="years">yrs</option>
+                <option value="months">mnths</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
             <label for="gender">Gender</label>
             <select id="gender" name="gender">
               <option value="">Select gender</option>
@@ -392,6 +409,8 @@
     const saveStatus = document.getElementById('save-status');
     const patientChip = document.getElementById('patient-chip');
     const backLink = document.getElementById('back-link');
+    const ageValueInput = document.getElementById('age-value');
+    const ageUnitInput = document.getElementById('age-unit');
 
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
@@ -448,6 +467,141 @@
       return digits.length > 10 ? digits.slice(-10) : digits;
     }
 
+    function normalizeAgeUnit(value) {
+      return String(value || '').toLowerCase() === 'months' ? 'months' : 'years';
+    }
+
+    function parseAgeValue(value) {
+      const numeric = Number.parseFloat(String(value || '').replace(',', '.'));
+      return Number.isFinite(numeric) && numeric >= 0 ? numeric : NaN;
+    }
+
+    function getAgeMonthsFromDob(dobValue, referenceDate = new Date()) {
+      if (!dobValue) {
+        return NaN;
+      }
+
+      const dob = new Date(dobValue);
+      const targetDate = referenceDate instanceof Date ? referenceDate : new Date(referenceDate);
+      if (Number.isNaN(dob.getTime()) || Number.isNaN(targetDate.getTime()) || dob > targetDate) {
+        return NaN;
+      }
+
+      return ((targetDate.getTime() - dob.getTime()) / (365.25 * 24 * 60 * 60 * 1000)) * 12;
+    }
+
+    function parseStoredAgeRecord(record = {}) {
+      const explicitValue = parseAgeValue(record.ageValue);
+      const explicitUnit = normalizeAgeUnit(record.ageUnit);
+      if (Number.isFinite(explicitValue)) {
+        return { value: explicitValue, unit: explicitUnit };
+      }
+
+      const rawAge = String(record.age || '').trim().toLowerCase();
+      if (!rawAge) {
+        return null;
+      }
+
+      const monthsMatch = rawAge.match(/^(\d+(?:\.\d+)?)\s*(?:mnths?|months?|mos?|mo)\b/);
+      if (monthsMatch) {
+        return { value: Number.parseFloat(monthsMatch[1]), unit: 'months' };
+      }
+
+      const yearsMatch = rawAge.match(/^(\d+(?:\.\d+)?)\s*(?:yrs?|years?)\b/);
+      if (yearsMatch) {
+        return { value: Number.parseFloat(yearsMatch[1]), unit: 'years' };
+      }
+
+      const fallbackNumeric = parseAgeValue(rawAge);
+      return Number.isFinite(fallbackNumeric) ? { value: fallbackNumeric, unit: 'years' } : null;
+    }
+
+    function formatAgeSummaryLabelFromMonths(months) {
+      if (!Number.isFinite(months) || months < 0) {
+        return '';
+      }
+
+      if (months < 12) {
+        const roundedMonths = Math.min(11, Math.max(1, Math.round(months)));
+        return `${roundedMonths} mnths`;
+      }
+
+      const years = Math.round((months / 12) * 10) / 10;
+      const yearsText = Number.isInteger(years) ? String(Math.trunc(years)) : years.toFixed(1);
+      return `${yearsText} yrs`;
+    }
+
+    function getAgeSnapshotAtDate(record = {}, referenceDate = new Date()) {
+      const dobMonths = getAgeMonthsFromDob(record.dob, referenceDate);
+      if (Number.isFinite(dobMonths)) {
+        const displayAgeUnit = dobMonths < 12 ? 'months' : 'years';
+        const displayAgeValue = displayAgeUnit === 'months'
+          ? Math.min(11, Math.max(1, Math.round(dobMonths)))
+          : (Math.round((dobMonths / 12) * 10) / 10);
+        return {
+          source: 'dob',
+          ageMonths: dobMonths,
+          ageYears: dobMonths / 12,
+          ageValue: displayAgeValue,
+          ageUnit: displayAgeUnit,
+          ageRecordedAt: '',
+          label: formatAgeSummaryLabelFromMonths(dobMonths)
+        };
+      }
+
+      const parsedAge = parseStoredAgeRecord(record);
+      if (!parsedAge) {
+        return {
+          source: '',
+          ageMonths: NaN,
+          ageYears: NaN,
+          ageValue: '',
+          ageUnit: 'years',
+          ageRecordedAt: '',
+          label: ''
+        };
+      }
+
+      const referenceTime = referenceDate instanceof Date ? referenceDate.getTime() : new Date(referenceDate).getTime();
+      const recordedAt = new Date(record.ageRecordedAt || record.updatedAt || record.savedAt || referenceDate);
+      const recordedAtTime = recordedAt.getTime();
+      const elapsedMonths = Number.isFinite(referenceTime) && !Number.isNaN(recordedAtTime)
+        ? ((referenceTime - recordedAtTime) / (365.25 * 24 * 60 * 60 * 1000)) * 12
+        : 0;
+      const baseMonths = parsedAge.unit === 'months' ? parsedAge.value : parsedAge.value * 12;
+      const totalMonths = Math.max(0, baseMonths + elapsedMonths);
+      const displayAgeUnit = totalMonths < 12 ? 'months' : 'years';
+      const displayAgeValue = displayAgeUnit === 'months'
+        ? Math.min(11, Math.max(1, Math.round(totalMonths)))
+        : (Math.round((totalMonths / 12) * 10) / 10);
+
+      return {
+        source: 'age',
+        ageMonths: totalMonths,
+        ageYears: totalMonths / 12,
+        ageValue: displayAgeValue,
+        ageUnit: displayAgeUnit,
+        ageRecordedAt: Number.isNaN(recordedAtTime) ? '' : recordedAt.toISOString(),
+        label: formatAgeSummaryLabelFromMonths(totalMonths)
+      };
+    }
+
+    function syncAgeFormFromRecord(record = {}) {
+      const ageSnapshot = getAgeSnapshotAtDate(record, new Date());
+      if (ageValueInput) {
+        ageValueInput.value = Number.isFinite(ageSnapshot.ageValue) && ageSnapshot.ageValue !== '' ? String(ageSnapshot.ageValue) : '';
+      }
+      if (ageUnitInput) {
+        ageUnitInput.value = ageSnapshot.ageUnit || 'years';
+      }
+    }
+
+    function syncAgeFormFromDob() {
+      if (form.elements.dob.value) {
+        syncAgeFormFromRecord({ dob: form.elements.dob.value });
+      }
+    }
+
     function fillForm(record = {}) {
       form.elements.childName.value = record.childName || '';
       form.elements.parentName.value = record.parentName || '';
@@ -455,6 +609,7 @@
       form.elements.dob.value = record.dob || '';
       form.elements.gender.value = record.gender || '';
       form.elements.email.value = record.email || '';
+      syncAgeFormFromRecord(record);
     }
 
     async function loadPatient() {
@@ -510,6 +665,10 @@
         phone: normalizePhone(form.elements.phone.value),
         mobileNumber: normalizePhone(form.elements.phone.value),
         dob: form.elements.dob.value,
+        ageValue: '',
+        ageUnit: 'years',
+        ageRecordedAt: '',
+        age: '',
         gender: form.elements.gender.value,
         email: form.elements.email.value.trim(),
         updatedAt: serverTimestamp()
@@ -520,6 +679,27 @@
         setStatus('Child name is required.', 'error');
         return;
       }
+
+      const enteredAgeValue = parseAgeValue(ageValueInput.value);
+      const enteredAgeUnit = normalizeAgeUnit(ageUnitInput.value);
+      const ageSnapshot = form.elements.dob.value
+        ? getAgeSnapshotAtDate({ dob: form.elements.dob.value }, new Date())
+        : {
+          ageValue: enteredAgeValue,
+          ageUnit: enteredAgeUnit,
+          label: formatAgeSummaryLabelFromMonths(enteredAgeUnit === 'months' ? enteredAgeValue : enteredAgeValue * 12)
+        };
+
+      if (!form.elements.dob.value && !Number.isFinite(enteredAgeValue)) {
+        ageValueInput.focus();
+        setStatus('Enter age when date of birth is blank.', 'error');
+        return;
+      }
+
+      nextRecord.ageValue = Number.isFinite(ageSnapshot.ageValue) ? ageSnapshot.ageValue : '';
+      nextRecord.ageUnit = ageSnapshot.ageUnit || 'years';
+      nextRecord.ageRecordedAt = new Date().toISOString();
+      nextRecord.age = ageSnapshot.label || '';
 
       saveBtn.disabled = true;
       setStatus('Saving patient details...');
@@ -540,6 +720,9 @@
         saveBtn.disabled = false;
       }
     });
+
+    form.elements.dob.addEventListener('input', syncAgeFormFromDob);
+    form.elements.dob.addEventListener('change', syncAgeFormFromDob);
 
     loadPatient();
   </script>
