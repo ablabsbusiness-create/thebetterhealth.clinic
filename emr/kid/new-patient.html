@@ -330,7 +330,7 @@
 
     .panel-layout {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 280px;
+      grid-template-columns: minmax(0, 1fr) 300px;
       gap: 20px;
       align-items: start;
     }
@@ -338,6 +338,7 @@
     .sidebar-stack {
       display: grid;
       gap: 12px;
+      align-content: start;
     }
 
     .field-grid {
@@ -349,6 +350,10 @@
     .field {
       display: grid;
       gap: 8px;
+    }
+
+    .field-tight {
+      gap: 6px;
     }
 
     .field-full {
@@ -401,7 +406,6 @@
       display: grid;
       grid-template-columns: 96px 96px;
       gap: 10px;
-      margin-top: 10px;
     }
 
     .age-group input {
@@ -488,6 +492,15 @@
       border-radius: 18px;
       border: 1px solid var(--line);
       background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(244, 250, 245, 0.96));
+    }
+
+    .sidebar-stack > * {
+      width: 100%;
+    }
+
+    .sidebar-stack .btn-primary,
+    .sidebar-stack .save-status {
+      min-width: 0;
     }
 
     .patient-id-box h3 {
@@ -647,6 +660,10 @@
         grid-template-columns: repeat(3, minmax(0, 1fr));
       }
 
+      .age-group {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
       .radio-row {
         flex-direction: column;
       }
@@ -654,6 +671,10 @@
       .radio-pill label,
       .btn-primary,
       .btn-secondary {
+        width: 100%;
+      }
+
+      .sidebar-stack .btn-primary {
         width: 100%;
       }
 
@@ -705,7 +726,7 @@
               <input id="parent-name" name="parentName" type="text" placeholder="Enter parent name">
             </div>
 
-            <div class="field">
+            <div class="field field-tight">
               <label for="child-name">Child Name <span class="required">*</span></label>
               <input id="child-name" name="childName" type="text" placeholder="Enter child name" required>
             </div>
@@ -717,6 +738,10 @@
                 <input id="dob-month" name="dobMonth" type="text" inputmode="numeric" placeholder="MM" maxlength="2" required>
                 <input id="dob-year" name="dobYear" type="text" inputmode="numeric" placeholder="YYYY" maxlength="4" required>
               </div>
+            </div>
+
+            <div class="field">
+              <span class="field-label">Age</span>
               <div class="age-group">
                 <input id="age-years" name="ageYears" type="text" inputmode="numeric" placeholder="Yrs">
                 <input id="age-months" name="ageMonths" type="text" inputmode="numeric" placeholder="Mnths">

@@ -604,9 +604,13 @@
     }
 
     function syncAgeFormFromDob() {
-      if (form.elements.dob.value) {
-        syncAgeFormFromRecord({ dob: form.elements.dob.value });
+      if (!form.elements.dob.value) {
+        ageYearsInput.value = '';
+        ageMonthsInput.value = '';
+        return;
       }
+
+      syncAgeFormFromRecord({ dob: form.elements.dob.value });
     }
 
     function syncDobFromAgeForm() {
