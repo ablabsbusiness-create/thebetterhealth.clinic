@@ -316,8 +316,10 @@
       display: flex;
       justify-content: flex-end;
       gap: 12px;
-      flex-wrap: nowrap;
+      flex-wrap: wrap;
       align-items: center;
+      justify-self: end;
+      max-width: 100%;
       min-width: 0;
     }
 
@@ -342,6 +344,7 @@
       min-height: 40px;
       padding: 0 16px;
       white-space: nowrap;
+      flex: 0 0 auto;
     }
 
     .btn-primary:disabled,
@@ -687,6 +690,7 @@
       .preview-actions {
         min-width: 0;
         justify-content: flex-end;
+        gap: 10px;
       }
 
       .document-stage {
@@ -770,7 +774,27 @@
 
       .preview-actions {
         display: grid;
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        width: 100%;
+      }
+
+      .preview-actions .nav-enter-clinic,
+      .preview-actions .header-mode-toggle {
+        grid-column: 1 / -1;
+      }
+
+      .preview-actions .nav-enter-clinic {
+        width: 100%;
+      }
+
+      .preview-actions .header-mode-toggle {
+        width: 100%;
+      }
+
+      .preview-actions .btn-primary,
+      .preview-actions .btn-secondary,
+      .preview-actions .btn-whatsapp {
         width: 100%;
       }
 
