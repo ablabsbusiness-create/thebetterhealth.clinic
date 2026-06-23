@@ -908,6 +908,7 @@
             <button id="without-header-btn" class="header-mode-btn" type="button">Without Header</button>
           </div>
           <button id="download-pdf-btn" class="btn-primary" type="button">Download PDF</button>
+          <button id="print-pdf-btn" class="btn-secondary" type="button">Print PDF</button>
           <button id="whatsapp-btn" class="btn-whatsapp" type="button">WhatsApp</button>
         </div>
       </div>
@@ -937,6 +938,7 @@
     const primaryNav = document.getElementById('primary-nav');
     const rxSheet = document.getElementById('rx-sheet');
     const downloadPdfBtn = document.getElementById('download-pdf-btn');
+    const printPdfBtn = document.getElementById('print-pdf-btn');
     const whatsappBtn = document.getElementById('whatsapp-btn');
     const withHeaderBtn = document.getElementById('with-header-btn');
     const withoutHeaderBtn = document.getElementById('without-header-btn');
@@ -2563,6 +2565,28 @@
       return prescriptionSavePromise;
     }
 
+    async function openPdfForPrinting(pdf) {
+      const pdfBlob = pdf.output('blob');
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      const printWindow = window.open(pdfUrl, '_blank');
+
+      if (!printWindow) {
+        URL.revokeObjectURL(pdfUrl);
+        throw new Error('Popup blocked while opening the PDF for printing.');
+      }
+
+      window.setTimeout(() => {
+        try {
+          printWindow.focus();
+          printWindow.print();
+        } catch (error) {
+          console.warn(`Unable to start print dialog: ${error.message}`);
+        }
+      }, 1200);
+
+      window.setTimeout(() => URL.revokeObjectURL(pdfUrl), 30_000);
+    }
+
     function clearPrescriptionLocalData() {
       localStorage.removeItem(PRESCRIPTION_DRAFT_STORAGE_KEY);
       localStorage.removeItem(CHART_RECORD_STORAGE_KEY);
@@ -2604,6 +2628,26 @@
       } finally {
         downloadPdfBtn.disabled = false;
         downloadPdfBtn.textContent = 'Download PDF';
+      }
+    });
+
+    printPdfBtn.addEventListener('click', async () => {
+      printPdfBtn.disabled = true;
+      printPdfBtn.textContent = 'Preparing...';
+
+      try {
+        const savedRecord = await ensurePrescriptionSaved();
+        if (printWithHeaderEnabled) {
+          await openPdfForPrinting(savedRecord.pdf);
+        } else {
+          const downloadDetails = await buildPdf();
+          await openPdfForPrinting(downloadDetails.pdf);
+        }
+      } catch (error) {
+        console.warn(`Unable to print prescription PDF: ${error.message}`);
+      } finally {
+        printPdfBtn.disabled = false;
+        printPdfBtn.textContent = 'Print PDF';
       }
     });
 

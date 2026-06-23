@@ -476,6 +476,18 @@
       return Number.isFinite(numeric) && numeric >= 0 ? numeric : NaN;
     }
 
+    function formatDateInputValue(dateValue) {
+      const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
+      if (Number.isNaN(date.getTime())) {
+        return '';
+      }
+
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
     function getAgeMonthsFromDob(dobValue, referenceDate = new Date()) {
       if (!dobValue) {
         return NaN;
@@ -488,6 +500,20 @@
       }
 
       return ((targetDate.getTime() - dob.getTime()) / (365.25 * 24 * 60 * 60 * 1000)) * 12;
+    }
+
+    function getDobFromAgeSnapshot(ageSnapshot, referenceDate = new Date()) {
+      if (!Number.isFinite(ageSnapshot?.ageMonths)) {
+        return '';
+      }
+
+      const referenceTime = referenceDate instanceof Date ? referenceDate.getTime() : new Date(referenceDate).getTime();
+      if (Number.isNaN(referenceTime)) {
+        return '';
+      }
+
+      const dobTime = referenceTime - (ageSnapshot.ageMonths * (365.25 / 12) * 24 * 60 * 60 * 1000);
+      return formatDateInputValue(new Date(dobTime));
     }
 
     function parseStoredAgeRecord(record = {}) {
@@ -594,11 +620,30 @@
       if (ageUnitInput) {
         ageUnitInput.value = ageSnapshot.ageUnit || 'years';
       }
+      if (!record.dob && ageSnapshot.label) {
+        form.elements.dob.value = getDobFromAgeSnapshot(ageSnapshot, new Date());
+      }
     }
 
     function syncAgeFormFromDob() {
       if (form.elements.dob.value) {
         syncAgeFormFromRecord({ dob: form.elements.dob.value });
+      }
+    }
+
+    function syncDobFromAgeForm() {
+      const ageValue = parseAgeValue(ageValueInput?.value);
+      if (!Number.isFinite(ageValue)) {
+        return;
+      }
+
+      const ageUnit = normalizeAgeUnit(ageUnitInput?.value);
+      const ageSnapshot = {
+        ageMonths: ageUnit === 'months' ? ageValue : ageValue * 12
+      };
+      const nextDob = getDobFromAgeSnapshot(ageSnapshot, new Date());
+      if (nextDob) {
+        form.elements.dob.value = nextDob;
       }
     }
 
@@ -723,6 +768,9 @@
 
     form.elements.dob.addEventListener('input', syncAgeFormFromDob);
     form.elements.dob.addEventListener('change', syncAgeFormFromDob);
+    ageValueInput.addEventListener('input', syncDobFromAgeForm);
+    ageValueInput.addEventListener('change', syncDobFromAgeForm);
+    ageUnitInput.addEventListener('change', syncDobFromAgeForm);
 
     loadPatient();
   </script>
