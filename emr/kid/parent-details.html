@@ -169,7 +169,7 @@
 
     .age-row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 104px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 10px;
     }
 
@@ -350,11 +350,8 @@
           <div class="field">
             <label for="age-value">Age</label>
             <div class="age-row">
-              <input id="age-value" name="ageValue" type="number" min="0" step="0.1" inputmode="decimal" placeholder="e.g. 7.5">
-              <select id="age-unit" name="ageUnit">
-                <option value="years">yrs</option>
-                <option value="months">mnths</option>
-              </select>
+              <input id="age-years" name="ageYears" type="number" min="0" step="1" inputmode="numeric" placeholder="yrs">
+              <input id="age-months" name="ageMonths" type="number" min="0" max="11" step="1" inputmode="numeric" placeholder="mnths">
             </div>
           </div>
 
@@ -409,8 +406,8 @@
     const saveStatus = document.getElementById('save-status');
     const patientChip = document.getElementById('patient-chip');
     const backLink = document.getElementById('back-link');
-    const ageValueInput = document.getElementById('age-value');
-    const ageUnitInput = document.getElementById('age-unit');
+    const ageYearsInput = document.getElementById('age-years');
+    const ageMonthsInput = document.getElementById('age-months');
 
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
@@ -467,12 +464,8 @@
       return digits.length > 10 ? digits.slice(-10) : digits;
     }
 
-    function normalizeAgeUnit(value) {
-      return String(value || '').toLowerCase() === 'months' ? 'months' : 'years';
-    }
-
-    function parseAgeValue(value) {
-      const numeric = Number.parseFloat(String(value || '').replace(',', '.'));
+    function parseAgePart(value) {
+      const numeric = Number.parseInt(String(value || '').trim(), 10);
       return Number.isFinite(numeric) && numeric >= 0 ? numeric : NaN;
     }
 
@@ -517,29 +510,16 @@
     }
 
     function parseStoredAgeRecord(record = {}) {
-      const explicitValue = parseAgeValue(record.ageValue);
-      const explicitUnit = normalizeAgeUnit(record.ageUnit);
-      if (Number.isFinite(explicitValue)) {
-        return { value: explicitValue, unit: explicitUnit };
-      }
-
-      const rawAge = String(record.age || '').trim().toLowerCase();
-      if (!rawAge) {
+      const years = parseAgePart(record.ageYears ?? record.ageValue ?? record.age);
+      const months = parseAgePart(record.ageMonths);
+      if (!Number.isFinite(years) && !Number.isFinite(months)) {
         return null;
       }
 
-      const monthsMatch = rawAge.match(/^(\d+(?:\.\d+)?)\s*(?:mnths?|months?|mos?|mo)\b/);
-      if (monthsMatch) {
-        return { value: Number.parseFloat(monthsMatch[1]), unit: 'months' };
-      }
-
-      const yearsMatch = rawAge.match(/^(\d+(?:\.\d+)?)\s*(?:yrs?|years?)\b/);
-      if (yearsMatch) {
-        return { value: Number.parseFloat(yearsMatch[1]), unit: 'years' };
-      }
-
-      const fallbackNumeric = parseAgeValue(rawAge);
-      return Number.isFinite(fallbackNumeric) ? { value: fallbackNumeric, unit: 'years' } : null;
+      return {
+        years: Number.isFinite(years) ? years : 0,
+        months: Number.isFinite(months) ? months : 0
+      };
     }
 
     function formatAgeSummaryLabelFromMonths(months) {
@@ -581,8 +561,8 @@
           source: '',
           ageMonths: NaN,
           ageYears: NaN,
-          ageValue: '',
-          ageUnit: 'years',
+          ageYearsInput: '',
+          ageMonthsInput: '',
           ageRecordedAt: '',
           label: ''
         };
@@ -594,19 +574,17 @@
       const elapsedMonths = Number.isFinite(referenceTime) && !Number.isNaN(recordedAtTime)
         ? ((referenceTime - recordedAtTime) / (365.25 * 24 * 60 * 60 * 1000)) * 12
         : 0;
-      const baseMonths = parsedAge.unit === 'months' ? parsedAge.value : parsedAge.value * 12;
+      const baseMonths = (parsedAge.years * 12) + parsedAge.months;
       const totalMonths = Math.max(0, baseMonths + elapsedMonths);
-      const displayAgeUnit = totalMonths < 12 ? 'months' : 'years';
-      const displayAgeValue = displayAgeUnit === 'months'
-        ? Math.min(11, Math.max(1, Math.round(totalMonths)))
-        : (Math.round((totalMonths / 12) * 10) / 10);
+      const displayYears = Math.floor(totalMonths / 12);
+      const displayMonths = Math.min(11, Math.max(0, Math.round(totalMonths - (displayYears * 12))));
 
       return {
         source: 'age',
         ageMonths: totalMonths,
         ageYears: totalMonths / 12,
-        ageValue: displayAgeValue,
-        ageUnit: displayAgeUnit,
+        ageYearsInput: displayYears,
+        ageMonthsInput: displayMonths,
         ageRecordedAt: Number.isNaN(recordedAtTime) ? '' : recordedAt.toISOString(),
         label: formatAgeSummaryLabelFromMonths(totalMonths)
       };
@@ -614,11 +592,11 @@
 
     function syncAgeFormFromRecord(record = {}) {
       const ageSnapshot = getAgeSnapshotAtDate(record, new Date());
-      if (ageValueInput) {
-        ageValueInput.value = Number.isFinite(ageSnapshot.ageValue) && ageSnapshot.ageValue !== '' ? String(ageSnapshot.ageValue) : '';
+      if (ageYearsInput) {
+        ageYearsInput.value = Number.isFinite(ageSnapshot.ageYearsInput) ? String(ageSnapshot.ageYearsInput) : '';
       }
-      if (ageUnitInput) {
-        ageUnitInput.value = ageSnapshot.ageUnit || 'years';
+      if (ageMonthsInput) {
+        ageMonthsInput.value = Number.isFinite(ageSnapshot.ageMonthsInput) ? String(ageSnapshot.ageMonthsInput) : '';
       }
       if (!record.dob && ageSnapshot.label) {
         form.elements.dob.value = getDobFromAgeSnapshot(ageSnapshot, new Date());
@@ -632,14 +610,13 @@
     }
 
     function syncDobFromAgeForm() {
-      const ageValue = parseAgeValue(ageValueInput?.value);
-      if (!Number.isFinite(ageValue)) {
+      const ageYears = parseAgePart(ageYearsInput?.value);
+      const ageMonths = parseAgePart(ageMonthsInput?.value);
+      if (!Number.isFinite(ageYears) && !Number.isFinite(ageMonths)) {
         return;
       }
-
-      const ageUnit = normalizeAgeUnit(ageUnitInput?.value);
       const ageSnapshot = {
-        ageMonths: ageUnit === 'months' ? ageValue : ageValue * 12
+        ageMonths: ((Number.isFinite(ageYears) ? ageYears : 0) * 12) + (Number.isFinite(ageMonths) ? ageMonths : 0)
       };
       const nextDob = getDobFromAgeSnapshot(ageSnapshot, new Date());
       if (nextDob) {
@@ -710,8 +687,8 @@
         phone: normalizePhone(form.elements.phone.value),
         mobileNumber: normalizePhone(form.elements.phone.value),
         dob: form.elements.dob.value,
-        ageValue: '',
-        ageUnit: 'years',
+        ageYears: '',
+        ageMonths: '',
         ageRecordedAt: '',
         age: '',
         gender: form.elements.gender.value,
@@ -725,24 +702,25 @@
         return;
       }
 
-      const enteredAgeValue = parseAgeValue(ageValueInput.value);
-      const enteredAgeUnit = normalizeAgeUnit(ageUnitInput.value);
+      const enteredAgeYears = parseAgePart(ageYearsInput.value);
+      const enteredAgeMonths = parseAgePart(ageMonthsInput.value);
       const ageSnapshot = form.elements.dob.value
         ? getAgeSnapshotAtDate({ dob: form.elements.dob.value }, new Date())
         : {
-          ageValue: enteredAgeValue,
-          ageUnit: enteredAgeUnit,
-          label: formatAgeSummaryLabelFromMonths(enteredAgeUnit === 'months' ? enteredAgeValue : enteredAgeValue * 12)
+          ageYearsInput: Number.isFinite(enteredAgeYears) ? enteredAgeYears : 0,
+          ageMonthsInput: Number.isFinite(enteredAgeMonths) ? enteredAgeMonths : 0,
+          ageMonths: ((Number.isFinite(enteredAgeYears) ? enteredAgeYears : 0) * 12) + (Number.isFinite(enteredAgeMonths) ? enteredAgeMonths : 0),
+          label: formatAgeSummaryLabelFromMonths(((Number.isFinite(enteredAgeYears) ? enteredAgeYears : 0) * 12) + (Number.isFinite(enteredAgeMonths) ? enteredAgeMonths : 0))
         };
 
-      if (!form.elements.dob.value && !Number.isFinite(enteredAgeValue)) {
-        ageValueInput.focus();
+      if (!form.elements.dob.value && !Number.isFinite(enteredAgeYears) && !Number.isFinite(enteredAgeMonths)) {
+        ageYearsInput.focus();
         setStatus('Enter age when date of birth is blank.', 'error');
         return;
       }
 
-      nextRecord.ageValue = Number.isFinite(ageSnapshot.ageValue) ? ageSnapshot.ageValue : '';
-      nextRecord.ageUnit = ageSnapshot.ageUnit || 'years';
+      nextRecord.ageYears = Number.isFinite(ageSnapshot.ageYearsInput) ? ageSnapshot.ageYearsInput : '';
+      nextRecord.ageMonths = Number.isFinite(ageSnapshot.ageMonthsInput) ? ageSnapshot.ageMonthsInput : '';
       nextRecord.ageRecordedAt = new Date().toISOString();
       nextRecord.age = ageSnapshot.label || '';
 
@@ -768,9 +746,10 @@
 
     form.elements.dob.addEventListener('input', syncAgeFormFromDob);
     form.elements.dob.addEventListener('change', syncAgeFormFromDob);
-    ageValueInput.addEventListener('input', syncDobFromAgeForm);
-    ageValueInput.addEventListener('change', syncDobFromAgeForm);
-    ageUnitInput.addEventListener('change', syncDobFromAgeForm);
+    ageYearsInput.addEventListener('input', syncDobFromAgeForm);
+    ageYearsInput.addEventListener('change', syncDobFromAgeForm);
+    ageMonthsInput.addEventListener('input', syncDobFromAgeForm);
+    ageMonthsInput.addEventListener('change', syncDobFromAgeForm);
 
     loadPatient();
   </script>

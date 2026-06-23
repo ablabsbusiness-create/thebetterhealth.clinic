@@ -397,6 +397,17 @@
       text-align: center;
     }
 
+    .age-group {
+      display: grid;
+      grid-template-columns: 96px 96px;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .age-group input {
+      text-align: center;
+    }
+
     .required {
       color: #b91c1c;
     }
@@ -687,19 +698,16 @@
             <div class="field">
               <label for="mobile-number">Phone Number <span class="required">*</span></label>
               <input id="mobile-number" name="mobileNumber" type="tel" inputmode="tel" placeholder="Enter phone number" required>
-              <span class="field-hint">Use the main contact number for this patient.</span>
             </div>
 
             <div class="field">
               <label for="parent-name">Parent Name</label>
               <input id="parent-name" name="parentName" type="text" placeholder="Enter parent name">
-              <span class="field-hint">Leave blank if not available.</span>
             </div>
 
             <div class="field">
               <label for="child-name">Child Name <span class="required">*</span></label>
               <input id="child-name" name="childName" type="text" placeholder="Enter child name" required>
-              <span class="field-hint">Enter the child name used in clinic records.</span>
             </div>
 
             <div class="field">
@@ -709,7 +717,10 @@
                 <input id="dob-month" name="dobMonth" type="text" inputmode="numeric" placeholder="MM" maxlength="2" required>
                 <input id="dob-year" name="dobYear" type="text" inputmode="numeric" placeholder="YYYY" maxlength="4" required>
               </div>
-              <span class="field-hint">Enter date of birth as day, month, and year.</span>
+              <div class="age-group">
+                <input id="age-years" name="ageYears" type="text" inputmode="numeric" placeholder="Yrs">
+                <input id="age-months" name="ageMonths" type="text" inputmode="numeric" placeholder="Mnths">
+              </div>
             </div>
 
             <div class="field">
@@ -724,19 +735,16 @@
                   <label for="gender-female">Female</label>
                 </div>
               </div>
-              <span class="field-hint">Choose the patient gender used for clinic charting.</span>
             </div>
 
             <div class="field">
               <label for="blood-group">Blood</label>
               <input id="blood-group" name="bloodGroup" type="text" placeholder="e.g. O+">
-              <span class="field-hint">Leave blank if not known.</span>
             </div>
 
             <div class="field">
               <label for="email">Email</label>
               <input id="email" name="email" type="email" placeholder="Enter email address">
-              <span class="field-hint">Leave blank if not available.</span>
             </div>
           </div>
         </form>
@@ -777,6 +785,8 @@
     const dobDayInput = document.getElementById('dob-day');
     const dobMonthInput = document.getElementById('dob-month');
     const dobYearInput = document.getElementById('dob-year');
+    const ageYearsInput = document.getElementById('age-years');
+    const ageMonthsInput = document.getElementById('age-months');
     const searchParams = new URLSearchParams(window.location.search);
     const firebaseEnv = import.meta.env || {};
     const firebaseConfig = {
@@ -823,6 +833,11 @@
       return digits.length > 10 ? digits.slice(-10) : digits;
     }
 
+    function parseAgePart(value) {
+      const numeric = Number.parseInt(String(value || '').trim(), 10);
+      return Number.isFinite(numeric) && numeric >= 0 ? numeric : NaN;
+    }
+
     function buildPatientId() {
       const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
       let suffix = '';
@@ -858,8 +873,101 @@
       return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     }
 
+    function formatDateInputValue(dateValue) {
+      const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
+      if (Number.isNaN(date.getTime())) {
+        return '';
+      }
+
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function getDobFromAgeParts(yearsValue, monthsValue, referenceDate = new Date()) {
+      const years = Number.isFinite(yearsValue) ? yearsValue : 0;
+      const months = Number.isFinite(monthsValue) ? monthsValue : 0;
+      const totalMonths = (years * 12) + months;
+      const referenceTime = referenceDate instanceof Date ? referenceDate.getTime() : new Date(referenceDate).getTime();
+      if (!Number.isFinite(totalMonths) || Number.isNaN(referenceTime)) {
+        return '';
+      }
+
+      const dobTime = referenceTime - (totalMonths * (365.25 / 12) * 24 * 60 * 60 * 1000);
+      return formatDateInputValue(new Date(dobTime));
+    }
+
+    function getAgePartsFromDob(dobValue, referenceDate = new Date()) {
+      if (!dobValue) {
+        return { years: '', months: '' };
+      }
+
+      const dob = new Date(dobValue);
+      const targetDate = referenceDate instanceof Date ? referenceDate : new Date(referenceDate);
+      if (Number.isNaN(dob.getTime()) || Number.isNaN(targetDate.getTime()) || dob > targetDate) {
+        return { years: '', months: '' };
+      }
+
+      const totalMonths = Math.max(0, ((targetDate.getTime() - dob.getTime()) / (365.25 * 24 * 60 * 60 * 1000)) * 12);
+      const years = Math.floor(totalMonths / 12);
+      const months = Math.min(11, Math.max(0, Math.round(totalMonths - (years * 12))));
+      return { years, months };
+    }
+
+    let isSyncingAgeDob = false;
+
+    function syncAgeFromDob() {
+      if (isSyncingAgeDob) {
+        return;
+      }
+
+      isSyncingAgeDob = true;
+      const ageParts = getAgePartsFromDob(parseDobInput(dobDayInput.value, dobMonthInput.value, dobYearInput.value), new Date());
+      ageYearsInput.value = ageParts.years === '' ? '' : String(ageParts.years);
+      ageMonthsInput.value = ageParts.months === '' ? '' : String(ageParts.months);
+      isSyncingAgeDob = false;
+    }
+
+    function syncDobFromAge() {
+      if (isSyncingAgeDob) {
+        return;
+      }
+
+      const ageYears = parseAgePart(ageYearsInput.value);
+      const ageMonths = parseAgePart(ageMonthsInput.value);
+      if (!Number.isFinite(ageYears) && !Number.isFinite(ageMonths)) {
+        return;
+      }
+
+      isSyncingAgeDob = true;
+      const nextDob = getDobFromAgeParts(
+        Number.isFinite(ageYears) ? ageYears : 0,
+        Number.isFinite(ageMonths) ? ageMonths : 0,
+        new Date()
+      );
+      if (nextDob) {
+        const [year, month, day] = nextDob.split('-');
+        dobDayInput.value = day || '';
+        dobMonthInput.value = month || '';
+        dobYearInput.value = year || '';
+      }
+      isSyncingAgeDob = false;
+    }
+
     async function savePatientToCloudRecords(patientId) {
-      const normalizedDob = parseDobInput(dobDayInput.value, dobMonthInput.value, dobYearInput.value);
+      let normalizedDob = parseDobInput(dobDayInput.value, dobMonthInput.value, dobYearInput.value);
+      if (!normalizedDob) {
+        const ageYears = parseAgePart(ageYearsInput.value);
+        const ageMonths = parseAgePart(ageMonthsInput.value);
+        if (Number.isFinite(ageYears) || Number.isFinite(ageMonths)) {
+          normalizedDob = getDobFromAgeParts(
+            Number.isFinite(ageYears) ? ageYears : 0,
+            Number.isFinite(ageMonths) ? ageMonths : 0,
+            new Date()
+          );
+        }
+      }
       const normalizedPhone = normalizePhone(newPatientForm.elements.mobileNumber.value);
       const patientRecord = {
         patientId,
@@ -902,7 +1010,13 @@
 
       const normalizedDob = parseDobInput(dobDayInput.value, dobMonthInput.value, dobYearInput.value);
       if (!normalizedDob) {
-        dobYearInput.setCustomValidity('Please enter a valid date of birth.');
+        const enteredAgeYears = parseAgePart(ageYearsInput.value);
+        const enteredAgeMonths = parseAgePart(ageMonthsInput.value);
+        if (!Number.isFinite(enteredAgeYears) && !Number.isFinite(enteredAgeMonths)) {
+          dobYearInput.setCustomValidity('Please enter a valid date of birth or age.');
+        } else {
+          dobYearInput.setCustomValidity('');
+        }
       } else {
         dobYearInput.setCustomValidity('');
       }
@@ -935,7 +1049,14 @@
     [dobDayInput, dobMonthInput, dobYearInput].forEach((input) => {
       input.addEventListener('input', () => {
         dobYearInput.setCustomValidity('');
+        syncAgeFromDob();
       });
+      input.addEventListener('change', syncAgeFromDob);
+    });
+
+    [ageYearsInput, ageMonthsInput].forEach((input) => {
+      input.addEventListener('input', syncDobFromAge);
+      input.addEventListener('change', syncDobFromAge);
     });
 
     menuToggle.addEventListener('click', toggleMobileMenu);
