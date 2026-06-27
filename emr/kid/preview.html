@@ -619,6 +619,7 @@
       object-fit: contain;
       object-position: center;
       image-rendering: auto;
+      filter: contrast(1.45) brightness(0.94) saturate(1.05);
       background: transparent;
     }
 
@@ -1034,7 +1035,7 @@
     let activePrescriptionBranding = null;
     const patientMeasurementHistoryCache = new Map();
     const CHART_ASSET_VERSION = '2026-05-22-growth-recalibrated';
-    const CHART_PREVIEW_VERSION = 'preview-rebuilt-2026-06-history-series';
+    const CHART_PREVIEW_VERSION = 'preview-rebuilt-2026-06-history-series-contrast';
     const CHART_RENDER_MAX_WIDTH = 1600;
     const CHART_RENDER_SCALE = 6;
     const CHART_POINT_RADIUS = 7;
@@ -1739,9 +1740,9 @@
       }
 
       context.save();
-      context.strokeStyle = '#98a1ab';
-      context.fillStyle = '#525a65';
-      context.lineWidth = Math.max(1, renderScale * 0.28);
+      context.strokeStyle = '#4b5563';
+      context.fillStyle = '#1f2937';
+      context.lineWidth = Math.max(1.4, renderScale * 0.42);
       context.lineJoin = 'round';
       context.lineCap = 'round';
       context.font = `${Math.max(10, renderScale * 4)}px Arial`;
@@ -1802,7 +1803,10 @@
       context.imageSmoothingQuality = 'high';
       context.fillStyle = '#ffffff';
       context.fillRect(0, 0, canvas.width, canvas.height);
+      context.save();
+      context.filter = 'contrast(1.24) brightness(0.96)';
       context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      context.restore();
 
       const plotArea = request.plotArea || {
         left: chartTemplateAxis.xStart,
@@ -1893,8 +1897,8 @@
         context.beginPath();
         context.moveTo(mappedPoints[0].x, mappedPoints[0].y);
         mappedPoints.slice(1).forEach((point) => context.lineTo(point.x, point.y));
-        context.lineWidth = Math.max(1, renderScale);
-        context.strokeStyle = '#111111';
+        context.lineWidth = Math.max(2, renderScale * 1.35);
+        context.strokeStyle = '#0f172a';
         context.lineJoin = 'round';
         context.lineCap = 'round';
         context.stroke();
@@ -1902,8 +1906,8 @@
 
       mappedPoints.forEach((point) => {
         context.beginPath();
-        context.arc(point.x, point.y, CHART_POINT_RADIUS * renderScale, 0, Math.PI * 2);
-        context.fillStyle = '#111111';
+        context.arc(point.x, point.y, (CHART_POINT_RADIUS + 0.8) * renderScale, 0, Math.PI * 2);
+        context.fillStyle = '#0f172a';
         context.fill();
       });
       context.restore();

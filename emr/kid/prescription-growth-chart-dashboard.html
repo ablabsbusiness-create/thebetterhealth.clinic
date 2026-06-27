@@ -5048,7 +5048,10 @@
       chartContext.fillRect(0, 0, chartCanvas.width, chartCanvas.height);
 
       if (image) {
+        chartContext.save();
+        chartContext.filter = 'contrast(1.18) brightness(0.98)';
         chartContext.drawImage(image, 0, 0, chartCanvas.width, chartCanvas.height);
+        chartContext.restore();
         chartContext.save();
         chartContext.globalAlpha = 0.38;
         chartContext.strokeStyle = '#334155';

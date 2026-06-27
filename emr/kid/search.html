@@ -4148,6 +4148,7 @@
               const cardUrl = escapeHtml(getPrescriptionOpenUrl(downloadUrl));
               const embeddedPdfUrl = escapeHtml(getEmbeddedPrescriptionPreviewUrl(downloadUrl));
               const cardPreviewUrl = escapeHtml(previewImageUrl);
+              const shouldShowPhotoPreview = Boolean(previewImageUrl && isMobilePdfPreview());
               const shouldEmbedPdf = Boolean(downloadUrl && shouldEmbedPrescriptionPdfPreview());
               const storagePath = getPrescriptionStoragePath(entry);
               const hasResolvablePdf = Boolean(downloadUrl || storagePath);
@@ -4156,7 +4157,7 @@
               return `
                 <div class="prescription-preview-entry">
                   <div class="prescription-date">${formatPrescriptionDate(entry)}</div>
-                  ${previewImageUrl
+                  ${shouldShowPhotoPreview
                     ? `
                       <div class="prescription-preview-card" data-open-prescription-url="${cardUrl}" data-preview-image-url="${cardPreviewUrl}">
                         <div class="prescription-preview-surface">
