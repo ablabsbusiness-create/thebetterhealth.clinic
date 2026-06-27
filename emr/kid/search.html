@@ -3994,8 +3994,31 @@
       return entry.createdAtDisplay || 'Saved prescription';
     }
 
+    function getPrescriptionEntryKey(entry, index = 0) {
+      return String(
+        entry?.prescriptionSaveId
+        || entry?.id
+        || getPrescriptionDownloadUrl(entry)
+        || getPrescriptionStoragePath(entry)
+        || `${getNormalizedPatientId(entry?.patientId || '')}-${entry?.createdAtIso || index}`
+      ).trim();
+    }
+
     function getPrescriptionEntries(patientId) {
-      return prescriptionHistoryByPatientId.get(getNormalizedPatientId(patientId)) || [];
+      const entries = prescriptionHistoryByPatientId.get(getNormalizedPatientId(patientId)) || [];
+      const uniqueEntries = [];
+      const seenKeys = new Set();
+
+      entries.forEach((entry, index) => {
+        const key = getPrescriptionEntryKey(entry, index);
+        if (!key || seenKeys.has(key)) {
+          return;
+        }
+        seenKeys.add(key);
+        uniqueEntries.push(entry);
+      });
+
+      return uniqueEntries;
     }
 
     function createMeasurementEntryKey(entry) {
@@ -4073,7 +4096,20 @@
     }
 
     function getPrescriptionEntriesForDate(patientId, dateValue) {
-      return prescriptionHistoryByPatientDate.get(`${getNormalizedPatientId(patientId)}|${dateValue}`) || [];
+      const entries = prescriptionHistoryByPatientDate.get(`${getNormalizedPatientId(patientId)}|${dateValue}`) || [];
+      const uniqueEntries = [];
+      const seenKeys = new Set();
+
+      entries.forEach((entry, index) => {
+        const key = getPrescriptionEntryKey(entry, index);
+        if (!key || seenKeys.has(key)) {
+          return;
+        }
+        seenKeys.add(key);
+        uniqueEntries.push(entry);
+      });
+
+      return uniqueEntries;
     }
 
     function patientHasSeenActivityOnDate(patient, dateValue) {
