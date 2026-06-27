@@ -4004,8 +4004,11 @@
       ).trim();
     }
 
-    function getPrescriptionEntries(patientId) {
-      const entries = prescriptionHistoryByPatientId.get(getNormalizedPatientId(patientId)) || [];
+    function getPrescriptionEntries(patientId, patient = null) {
+      const normalizedPatientId = getNormalizedPatientId(patientId);
+      const mapEntries = prescriptionHistoryByPatientId.get(normalizedPatientId) || [];
+      const patientEntries = patient ? getPatientPrescriptionHistoryEntries(patient) : [];
+      const entries = [...mapEntries, ...patientEntries];
       const uniqueEntries = [];
       const seenKeys = new Set();
 
@@ -4128,8 +4131,8 @@
       return ids.has(patientId) && !patientHasSeenActivityOnDate(patient, dateValue);
     }
 
-    function renderPrescriptionListHtml(patientId) {
-      const entries = getPrescriptionEntries(patientId);
+    function renderPrescriptionListHtml(patientId, patient = null) {
+      const entries = getPrescriptionEntries(patientId, patient);
 
       if (!entries.length) {
         return '<p>No saved prescriptions found for this patient yet.</p>';
@@ -4421,7 +4424,7 @@
                     <h3>Past Prescriptions</h3>
                   </div>
                   <div class="doctor-card-body">
-                    ${renderPrescriptionListHtml(selectedPatientIdValue)}
+                    ${renderPrescriptionListHtml(selectedPatientIdValue, selectedPatient)}
                   </div>
                 </section>
               </div>

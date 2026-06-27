@@ -5049,6 +5049,17 @@
 
       if (image) {
         chartContext.drawImage(image, 0, 0, chartCanvas.width, chartCanvas.height);
+        chartContext.save();
+        chartContext.globalAlpha = 0.38;
+        chartContext.strokeStyle = '#334155';
+        chartContext.lineWidth = Math.max(1, chartCanvas.width * 0.0012);
+        chartContext.strokeRect(
+          Math.max(1, chartCanvas.width * 0.006),
+          Math.max(1, chartCanvas.height * 0.006),
+          chartCanvas.width - Math.max(2, chartCanvas.width * 0.012),
+          chartCanvas.height - Math.max(2, chartCanvas.height * 0.012)
+        );
+        chartContext.restore();
         return;
       }
 
@@ -5323,8 +5334,8 @@
           mappedPoints.slice(1).forEach((point) => {
             chartContext.lineTo(point.x, point.y);
           });
-          chartContext.lineWidth = 1;
-          chartContext.strokeStyle = '#111111';
+          chartContext.lineWidth = 2;
+          chartContext.strokeStyle = '#0f172a';
           chartContext.lineJoin = 'round';
           chartContext.lineCap = 'round';
           chartContext.stroke();
@@ -5363,8 +5374,8 @@
           }
 
           chartContext.beginPath();
-          chartContext.arc(point.x, point.y, CHART_POINT_RADIUS, 0, Math.PI * 2);
-          chartContext.fillStyle = '#111111';
+          chartContext.arc(point.x, point.y, CHART_POINT_RADIUS + 0.5, 0, Math.PI * 2);
+          chartContext.fillStyle = '#0f172a';
           chartContext.fill();
         });
       });
