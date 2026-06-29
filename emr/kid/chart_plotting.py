@@ -161,12 +161,26 @@ def clip_overlay_to_bounds(
     return clipped_overlay
 
 
+def soften_chart_background(image: Image.Image) -> Image.Image:
+    softened = image.copy()
+    pixels = softened.load()
+    width, height = softened.size
+
+    for y in range(height):
+        for x in range(width):
+            red, green, blue, alpha = pixels[x, y]
+            if red > 238 and green > 238 and blue > 238:
+                pixels[x, y] = (255, 255, 255, alpha)
+
+    return softened
+
+
 def sort_entries(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return sorted(entries, key=lambda entry: parse_datetime(entry.get("measuredAt")) or datetime.min)
 
 
 def get_marker_metrics(image_width: int) -> tuple[int, int]:
-    radius = max(7, round(image_width * 0.0045))
+    radius = max(8, round(image_width * 0.005))
     outline_width = 0
     return radius, outline_width
 
@@ -192,8 +206,8 @@ def render_template_page(template_request: dict[str, Any], plot_series: dict[str
     if not image_path.exists():
         raise ChartPlotError(f"Missing chart asset: {template['path']}")
 
-    image = Image.open(image_path).convert("RGBA")
-    line_width = max(1, round(image.width * 0.001))
+    image = soften_chart_background(Image.open(image_path).convert("RGBA"))
+    line_width = max(3, round(image.width * 0.002))
     marker_radius, _ = get_marker_metrics(image.width)
 
     for metric_key in template_request.get("metrics", []):

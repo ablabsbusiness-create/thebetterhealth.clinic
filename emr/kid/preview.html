@@ -1035,7 +1035,7 @@
     let activePrescriptionBranding = null;
     const patientMeasurementHistoryCache = new Map();
     const CHART_ASSET_VERSION = '2026-05-22-growth-recalibrated';
-    const CHART_PREVIEW_VERSION = 'preview-rebuilt-2026-06-history-series-contrast';
+    const CHART_PREVIEW_VERSION = 'preview-rebuilt-2026-06-white-bg-bold-line';
     const CHART_RENDER_MAX_WIDTH = 1600;
     const CHART_RENDER_SCALE = 6;
     const CHART_POINT_RADIUS = 7;
@@ -2461,7 +2461,7 @@
       };
     }
 
-    async function savePrescriptionPdfToCloudStorage(pdfBlob, fileName, details, saveId) {
+    async function savePrescriptionPdfToCloudStorage(fileName, details, saveId) {
       if (!db) {
         return { ok: false, reason: 'Online records are not configured.' };
       }
@@ -2484,6 +2484,10 @@
 
       if (storage) {
         try {
+          const pdfBlob = details.pdf?.output('blob');
+          if (!pdfBlob) {
+            throw new Error('Headered prescription PDF is not available.');
+          }
           const storageRef = ref(storage, storagePath);
           await uploadBytes(storageRef, pdfBlob, {
             contentType: 'application/pdf',
@@ -2575,11 +2579,12 @@
         const saveId = details.draftId || fallbackSaveId;
         const fileName = `${saveId}.pdf`;
         const pdfBlob = pdf.output('blob');
-        const saveResult = await savePrescriptionPdfToCloudStorage(pdfBlob, fileName, {
+        const saveResult = await savePrescriptionPdfToCloudStorage(fileName, {
           ...details,
           patientId,
           childName,
           phone,
+          pdf,
           previewBlob
         }, saveId);
 
@@ -2598,6 +2603,7 @@
           ...saveResult
         };
         setPreviewStatus(saveResult.warning ? `Prescription saved. ${saveResult.warning}` : 'Prescription saved');
+        clearPrescriptionLocalData();
         return savedPrescriptionRecord;
       })().catch((error) => {
         prescriptionSavePromise = null;
@@ -2634,6 +2640,7 @@
       localStorage.removeItem(PRESCRIPTION_DRAFT_STORAGE_KEY);
       localStorage.removeItem(CHART_RECORD_STORAGE_KEY);
       localStorage.removeItem(MEDICINE_DETAIL_STORAGE_KEY);
+      localStorage.removeItem(LOCAL_PRESCRIPTION_HISTORY_KEY);
     }
 
     function normalizeWhatsAppPhone(phone) {
@@ -2665,7 +2672,6 @@
           const downloadDetails = await buildPdf();
           downloadDetails.pdf.save(savedRecord.fileName);
         }
-        clearPrescriptionLocalData();
       } catch (error) {
         console.warn(`Unable to save prescription PDF: ${error.message}`);
       } finally {

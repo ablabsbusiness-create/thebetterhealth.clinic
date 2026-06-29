@@ -2714,7 +2714,7 @@
     let isRestoringVitalsDraft = false;
     let vitalsDraftCloudTimer = 0;
     const CHART_ASSET_VERSION = '2026-05-22-growth-recalibrated';
-    const CHART_PREVIEW_VERSION = 'preview-rebuilt-2026-05-iap-no-ofc-5-18';
+    const CHART_PREVIEW_VERSION = 'preview-rebuilt-2026-06-white-bg-bold-line';
     const TEST_PAST_CHARTS_PATIENT_ID = 'TESTPAST001';
 
     function setDashboardLoading(isLoading) {
@@ -4543,12 +4543,17 @@
         errorMessage: ''
       };
 
+      let draftRecord = null;
       const draftRecordRaw = sessionStorage.getItem('newPatientDraft');
 
       if (draftRecordRaw) {
-        const draftRecord = JSON.parse(draftRecordRaw);
-        if (draftRecord.patientId === patientId) {
-          return draftRecord;
+        try {
+          const parsedDraftRecord = JSON.parse(draftRecordRaw);
+          if (parsedDraftRecord?.patientId === patientId) {
+            draftRecord = parsedDraftRecord;
+          }
+        } catch (error) {
+          console.warn(`Unable to read draft patient record: ${error.message}`);
         }
       }
 
@@ -4604,8 +4609,25 @@
         ...patientRecord,
         patientId,
         measurementHistory: mergedMeasurementHistory,
-        lastMeasurementRecord: patientRecord.lastMeasurementRecord || mergedMeasurementHistory[0] || null
+        lastMeasurementRecord: draftRecord?.lastMeasurementRecord
+          || patientRecord.lastMeasurementRecord
+          || mergedMeasurementHistory[0]
+          || null
       };
+
+      if (draftRecord) {
+        for (const [key, value] of Object.entries(draftRecord)) {
+          if (['patientId', 'measurementHistory', 'lastMeasurementRecord', 'id'].includes(key)) {
+            continue;
+          }
+
+          if (value === undefined || value === null || value === '') {
+            continue;
+          }
+
+          mergedPatientRecord[key] = value;
+        }
+      }
 
       if ((!patientSnapshot || !patientSnapshot.exists()) && patientRecord) {
         await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId), {
@@ -5048,21 +5070,8 @@
       chartContext.fillRect(0, 0, chartCanvas.width, chartCanvas.height);
 
       if (image) {
-        chartContext.save();
-        chartContext.filter = 'contrast(1.18) brightness(0.98)';
         chartContext.drawImage(image, 0, 0, chartCanvas.width, chartCanvas.height);
-        chartContext.restore();
-        chartContext.save();
-        chartContext.globalAlpha = 0.38;
-        chartContext.strokeStyle = '#334155';
-        chartContext.lineWidth = Math.max(1, chartCanvas.width * 0.0012);
-        chartContext.strokeRect(
-          Math.max(1, chartCanvas.width * 0.006),
-          Math.max(1, chartCanvas.height * 0.006),
-          chartCanvas.width - Math.max(2, chartCanvas.width * 0.012),
-          chartCanvas.height - Math.max(2, chartCanvas.height * 0.012)
-        );
-        chartContext.restore();
+        softenChartBackground(chartContext, chartCanvas.width, chartCanvas.height);
         return;
       }
 
@@ -5120,6 +5129,21 @@
         x: Math.min(Math.max(point.x, bounds.left), bounds.right),
         y: Math.min(Math.max(point.y, bounds.top), bounds.bottom)
       };
+    }
+
+    function softenChartBackground(context, width, height) {
+      const imageData = context.getImageData(0, 0, width, height);
+      const { data } = imageData;
+
+      for (let index = 0; index < data.length; index += 4) {
+        if (data[index] > 238 && data[index + 1] > 238 && data[index + 2] > 238) {
+          data[index] = 255;
+          data[index + 1] = 255;
+          data[index + 2] = 255;
+        }
+      }
+
+      context.putImageData(imageData, 0, 0);
     }
 
     function withPlotClip(region, callback) {
@@ -5337,7 +5361,7 @@
           mappedPoints.slice(1).forEach((point) => {
             chartContext.lineTo(point.x, point.y);
           });
-          chartContext.lineWidth = 2;
+          chartContext.lineWidth = Math.max(3.25, chartCanvas.width * 0.002);
           chartContext.strokeStyle = '#0f172a';
           chartContext.lineJoin = 'round';
           chartContext.lineCap = 'round';
@@ -5377,7 +5401,7 @@
           }
 
           chartContext.beginPath();
-          chartContext.arc(point.x, point.y, CHART_POINT_RADIUS + 0.5, 0, Math.PI * 2);
+          chartContext.arc(point.x, point.y, CHART_POINT_RADIUS + 1.5, 0, Math.PI * 2);
           chartContext.fillStyle = '#0f172a';
           chartContext.fill();
         });
