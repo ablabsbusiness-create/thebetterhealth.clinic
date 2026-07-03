@@ -2395,7 +2395,7 @@
       if (IS_PATIENT_DETAILS_PAGE) {
         selectedPatientId = cache.selectedPatientId || selectedPatientId;
       }
-      allPatients = withTestPastChartsPatient(cache.patients)
+      allPatients = withTestPastChartsPatient(collapseDuplicatePatientCards(cache.patients))
         .filter((patient) => patient.status !== 'pending' && patient.status !== 'rejected')
         .map(preparePatientForSearch)
         .sort(sortByPatientName);
@@ -2796,6 +2796,32 @@
         return `phone:${phone}`;
       }
       return `doc:${normalizeSearchText(patient?.id || patient?.patientId || '')}`;
+    }
+
+    function getPatientDuplicateKey(patient) {
+      const displayName = normalizeSearchText(getPatientDisplayName(patient));
+      const phone = normalizePatientPhone(patient?.phone || patient?.mobileNumber || patient?.mobile || '');
+      return displayName && phone ? `${displayName}|${phone}` : '';
+    }
+
+    function collapseDuplicatePatientCards(patients) {
+      const mergedByKey = new Map();
+      const passthrough = [];
+
+      patients.forEach((patient) => {
+        const duplicateKey = getPatientDuplicateKey(patient);
+        if (!duplicateKey) {
+          passthrough.push(patient);
+          return;
+        }
+
+        const existing = mergedByKey.get(duplicateKey);
+        mergedByKey.set(duplicateKey, existing
+          ? mergePatientRecordsForSearch(existing, patient)
+          : patient);
+      });
+
+      return [...passthrough, ...mergedByKey.values()];
     }
 
     function isUsablePatientId(value) {
@@ -3708,7 +3734,7 @@
           : preparedHistoryPatient);
       });
 
-      return withTestPastChartsPatient([...mergedPatientsByIdentity.values()])
+      return withTestPastChartsPatient(collapseDuplicatePatientCards([...mergedPatientsByIdentity.values()]))
         .map(preparePatientForSearch)
         .sort(sortByPatientName);
     }
@@ -4434,7 +4460,7 @@
                   </div>
                 </section>
               </div>
-            `}
+            ` : '<div class="doctor-empty-state">Select a patient from the left list.</div>'}
           </main>
         </div>
       `;

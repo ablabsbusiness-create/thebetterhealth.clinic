@@ -2435,7 +2435,7 @@
         return false;
       }
 
-      allPatients = cache.patients;
+      allPatients = collapseDuplicatePatientCards(cache.patients);
       allHistory = cache.history;
       filterPatients();
       setStatus('Showing recent records while updating...');
@@ -2716,6 +2716,101 @@
 
     function getNormalizedPatientId(value) {
       return String(value || '').trim().toUpperCase();
+    }
+
+    function normalizePatientPhone(value) {
+      const digits = String(value || '').replace(/\D/g, '');
+      if (!digits) {
+        return '';
+      }
+      return digits.length > 10 ? digits.slice(-10) : digits;
+    }
+
+    function normalizePatientDuplicateText(value) {
+      return String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
+    }
+
+    function getPatientDuplicateKey(patient) {
+      const displayName = normalizePatientDuplicateText(getPatientDisplayName(patient));
+      const phone = normalizePatientPhone(patient?.phone || patient?.mobileNumber || patient?.mobile || '');
+      return displayName && phone ? `${displayName}|${phone}` : '';
+    }
+
+    function scorePatientForDuplicateMerge(patient) {
+      const measurementHistoryCount = Array.isArray(patient?.measurementHistory) ? patient.measurementHistory.length : 0;
+      const historyBonus = patient?.lastMeasurementRecord ? 1 : 0;
+      const fieldCount = [
+        patient?.patientName,
+        patient?.childName,
+        patient?.firstName,
+        patient?.middleName,
+        patient?.lastName,
+        patient?.parentName,
+        patient?.phone,
+        patient?.mobileNumber,
+        patient?.dob,
+        patient?.gender,
+        patient?.email,
+        patient?.bloodGroup,
+        patient?.tags,
+        patient?.patientId
+      ].filter((value) => String(value || '').trim()).length;
+
+      return (measurementHistoryCount * 100) + (historyBonus * 20) + fieldCount;
+    }
+
+    function mergeDuplicatePatientRecords(existing, incoming) {
+      const preferred = scorePatientForDuplicateMerge(incoming) > scorePatientForDuplicateMerge(existing)
+        ? incoming
+        : existing;
+      const merged = { ...preferred };
+
+      [existing, incoming].forEach((source) => {
+        Object.entries(source || {}).forEach(([key, value]) => {
+          if (value === undefined || value === null || value === '' || key === 'measurementHistory') {
+            return;
+          }
+          if (merged[key] === undefined || merged[key] === null || merged[key] === '') {
+            merged[key] = value;
+          }
+        });
+      });
+
+      const seenMeasurementKeys = new Set();
+      merged.measurementHistory = [
+        ...(Array.isArray(existing?.measurementHistory) ? existing.measurementHistory : []),
+        ...(Array.isArray(incoming?.measurementHistory) ? incoming.measurementHistory : [])
+      ].filter((entry) => {
+        const key = createMeasurementEntryKey(entry);
+        if (seenMeasurementKeys.has(key)) {
+          return false;
+        }
+        seenMeasurementKeys.add(key);
+        return true;
+      });
+      merged.lastMeasurementRecord = merged.lastMeasurementRecord || existing?.lastMeasurementRecord || incoming?.lastMeasurementRecord || null;
+
+      return merged;
+    }
+
+    function collapseDuplicatePatientCards(patients) {
+      const mergedByKey = new Map();
+      const passthrough = [];
+
+      patients.forEach((patient) => {
+        const duplicateKey = getPatientDuplicateKey(patient);
+        if (!duplicateKey) {
+          passthrough.push(patient);
+          return;
+        }
+
+        const existing = mergedByKey.get(duplicateKey);
+        mergedByKey.set(duplicateKey, existing
+          ? mergeDuplicatePatientRecords(existing, patient)
+          : patient);
+      });
+
+      return [...passthrough, ...mergedByKey.values()];
     }
 
     function isPrescriptionHistoryEntry(entry) {
@@ -4474,7 +4569,7 @@
           });
         });
 
-        allPatients = mergedPatients.sort(sortByPatientName);
+        allPatients = collapseDuplicatePatientCards(mergedPatients).sort(sortByPatientName);
         saveSearchCache();
 
         if (allPatients.length === 0) {
