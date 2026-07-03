@@ -599,28 +599,64 @@
       object-fit: contain;
       filter: drop-shadow(0 6px 10px rgba(0,0,0,0.18));
     }
+    .side-emoji {
+      position: absolute;
+      bottom: -0.9rem;
+      right: -0.9rem;
+      width: 2.1rem;
+      height: 2.1rem;
+      display: block;
+      object-fit: contain;
+      z-index: 2;
+      filter: drop-shadow(0 4px 8px rgba(28,25,23,0.22));
+    }
     .doctor-photo {
       width: 100%;
       height: 100%;
       border-radius: 50%;
-      object-fit: contain;
-      object-position: center;
+      object-fit: cover;
+      object-position: center 20%;
       display: block;
       background: #fff;
+      position: relative;
+      z-index: 1;
+      -webkit-mask-image: radial-gradient(circle, #000 55%, rgba(0,0,0,0.6) 72%, transparent 96%);
+      mask-image: radial-gradient(circle, #000 55%, rgba(0,0,0,0.6) 72%, transparent 96%);
+    }
+    .doctor-photo-blur {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      object-position: center 20%;
+      display: block;
+      filter: blur(9px) saturate(1.05);
+      transform: scale(1.18);
+      z-index: 0;
     }
     .doctor-photo-wrap {
+      position: relative;
       width: 6.75rem;
       height: 6.75rem;
+      flex-shrink: 0;
       border-radius: 50%;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
-      background: #fff;
-      box-shadow: 0 10px 22px rgba(28,25,23,0.16);
+      overflow: visible;
+      background: transparent;
     }
-    .doctor-photo-wrap.teal { border: 3px solid #2D7B6F; }
-    .doctor-photo-wrap.sky { border: 3px solid #3B82C4; }
+    .kid-doc-photo-blur {
+      filter: blur(5px) saturate(1.05);
+    }
+    .kid-side-emoji {
+      width: 3rem;
+      height: 3rem;
+    }
+    .lungs-doc-photo.doctor-photo-blur { object-position: center top; }
+    .lungs-doc-photo.doctor-photo { object-position: center top; }
     .lung-emoji.lung-emoji-photo {
       width: 6.75rem;
       height: 6.75rem;
@@ -866,7 +902,9 @@
           <span class="card-glow"></span>
           <div class="float-a mb-4" aria-hidden="true">
             <div class="doctor-photo-wrap teal">
+              <img class="doctor-photo-blur kid-doc-photo-blur" src="https://www.thebetterhealth.clinic/the-better-kid-clinic/kid_doc.png" alt="" aria-hidden="true" loading="eager" />
               <img class="doctor-photo" src="https://www.thebetterhealth.clinic/the-better-kid-clinic/kid_doc.png" alt="Dr. Gunda Srinivas" loading="eager" />
+              <img class="side-emoji kid-side-emoji" src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f476.svg" alt="" loading="eager" />
             </div>
           </div>
           <p class="text-stone-800 text-xl font-bold mb-1">Dr. Gunda Srinivas</p>
@@ -887,7 +925,9 @@
           <span class="card-glow"></span>
           <div class="lung-emoji lung-emoji-photo mb-4" aria-hidden="true">
             <div class="doctor-photo-wrap sky">
-              <img class="doctor-photo" src="https://www.thebetterhealth.clinic/the-better-lungs-clinic/lungs_doc.png" alt="Dr. Chaitanya Sravanthi R" loading="eager" />
+              <img class="doctor-photo-blur lungs-doc-photo" src="https://www.thebetterhealth.clinic/the-better-lungs-clinic/lungs_doc.png" alt="" aria-hidden="true" loading="eager" />
+              <img class="doctor-photo lungs-doc-photo" src="https://www.thebetterhealth.clinic/the-better-lungs-clinic/lungs_doc.png" alt="Dr. Chaitanya Sravanthi R" loading="eager" />
+              <img class="side-emoji" src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1fac1.svg" alt="" loading="eager" />
             </div>
           </div>
           <p class="text-stone-800 text-xl font-bold mb-1">Dr. Chaitanya Sravanthi R</p>
