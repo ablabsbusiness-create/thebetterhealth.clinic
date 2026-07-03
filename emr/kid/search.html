@@ -3109,6 +3109,11 @@
       });
     }
 
+    function formatVisiblePatientId(value) {
+      const patientId = getNormalizedPatientId(value);
+      return /^TBK\d+$/i.test(patientId) ? patientId : '';
+    }
+
     function getIsoDatePart(dateValue) {
       if (!dateValue) {
         return '';
@@ -4225,7 +4230,7 @@
 
     function renderWorklistItemHtml(patient, dateValue) {
       const childName = getPatientDisplayName(patient);
-      const patientId = formatMissing(patient.patientId, 'ID not saved');
+      const patientId = formatVisiblePatientId(patient.patientId);
       const gender = formatMissing(patient.gender, 'Gender not saved');
       const dob = formatDateDisplay(patient.dob);
       const phone = formatPhoneDisplay(patient.phone);
@@ -4236,7 +4241,7 @@
       const isQueued = patientIsQueuedOnDate(patient, dateValue);
       const isActive = selectedPatientId === patientId;
       const parentNameValue = getSavedParentName(patient);
-      const subtitleParts = [patientId];
+      const subtitleParts = patientId ? [patientId] : [];
       if (parentNameValue) subtitleParts.push(parentNameValue);
       const phoneHtml = phone && phone !== 'Phone not saved'
         ? `<div class="worklist-item-phone">${phone}</div>`
@@ -4286,7 +4291,7 @@
         const parentNameHtml = parentName ? `<small>${parentName}</small>` : '';
         const dob = formatDateDisplay(patient.dob);
         const gender = formatMissing(patient.gender, 'Gender not saved');
-        const patientId = formatMissing(patient.patientId, 'ID not saved');
+        const patientId = formatVisiblePatientId(patient.patientId);
         const selectedHistoryDate = historyDateFilters[patientId] || '';
         const isExpanded = selectedPatientId === patientId;
 
@@ -4303,7 +4308,7 @@
                   </div>
                 </div>
                 <div class="profile-action-row">
-                  <div class="patient-id-badge mono">${patientId}</div>
+                  ${patientId ? `<div class="patient-id-badge mono">${patientId}</div>` : ''}
                   <span class="profile-toggle-pill">${isExpanded ? 'Hide profile' : 'Open profile'}</span>
                 </div>
               </button>
@@ -4321,7 +4326,7 @@
 
       attachPrescriptionPreviewRendering();
       patients
-        .filter((patient) => selectedPatientId === formatMissing(patient.patientId, 'ID not saved'))
+        .filter((patient) => selectedPatientId === formatVisiblePatientId(patient.patientId))
         .forEach((patient) => ensureStoragePrescriptionsForPatient(patient));
     }
 
@@ -4341,14 +4346,14 @@
       const worklistPatients = getWorklistPatients(patients, selectedWorklistDate, selectedWorklistMode, searchValue);
       const renderedWorklistPatients = worklistPatients.slice(0, SEARCH_RENDER_LIMIT);
       const selectedPatientPool = IS_PATIENT_DETAILS_PAGE ? patients : (worklistPatients.length ? worklistPatients : patients);
-      if (selectedPatientId && !patients.some((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId)) {
+      if (selectedPatientId && !patients.some((patient) => formatVisiblePatientId(patient.patientId) === selectedPatientId)) {
         selectedPatientId = '';
       }
 
       const selectedPatient = selectedPatientId
-        ? selectedPatientPool.find((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId) || null
+        ? selectedPatientPool.find((patient) => formatVisiblePatientId(patient.patientId) === selectedPatientId) || null
         : null;
-      const selectedPatientIdValue = selectedPatient ? formatMissing(selectedPatient.patientId, 'ID not saved') : '';
+      const selectedPatientIdValue = selectedPatient ? formatVisiblePatientId(selectedPatient.patientId) : '';
       const selectedHistoryDate = selectedPatientIdValue ? historyDateFilters[selectedPatientIdValue] || '' : '';
       const childName = selectedPatient ? getPatientDisplayName(selectedPatient) : 'Select a patient';
       const parentName = getSavedParentName(selectedPatient);
@@ -4458,7 +4463,7 @@
           .map((entry) => entry.patient);
       }
 
-      if (selectedPatientId && !filteredPatients.some((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId)) {
+      if (selectedPatientId && !filteredPatients.some((patient) => formatVisiblePatientId(patient.patientId) === selectedPatientId)) {
         selectedPatientId = '';
       }
 
