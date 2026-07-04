@@ -790,8 +790,10 @@
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
-    import { getFirestore } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { doc, getDoc, getFirestore, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
+    const PATIENT_ID_PREFIX = 'TBK';
+    const PATIENT_ID_WIDTH = 4;
     const FIREBASE_COLLECTIONS = {
       patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
       pendingPatients: `${CLINIC_FIREBASE_NAMESPACE}/pendingPatients`,
@@ -875,6 +877,81 @@
       return /^TBK\d{4,}$/i.test(String(value || '').trim());
     }
 
+    function formatPatientId(serial) {
+      return `${PATIENT_ID_PREFIX}${String(serial).padStart(PATIENT_ID_WIDTH, '0')}`;
+    }
+
+    async function getNextPatientIdFromFirestore() {
+      if (!db) {
+        throw new Error('Cloud records are unavailable.');
+      }
+
+      const counterRef = doc(db, CLINIC_FIREBASE_NAMESPACE, 'counters', 'patientIds');
+      const counterSnapshot = await getDoc(counterRef);
+      let nextSerial = Number(counterSnapshot.data()?.nextSerial || 1);
+
+      if (!Number.isFinite(nextSerial) || nextSerial < 1) {
+        nextSerial = 1;
+      }
+
+      for (let attempts = 0; attempts < 20000; attempts += 1) {
+        const patientId = formatPatientId(nextSerial);
+        const patientSnapshot = await getDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId));
+
+        if (!patientSnapshot.exists()) {
+          return patientId;
+        }
+
+        nextSerial += 1;
+      }
+
+      throw new Error('Unable to find an unused patient ID.');
+    }
+
+    async function savePatientToFirestore(patientRecord) {
+      if (!db) {
+        throw new Error('Cloud records are unavailable.');
+      }
+
+      return runTransaction(db, async (transaction) => {
+        const counterRef = doc(db, CLINIC_FIREBASE_NAMESPACE, 'counters', 'patientIds');
+        const counterSnapshot = await transaction.get(counterRef);
+        let nextSerial = Number(counterSnapshot.data()?.nextSerial || 1);
+
+        if (!Number.isFinite(nextSerial) || nextSerial < 1) {
+          nextSerial = 1;
+        }
+
+        for (let attempts = 0; attempts < 20000; attempts += 1) {
+          const patientId = formatPatientId(nextSerial);
+          const patientRef = doc(db, FIREBASE_COLLECTIONS.patients, patientId);
+          const patientSnapshot = await transaction.get(patientRef);
+
+          if (!patientSnapshot.exists()) {
+            const now = serverTimestamp();
+            transaction.set(counterRef, {
+              prefix: PATIENT_ID_PREFIX,
+              nextSerial: nextSerial + 1,
+              updatedAt: now
+            }, { merge: true });
+            transaction.set(patientRef, {
+              ...patientRecord,
+              patientId,
+              idSystem: PATIENT_ID_PREFIX,
+              idAssignedBy: 'client-transaction',
+              createdAt: now,
+              updatedAt: now
+            });
+            return patientId;
+          }
+
+          nextSerial += 1;
+        }
+
+        throw new Error('Unable to assign a patient ID right now.');
+      });
+    }
+
     async function loadNextPatientId() {
       patientIdOutput.textContent = 'Loading...';
 
@@ -897,7 +974,13 @@
         patientIdOutput.textContent = result.patientId;
       } catch (error) {
         console.warn(`Unable to load next patient ID: ${error.message}`);
-        patientIdOutput.textContent = 'Assigned on save';
+
+        try {
+          patientIdOutput.textContent = await getNextPatientIdFromFirestore();
+        } catch (fallbackError) {
+          console.warn(`Unable to load next patient ID from Firestore: ${fallbackError.message}`);
+          patientIdOutput.textContent = 'Assigned on save';
+        }
       }
     }
 
@@ -1038,23 +1121,30 @@
 
       sessionStorage.setItem('newPatientDraft', JSON.stringify(patientRecord));
 
-      const response = await fetch('/api/kid/patients/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'same-origin',
-        body: JSON.stringify({ patient: patientRecord })
-      });
-      const result = await response.json().catch(() => ({}));
+      let result = {};
 
-      if (response.status === 401) {
-        redirectToLogin();
-        return null;
-      }
+      try {
+        const response = await fetch('/api/kid/patients/create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify({ patient: patientRecord })
+        });
+        result = await response.json().catch(() => ({}));
 
-      if (!response.ok || !result?.patientId) {
-        throw new Error(result?.error || 'Unable to assign a patient ID right now.');
+        if (response.status === 401) {
+          redirectToLogin();
+          return null;
+        }
+
+        if (!response.ok || !result?.patientId) {
+          throw new Error(result?.error || 'Unable to assign a patient ID right now.');
+        }
+      } catch (error) {
+        console.warn(`Patient create API failed, using Firestore fallback: ${error.message}`);
+        result = { patientId: await savePatientToFirestore(patientRecord) };
       }
 
       if (!isTbkPatientId(result.patientId)) {

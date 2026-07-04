@@ -1,6 +1,7 @@
 import admin from 'firebase-admin';
 
 const DEFAULT_STORAGE_BUCKET = 'clinci-dr-gunda.firebasestorage.app';
+const DEFAULT_PROJECT_ID = 'clinci-dr-gunda';
 
 function parseServiceAccount() {
   const rawValue = String(process.env.FIREBASE_SERVICE_ACCOUNT_KEY || process.env.FIREBASE_SERVICE_ACCOUNT || '').trim();
@@ -31,8 +32,9 @@ export function getAdminApp() {
   }
 
   const serviceAccount = parseServiceAccount();
+  const projectId = String(process.env.FIREBASE_PROJECT_ID || serviceAccount?.project_id || DEFAULT_PROJECT_ID).trim();
   const storageBucket = String(process.env.FIREBASE_STORAGE_BUCKET || DEFAULT_STORAGE_BUCKET).trim();
-  const appOptions = { storageBucket };
+  const appOptions = { projectId, storageBucket };
 
   if (serviceAccount) {
     appOptions.credential = admin.credential.cert(serviceAccount);
