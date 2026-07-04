@@ -5,5 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build-vercel-site.mjs"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.10.0"
   }
 }

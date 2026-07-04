@@ -790,7 +790,7 @@
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
-    import { getFirestore, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { getFirestore } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
     const FIREBASE_COLLECTIONS = {
       patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
@@ -861,18 +861,6 @@
     function parseAgePart(value) {
       const numeric = Number.parseInt(String(value || '').trim(), 10);
       return Number.isFinite(numeric) && numeric >= 0 ? numeric : NaN;
-    }
-
-    function buildPatientId() {
-      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-      let suffix = '';
-
-      for (let index = 0; index < 3; index += 1) {
-        const randomIndex = Math.floor(Math.random() * characters.length);
-        suffix += characters[randomIndex];
-      }
-
-      return `SX${suffix}`;
     }
 
     function parseDobInput(dayValue, monthValue, yearValue) {
@@ -980,7 +968,7 @@
       isSyncingAgeDob = false;
     }
 
-    async function savePatientToCloudRecords(patientId) {
+    async function savePatientToCloudRecords() {
       let normalizedDob = parseDobInput(dobDayInput.value, dobMonthInput.value, dobYearInput.value);
       if (!normalizedDob) {
         const ageYears = parseAgePart(ageYearsInput.value);
@@ -995,7 +983,6 @@
       }
       const normalizedPhone = normalizePhone(newPatientForm.elements.mobileNumber.value);
       const patientRecord = {
-        patientId,
         childName: newPatientForm.elements.childName.value.trim(),
         parentName: newPatientForm.elements.parentName.value.trim(),
         gender: newPatientForm.elements.gender.value,
@@ -1003,23 +990,36 @@
         phone: normalizedPhone,
         mobileNumber: normalizedPhone,
         email: newPatientForm.elements.email.value.trim(),
-        bloodGroup: newPatientForm.elements.bloodGroup.value.trim(),
-        createdAt: firebaseConfigured ? serverTimestamp() : new Date().toISOString()
+        bloodGroup: newPatientForm.elements.bloodGroup.value.trim()
       };
 
       sessionStorage.setItem('newPatientDraft', JSON.stringify(patientRecord));
 
-      if (!db) {
-        return false;
+      const response = await fetch('/api/kid/patients/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({ patient: patientRecord })
+      });
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok || !result?.patientId) {
+        throw new Error(result?.error || 'Unable to assign a patient ID right now.');
       }
 
-      await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId), patientRecord);
-      return true;
+      const savedRecord = {
+        ...patientRecord,
+        patientId: result.patientId
+      };
+      sessionStorage.setItem('newPatientDraft', JSON.stringify(savedRecord));
+      sessionStorage.setItem('newPatientId', result.patientId);
+      return result.patientId;
     }
 
-    const autoPatientId = buildPatientId();
-    patientIdOutput.textContent = autoPatientId;
-    sessionStorage.setItem('newPatientId', autoPatientId);
+    patientIdOutput.textContent = 'Assigned on save';
+    sessionStorage.removeItem('newPatientId');
 
     const prefilledChildName = searchParams.get('childName') || '';
     const prefilledMobileNumber = searchParams.get('mobileNumber') || '';
@@ -1054,14 +1054,11 @@
       continueBtn.textContent = 'Saving...';
 
       try {
-        const savedToCloudRecords = await savePatientToCloudRecords(autoPatientId);
-        setSaveStatus(savedToCloudRecords
-          ? `Patient details saved.`
-          : `Patient ID created, but online saving is not available.`, savedToCloudRecords ? 'ready' : 'error');
-        console.log(savedToCloudRecords
-          ? `Saved with Patient ID ${autoPatientId}.`
-          : `Patient ID ${autoPatientId} generated locally. Configure cloud records to store this online.`);
-      window.location.href = `/emr/kid/prescription-growth-chart-dashboard?patientId=${encodeURIComponent(autoPatientId)}`;
+        const patientId = await savePatientToCloudRecords();
+        patientIdOutput.textContent = patientId;
+        setSaveStatus(`Patient details saved with ID ${patientId}.`, 'ready');
+        console.log(`Saved with Patient ID ${patientId}.`);
+      window.location.href = `/emr/kid/prescription-growth-chart-dashboard?patientId=${encodeURIComponent(patientId)}`;
       } catch (error) {
         console.error(`Cloud save failed: ${error.message}`);
         setSaveStatus(`Unable to save patient details: ${error.message}. Please try again.`, 'error');

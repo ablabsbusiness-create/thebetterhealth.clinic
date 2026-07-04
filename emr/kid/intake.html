@@ -183,7 +183,7 @@
   </div>
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
-    import { addDoc, collection, doc, getDoc, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { addDoc, collection, getFirestore, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
     const FIREBASE_COLLECTIONS = {
       patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
@@ -205,15 +205,6 @@
     const firebaseConfig = { apiKey: 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo', authDomain: 'clinci-dr-gunda.firebaseapp.com', projectId: 'clinci-dr-gunda', storageBucket: 'clinci-dr-gunda.firebasestorage.app', messagingSenderId: '1059959825609', appId: '1:1059959825609:web:8201599754706ac4661918', measurementId: 'G-4V5JMVW45E' };
     const firebaseConfigured = Object.values(firebaseConfig).every(Boolean);
     const db = firebaseConfigured ? getFirestore(initializeApp(firebaseConfig)) : null;
-    function buildPatientId() {
-      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-      let suffix = '';
-      for (let index = 0; index < 3; index += 1) {
-        suffix += characters[Math.floor(Math.random() * characters.length)];
-      }
-      return `SX${suffix}`;
-    }
-
     function normalizePhone(value) {
       const digits = String(value || '').replace(/\D/g, '');
       if (!digits) {
@@ -222,16 +213,6 @@
       return digits.length > 10 ? digits.slice(-10) : digits;
     }
 
-    async function buildUniquePatientId() {
-      for (let attempts = 0; attempts < 20; attempts += 1) {
-        const candidate = buildPatientId();
-        const snapshot = await getDoc(doc(db, FIREBASE_COLLECTIONS.patients, candidate));
-        if (!snapshot.exists()) {
-          return candidate;
-        }
-      }
-      throw new Error('Could not create a patient ID right now.');
-    }
     function parseDobInput(dayValue, monthValue, yearValue) {
       const day = Number.parseInt(dayValue.trim(), 10);
       const month = Number.parseInt(monthValue.trim(), 10);
@@ -255,38 +236,8 @@
       const normalizedPhone = normalizePhone(intakeForm.elements.mobileNumber.value);
       const payload = { childName: intakeForm.elements.childName.value.trim(), parentName: intakeForm.elements.parentName.value.trim(), gender: intakeForm.elements.gender.value, dob: normalizedDob, phone: normalizedPhone, mobileNumber: normalizedPhone, email: intakeForm.elements.email.value.trim(), bloodGroup: intakeForm.elements.bloodGroup.value.trim(), status: 'pending', decision: 'pending', submittedBy: 'qr-intake', submittedAt: serverTimestamp(), reviewedAt: null, reviewedBy: '', approvedPatientId: '', notes: '' };
       try {
-        let queueId = '';
-        try {
-          const docRef = await addDoc(collection(db, FIREBASE_COLLECTIONS.pendingPatients), payload);
-          queueId = docRef.id;
-        } catch (error) {
-          if (!String(error?.message || '').toLowerCase().includes('insufficient permissions')) {
-            throw error;
-          }
-          const fallbackPatientId = await buildUniquePatientId();
-          await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, fallbackPatientId), {
-            patientId: fallbackPatientId,
-            childName: payload.childName,
-            parentName: payload.parentName,
-            gender: payload.gender,
-            dob: payload.dob,
-            phone: payload.phone,
-            mobileNumber: payload.mobileNumber,
-            email: payload.email,
-            bloodGroup: payload.bloodGroup,
-            status: 'pending',
-            decision: 'pending',
-            submittedBy: 'qr-intake',
-            intakeSource: 'qr-intake',
-            submittedAt: serverTimestamp(),
-            reviewedAt: null,
-            reviewedBy: '',
-            approvedPatientId: '',
-            notes: '',
-            createdAt: serverTimestamp()
-          }, { merge: true });
-          queueId = fallbackPatientId;
-        }
+        const docRef = await addDoc(collection(db, FIREBASE_COLLECTIONS.pendingPatients), payload);
+        const queueId = docRef.id;
         intakeForm.reset();
         resetConfirmation();
         intakeForm.hidden = true;

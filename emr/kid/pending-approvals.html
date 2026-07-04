@@ -181,7 +181,7 @@
   </div>
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
-    import { collection, doc, getDoc, getDocs, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { collection, doc, getDocs, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
     const FIREBASE_COLLECTIONS = {
       patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
@@ -211,8 +211,18 @@
     function getPendingSearchText(item) { return [item.childName, item.parentName, item.phone, item.mobileNumber, item.email].join(' ').toLowerCase(); }
     function setStatus(message, tone = '') { statusNote.textContent = message; statusNote.className = `status-note${tone ? ` ${tone}` : ''}`; }
     function updateQueueCount(count = pendingItems.length) { queueCount.textContent = `${count} pending`; }
-    function buildPatientId() { const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'; let suffix = ''; for (let index = 0; index < 3; index += 1) suffix += characters[Math.floor(Math.random() * characters.length)]; return `SX${suffix}`; }
-    async function buildUniquePatientId() { for (let attempts = 0; attempts < 20; attempts += 1) { const candidate = buildPatientId(); const snapshot = await getDoc(doc(db, FIREBASE_COLLECTIONS.patients, candidate)); if (!snapshot.exists()) return candidate; } throw new Error('Could not generate a unique patient ID right now.'); }
+    function isValidTbkPatientId(value) { return /^TBK\d{4}$/.test(String(value || '').trim().toUpperCase()); }
+    async function createBackendPatientRecord(patientRecord) {
+      const response = await fetch('/api/kid/patients/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ patient: patientRecord })
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result?.patientId) throw new Error(result?.error || 'Could not generate a unique patient ID right now.');
+      return result.patientId;
+    }
     function getActivePendingItem() { return pendingItems.find((item) => item.id === activePendingId) || null; }
     function escapeHtml(value) { return String(value || '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'", '&#39;'); }
     function getFilteredPendingItems() { const queryValue = queueSearch.value.trim().toLowerCase(); return queryValue ? pendingItems.filter((item) => getPendingSearchText(item).includes(queryValue)) : pendingItems; }
@@ -276,12 +286,8 @@
       if (!activeItem) { setStatus('Choose a pending submission first.', 'error'); return; }
       const normalizedDob = parseDobInput(reviewForm.elements.dobDay.value, reviewForm.elements.dobMonth.value, reviewForm.elements.dobYear.value);
       if (!normalizedDob) { setStatus('Please enter a valid date of birth before approving.', 'error'); return; }
-      const patientId = activeItem.sourceCollection === 'patients'
-        ? String(activeItem.patientId || activeItem.id).trim().toUpperCase()
-        : await buildUniquePatientId();
       const reviewedByValue = reviewForm.elements.reviewedBy.value.trim() || 'doctor-review';
-      const patientRecord = {
-        patientId,
+      const basePatientRecord = {
         childName: reviewForm.elements.childName.value.trim(),
         parentName: reviewForm.elements.parentName.value.trim(),
         gender: reviewForm.elements.gender.value,
@@ -291,7 +297,6 @@
         email: reviewForm.elements.email.value.trim(),
         bloodGroup: reviewForm.elements.bloodGroup.value.trim(),
         sourcePendingId: activeItem.sourceCollection === 'pendingPatients' ? activeItem.id : (activeItem.sourcePendingId || activeItem.id),
-        approvedPatientId: patientId,
         reviewedBy: reviewedByValue,
         reviewedAt: serverTimestamp(),
         decision: 'approved',
@@ -301,6 +306,15 @@
       };
       approveBtn.disabled = true; rejectBtn.disabled = true; setStatus('Approving and creating patient record...');
       try {
+        const existingPatientId = String(activeItem.patientId || activeItem.id).trim().toUpperCase();
+        const patientId = activeItem.sourceCollection === 'patients' && isValidTbkPatientId(existingPatientId)
+          ? existingPatientId
+          : await createBackendPatientRecord(basePatientRecord);
+        const patientRecord = {
+          ...basePatientRecord,
+          patientId,
+          approvedPatientId: patientId
+        };
         await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId), {
           ...patientRecord,
           ...(activeItem.sourceCollection === 'patients' ? { updatedAt: serverTimestamp() } : { createdAt: serverTimestamp() })

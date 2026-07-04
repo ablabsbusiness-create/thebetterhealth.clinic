@@ -1,67 +1,137 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { initializeApp } from 'firebase/app';
-import {
-  collection,
-  deleteDoc,
-  doc,
-  getDocs,
-  getFirestore,
-  setDoc
-} from 'firebase/firestore';
+import admin from 'firebase-admin';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUTPUT_DIR = path.join(__dirname, '..', 'migration-logs');
-const CLINIC_PATIENT_COLLECTION = 'clinics/kid/patients';
-const ID_FIELD = 'patientId';
-const FIREBASE_CONFIG = {
-  apiKey: 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
-  authDomain: 'clinci-dr-gunda.firebaseapp.com',
-  projectId: 'clinci-dr-gunda',
-  storageBucket: 'clinci-dr-gunda.firebasestorage.app',
-  messagingSenderId: '1059959825609',
-  appId: '1:1059959825609:web:8201599754706ac4661918',
-  measurementId: 'G-4V5JMVW45E'
-};
-
+const CLINIC_NAMESPACE = 'clinics/kid';
+const PATIENTS_COLLECTION = `${CLINIC_NAMESPACE}/patients`;
+const RELATED_COLLECTIONS = [
+  `${CLINIC_NAMESPACE}/history`,
+  `${CLINIC_NAMESPACE}/pendingPatients`
+];
+const STORAGE_PREFIXES = [
+  `${CLINIC_NAMESPACE}/prescriptions`,
+  `${CLINIC_NAMESPACE}/prescription-previews`
+];
 const writeMode = process.argv.includes('--write');
+const deleteOldStorage = process.argv.includes('--delete-old-storage');
 const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-const mappingPath = path.join(OUTPUT_DIR, `kid-patient-id-mapping-${timestamp}.json`);
 const backupPath = path.join(OUTPUT_DIR, `kid-patient-id-backup-${timestamp}.json`);
+const mappingPath = path.join(OUTPUT_DIR, `kid-patient-id-mapping-${timestamp}.json`);
+const summaryPath = path.join(OUTPUT_DIR, `kid-patient-id-migration-summary-${timestamp}.json`);
+const DEFAULT_STORAGE_BUCKET = 'clinci-dr-gunda.firebasestorage.app';
 
-function normalize(value) {
+function parseServiceAccount() {
+  const rawValue = String(process.env.FIREBASE_SERVICE_ACCOUNT_KEY || process.env.FIREBASE_SERVICE_ACCOUNT || '').trim();
+
+  if (!rawValue) {
+    return null;
+  }
+
+  const decoded = rawValue.startsWith('{')
+    ? rawValue
+    : Buffer.from(rawValue, 'base64').toString('utf8');
+  const parsed = JSON.parse(decoded);
+
+  if (parsed.private_key) {
+    parsed.private_key = parsed.private_key.replace(/\\n/g, '\n');
+  }
+
+  return parsed;
+}
+
+function getAdminApp() {
+  if (admin.apps.length) {
+    return admin.app();
+  }
+
+  const serviceAccount = parseServiceAccount();
+  const options = {
+    storageBucket: String(process.env.FIREBASE_STORAGE_BUCKET || DEFAULT_STORAGE_BUCKET).trim()
+  };
+
+  options.credential = serviceAccount
+    ? admin.credential.cert(serviceAccount)
+    : admin.credential.applicationDefault();
+
+  return admin.initializeApp(options);
+}
+
+function getAdminDb() {
+  return getAdminApp().firestore();
+}
+
+function getAdminBucket() {
+  return getAdminApp().storage().bucket();
+}
+
+function clean(value) {
   return String(value ?? '').trim();
 }
 
-function newPatientId(index) {
-  const serial = index + 1;
-  return `TBK${serial <= 9999 ? String(serial).padStart(4, '0') : serial}`;
+function isValidTbkId(value) {
+  return /^TBK\d{4}$/.test(clean(value).toUpperCase());
+}
+
+function getTbkSerial(value) {
+  const match = clean(value).toUpperCase().match(/^TBK(\d{4,})$/);
+  return match ? Number.parseInt(match[1], 10) : Infinity;
+}
+
+function formatPatientId(index) {
+  return `TBK${String(index + 1).padStart(4, '0')}`;
+}
+
+function toMillis(value) {
+  if (!value) {
+    return 0;
+  }
+
+  if (typeof value.toMillis === 'function') {
+    return value.toMillis();
+  }
+
+  if (typeof value.toDate === 'function') {
+    return value.toDate().getTime();
+  }
+
+  const parsed = new Date(value).getTime();
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function identityKey(record) {
+  const data = record.data || {};
+  return [
+    clean(data.childName || data.patientName).toLowerCase(),
+    clean(data.parentName).toLowerCase(),
+    clean(data.dob),
+    clean(data.mobileNumber || data.phone).replace(/\D/g, '').slice(-10)
+  ].join('|');
 }
 
 function sortKey(record) {
-  return normalize(record.data[ID_FIELD] || record.docId).toUpperCase();
+  const currentId = clean(record.data.patientId || record.docId).toUpperCase();
+  const serial = getTbkSerial(currentId);
+  const created = toMillis(record.data.createdAt || record.data.submittedAt || record.data.reviewedAt);
+  return {
+    hasTbk: isValidTbkId(currentId) ? 0 : 1,
+    serial,
+    created: created || Number.MAX_SAFE_INTEGER,
+    identity: identityKey(record),
+    docId: record.docId
+  };
 }
 
 function compareRecords(left, right) {
-  return sortKey(left).localeCompare(sortKey(right), 'en', { numeric: true, sensitivity: 'base' })
-    || left.docId.localeCompare(right.docId, 'en', { numeric: true, sensitivity: 'base' });
-}
-
-function ensureNoDuplicates(values, label) {
-  const seen = new Set();
-  const duplicates = new Set();
-
-  for (const value of values) {
-    if (seen.has(value)) {
-      duplicates.add(value);
-    }
-    seen.add(value);
-  }
-
-  if (duplicates.size) {
-    throw new Error(`${label} has duplicates: ${[...duplicates].join(', ')}`);
-  }
+  const leftKey = sortKey(left);
+  const rightKey = sortKey(right);
+  return leftKey.hasTbk - rightKey.hasTbk
+    || leftKey.serial - rightKey.serial
+    || leftKey.created - rightKey.created
+    || leftKey.identity.localeCompare(rightKey.identity, 'en', { numeric: true, sensitivity: 'base' })
+    || leftKey.docId.localeCompare(rightKey.docId, 'en', { numeric: true, sensitivity: 'base' });
 }
 
 function writeJson(filePath, value) {
@@ -69,91 +139,297 @@ function writeJson(filePath, value) {
   fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
 }
 
-async function main() {
-  const app = initializeApp(FIREBASE_CONFIG, `kid-patient-id-reassign-${Date.now()}`);
-  const db = getFirestore(app);
-  const snapshot = await getDocs(collection(db, CLINIC_PATIENT_COLLECTION));
-  const records = snapshot.docs.map((docSnap) => ({
-    docId: docSnap.id,
-    data: docSnap.data()
-  })).sort(compareRecords);
+function assertNoDuplicates(values, label) {
+  const seen = new Set();
+  const duplicates = new Set();
 
-  const processedCount = records.length;
-  const mapping = records.map((record, index) => ({
-    order: index + 1,
-    oldDocumentId: record.docId,
-    oldPatientId: normalize(record.data[ID_FIELD] || record.docId),
-    newDocumentId: newPatientId(index),
-    newPatientId: newPatientId(index)
+  values.forEach((value) => {
+    if (seen.has(value)) {
+      duplicates.add(value);
+    }
+    seen.add(value);
+  });
+
+  if (duplicates.size) {
+    throw new Error(`${label} contains duplicates: ${[...duplicates].join(', ')}`);
+  }
+}
+
+function buildOldIdAliases(record) {
+  return [...new Set([
+    clean(record.docId),
+    clean(record.data.patientId),
+    clean(record.data.approvedPatientId),
+    clean(record.data.legacyPatientId)
+  ].filter(Boolean).map((value) => value.toUpperCase()))];
+}
+
+function buildMapping(records) {
+  const sorted = [...records].sort(compareRecords);
+  const mapping = sorted.map((record, index) => {
+    const newPatientId = formatPatientId(index);
+    return {
+      order: index + 1,
+      oldDocumentId: record.docId,
+      oldPatientId: clean(record.data.patientId || record.docId).toUpperCase(),
+      aliases: buildOldIdAliases(record),
+      newDocumentId: newPatientId,
+      newPatientId
+    };
+  });
+
+  assertNoDuplicates(mapping.map((entry) => entry.newPatientId), 'New patient IDs');
+  return mapping;
+}
+
+function buildAliasMap(mapping) {
+  const aliasMap = new Map();
+
+  mapping.forEach((entry) => {
+    entry.aliases.forEach((alias) => {
+      if (alias && !aliasMap.has(alias)) {
+        aliasMap.set(alias, entry.newPatientId);
+      }
+    });
+  });
+
+  return aliasMap;
+}
+
+function replaceKnownIds(value, aliasMap) {
+  if (typeof value !== 'string') {
+    return value;
+  }
+
+  const direct = aliasMap.get(value.trim().toUpperCase());
+  if (direct) {
+    return direct;
+  }
+
+  let nextValue = value;
+  aliasMap.forEach((newId, oldId) => {
+    nextValue = nextValue
+      .split(`/${oldId}/`).join(`/${newId}/`)
+      .split(`%2F${oldId}%2F`).join(`%2F${newId}%2F`)
+      .split(`%2f${oldId}%2f`).join(`%2f${newId}%2f`);
+  });
+  return nextValue;
+}
+
+function rewriteValue(value, aliasMap) {
+  if (Array.isArray(value)) {
+    return value.map((item) => rewriteValue(item, aliasMap));
+  }
+
+  if (value && typeof value === 'object') {
+    if (typeof value.toDate === 'function' || value instanceof admin.firestore.Timestamp) {
+      return value;
+    }
+
+    return Object.fromEntries(Object.entries(value).map(([key, nestedValue]) => {
+      const shouldRewriteString = /patientid|approvedpatientid|prescriptionsaveid|storagepath|previewimagepath|downloadurl|pdfurl|path|url/i.test(key);
+      if (typeof nestedValue === 'string' && shouldRewriteString) {
+        return [key, replaceKnownIds(nestedValue, aliasMap)];
+      }
+      return [key, rewriteValue(nestedValue, aliasMap)];
+    }));
+  }
+
+  return replaceKnownIds(value, aliasMap);
+}
+
+async function getCollectionDocs(db, collectionPath) {
+  const snapshot = await db.collection(collectionPath).get();
+  return snapshot.docs.map((docSnapshot) => ({
+    docId: docSnapshot.id,
+    ref: docSnapshot.ref,
+    path: docSnapshot.ref.path,
+    data: docSnapshot.data()
   }));
+}
 
-  ensureNoDuplicates(mapping.map((entry) => entry.oldDocumentId), 'Old document IDs');
-  ensureNoDuplicates(mapping.map((entry) => entry.newDocumentId), 'New document IDs');
+async function copySubcollections(sourceRef, targetRef, batchWriter, stats) {
+  const subcollections = await sourceRef.listCollections();
 
-  writeJson(backupPath, {
-    generatedAt: new Date().toISOString(),
-    collection: CLINIC_PATIENT_COLLECTION,
-    idField: ID_FIELD,
-    deterministicOrder: `ascending by ${ID_FIELD} when present, otherwise document ID; document ID tie-breaker`,
-    count: processedCount,
-    records
-  });
+  for (const subcollection of subcollections) {
+    const docs = await subcollection.get();
+    stats.patientSubcollectionDocs += docs.size;
 
-  writeJson(mappingPath, {
-    generatedAt: new Date().toISOString(),
-    collection: CLINIC_PATIENT_COLLECTION,
-    idField: ID_FIELD,
-    deterministicOrder: `ascending by ${ID_FIELD} when present, otherwise document ID; document ID tie-breaker`,
-    count: processedCount,
-    mapping
-  });
+    docs.docs.forEach((docSnapshot) => {
+      const targetDocRef = targetRef.collection(subcollection.id).doc(docSnapshot.id);
+      batchWriter.set(targetDocRef, docSnapshot.data(), { merge: false });
+    });
+  }
+}
 
-  console.log(`Collection/table: ${CLINIC_PATIENT_COLLECTION}`);
-  console.log(`ID field: ${ID_FIELD}`);
-  console.log(`Deterministic order: ascending by ${ID_FIELD} when present, otherwise document ID; document ID tie-breaker`);
-  console.log(`Records processed: ${processedCount}`);
-  console.log(`Backup written before migration: ${backupPath}`);
-  console.log(`Old to new ID mapping written before migration: ${mappingPath}`);
-
-  if (!writeMode) {
-    console.log('Dry run only. Re-run with --write to update Firestore.');
+async function copyStorageObjects(bucket, oldId, newId, stats) {
+  if (oldId === newId) {
     return;
   }
 
+  for (const prefix of STORAGE_PREFIXES) {
+    const [files] = await bucket.getFiles({ prefix: `${prefix}/${oldId}/` });
+    stats.storageFilesScanned += files.length;
+
+    for (const file of files) {
+      const targetName = file.name.replace(`${prefix}/${oldId}/`, `${prefix}/${newId}/`);
+      await file.copy(bucket.file(targetName));
+      stats.storageFilesCopied += 1;
+
+      if (deleteOldStorage) {
+        await file.delete({ ignoreNotFound: true });
+        stats.storageFilesDeleted += 1;
+      }
+    }
+  }
+}
+
+async function migratePatients(db, bucket, records, mapping, aliasMap, stats) {
+  const writer = db.bulkWriter();
   const targetIds = new Set(mapping.map((entry) => entry.newDocumentId));
 
-  for (let index = 0; index < records.length; index += 1) {
-    const targetId = mapping[index].newDocumentId;
-    await setDoc(doc(db, CLINIC_PATIENT_COLLECTION, targetId), {
-      ...records[index].data,
-      [ID_FIELD]: targetId
-    });
+  for (const entry of mapping) {
+    const record = records.find((item) => item.docId === entry.oldDocumentId);
+    const targetRef = db.collection(PATIENTS_COLLECTION).doc(entry.newDocumentId);
+    const nextData = {
+      ...rewriteValue(record.data, aliasMap),
+      patientId: entry.newPatientId,
+      previousPatientIds: [...new Set([entry.oldPatientId, ...entry.aliases].filter((id) => id && id !== entry.newPatientId))],
+      idSystem: 'TBK',
+      idMigratedAt: admin.firestore.FieldValue.serverTimestamp()
+    };
+
+    writer.set(targetRef, nextData, { merge: false });
+    stats.patientDocsWritten += 1;
+    await copySubcollections(record.ref, targetRef, writer, stats);
+    await copyStorageObjects(bucket, entry.oldPatientId, entry.newPatientId, stats);
   }
 
   for (const record of records) {
     if (!targetIds.has(record.docId)) {
-      await deleteDoc(doc(db, CLINIC_PATIENT_COLLECTION, record.docId));
+      writer.delete(record.ref);
+      stats.patientDocsDeleted += 1;
     }
   }
 
-  const verifySnapshot = await getDocs(collection(db, CLINIC_PATIENT_COLLECTION));
-  const finalIds = verifySnapshot.docs.map((docSnap) => docSnap.id).sort((left, right) => {
-    return left.localeCompare(right, 'en', { numeric: true, sensitivity: 'base' });
+  await writer.close();
+}
+
+async function migrateRelatedCollections(db, aliasMap, stats) {
+  for (const collectionPath of RELATED_COLLECTIONS) {
+    const docs = await getCollectionDocs(db, collectionPath);
+    stats.relatedCollections[collectionPath] = {
+      scanned: docs.length,
+      updated: 0
+    };
+
+    const writer = db.bulkWriter();
+
+    docs.forEach((record) => {
+      const nextData = rewriteValue(record.data, aliasMap);
+      const before = JSON.stringify(record.data);
+      const after = JSON.stringify(nextData);
+
+      if (before !== after) {
+        writer.set(record.ref, {
+          ...nextData,
+          idMigratedAt: admin.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        stats.relatedCollections[collectionPath].updated += 1;
+      }
+    });
+
+    await writer.close();
+  }
+}
+
+async function updateCounter(db, patientCount) {
+  await db.doc(`${CLINIC_NAMESPACE}/counters/patientIds`).set({
+    prefix: 'TBK',
+    nextSerial: patientCount + 1,
+    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+  }, { merge: true });
+}
+
+async function verify(db, expectedCount) {
+  const snapshot = await db.collection(PATIENTS_COLLECTION).get();
+  const finalIds = snapshot.docs.map((docSnapshot) => docSnapshot.id).sort((left, right) => (
+    left.localeCompare(right, 'en', { numeric: true, sensitivity: 'base' })
+  ));
+  const expectedIds = Array.from({ length: expectedCount }, (_, index) => formatPatientId(index));
+
+  if (finalIds.length !== expectedIds.length) {
+    throw new Error(`Expected ${expectedIds.length} patient docs, found ${finalIds.length}.`);
+  }
+
+  expectedIds.forEach((expectedId, index) => {
+    if (finalIds[index] !== expectedId) {
+      throw new Error(`Final ID mismatch at ${index + 1}: expected ${expectedId}, got ${finalIds[index] || 'missing'}.`);
+    }
   });
-  const expectedIds = records.map((_, index) => newPatientId(index));
 
-  if (verifySnapshot.size !== processedCount) {
-    throw new Error(`Final count ${verifySnapshot.size} does not match processed count ${processedCount}.`);
+  return {
+    count: finalIds.length,
+    firstPatientId: finalIds[0] || '',
+    lastPatientId: finalIds.at(-1) || ''
+  };
+}
+
+async function main() {
+  const db = getAdminDb();
+  const bucket = getAdminBucket();
+  const records = await getCollectionDocs(db, PATIENTS_COLLECTION);
+  const mapping = buildMapping(records);
+  const aliasMap = buildAliasMap(mapping);
+  const stats = {
+    patientDocsScanned: records.length,
+    patientDocsWritten: 0,
+    patientDocsDeleted: 0,
+    patientSubcollectionDocs: 0,
+    storageFilesScanned: 0,
+    storageFilesCopied: 0,
+    storageFilesDeleted: 0,
+    relatedCollections: {}
+  };
+
+  writeJson(backupPath, {
+    generatedAt: new Date().toISOString(),
+    collection: PATIENTS_COLLECTION,
+    count: records.length,
+    records: records.map(({ docId, path: docPath, data }) => ({ docId, path: docPath, data }))
+  });
+  writeJson(mappingPath, {
+    generatedAt: new Date().toISOString(),
+    collection: PATIENTS_COLLECTION,
+    count: mapping.length,
+    mapping
+  });
+
+  console.log(`Patient docs scanned: ${records.length}`);
+  console.log(`Target sequence: ${mapping[0]?.newPatientId || 'none'} through ${mapping.at(-1)?.newPatientId || 'none'}`);
+  console.log(`Backup: ${backupPath}`);
+  console.log(`Mapping: ${mappingPath}`);
+
+  if (!writeMode) {
+    console.log('Dry run only. Re-run with --write to migrate Firestore and copy Storage files.');
+    return;
   }
 
-  for (let index = 0; index < expectedIds.length; index += 1) {
-    if (finalIds[index] !== expectedIds[index]) {
-      throw new Error(`Final ID sequence mismatch at ${index + 1}: expected ${expectedIds[index]}, got ${finalIds[index] || 'missing'}.`);
-    }
-  }
+  await migratePatients(db, bucket, records, mapping, aliasMap, stats);
+  await migrateRelatedCollections(db, aliasMap, stats);
+  await updateCounter(db, records.length);
+  const verification = await verify(db, records.length);
 
-  console.log(`Verified final count matches processed count: ${verifySnapshot.size}`);
-  console.log(`Verified final IDs are sequential with no skips or duplicates: ${expectedIds[0] || 'none'} through ${expectedIds.at(-1) || 'none'}`);
+  writeJson(summaryPath, {
+    generatedAt: new Date().toISOString(),
+    writeMode,
+    deleteOldStorage,
+    stats,
+    verification
+  });
+
+  console.log(`Verified ${verification.count} patient IDs: ${verification.firstPatientId} through ${verification.lastPatientId}`);
+  console.log(`Summary: ${summaryPath}`);
 }
 
 await main();
