@@ -875,6 +875,32 @@
       return /^TBK\d{4,}$/i.test(String(value || '').trim());
     }
 
+    async function loadNextPatientId() {
+      patientIdOutput.textContent = 'Loading...';
+
+      try {
+        const response = await fetch('/api/kid/patients/next-id', {
+          method: 'GET',
+          credentials: 'same-origin'
+        });
+        const result = await response.json().catch(() => ({}));
+
+        if (response.status === 401) {
+          redirectToLogin();
+          return;
+        }
+
+        if (!response.ok || !isTbkPatientId(result?.patientId)) {
+          throw new Error(result?.error || 'Unable to load the next patient ID.');
+        }
+
+        patientIdOutput.textContent = result.patientId;
+      } catch (error) {
+        console.warn(`Unable to load next patient ID: ${error.message}`);
+        patientIdOutput.textContent = 'Assigned on save';
+      }
+    }
+
     function redirectToLogin() {
       const nextPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
       window.location.href = `/emr/kid/password?next=${encodeURIComponent(nextPath)}`;
@@ -1044,7 +1070,7 @@
       return result.patientId;
     }
 
-    patientIdOutput.textContent = 'Assigned on save';
+    loadNextPatientId();
     sessionStorage.removeItem('newPatientId');
 
     const prefilledChildName = searchParams.get('childName') || '';
