@@ -287,8 +287,15 @@ async function copyStorageObjects(bucket, oldId, newId, stats) {
 async function migratePatients(db, bucket, records, mapping, aliasMap, stats) {
   const writer = db.bulkWriter();
   const targetIds = new Set(mapping.map((entry) => entry.newDocumentId));
+  const total = mapping.length;
+  const startTime = Date.now();
 
-  for (const entry of mapping) {
+  writer.onWriteError((error) => {
+    console.error(`  ! Write error on ${error.documentRef.path} (attempt ${error.failedAttempts}): ${error.message}`);
+    return error.failedAttempts < 5;
+  });
+
+  for (const [index, entry] of mapping.entries()) {
     const record = records.find((item) => item.docId === entry.oldDocumentId);
     const targetRef = db.collection(PATIENTS_COLLECTION).doc(entry.newDocumentId);
     const nextData = {
@@ -303,7 +310,15 @@ async function migratePatients(db, bucket, records, mapping, aliasMap, stats) {
     stats.patientDocsWritten += 1;
     await copySubcollections(record.ref, targetRef, writer, stats);
     await copyStorageObjects(bucket, entry.oldPatientId, entry.newPatientId, stats);
+
+    const done = index + 1;
+    const elapsedSec = ((Date.now() - startTime) / 1000).toFixed(1);
+    const avgSec = ((Date.now() - startTime) / 1000 / done).toFixed(2);
+    const etaSec = (avgSec * (total - done)).toFixed(0);
+    console.log(`[${done}/${total}] ${entry.oldPatientId} -> ${entry.newPatientId}  (elapsed ${elapsedSec}s, avg ${avgSec}s/patient, ETA ${etaSec}s)`);
   }
+
+  console.log('All patient records queued. Flushing writes...');
 
   for (const record of records) {
     if (!targetIds.has(record.docId)) {
@@ -313,11 +328,14 @@ async function migratePatients(db, bucket, records, mapping, aliasMap, stats) {
   }
 
   await writer.close();
+  console.log('Patient write flush complete.');
 }
 
 async function migrateRelatedCollections(db, aliasMap, stats) {
   for (const collectionPath of RELATED_COLLECTIONS) {
+    console.log(`Scanning related collection: ${collectionPath} ...`);
     const docs = await getCollectionDocs(db, collectionPath);
+    console.log(`  Found ${docs.length} docs in ${collectionPath}.`);
     stats.relatedCollections[collectionPath] = {
       scanned: docs.length,
       updated: 0
@@ -340,6 +358,7 @@ async function migrateRelatedCollections(db, aliasMap, stats) {
     });
 
     await writer.close();
+    console.log(`  Updated ${stats.relatedCollections[collectionPath].updated} docs in ${collectionPath}.`);
   }
 }
 
@@ -415,9 +434,13 @@ async function main() {
     return;
   }
 
+  console.log('Starting patient migration (this is the slow part; progress logs below)...');
   await migratePatients(db, bucket, records, mapping, aliasMap, stats);
+  console.log('Starting related-collections migration...');
   await migrateRelatedCollections(db, aliasMap, stats);
+  console.log('Updating patient ID counter...');
   await updateCounter(db, records.length);
+  console.log('Verifying final patient ID sequence...');
   const verification = await verify(db, records.length);
 
   writeJson(summaryPath, {

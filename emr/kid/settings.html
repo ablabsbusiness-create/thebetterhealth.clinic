@@ -2340,7 +2340,7 @@
         signOutBtn.disabled = true;
 
         try {
-          await fetch('/api/auth/logout', { method: 'POST' });
+          await fetch('/api/kid/auth/logout', { method: 'POST' });
         } catch (error) {
           console.warn('Unable to call logout endpoint:', error);
         }

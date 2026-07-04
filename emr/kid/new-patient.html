@@ -840,11 +840,19 @@
     }
 
     function closeMobileMenu() {
+      if (!menuToggle || !primaryNav) {
+        return;
+      }
+
       menuToggle.setAttribute('aria-expanded', 'false');
       primaryNav.classList.remove('is-open');
     }
 
     function toggleMobileMenu() {
+      if (!menuToggle || !primaryNav) {
+        return;
+      }
+
       const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
       menuToggle.setAttribute('aria-expanded', String(!isOpen));
       primaryNav.classList.toggle('is-open', !isOpen);
@@ -861,6 +869,15 @@
     function parseAgePart(value) {
       const numeric = Number.parseInt(String(value || '').trim(), 10);
       return Number.isFinite(numeric) && numeric >= 0 ? numeric : NaN;
+    }
+
+    function isTbkPatientId(value) {
+      return /^TBK\d{4,}$/i.test(String(value || '').trim());
+    }
+
+    function redirectToLogin() {
+      const nextPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+      window.location.href = `/emr/kid/password?next=${encodeURIComponent(nextPath)}`;
     }
 
     function parseDobInput(dayValue, monthValue, yearValue) {
@@ -1005,8 +1022,17 @@
       });
       const result = await response.json().catch(() => ({}));
 
+      if (response.status === 401) {
+        redirectToLogin();
+        throw new Error('Authentication required. Please sign in again.');
+      }
+
       if (!response.ok || !result?.patientId) {
         throw new Error(result?.error || 'Unable to assign a patient ID right now.');
+      }
+
+      if (!isTbkPatientId(result.patientId)) {
+        throw new Error(`Unexpected patient ID "${result.patientId}". Kid patients must use TBK IDs.`);
       }
 
       const savedRecord = {
@@ -1081,13 +1107,15 @@
       input.addEventListener('change', syncDobFromAge);
     });
 
-    menuToggle.addEventListener('click', toggleMobileMenu);
-    navLinks.forEach((link) => link.addEventListener('click', closeMobileMenu));
-    window.addEventListener('resize', () => {
-      if (window.innerWidth > 640) {
-        closeMobileMenu();
-      }
-    });
+    if (menuToggle && primaryNav) {
+      menuToggle.addEventListener('click', toggleMobileMenu);
+      navLinks.forEach((link) => link.addEventListener('click', closeMobileMenu));
+      window.addEventListener('resize', () => {
+        if (window.innerWidth > 640) {
+          closeMobileMenu();
+        }
+      });
+    }
   </script>
 </body>
 </html>
