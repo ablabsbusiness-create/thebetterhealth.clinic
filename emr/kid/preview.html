@@ -962,7 +962,7 @@
     import html2canvas from 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/+esm';
     import { jsPDF } from 'https://cdn.jsdelivr.net/npm/jspdf@3.0.3/+esm';
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
-    import { collection, doc, getDoc, getDocs, getFirestore, query, serverTimestamp, setDoc, where } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { arrayUnion, collection, doc, getDoc, getDocs, getFirestore, query, serverTimestamp, setDoc, where } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     import { getDownloadURL, getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
     const FIREBASE_COLLECTIONS = {
@@ -2552,6 +2552,25 @@
       };
 
       await setDoc(doc(db, FIREBASE_COLLECTIONS.history, saveId), historyRecord, { merge: true });
+      await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId), {
+        patientId,
+        childName: historyRecord.childName,
+        prescriptionHistory: arrayUnion({
+          id: saveId,
+          prescriptionSaveId: historyRecord.prescriptionSaveId,
+          patientId,
+          fileName,
+          storagePath: historyRecord.storagePath,
+          previewImagePath: historyRecord.previewImagePath,
+          previewImageURL: historyRecord.previewImageURL,
+          downloadURL: historyRecord.downloadURL,
+          source: historyRecord.source,
+          type: historyRecord.type,
+          createdAtIso: historyRecord.createdAtIso,
+          createdAtDisplay: historyRecord.createdAtDisplay
+        }),
+        updatedAt: serverTimestamp()
+      }, { merge: true });
       persistLocalPrescriptionRecord(historyRecord);
 
       return { ok: true, downloadURL, storagePath: persistedStoragePath, previewImageURL, previewImagePath, warning };

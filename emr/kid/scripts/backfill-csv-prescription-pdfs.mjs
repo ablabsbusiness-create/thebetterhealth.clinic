@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { initializeApp } from 'firebase/app';
 import {
+  arrayUnion,
   collection,
   doc,
   getDoc,
@@ -442,6 +443,23 @@ function hasVitalsContent(entry) {
   });
 }
 
+function getNormalizedPatientId(value) {
+  return clean(value).toUpperCase();
+}
+
+function isValidKidPatientId(value) {
+  return /^TBK\d{4}$/.test(getNormalizedPatientId(value));
+}
+
+function hasPrescriptionMinimumValues(entry) {
+  const hasPatientIdentity = isValidKidPatientId(entry.patientId)
+    && Boolean(compactSpaces(entry.childName || entry.name));
+  const hasVisitDate = Boolean(getIso(entry.createdAtIso || entry.measuredAt || entry.visitDate || entry.savedAt));
+  const hasPrescriptionBody = vitalsOnlyMode ? hasVitalsContent(entry) : hasClinicalContent(entry);
+
+  return hasPatientIdentity && hasVisitDate && hasPrescriptionBody;
+}
+
 function getEntryVisitDateKey(entry) {
   return getClinicDateKey(entry.createdAtIso || entry.measuredAt || entry.visitDate || entry.savedAt);
 }
@@ -521,12 +539,29 @@ function mergeVisitEntries(baseEntry, relatedEntries = []) {
 function makeGeneratedIds(entry) {
   const seed = entry.importKey || entry.id || `${entry.patientId}|${entry.createdAtIso || entry.visitDate || ''}`;
   const hash = hashId(seed);
-  const patientId = sanitizeFilePart(entry.patientId);
+  const patientId = sanitizeFilePart(getNormalizedPatientId(entry.patientId));
   const visitDate = getIsoDate(entry.createdAtIso || entry.measuredAt || entry.visitDate) || 'unknown-date';
   const docId = vitalsOnlyMode ? `csvVitalPrescription_${hash}` : `csvPrescription_${hash}`;
   const fileName = `${visitDate}-${docId}.pdf`;
   const storagePath = `${CLINIC_STORAGE_PREFIX}/prescriptions/${patientId}/${fileName}`;
   return { docId, fileName, storagePath };
+}
+
+function buildPatientPrescriptionLink(historyRecord, docId) {
+  return {
+    id: docId,
+    prescriptionSaveId: historyRecord.prescriptionSaveId || historyRecord.storagePath || docId,
+    patientId: historyRecord.patientId,
+    fileName: historyRecord.fileName || '',
+    storagePath: historyRecord.storagePath || '',
+    downloadURL: historyRecord.downloadURL || '',
+    source: historyRecord.source || 'prescription-pdf',
+    type: historyRecord.type || 'prescription',
+    generatedFrom: historyRecord.generatedFrom || '',
+    generatedFor: historyRecord.generatedFor || '',
+    createdAtIso: historyRecord.createdAtIso || '',
+    createdAtDisplay: historyRecord.createdAtDisplay || ''
+  };
 }
 
 function addWrappedText(pdf, text, x, y, options = {}) {
@@ -1083,7 +1118,7 @@ async function main() {
     });
   const entriesByPatientDate = buildVisitEntryIndex(sourceEntries);
   const candidates = sourceEntries
-    .filter((entry) => clean(entry.patientId) && (vitalsOnlyMode ? hasVitalsContent(entry) : hasClinicalContent(entry)))
+    .filter(hasPrescriptionMinimumValues)
     .sort((left, right) => {
       const leftTime = Date.parse(getIso(left.createdAtIso || left.measuredAt || left.visitDate)) || 0;
       const rightTime = Date.parse(getIso(right.createdAtIso || right.measuredAt || right.visitDate)) || 0;
@@ -1161,9 +1196,10 @@ async function main() {
     });
 
     const downloadURL = await getDownloadURL(storageRef);
+    const patientId = getNormalizedPatientId(mergedEntry.patientId);
     const historyRecord = {
       prescriptionSaveId: storagePath,
-      patientId: clean(mergedEntry.patientId).toUpperCase(),
+      patientId,
       childName: mergedEntry.childName || '',
       parentName: mergedEntry.parentName || '',
       phone: mergedEntry.phone || '',
@@ -1221,6 +1257,12 @@ async function main() {
     };
 
     await setDoc(doc(db, `${CLINIC_NAMESPACE}/history`, docId), historyRecord, { merge: true });
+    await setDoc(doc(db, `${CLINIC_NAMESPACE}/patients`, patientId), {
+      patientId,
+      childName: historyRecord.childName,
+      prescriptionHistory: arrayUnion(buildPatientPrescriptionLink(historyRecord, docId)),
+      updatedAt: serverTimestamp()
+    }, { merge: true });
     completed += 1;
 
     if (completed % 25 === 0 || completed === selected.length) {
