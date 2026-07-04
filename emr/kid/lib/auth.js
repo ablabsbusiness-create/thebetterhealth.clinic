@@ -6,7 +6,6 @@ const APP_BASE_SEGMENT = '/emr/kid';
 const PROTECTED_PATHS = new Set([
   '/',
   '/index',
-  '/new-patient',
   '/growth-chart-dashboard',
   '/KID/growth-chart-dashboard',
   '/prescription',
@@ -28,11 +27,14 @@ const PROTECTED_PATHS = new Set([
 
 const PUBLIC_PATHS = new Set([
   '/password',
+  '/new-patient',
   '/intake',
   '/rx',
   '/KID/rx',
   '/api/auth/login',
-  '/api/auth/logout'
+  '/api/auth/logout',
+  '/api/patients/create',
+  '/api/patients/next-id'
 ]);
 
 function getCryptoApi() {

@@ -1,4 +1,3 @@
-import { isAuthenticatedCookieHeader } from '../../../emr/kid/lib/auth.js';
 import { getAdminDb } from '../_firebase-admin.js';
 
 const CLINIC_NAMESPACE = 'clinics/kid';
@@ -43,11 +42,6 @@ async function getNextPatientId(db) {
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     sendJson(res, 405, { error: 'Method not allowed.' });
-    return;
-  }
-
-  if (!await isAuthenticatedCookieHeader(req.headers.cookie || '')) {
-    sendJson(res, 401, { error: 'Authentication required.' });
     return;
   }
 
