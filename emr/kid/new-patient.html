@@ -1024,7 +1024,7 @@
 
       if (response.status === 401) {
         redirectToLogin();
-        throw new Error('Authentication required. Please sign in again.');
+        return null;
       }
 
       if (!response.ok || !result?.patientId) {
@@ -1081,13 +1081,20 @@
 
       try {
         const patientId = await savePatientToCloudRecords();
+        if (!patientId) {
+          return;
+        }
+
         patientIdOutput.textContent = patientId;
         setSaveStatus(`Patient details saved with ID ${patientId}.`, 'ready');
         console.log(`Saved with Patient ID ${patientId}.`);
       window.location.href = `/emr/kid/prescription-growth-chart-dashboard?patientId=${encodeURIComponent(patientId)}`;
       } catch (error) {
         console.error(`Cloud save failed: ${error.message}`);
-        setSaveStatus(`Unable to save patient details: ${error.message}. Please try again.`, 'error');
+        const message = error.message.endsWith('Please try again.')
+          ? `Unable to save patient details: ${error.message}`
+          : `Unable to save patient details: ${error.message}. Please try again.`;
+        setSaveStatus(message, 'error');
       } finally {
         continueBtn.disabled = false;
         continueBtn.textContent = 'Continue';
