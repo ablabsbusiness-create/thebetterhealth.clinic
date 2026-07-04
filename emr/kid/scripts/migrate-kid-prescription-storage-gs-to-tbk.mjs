@@ -18,6 +18,7 @@ const conversionLogPath = path.join(OUTPUT_DIR, `kid-prescription-storage-gs-to-
 const writeMode = process.argv.includes('--write');
 const deleteOld = process.argv.includes('--delete-old');
 const localPlanOnly = process.argv.includes('--local-plan');
+const includeAllOldIds = process.argv.includes('--all-old-ids');
 const mappingArgIndex = process.argv.findIndex((arg) => arg === '--mapping');
 const mappingPath = mappingArgIndex >= 0
   ? path.resolve(process.argv[mappingArgIndex + 1] || '')
@@ -59,6 +60,15 @@ function getAdminApp() {
   return admin.initializeApp(options);
 }
 
+function isCredentialError(error) {
+  const message = String(error?.message || error || '').toLowerCase();
+  return message.includes('could not load the default credentials')
+    || message.includes('application default credentials')
+    || message.includes('credential')
+    || message.includes('unauthorized')
+    || message.includes('permission');
+}
+
 function clean(value) {
   return String(value ?? '').trim().toUpperCase();
 }
@@ -75,7 +85,13 @@ function readMapping(filePath) {
       oldId: clean(entry.oldPatientId || entry.oldDocumentId),
       newId: clean(entry.newPatientId || entry.newDocumentId)
     }))
-    .filter((entry) => /^GS\d+$/.test(entry.oldId) && /^TBK\d{4,}$/.test(entry.newId));
+    .filter((entry) => {
+      if (!entry.oldId || !/^TBK\d{4,}$/.test(entry.newId) || entry.oldId === entry.newId) {
+        return false;
+      }
+
+      return includeAllOldIds ? !/^TBK\d{4,}$/.test(entry.oldId) : entry.oldId.startsWith('GS');
+    });
 
   const seenOldIds = new Set();
   const deduped = [];
@@ -193,6 +209,21 @@ async function migratePair(bucket, pair, stats) {
   return patientLog;
 }
 
+async function verifyStorageAccess(bucket) {
+  try {
+    await bucket.getMetadata();
+  } catch (error) {
+    if (isCredentialError(error)) {
+      throw new Error([
+        'Firebase admin credentials are not loaded.',
+        'Set FIREBASE_SERVICE_ACCOUNT_KEY / FIREBASE_SERVICE_ACCOUNT, or set GOOGLE_APPLICATION_CREDENTIALS to a service-account JSON file, then run again.'
+      ].join(' '));
+    }
+
+    throw error;
+  }
+}
+
 function writeConversionLog(payload) {
   fs.mkdirSync(path.dirname(conversionLogPath), { recursive: true });
   fs.writeFileSync(conversionLogPath, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
@@ -201,8 +232,9 @@ function writeConversionLog(payload) {
 async function main() {
   const pairs = readMapping(mappingPath);
   console.log(`Mapping file: ${mappingPath}`);
-  console.log(`GS -> TBK pairs: ${pairs.length}`);
+  console.log(`${includeAllOldIds ? 'old ID' : 'GS'} -> TBK pairs: ${pairs.length}`);
   console.log(`Mode: ${writeMode ? 'WRITE' : 'DRY RUN'}${deleteOld ? ' + delete old files' : ''}`);
+  console.log(`Scope: ${includeAllOldIds ? 'all old patient IDs from mapping' : 'GS IDs only'}`);
 
   if (!pairs.length) {
     throw new Error('No GS -> TBK mapping pairs found.');
@@ -215,6 +247,8 @@ async function main() {
   }
 
   const bucket = getAdminApp().storage().bucket();
+  await verifyStorageAccess(bucket);
+
   const stats = {
     sourceFoldersScanned: 0,
     filesFound: 0,
