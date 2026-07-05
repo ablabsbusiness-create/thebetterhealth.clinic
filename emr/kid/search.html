@@ -682,12 +682,7 @@
     }
 
     .worklist-list {
-      min-height: 0;
-      overflow: auto;
-      display: grid;
-      align-content: start;
-      gap: 0;
-      padding-right: 0;
+      display: none;
     }
 
     .worklist-empty {
@@ -4371,14 +4366,17 @@
       const counts = getWorklistCounts(patients, selectedWorklistDate);
       const worklistPatients = getWorklistPatients(patients, selectedWorklistDate, selectedWorklistMode, searchValue);
       const renderedWorklistPatients = worklistPatients.slice(0, SEARCH_RENDER_LIMIT);
-      const selectedPatientPool = IS_PATIENT_DETAILS_PAGE ? patients : (worklistPatients.length ? worklistPatients : patients);
+      const selectedPatientPool = patients;
+      if (!IS_PATIENT_DETAILS_PAGE && !selectedPatientId && worklistPatients[0]) {
+        selectedPatientId = formatVisiblePatientId(worklistPatients[0].patientId);
+      }
       if (selectedPatientId && !patients.some((patient) => formatVisiblePatientId(patient.patientId) === selectedPatientId)) {
         selectedPatientId = '';
       }
 
       const selectedPatient = selectedPatientId
         ? selectedPatientPool.find((patient) => formatVisiblePatientId(patient.patientId) === selectedPatientId) || null
-        : null;
+        : (!IS_PATIENT_DETAILS_PAGE ? worklistPatients[0] || null : null);
       const selectedPatientIdValue = selectedPatient ? formatVisiblePatientId(selectedPatient.patientId) : '';
       const selectedHistoryDate = selectedPatientIdValue ? historyDateFilters[selectedPatientIdValue] || '' : '';
       const childName = selectedPatient ? getPatientDisplayName(selectedPatient) : 'Select a patient';
@@ -4417,11 +4415,6 @@
               </div>
             </div>
 
-            <div class="worklist-list">
-              ${renderedWorklistPatients.length
-                ? renderedWorklistPatients.map((patient) => renderWorklistItemHtml(patient, selectedWorklistDate)).join('')
-                : `<div class="worklist-empty">${searchValue ? 'No matching patients were found.' : !historyLoaded ? 'Loading clinic list...' : selectedWorklistMode === 'queue' ? 'No patients were added to queue for this date yet.' : 'No patients have been seen on this date yet.'}</div>`}
-            </div>
           </aside>
 
           <main class="worklist-main">
