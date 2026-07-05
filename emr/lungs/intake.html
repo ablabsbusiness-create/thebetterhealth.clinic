@@ -199,13 +199,12 @@
     const firebaseConfig = { apiKey: 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo', authDomain: 'clinci-dr-gunda.firebaseapp.com', projectId: 'clinci-dr-gunda', storageBucket: 'clinci-dr-gunda.firebasestorage.app', messagingSenderId: '1059959825609', appId: '1:1059959825609:web:8201599754706ac4661918', measurementId: 'G-4V5JMVW45E' };
     const firebaseConfigured = Object.values(firebaseConfig).every(Boolean);
     const db = firebaseConfigured ? getFirestore(initializeApp(firebaseConfig)) : null;
-    function buildPatientId() {
-      const suffix = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
-      return `TBL${suffix}`;
+    function buildPatientId(index = 0) {
+      return `TBL${String(index).padStart(4, '0')}`;
     }
     async function buildUniquePatientId() {
-      for (let attempts = 0; attempts < 20; attempts += 1) {
-        const candidate = buildPatientId();
+      for (let index = 0; index <= 9999; index += 1) {
+        const candidate = buildPatientId(index);
         const snapshot = await getDoc(doc(db, FIREBASE_COLLECTIONS.patients, candidate));
         if (!snapshot.exists()) {
           return candidate;

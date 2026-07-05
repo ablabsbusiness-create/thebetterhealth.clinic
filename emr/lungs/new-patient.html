@@ -762,7 +762,7 @@
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
-    import { getFirestore, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/lungs';
     const FIREBASE_COLLECTIONS = {
       patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
@@ -820,9 +820,24 @@
       primaryNav.classList.toggle('is-open', !isOpen);
     }
 
-    function buildPatientId() {
-      const suffix = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
-      return `TBL${suffix}`;
+    function buildPatientId(index = 0) {
+      return `TBL${String(index).padStart(4, '0')}`;
+    }
+
+    async function buildUniquePatientId() {
+      if (!db) {
+        return buildPatientId(0);
+      }
+
+      for (let index = 0; index <= 9999; index += 1) {
+        const candidate = buildPatientId(index);
+        const snapshot = await getDoc(doc(db, FIREBASE_COLLECTIONS.patients, candidate));
+        if (!snapshot.exists()) {
+          return candidate;
+        }
+      }
+
+      throw new Error('Could not create a patient ID right now.');
     }
 
     function parseDobInput(dayValue, monthValue, yearValue) {
@@ -879,9 +894,19 @@
       return true;
     }
 
-    const autoPatientId = buildPatientId();
+    let autoPatientId = buildPatientId(0);
     patientIdOutput.textContent = autoPatientId;
     sessionStorage.setItem('newPatientId', autoPatientId);
+
+    buildUniquePatientId()
+      .then((nextPatientId) => {
+        autoPatientId = nextPatientId;
+        patientIdOutput.textContent = autoPatientId;
+        sessionStorage.setItem('newPatientId', autoPatientId);
+      })
+      .catch((error) => {
+        console.warn(`Unable to prefill the next patient ID: ${error.message}`);
+      });
 
     const prefilledChildName = searchParams.get('childName') || '';
     const prefilledMobileNumber = searchParams.get('mobileNumber') || '';
@@ -910,6 +935,9 @@
       continueBtn.textContent = 'Saving...';
 
       try {
+        autoPatientId = await buildUniquePatientId();
+        patientIdOutput.textContent = autoPatientId;
+        sessionStorage.setItem('newPatientId', autoPatientId);
         const savedToCloudRecords = await savePatientToCloudRecords(autoPatientId);
         setSaveStatus(savedToCloudRecords
           ? `Patient details saved.`

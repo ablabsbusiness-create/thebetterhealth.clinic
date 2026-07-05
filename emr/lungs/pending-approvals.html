@@ -209,8 +209,8 @@
     function getPendingSearchText(item) { return [item.patientName, item.childName, item.phone, item.mobileNumber, item.email].join(' ').toLowerCase(); }
     function setStatus(message, tone = '') { statusNote.textContent = message; statusNote.className = `status-note${tone ? ` ${tone}` : ''}`; }
     function updateQueueCount(count = pendingItems.length) { queueCount.textContent = `${count} pending`; }
-    function buildPatientId() { const suffix = String(Math.floor(Math.random() * 10000)).padStart(4, '0'); return `TBL${suffix}`; }
-    async function buildUniquePatientId() { for (let attempts = 0; attempts < 20; attempts += 1) { const candidate = buildPatientId(); const snapshot = await getDoc(doc(db, FIREBASE_COLLECTIONS.patients, candidate)); if (!snapshot.exists()) return candidate; } throw new Error('Could not generate a unique patient ID right now.'); }
+    function buildPatientId(index = 0) { return `TBL${String(index).padStart(4, '0')}`; }
+    async function buildUniquePatientId() { for (let index = 0; index <= 9999; index += 1) { const candidate = buildPatientId(index); const snapshot = await getDoc(doc(db, FIREBASE_COLLECTIONS.patients, candidate)); if (!snapshot.exists()) return candidate; } throw new Error('Could not generate a unique patient ID right now.'); }
     function getActivePendingItem() { return pendingItems.find((item) => item.id === activePendingId) || null; }
     function escapeHtml(value) { return String(value || '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'", '&#39;'); }
     function getFilteredPendingItems() { const queryValue = queueSearch.value.trim().toLowerCase(); return queryValue ? pendingItems.filter((item) => getPendingSearchText(item).includes(queryValue)) : pendingItems; }
