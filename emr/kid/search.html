@@ -2060,6 +2060,7 @@
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
+    import { getClinicFirebaseConfig } from './lib/firebase-config.js';
     import { collection, doc, getDocs, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     import { getDownloadURL, getMetadata, getStorage, listAll, ref } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
@@ -2093,15 +2094,7 @@
     const SEARCH_CACHE_PATIENT_LIMIT = 2000;
 
     const firebaseEnv = import.meta.env || {};
-    const firebaseConfig = {
-      apiKey: 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
-      authDomain: 'clinci-dr-gunda.firebaseapp.com',
-      projectId: 'clinci-dr-gunda',
-      storageBucket: 'clinci-dr-gunda.firebasestorage.app',
-      messagingSenderId: '1059959825609',
-      appId: '1:1059959825609:web:8201599754706ac4661918',
-      measurementId: 'G-4V5JMVW45E'
-    };
+    const firebaseConfig = getClinicFirebaseConfig();
 
     const firebaseConfigured = Object.values(firebaseConfig).every(Boolean);
     const firebaseApp = firebaseConfigured ? initializeApp(firebaseConfig) : null;

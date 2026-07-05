@@ -20,29 +20,25 @@ npm run dev
 
 ## Vercel deployment
 
-Deploy this folder as its own Vercel project. It is configured to be served from `/emr/kid`, so the public URL is:
+The root site builds this EMR into `/emr/kid`, so the public URL is:
 
 ```bash
 https://www.thebetterhealth.clinic/emr/kid/
 ```
 
-Set the Vercel Root Directory to:
+Set these environment variables in the shared Vercel project settings before deploying:
 
-```bash
-emr/kid
-```
-
-Set these environment variables in the Vercel project settings before deploying:
-
-- `VITE_FIREBASE_API_KEY`
-- `VITE_FIREBASE_AUTH_DOMAIN`
-- `VITE_FIREBASE_PROJECT_ID`
-- `VITE_FIREBASE_STORAGE_BUCKET`
-- `VITE_FIREBASE_MESSAGING_SENDER_ID`
-- `VITE_FIREBASE_APP_ID`
-- `VITE_FIREBASE_MEASUREMENT_ID`
+- `VITE_KID_FIREBASE_API_KEY`
+- `VITE_KID_FIREBASE_AUTH_DOMAIN`
+- `VITE_KID_FIREBASE_PROJECT_ID`
+- `VITE_KID_FIREBASE_STORAGE_BUCKET`
+- `VITE_KID_FIREBASE_MESSAGING_SENDER_ID`
+- `VITE_KID_FIREBASE_APP_ID`
+- `VITE_KID_FIREBASE_MEASUREMENT_ID`
 - `CLINIC_ACCESS_PASSWORD`
 - `CLINIC_SESSION_SECRET`
+
+Use the Firebase web app values for the Kids EMR Firebase project here. Lungs uses the matching `VITE_LUNGS_FIREBASE_*` variables in the same Vercel project.
 
 `CLINIC_ACCESS_PASSWORD` is the actual clinic login password. `CLINIC_SESSION_SECRET` should be a long random secret used to sign the secure session cookie.
 

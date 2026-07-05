@@ -183,6 +183,7 @@
   </div>
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
+    import { getClinicFirebaseConfig } from './lib/firebase-config.js';
     import { addDoc, collection, getFirestore, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
     const FIREBASE_COLLECTIONS = {
@@ -202,7 +203,7 @@
     const dobMonthInput = document.getElementById('dob-month');
     const dobYearInput = document.getElementById('dob-year');
     const firebaseEnv = import.meta.env || {};
-    const firebaseConfig = { apiKey: 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo', authDomain: 'clinci-dr-gunda.firebaseapp.com', projectId: 'clinci-dr-gunda', storageBucket: 'clinci-dr-gunda.firebasestorage.app', messagingSenderId: '1059959825609', appId: '1:1059959825609:web:8201599754706ac4661918', measurementId: 'G-4V5JMVW45E' };
+    const firebaseConfig = getClinicFirebaseConfig();
     const firebaseConfigured = Object.values(firebaseConfig).every(Boolean);
     const db = firebaseConfigured ? getFirestore(initializeApp(firebaseConfig)) : null;
     function normalizePhone(value) {
