@@ -890,7 +890,7 @@
     import html2canvas from 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/+esm';
     import { jsPDF } from 'https://cdn.jsdelivr.net/npm/jspdf@3.0.3/+esm';
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
-    import { doc, getDoc, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { arrayUnion, doc, getDoc, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     import { getDownloadURL, getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/lungs';
     const FIREBASE_COLLECTIONS = {
@@ -1821,6 +1821,28 @@
       });
     }
 
+    function isMobileDownloadView() {
+      return window.matchMedia('(max-width: 768px)').matches;
+    }
+
+    function getDownloadButtonLabel() {
+      return isMobileDownloadView() ? 'Download PNG' : 'Download PDF';
+    }
+
+    function downloadBlob(blob, fileName) {
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = fileName;
+      link.rel = 'noopener';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
+    }
+
+    downloadPdfBtn.textContent = getDownloadButtonLabel();
+
     function buildPdfFromCanvas(canvas) {
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
       const pageWidth = pdf.internal.pageSize.getWidth();
@@ -1850,7 +1872,7 @@
       buildPreviewHtml();
       const sheetCanvas = await renderPrescriptionSheetCanvas();
       const pdf = buildPdfFromCanvas(sheetCanvas);
-      const previewBlob = await canvasToBlob(sheetCanvas, 'image/jpeg', 0.95);
+      const previewBlob = await canvasToBlob(sheetCanvas, 'image/png');
 
       return {
         pdf,
@@ -1883,6 +1905,7 @@
 
       const patientId = details.patientId || 'UNKNOWN';
       const storagePath = `${CLINIC_STORAGE_PREFIX}/prescriptions/${patientId}/${fileName}`;
+      const previewPath = `${CLINIC_STORAGE_PREFIX}/prescription-previews/${patientId}/${saveId}.png`;
       let persistedStoragePath = '';
       let previewImageURL = '';
       let previewImagePath = '';
@@ -1901,6 +1924,22 @@
         } catch (error) {
           warning = error.message;
           console.warn(`Prescription PDF upload skipped: ${error.message}`);
+        }
+
+        if (details.previewBlob) {
+          try {
+            const previewRef = ref(storage, previewPath);
+            await uploadBytes(previewRef, details.previewBlob, {
+              contentType: 'image/png',
+              contentDisposition: 'inline'
+            });
+            previewImageURL = await getDownloadURL(previewRef);
+            previewImagePath = previewPath;
+          } catch (error) {
+            const previewWarning = `Preview image upload skipped: ${error.message}`;
+            warning = warning ? `${warning} ${previewWarning}` : previewWarning;
+            console.warn(previewWarning);
+          }
         }
       }
 
@@ -1936,6 +1975,26 @@
       };
 
       await setDoc(doc(db, FIREBASE_COLLECTIONS.history, saveId), historyRecord, { merge: true });
+      await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId), {
+        patientId,
+        childName: historyRecord.childName,
+        patientName: historyRecord.patientName,
+        prescriptionHistory: arrayUnion({
+          id: saveId,
+          prescriptionSaveId: historyRecord.prescriptionSaveId,
+          patientId,
+          fileName,
+          storagePath: historyRecord.storagePath,
+          previewImagePath: historyRecord.previewImagePath,
+          previewImageURL: historyRecord.previewImageURL,
+          downloadURL: historyRecord.downloadURL,
+          source: historyRecord.source,
+          type: historyRecord.type,
+          createdAtIso: historyRecord.createdAtIso,
+          createdAtDisplay: historyRecord.createdAtDisplay
+        }),
+        updatedAt: serverTimestamp()
+      }, { merge: true });
       persistLocalPrescriptionRecord(historyRecord);
 
       return { ok: true, downloadURL, storagePath: persistedStoragePath, previewImageURL, previewImagePath, warning };
@@ -1980,6 +2039,7 @@
           saveId,
           fileName,
           pdfBlob,
+          previewBlob,
           ...saveResult
         };
         setPreviewStatus(saveResult.warning ? `Prescription saved. ${saveResult.warning}` : 'Prescription saved');
@@ -2028,17 +2088,22 @@
 
     downloadPdfBtn.addEventListener('click', async () => {
       downloadPdfBtn.disabled = true;
-      downloadPdfBtn.textContent = 'Preparing...';
+      downloadPdfBtn.textContent = isMobileDownloadView() ? 'Preparing PNG...' : 'Preparing...';
 
       try {
         const savedRecord = await ensurePrescriptionSaved();
-        savedRecord.pdf.save(savedRecord.fileName);
+        if (isMobileDownloadView() && savedRecord.previewBlob) {
+          const pngFileName = savedRecord.fileName.replace(/\.pdf$/i, '.png');
+          downloadBlob(savedRecord.previewBlob, pngFileName);
+        } else {
+          savedRecord.pdf.save(savedRecord.fileName);
+        }
         clearPrescriptionLocalData();
       } catch (error) {
         console.warn(`Unable to save prescription PDF: ${error.message}`);
       } finally {
         downloadPdfBtn.disabled = false;
-        downloadPdfBtn.textContent = 'Download PDF';
+        downloadPdfBtn.textContent = getDownloadButtonLabel();
       }
     });
 

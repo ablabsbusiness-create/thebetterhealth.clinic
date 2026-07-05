@@ -3226,7 +3226,7 @@
 
       const normalizedPatientId = getNormalizedPatientId(patient.patientId);
       const normalizedSearchPatientId = getNormalizedPatientId(rawSearchValue);
-      if (/^SX[A-Z0-9]+$/.test(normalizedSearchPatientId)) {
+      if (/^(?:TBL\d{4}|SX[A-Z0-9]+)$/.test(normalizedSearchPatientId)) {
         return normalizedPatientId === normalizedSearchPatientId;
       }
 
