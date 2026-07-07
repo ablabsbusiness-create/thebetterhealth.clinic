@@ -474,6 +474,10 @@
       white-space: nowrap;
     }
 
+    .mobile-vaccine-list {
+      display: none;
+    }
+
     .edit-grid {
       display: grid;
       grid-template-columns: 180px 180px minmax(220px, 1fr) auto;
@@ -1111,6 +1115,48 @@
       `;
     }
 
+    function mobileScheduleListHtml(rows) {
+      const milestones = getMilestones(rows);
+      return `
+        <div class="mobile-vaccine-list" aria-label="Vaccination list">
+          ${milestones.map((milestone) => {
+            const milestoneRows = rows.filter((row) => row.milestone === milestone);
+            return `
+              <section class="mobile-vaccine-group">
+                <div class="mobile-vaccine-group-head">
+                  <h3>${escapeHtml(milestone)}</h3>
+                  <span>${milestoneRows.length} vaccine${milestoneRows.length === 1 ? '' : 's'}</span>
+                </div>
+                <div class="mobile-vaccine-cards">
+                  ${milestoneRows.map((row) => {
+                    const statusClass = String(row.status || 'Pending').toLowerCase();
+                    const dateLabel = row.status === 'Given' ? `Given ${formatDate(row.givenDate)}` : `Due ${formatDate(row.dueDate)}`;
+                    return `
+                      <article class="mobile-vaccine-card status-${escapeHtml(statusClass)}">
+                        <div class="mobile-vaccine-card-main">
+                          <div>
+                            <strong>${escapeHtml(row.vaccine)}</strong>
+                            <span>${escapeHtml(getVaccineGroup(row.vaccine))}</span>
+                          </div>
+                          <span class="mobile-vaccine-status">${escapeHtml(row.status)}</span>
+                        </div>
+                        <div class="mobile-vaccine-meta">${escapeHtml(dateLabel)}</div>
+                        ${row.notes ? `<p class="mobile-vaccine-note">${escapeHtml(row.notes)}</p>` : ''}
+                        <div class="mobile-vaccine-actions">
+                          <button class="cell-action" type="button" data-edit-vaccine="${escapeHtml(row.key)}">${row.status === 'Given' ? 'Edit' : 'Mark Given'}</button>
+                          <button class="cell-action" type="button" data-history-vaccine="${escapeHtml(row.key)}">History</button>
+                        </div>
+                      </article>
+                    `;
+                  }).join('')}
+                </div>
+              </section>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
     function editFormHtml(row, mode = 'given') {
       if (!row) return '';
       const isDueMode = mode === 'due';
@@ -1278,6 +1324,7 @@
               </tbody>
             </table>
           </div>
+          ${mobileScheduleListHtml(rows)}
         </section>
       `;
     }

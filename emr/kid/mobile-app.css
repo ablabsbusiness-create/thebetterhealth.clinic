@@ -1693,6 +1693,292 @@
     border-radius: 12px !important;
   }
 
+  body:has(#tables-root) {
+    background: #f5f8f6 !important;
+  }
+
+  body:has(#tables-root) .page-shell {
+    padding: 12px 10px calc(96px + env(safe-area-inset-bottom)) !important;
+  }
+
+  body:has(#tables-root) .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  body:has(#tables-root) .summary-card {
+    min-height: 74px !important;
+    padding: 12px !important;
+    border-radius: 14px !important;
+    box-shadow: none !important;
+  }
+
+  body:has(#tables-root) .summary-card strong {
+    font-size: 18px !important;
+    line-height: 1.2 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  body:has(#tables-root) .status-note {
+    margin: 8px 0 !important;
+    padding: 10px 12px !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(20, 74, 43, 0.10) !important;
+    background: #ffffff !important;
+  }
+
+  body:has(#tables-root) .panel {
+    padding: 0 !important;
+    overflow: visible !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  body:has(#tables-root) .panel-head {
+    padding: 12px 2px 10px !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+    border: 0 !important;
+  }
+
+  body:has(#tables-root) .panel-head h2 {
+    font-size: 18px !important;
+  }
+
+  body:has(#tables-root) .chart-head-actions {
+    display: none !important;
+  }
+
+  body:has(#tables-root) [data-vaccination-table-wrap] {
+    display: none !important;
+  }
+
+  body:has(#tables-root) .mobile-vaccine-list {
+    display: grid !important;
+    gap: 12px !important;
+  }
+
+  body:has(#tables-root) .mobile-vaccine-group {
+    display: grid !important;
+    gap: 8px !important;
+  }
+
+  body:has(#tables-root) .mobile-vaccine-group-head {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    padding: 0 2px !important;
+  }
+
+  body:has(#tables-root) .mobile-vaccine-group-head h3 {
+    margin: 0 !important;
+    font-size: 15px !important;
+    line-height: 1.2 !important;
+  }
+
+  body:has(#tables-root) .mobile-vaccine-group-head span {
+    color: var(--mobile-muted) !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    white-space: nowrap !important;
+  }
+
+  body:has(#tables-root) .mobile-vaccine-cards {
+    display: grid !important;
+    gap: 8px !important;
+  }
+
+  body:has(#tables-root) .mobile-vaccine-card {
+    display: grid !important;
+    gap: 9px !important;
+    padding: 12px !important;
+    border-radius: 14px !important;
+    border: 1px solid rgba(20, 74, 43, 0.10) !important;
+    background: #ffffff !important;
+    box-shadow: 0 8px 22px rgba(16, 29, 22, 0.06) !important;
+  }
+
+  body:has(#tables-root) .mobile-vaccine-card.status-given {
+    border-color: rgba(22, 101, 52, 0.22) !important;
+    background: #f0fdf4 !important;
+  }
+
+  body:has(#tables-root) .mobile-vaccine-card.status-due {
+    border-color: rgba(37, 99, 235, 0.24) !important;
+    background: #eff6ff !important;
+  }
+
+  body:has(#tables-root) .mobile-vaccine-card.status-missed {
+    border-color: rgba(185, 28, 28, 0.24) !important;
+    background: #fef2f2 !important;
+  }
+
+  body:has(#tables-root) .mobile-vaccine-card-main {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 10px !important;
+    align-items: start !important;
+  }
+
+  body:has(#tables-root) .mobile-vaccine-card-main strong {
+    display: block !important;
+    font-size: 15px !important;
+    line-height: 1.2 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  body:has(#tables-root) .mobile-vaccine-card-main span:not(.mobile-vaccine-status) {
+    display: block !important;
+    margin-top: 3px !important;
+    color: var(--mobile-muted) !important;
+    font-size: 12px !important;
+    line-height: 1.25 !important;
+  }
+
+  body:has(#tables-root) .mobile-vaccine-status {
+    min-height: 28px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 9px !important;
+    border-radius: 999px !important;
+    background: rgba(255, 255, 255, 0.72) !important;
+    color: var(--mobile-text) !important;
+    font-size: 11px !important;
+    font-weight: 900 !important;
+    white-space: nowrap !important;
+  }
+
+  body:has(#tables-root) .mobile-vaccine-meta,
+  body:has(#tables-root) .mobile-vaccine-note {
+    color: var(--mobile-muted) !important;
+    font-size: 13px !important;
+    line-height: 1.35 !important;
+  }
+
+  body:has(#tables-root) .mobile-vaccine-note {
+    margin: 0 !important;
+  }
+
+  body:has(#tables-root) .mobile-vaccine-actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  body:has(#tables-root) .mobile-vaccine-actions .cell-action {
+    width: 100% !important;
+    min-height: 42px !important;
+    border-radius: 12px !important;
+    font-size: 13px !important;
+    background: #ffffff !important;
+  }
+
+  body:has(#tables-root) .action-panel {
+    margin: 0 0 10px !important;
+    padding: 12px !important;
+    border-radius: 14px !important;
+  }
+
+  body:has(#tables-root) .vaccine-modal {
+    align-items: end !important;
+    padding: 8px !important;
+  }
+
+  body:has(#tables-root) .vaccine-modal-dialog {
+    width: 100% !important;
+    max-height: calc(100dvh - 18px) !important;
+    border-radius: 18px 18px 12px 12px !important;
+    overflow: hidden !important;
+  }
+
+  body:has(#tables-root) .vaccine-modal-head {
+    min-height: 58px !important;
+    padding: 0 12px !important;
+  }
+
+  body:has(#tables-root) .vaccine-tabs {
+    flex: 1 1 auto !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+  }
+
+  body:has(#tables-root) .vaccine-tab {
+    min-height: 42px !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(20, 74, 43, 0.10) !important;
+  }
+
+  body:has(#tables-root) .vaccine-tab.is-active {
+    background: #eff6ff !important;
+    border-color: rgba(37, 99, 235, 0.34) !important;
+  }
+
+  body:has(#tables-root) .vaccine-modal-close {
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+  }
+
+  body:has(#tables-root) .vaccine-modal-body {
+    overflow-y: auto !important;
+  }
+
+  body:has(#tables-root) .vaccine-given-layout {
+    min-height: 0 !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  body:has(#tables-root) .vaccine-given-main,
+  body:has(#tables-root) .vaccine-brand-panel {
+    padding: 14px !important;
+  }
+
+  body:has(#tables-root) .vaccine-date-controls {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  body:has(#tables-root) .calendar-day {
+    width: 34px !important;
+    height: 34px !important;
+  }
+
+  body:has(#tables-root) .vaccine-brand-panel {
+    max-height: none !important;
+    border-left: 0 !important;
+    border-top: 1px solid rgba(20, 74, 43, 0.10) !important;
+  }
+
+  body:has(#tables-root) .brand-options {
+    gap: 8px !important;
+  }
+
+  body:has(#tables-root) .brand-option {
+    min-height: 42px !important;
+    padding: 8px 10px !important;
+    border-radius: 12px !important;
+    background: #f8fafc !important;
+  }
+
+  body:has(#tables-root) .vaccine-modal-foot {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    padding: 10px !important;
+  }
+
+  body:has(#tables-root) .vaccine-modal-foot .btn-primary,
+  body:has(#tables-root) .vaccine-modal-foot .btn-ghost {
+    width: 100% !important;
+    min-height: 46px !important;
+  }
+
   body:has(.measurement-table) .measurement-table-wrap {
     border-radius: 14px !important;
     overflow: hidden !important;
