@@ -682,7 +682,12 @@
     }
 
     .worklist-list {
-      display: none;
+      min-height: 0;
+      overflow: auto;
+      display: grid;
+      align-content: start;
+      gap: 0;
+      padding-right: 0;
     }
 
     .worklist-empty {
