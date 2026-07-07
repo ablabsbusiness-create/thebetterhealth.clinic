@@ -478,6 +478,17 @@
       display: none;
     }
 
+    .mobile-vaccine-toolbar {
+      display: none;
+    }
+
+    .mobile-vaccine-group-head {
+      font: inherit;
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+
     .edit-grid {
       display: grid;
       grid-template-columns: 180px 180px minmax(220px, 1fr) auto;
@@ -524,7 +535,7 @@
     .vaccine-modal {
       position: fixed;
       inset: 0;
-      z-index: 50;
+      z-index: 200;
       display: none;
       align-items: center;
       justify-content: center;
@@ -869,6 +880,8 @@
     let editingKey = '';
     let historyKey = '';
     let modalMode = 'given';
+    let vaccineFilter = 'all';
+    let expandedMilestones = null;
 
     const routineVaccineSchedule = [
       { key: 'birth-bcg', milestone: 'Birth', vaccine: 'BCG', months: 0, days: 0 },
@@ -1115,44 +1128,100 @@
       `;
     }
 
+    const STATUS_PRIORITY = { Missed: 0, Due: 1, Pending: 2, Given: 3 };
+
+    function matchesVaccineFilter(row, filter) {
+      if (filter === 'action') return row.status === 'Due' || row.status === 'Pending';
+      if (filter === 'given') return row.status === 'Given';
+      return true;
+    }
+
+    function getMilestoneSummary(milestoneRows) {
+      const missed = milestoneRows.filter((row) => row.status === 'Missed').length;
+      const due = milestoneRows.filter((row) => row.status === 'Due').length;
+      const given = milestoneRows.filter((row) => row.status === 'Given').length;
+      if (missed) return { tone: 'missed', text: `${missed} missed${due ? ` · ${due} due` : ''}` };
+      if (due) return { tone: 'due', text: `${due} due` };
+      if (given === milestoneRows.length) return { tone: 'given', text: 'All given' };
+      return { tone: 'pending', text: `${milestoneRows.length - given} upcoming` };
+    }
+
+    function initExpandedMilestones(rows, milestones) {
+      const needsAction = milestones.filter((milestone) =>
+        rows.some((row) => row.milestone === milestone && (row.status === 'Due' || row.status === 'Missed'))
+      );
+      const expanded = new Set(needsAction);
+      if (!expanded.size) {
+        const current = getCurrentMilestone(rows, milestones);
+        if (current) expanded.add(current);
+      }
+      return expanded;
+    }
+
+    function mobileVaccineCardHtml(row) {
+      const statusClass = String(row.status || 'Pending').toLowerCase();
+      const dateLabel = row.status === 'Given' ? `Given ${formatDate(row.givenDate)}` : `Due ${formatDate(row.dueDate)}`;
+      return `
+        <article class="mobile-vaccine-card status-${escapeHtml(statusClass)}">
+          <div class="mobile-vaccine-card-main">
+            <div>
+              <strong>${escapeHtml(row.vaccine)}</strong>
+              <span>${escapeHtml(getVaccineGroup(row.vaccine))} · ${escapeHtml(dateLabel)}</span>
+            </div>
+            <span class="mobile-vaccine-status">${escapeHtml(row.status)}</span>
+          </div>
+          ${row.notes ? `<p class="mobile-vaccine-note">${escapeHtml(row.notes)}</p>` : ''}
+          <div class="mobile-vaccine-actions">
+            <button class="cell-action" type="button" data-edit-vaccine="${escapeHtml(row.key)}">${row.status === 'Given' ? 'Edit' : 'Mark Given'}</button>
+            <button class="cell-action-link" type="button" data-history-vaccine="${escapeHtml(row.key)}">History</button>
+          </div>
+        </article>
+      `;
+    }
+
     function mobileScheduleListHtml(rows) {
       const milestones = getMilestones(rows);
+      if (expandedMilestones === null) {
+        expandedMilestones = initExpandedMilestones(rows, milestones);
+      }
+
+      const filters = [
+        { id: 'all', label: 'All' },
+        { id: 'action', label: 'Upcoming' },
+        { id: 'given', label: 'Completed' }
+      ];
+
+      const groupsHtml = milestones.map((milestone) => {
+        const allMilestoneRows = rows.filter((row) => row.milestone === milestone);
+        const visibleRows = allMilestoneRows
+          .filter((row) => matchesVaccineFilter(row, vaccineFilter))
+          .sort((left, right) => STATUS_PRIORITY[left.status] - STATUS_PRIORITY[right.status]);
+        if (!visibleRows.length) return '';
+
+        const summary = getMilestoneSummary(allMilestoneRows);
+        const isExpanded = expandedMilestones.has(milestone);
+        return `
+          <section class="mobile-vaccine-group ${isExpanded ? 'is-expanded' : ''}">
+            <button class="mobile-vaccine-group-head" type="button" data-milestone-toggle="${escapeHtml(milestone)}" aria-expanded="${isExpanded}">
+              <span class="mobile-vaccine-group-title">
+                <h3>${escapeHtml(milestone)}</h3>
+                <span class="mobile-vaccine-group-summary tone-${summary.tone}">${escapeHtml(summary.text)}</span>
+              </span>
+              <span class="mobile-vaccine-chevron" aria-hidden="true">&#8250;</span>
+            </button>
+            ${isExpanded ? `<div class="mobile-vaccine-cards">${visibleRows.map(mobileVaccineCardHtml).join('')}</div>` : ''}
+          </section>
+        `;
+      }).join('');
+
       return `
+        <div class="mobile-vaccine-toolbar" role="group" aria-label="Filter vaccines">
+          ${filters.map((filter) => `
+            <button class="mobile-filter-chip ${vaccineFilter === filter.id ? 'is-active' : ''}" type="button" data-vaccine-filter="${filter.id}">${escapeHtml(filter.label)}</button>
+          `).join('')}
+        </div>
         <div class="mobile-vaccine-list" aria-label="Vaccination list">
-          ${milestones.map((milestone) => {
-            const milestoneRows = rows.filter((row) => row.milestone === milestone);
-            return `
-              <section class="mobile-vaccine-group">
-                <div class="mobile-vaccine-group-head">
-                  <h3>${escapeHtml(milestone)}</h3>
-                  <span>${milestoneRows.length} vaccine${milestoneRows.length === 1 ? '' : 's'}</span>
-                </div>
-                <div class="mobile-vaccine-cards">
-                  ${milestoneRows.map((row) => {
-                    const statusClass = String(row.status || 'Pending').toLowerCase();
-                    const dateLabel = row.status === 'Given' ? `Given ${formatDate(row.givenDate)}` : `Due ${formatDate(row.dueDate)}`;
-                    return `
-                      <article class="mobile-vaccine-card status-${escapeHtml(statusClass)}">
-                        <div class="mobile-vaccine-card-main">
-                          <div>
-                            <strong>${escapeHtml(row.vaccine)}</strong>
-                            <span>${escapeHtml(getVaccineGroup(row.vaccine))}</span>
-                          </div>
-                          <span class="mobile-vaccine-status">${escapeHtml(row.status)}</span>
-                        </div>
-                        <div class="mobile-vaccine-meta">${escapeHtml(dateLabel)}</div>
-                        ${row.notes ? `<p class="mobile-vaccine-note">${escapeHtml(row.notes)}</p>` : ''}
-                        <div class="mobile-vaccine-actions">
-                          <button class="cell-action" type="button" data-edit-vaccine="${escapeHtml(row.key)}">${row.status === 'Given' ? 'Edit' : 'Mark Given'}</button>
-                          <button class="cell-action" type="button" data-history-vaccine="${escapeHtml(row.key)}">History</button>
-                        </div>
-                      </article>
-                    `;
-                  }).join('')}
-                </div>
-              </section>
-            `;
-          }).join('')}
+          ${groupsHtml || '<div class="empty-state">Nothing matches this filter.</div>'}
         </div>
       `;
     }
@@ -1184,8 +1253,6 @@
                   return `<option value="${month}" ${month === selected.getMonth() ? 'selected' : ''}>${name}</option>`;
                 }).join('')}
               </select>
-              <button class="is-active" type="button">Month</button>
-              <button type="button">Year</button>
             </div>
             <div class="calendar-grid">
               ${['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => `<div class="calendar-day-name">${day}</div>`).join('')}
@@ -1338,7 +1405,6 @@
 
       const rows = buildRows(currentPatient);
       updateSummary(rows);
-      document.title = `${getPatientName(currentPatient)} Vaccination`;
       if (backToProfileLink) {
         backToProfileLink.href = `/emr/kid/search?patientId=${encodeURIComponent(currentPatient.patientId || '')}`;
       }
@@ -1376,6 +1442,8 @@
       }
       editingKey = '';
       historyKey = '';
+      vaccineFilter = 'all';
+      expandedMilestones = null;
       render();
     }
 
@@ -1471,6 +1539,24 @@
       const editKey = target.getAttribute('data-edit-vaccine');
       const rowHistoryKey = target.getAttribute('data-history-vaccine');
       const scrollDirection = target.getAttribute('data-table-scroll');
+      const filterChoice = target.getAttribute('data-vaccine-filter');
+      const milestoneToggle = target.getAttribute('data-milestone-toggle');
+
+      if (filterChoice) {
+        vaccineFilter = filterChoice;
+        render();
+        return;
+      }
+
+      if (milestoneToggle) {
+        if (expandedMilestones.has(milestoneToggle)) {
+          expandedMilestones.delete(milestoneToggle);
+        } else {
+          expandedMilestones.add(milestoneToggle);
+        }
+        render();
+        return;
+      }
 
       if (scrollDirection) {
         const tableWrap = tablesRoot.querySelector('[data-vaccination-table-wrap]');
