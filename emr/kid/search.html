@@ -4383,6 +4383,7 @@
       const phone = selectedPatient ? formatPhoneDisplay(selectedPatient.phone) : '';
       const gender = selectedPatient ? formatMissing(selectedPatient.gender, 'Gender not saved') : '';
       const dob = selectedPatient ? formatDateDisplay(selectedPatient.dob) : '';
+      const worklistScrollTop = resultsPanel.querySelector('.worklist-list')?.scrollTop || 0;
 
       resultsPanel.innerHTML = `
         <div class="results-dashboard">
@@ -4463,6 +4464,10 @@
       `;
 
       attachPrescriptionPreviewRendering();
+      const worklistListEl = resultsPanel.querySelector('.worklist-list');
+      if (worklistListEl) {
+        worklistListEl.scrollTop = worklistScrollTop;
+      }
       if (selectedPatient) {
         ensureStoragePrescriptionsForPatient(selectedPatient);
       }
