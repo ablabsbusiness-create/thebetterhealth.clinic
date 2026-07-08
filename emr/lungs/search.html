@@ -2127,9 +2127,9 @@
   </div>
 
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
-    import { collection, doc, getDocs, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
-    import { getDownloadURL, getMetadata, getStorage, listAll, ref } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
+    import { collection, doc, getDocs, limit, orderBy, query, serverTimestamp, setDoc, where } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { getDownloadURL, getMetadata, listAll, ref } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
+    import { db, storage } from './lib/firebase-init.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/lungs';
     const FIREBASE_COLLECTIONS = {
       patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
@@ -2167,26 +2167,16 @@
     const LOCAL_SEARCH_CACHE_KEY = clinicStorageKey('patientSearchCache');
     const SEARCH_CACHE_TTL_MS = 10 * 60 * 1000;
     const SEARCH_CACHE_PATIENT_LIMIT = 250;
+    const HISTORY_FETCH_LIMIT = 1500;
+    const PATIENTS_SYNC_CACHE_KEY = clinicStorageKey('patientsSyncCache');
+    const PATIENTS_SYNC_SAFETY_BUFFER_MS = 3 * 60 * 1000;
 
-    const firebaseEnv = import.meta.env || {};
-    const firebaseConfig = {
-      apiKey: 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
-      authDomain: 'clinci-dr-gunda.firebaseapp.com',
-      projectId: 'clinci-dr-gunda',
-      storageBucket: 'clinci-dr-gunda.firebasestorage.app',
-      messagingSenderId: '1059959825609',
-      appId: '1:1059959825609:web:8201599754706ac4661918',
-      measurementId: 'G-4V5JMVW45E'
-    };
-
-    const firebaseConfigured = Object.values(firebaseConfig).every(Boolean);
-    const firebaseApp = firebaseConfigured ? initializeApp(firebaseConfig) : null;
-    const db = firebaseApp ? getFirestore(firebaseApp) : null;
-    const storage = firebaseApp ? getStorage(firebaseApp) : null;
     let allPatients = [];
     let allHistory = [];
     const storagePrescriptionPatientIdsLoaded = new Set();
     const storagePrescriptionPatientLoads = new Map();
+    const fullHistoryPatientIdsLoaded = new Set();
+    const fullHistoryPatientLoads = new Map();
     const prescriptionDownloadUrlLoads = new Map();
     const historyDateFilters = {};
     const historyShowAll = {};
@@ -2508,10 +2498,10 @@
       }
     }
 
-    async function getDocsWithLegacyFallback(collectionPath, legacyCollectionPath) {
+    async function getDocsWithLegacyFallback(collectionPath, legacyCollectionPath, queryConstraints = []) {
       try {
         return {
-          snapshot: await getDocs(collection(db, collectionPath)),
+          snapshot: await getDocs(query(collection(db, collectionPath), ...queryConstraints)),
           usedLegacy: false
         };
       } catch (error) {
@@ -2521,10 +2511,68 @@
 
         console.warn(`Unable to load ${collectionPath}; falling back to ${legacyCollectionPath}: ${error.message}`);
         return {
-          snapshot: await getDocs(collection(db, legacyCollectionPath)),
+          snapshot: await getDocs(query(collection(db, legacyCollectionPath), ...queryConstraints)),
           usedLegacy: true
         };
       }
+    }
+
+    function getPatientsSyncCache() {
+      const cache = readLocalJson(PATIENTS_SYNC_CACHE_KEY, null);
+      if (!cache || typeof cache !== 'object' || !cache.lastSyncedAt || !cache.patientsById || typeof cache.patientsById !== 'object') {
+        return null;
+      }
+      return cache;
+    }
+
+    function savePatientsSyncCache(patientsById, lastSyncedAt) {
+      try {
+        localStorage.setItem(PATIENTS_SYNC_CACHE_KEY, JSON.stringify({ lastSyncedAt, patientsById }));
+      } catch (error) {
+        localStorage.removeItem(PATIENTS_SYNC_CACHE_KEY);
+        console.warn(`Unable to keep patients sync cache: ${error.message}`);
+      }
+    }
+
+    async function loadPatientRecordsWithDeltaSync() {
+      const syncCache = getPatientsSyncCache();
+
+      if (syncCache) {
+        try {
+          const sinceDate = new Date(new Date(syncCache.lastSyncedAt).getTime() - PATIENTS_SYNC_SAFETY_BUFFER_MS);
+          const deltaSnapshot = await getDocs(query(collection(db, FIREBASE_COLLECTIONS.patients), where('updatedAt', '>', sinceDate)));
+          const patientsById = { ...syncCache.patientsById };
+          deltaSnapshot.docs.forEach((docSnapshot) => {
+            const record = { id: docSnapshot.id, ...docSnapshot.data() };
+            const key = getNormalizedPatientId(record.patientId || record.id);
+            if (key) {
+              patientsById[key] = record;
+            }
+          });
+          savePatientsSyncCache(patientsById, new Date().toISOString());
+          return { patientRecords: Object.values(patientsById), usedLegacyPatients: false };
+        } catch (error) {
+          console.warn(`Patients delta sync failed, falling back to full fetch: ${error.message}`);
+        }
+      }
+
+      const { snapshot, usedLegacy: usedLegacyPatients } = await getDocsWithLegacyFallback(FIREBASE_COLLECTIONS.patients, 'patients');
+      const patientRecords = snapshot.docs
+        .map((docSnapshot) => ({ id: docSnapshot.id, ...docSnapshot.data() }))
+        .filter((patient) => !usedLegacyPatients || recordBelongsToCurrentClinic(patient));
+
+      if (!usedLegacyPatients) {
+        const patientsById = {};
+        patientRecords.forEach((record) => {
+          const key = getNormalizedPatientId(record.patientId || record.id);
+          if (key) {
+            patientsById[key] = record;
+          }
+        });
+        savePatientsSyncCache(patientsById, new Date().toISOString());
+      }
+
+      return { patientRecords, usedLegacyPatients };
     }
 
     function recordBelongsToCurrentClinic(record) {
@@ -2923,35 +2971,6 @@
       }
     }
 
-    async function getStoragePrescriptionEntriesForPatients(patients) {
-      if (!storage || !Array.isArray(patients) || patients.length === 0) {
-        return [];
-      }
-
-      const seenIds = new Set();
-      const uniquePatients = patients.filter((patient) => {
-        const patientId = getNormalizedPatientId(patient?.patientId || patient?.id || '');
-        if (!patientId || seenIds.has(patientId)) {
-          return false;
-        }
-        seenIds.add(patientId);
-        return true;
-      });
-
-      const chunks = [];
-      for (let index = 0; index < uniquePatients.length; index += 8) {
-        chunks.push(uniquePatients.slice(index, index + 8));
-      }
-
-      const entries = [];
-      for (const chunk of chunks) {
-        const chunkEntries = await Promise.all(chunk.map((patient) => getStoragePrescriptionEntriesForPatient(patient)));
-        entries.push(...chunkEntries.flat());
-      }
-
-      return entries;
-    }
-
     function getHistoryEntryKey(entry, fallbackPrefix = 'history', index = 0) {
       return entry?.prescriptionSaveId
         || entry?.id
@@ -3008,6 +3027,45 @@
         });
 
       storagePrescriptionPatientLoads.set(patientId, loadPromise);
+    }
+
+    async function getHistoryEntriesForPatientId(patientId) {
+      if (!db || !patientId) {
+        return [];
+      }
+
+      try {
+        const historyQuery = query(collection(db, FIREBASE_COLLECTIONS.history), where('patientId', '==', patientId));
+        const snapshot = await getDocs(historyQuery);
+        return snapshot.docs
+          .map((docSnapshot) => normalizePrescriptionEntry({ id: docSnapshot.id, ...docSnapshot.data() }))
+          .filter(Boolean);
+      } catch (error) {
+        console.warn(`Unable to load full history for ${patientId}: ${error.message}`);
+        return [];
+      }
+    }
+
+    function ensureFullHistoryForPatient(patient) {
+      const patientId = getNormalizedPatientId(patient?.patientId || patient?.id || '');
+      if (!patientId || fullHistoryPatientIdsLoaded.has(patientId) || fullHistoryPatientLoads.has(patientId)) {
+        return;
+      }
+
+      const loadPromise = getHistoryEntriesForPatientId(patientId)
+        .then((entries) => {
+          fullHistoryPatientIdsLoaded.add(patientId);
+          fullHistoryPatientLoads.delete(patientId);
+          if (mergeHistoryEntries(entries)) {
+            filterPatients();
+          }
+        })
+        .catch((error) => {
+          fullHistoryPatientLoads.delete(patientId);
+          console.warn(`Unable to load full history for selected patient ${patientId}: ${error.message}`);
+        });
+
+      fullHistoryPatientLoads.set(patientId, loadPromise);
     }
 
     function renderPrescriptionPreviewImage(imageElement) {
@@ -3991,7 +4049,10 @@
       attachPrescriptionPreviewRendering();
       patients
         .filter((patient) => selectedPatientId === formatMissing(patient.patientId, 'ID not saved'))
-        .forEach((patient) => ensureStoragePrescriptionsForPatient(patient));
+        .forEach((patient) => {
+          ensureStoragePrescriptionsForPatient(patient);
+          ensureFullHistoryForPatient(patient);
+        });
     }
 
     function renderDoctorWorklist(patients, searchValue = '') {
@@ -4103,6 +4164,7 @@
       attachPrescriptionPreviewRendering();
       if (selectedPatient) {
         ensureStoragePrescriptionsForPatient(selectedPatient);
+        ensureFullHistoryForPatient(selectedPatient);
       }
     }
 
@@ -4444,19 +4506,15 @@
 
       try {
         const [
-          { snapshot, usedLegacy: usedLegacyPatients },
+          { patientRecords, usedLegacyPatients },
           { snapshot: historySnapshot, usedLegacy: usedLegacyHistory }
         ] = await Promise.all([
-          getDocsWithLegacyFallback(FIREBASE_COLLECTIONS.patients, 'patients'),
-          getDocsWithLegacyFallback(FIREBASE_COLLECTIONS.history, 'history').catch((error) => {
+          loadPatientRecordsWithDeltaSync(),
+          getDocsWithLegacyFallback(FIREBASE_COLLECTIONS.history, 'history', [orderBy('createdAtIso', 'desc'), limit(HISTORY_FETCH_LIMIT)]).catch((error) => {
             console.warn(`Unable to load history records: ${error.message}`);
             return { snapshot: { docs: [] }, usedLegacy: false };
           })
         ]);
-        const patientRecords = snapshot.docs.map((docSnapshot) => ({
-          id: docSnapshot.id,
-          ...docSnapshot.data()
-        })).filter((patient) => !usedLegacyPatients || recordBelongsToCurrentClinic(patient));
         const remoteHistory = historySnapshot.docs
           .map((docSnapshot) => normalizePrescriptionEntry({
             id: docSnapshot.id,
@@ -4464,7 +4522,7 @@
           }))
           .filter((entry) => !usedLegacyHistory || recordBelongsToCurrentClinic(entry))
           .filter(Boolean);
-        if (snapshot.empty && remoteHistory.length === 0) {
+        if (patientRecords.length === 0 && remoteHistory.length === 0) {
           clearLocalPrescriptionEntries();
         }
 

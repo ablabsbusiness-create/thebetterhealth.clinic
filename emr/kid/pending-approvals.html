@@ -180,8 +180,8 @@
     </div>
   </div>
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
-    import { collection, doc, getDocs, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { collection, doc, getDocs, query, serverTimestamp, setDoc, where, writeBatch } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { db } from './lib/firebase-init.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
     const FIREBASE_COLLECTIONS = {
       patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
@@ -199,9 +199,6 @@
     const statusNote = document.getElementById('status-note');
     const approveBtn = document.getElementById('approve-btn');
     const rejectBtn = document.getElementById('reject-btn');
-    const firebaseEnv = import.meta.env || {};
-    const firebaseConfig = { apiKey: 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo', authDomain: 'clinci-dr-gunda.firebaseapp.com', projectId: 'clinci-dr-gunda', storageBucket: 'clinci-dr-gunda.firebasestorage.app', messagingSenderId: '1059959825609', appId: '1:1059959825609:web:8201599754706ac4661918', measurementId: 'G-4V5JMVW45E' };
-    const db = getFirestore(initializeApp(firebaseConfig));
     let pendingItems = [];
     let activePendingId = '';
     function parseDobInput(dayValue, monthValue, yearValue) { const day = Number.parseInt(dayValue.trim(), 10); const month = Number.parseInt(monthValue.trim(), 10); const year = Number.parseInt(yearValue.trim(), 10); if (!day || !month || !yearValue.trim().match(/^\d{4}$/)) return ''; const parsed = new Date(year, month - 1, day); if (Number.isNaN(parsed.getTime()) || parsed.getFullYear() !== year || parsed.getMonth() !== month - 1 || parsed.getDate() !== day) return ''; return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`; }
@@ -258,7 +255,7 @@
     async function loadPendingPatients() {
       setStatus('Loading pending intake submissions...');
       const pendingSnapshotPromise = getDocs(collection(db, FIREBASE_COLLECTIONS.pendingPatients)).catch(() => ({ docs: [] }));
-      const patientsSnapshotPromise = getDocs(collection(db, FIREBASE_COLLECTIONS.patients)).catch(() => ({ docs: [] }));
+      const patientsSnapshotPromise = getDocs(query(collection(db, FIREBASE_COLLECTIONS.patients), where('status', '==', 'pending'))).catch(() => ({ docs: [] }));
       const [pendingSnapshot, patientsSnapshot] = await Promise.all([pendingSnapshotPromise, patientsSnapshotPromise]);
       const directPendingItems = pendingSnapshot.docs.map((docSnapshot) => ({
         id: docSnapshot.id,
@@ -315,12 +312,14 @@
           patientId,
           approvedPatientId: patientId
         };
-        await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId), {
+        const approveBatch = writeBatch(db);
+        approveBatch.set(doc(db, FIREBASE_COLLECTIONS.patients, patientId), {
           ...patientRecord,
-          ...(activeItem.sourceCollection === 'patients' ? { updatedAt: serverTimestamp() } : { createdAt: serverTimestamp() })
+          updatedAt: serverTimestamp(),
+          ...(activeItem.sourceCollection === 'patients' ? {} : { createdAt: serverTimestamp() })
         }, { merge: true });
         if (activeItem.sourceCollection === 'pendingPatients') {
-          await setDoc(doc(db, FIREBASE_COLLECTIONS.pendingPatients, activeItem.id), {
+          approveBatch.set(doc(db, FIREBASE_COLLECTIONS.pendingPatients, activeItem.id), {
             childName: patientRecord.childName,
             parentName: patientRecord.parentName,
             gender: patientRecord.gender,
@@ -337,6 +336,7 @@
             approvedPatientId: patientId
           }, { merge: true });
         }
+        await approveBatch.commit();
         const vitalsUrl = `/emr/kid/prescription-growth-chart-dashboard?patientId=${encodeURIComponent(patientId)}`;
         window.location.href = vitalsUrl;
         return;
@@ -353,7 +353,8 @@
           reviewedAt: serverTimestamp(),
           decision: 'rejected',
           status: 'rejected',
-          notes: reviewForm.elements.notes.value.trim()
+          notes: reviewForm.elements.notes.value.trim(),
+          updatedAt: serverTimestamp()
         };
         await setDoc(doc(db, activeItem.sourceCollection === 'patients' ? FIREBASE_COLLECTIONS.patients : FIREBASE_COLLECTIONS.pendingPatients, activeItem.id), rejectPayload, { merge: true });
         activePendingId = '';

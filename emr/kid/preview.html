@@ -961,9 +961,9 @@
   <script type="module">
     import html2canvas from 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/+esm';
     import { jsPDF } from 'https://cdn.jsdelivr.net/npm/jspdf@3.0.3/+esm';
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
-    import { arrayUnion, collection, doc, getDoc, getDocs, getFirestore, query, serverTimestamp, setDoc, where } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
-    import { getDownloadURL, getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
+    import { arrayUnion, collection, doc, getDoc, getDocs, query, serverTimestamp, where, writeBatch } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { getDownloadURL, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
+    import { db, storage } from './lib/firebase-init.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
     const FIREBASE_COLLECTIONS = {
       patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
@@ -988,6 +988,8 @@
     const PRINT_HEADER_MODE_STORAGE_KEY = clinicStorageKey('previewPrintWithHeader');
     const PRINT_HEADER_GAP_STORAGE_KEY = clinicStorageKey('previewPrintHeaderGapCm');
     const PRESCRIPTION_BRANDING_STORAGE_KEY = clinicStorageKey('prescriptionBrandingSettings');
+    const PRESCRIPTION_BRANDING_CACHED_AT_KEY = clinicStorageKey('prescriptionBrandingCachedAt');
+    const PRESCRIPTION_BRANDING_TTL_MS = 24 * 60 * 60 * 1000;
     const MEDICINE_DETAIL_STORAGE_KEY = clinicStorageKey('prescriptionMedicineDetails');
     const PRESCRIPTION_BRANDING_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'prescriptionBranding'];
     const CLINIC_SETTINGS_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'settings'];
@@ -1014,20 +1016,6 @@
       },
       signatureDataUrl: ''
     };
-    const firebaseEnv = import.meta.env || {};
-    const firebaseConfig = {
-      apiKey: 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
-      authDomain: 'clinci-dr-gunda.firebaseapp.com',
-      projectId: 'clinci-dr-gunda',
-      storageBucket: 'clinci-dr-gunda.firebasestorage.app',
-      messagingSenderId: '1059959825609',
-      appId: '1:1059959825609:web:8201599754706ac4661918',
-      measurementId: 'G-4V5JMVW45E'
-    };
-    const firebaseConfigured = Object.values(firebaseConfig).every(Boolean);
-    const firebaseApp = firebaseConfigured ? initializeApp(firebaseConfig) : null;
-    const db = firebaseApp ? getFirestore(firebaseApp) : null;
-    const storage = firebaseApp ? getStorage(firebaseApp) : null;
     const statusChip = document.querySelector('.status-chip');
     let prescriptionSavePromise = null;
     let savedPrescriptionRecord = null;
@@ -1203,6 +1191,11 @@
         return cachedBranding;
       }
 
+      const cachedAt = Number(localStorage.getItem(PRESCRIPTION_BRANDING_CACHED_AT_KEY) || 0);
+      if (cachedAt && Date.now() - cachedAt < PRESCRIPTION_BRANDING_TTL_MS) {
+        return cachedBranding;
+      }
+
       try {
         let snapshot = await getDoc(doc(db, ...CLINIC_SETTINGS_DOC_PATH));
         if (!snapshot.exists()) {
@@ -1211,6 +1204,7 @@
         if (!snapshot.exists()) {
           return cachedBranding;
         }
+        localStorage.setItem(PRESCRIPTION_BRANDING_CACHED_AT_KEY, String(Date.now()));
         return cachePrescriptionBranding({
           ...snapshot.data(),
           signatureDataUrl: snapshot.data().signatureDataUrl || cachedBranding.signatureDataUrl || ''
@@ -2551,10 +2545,30 @@
         createdAtDisplay: new Date().toLocaleString('en-IN')
       };
 
-      await setDoc(doc(db, FIREBASE_COLLECTIONS.history, saveId), historyRecord, { merge: true });
-      await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId), {
+      const hasVitalsForSummary = [historyRecord.weight, historyRecord.height, historyRecord.head, historyRecord.spo2, historyRecord.pulse, historyRecord.systolic, historyRecord.diastolic, historyRecord.temp]
+        .some((value) => String(value || '').trim());
+      const lastMeasurementRecord = {
+        createdAtIso: historyRecord.createdAtIso,
+        createdAtDisplay: historyRecord.createdAtDisplay,
+        charts: historyRecord.charts,
+        weight: historyRecord.weight,
+        height: historyRecord.height,
+        head: historyRecord.head,
+        temp: historyRecord.temp,
+        pulse: historyRecord.pulse,
+        spo2: historyRecord.spo2,
+        systolic: historyRecord.systolic,
+        diastolic: historyRecord.diastolic,
+        age: historyRecord.age,
+        source: 'prescription-pdf'
+      };
+
+      const saveBatch = writeBatch(db);
+      saveBatch.set(doc(db, FIREBASE_COLLECTIONS.history, saveId), historyRecord, { merge: true });
+      saveBatch.set(doc(db, FIREBASE_COLLECTIONS.patients, patientId), {
         patientId,
         childName: historyRecord.childName,
+        ...(hasVitalsForSummary ? { lastMeasurementRecord } : {}),
         prescriptionHistory: arrayUnion({
           id: saveId,
           prescriptionSaveId: historyRecord.prescriptionSaveId,
@@ -2571,6 +2585,7 @@
         }),
         updatedAt: serverTimestamp()
       }, { merge: true });
+      await saveBatch.commit();
       persistLocalPrescriptionRecord(historyRecord);
 
       return { ok: true, downloadURL, storagePath: persistedStoragePath, previewImageURL, previewImagePath, warning };

@@ -7,6 +7,13 @@
       "runtimeArgs": ["run", "dev"],
       "cwd": "emr/kid",
       "port": 5173
+    },
+    {
+      "name": "lungs-emr-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "emr/lungs",
+      "port": 5174
     }
   ]
 }

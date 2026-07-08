@@ -123,9 +123,9 @@
   </main>
 
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
-    import { doc, getDoc, getFirestore } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
-    import { getDownloadURL, getStorage, ref } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
+    import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { getDownloadURL, ref } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
+    import { db, storage } from './lib/firebase-init.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/lungs';
     const FIREBASE_COLLECTIONS = {
       patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
@@ -183,17 +183,6 @@
       return storagePath && storage ? getDownloadURL(ref(storage, storagePath)) : '';
     }
 
-    const firebaseEnv = import.meta.env || {};
-    const firebaseConfig = {
-      apiKey: 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
-      authDomain: 'clinci-dr-gunda.firebaseapp.com',
-      projectId: 'clinci-dr-gunda',
-      storageBucket: 'clinci-dr-gunda.firebasestorage.app',
-      messagingSenderId: '1059959825609',
-      appId: '1:1059959825609:web:8201599754706ac4661918',
-      measurementId: 'G-4V5JMVW45E'
-    };
-
     async function openPrescription() {
       if (!prescriptionId) {
         title.textContent = 'Prescription Not Found';
@@ -201,17 +190,13 @@
         return;
       }
 
-      const configured = Object.values(firebaseConfig).every(Boolean);
-      if (!configured) {
+      if (!db) {
         title.textContent = 'Prescription Link Not Ready';
         message.textContent = 'Prescription link cannot open because Cloud records are not configured.';
         return;
       }
 
       try {
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const storage = getStorage(app);
         const snapshot = await getDoc(doc(db, FIREBASE_COLLECTIONS.history, prescriptionId));
 
         if (!snapshot.exists()) {

@@ -210,6 +210,7 @@ async function main() {
   }
 
   let storageCopied = 0;
+  let storageMissing = 0;
   let historyUpdated = 0;
   let patientLinksAdded = 0;
   const patientLinkUpdates = new Map();
@@ -221,6 +222,7 @@ async function main() {
       relinkedFromPatientId: item.legacyId,
       relinkedAt: serverTimestamp()
     };
+    let sourceFileMissing = false;
 
     if (item.isPrescription && item.oldStoragePath && item.newStoragePath) {
       try {
@@ -233,14 +235,22 @@ async function main() {
         }
       } catch (error) {
         console.error(`  ! Storage copy failed for ${item.oldStoragePath}: ${error.message}`);
-        continue;
+        storageMissing += 1;
+        sourceFileMissing = true;
+        // The legacy PDF file no longer exists in Storage. Still relink the
+        // patientId (metadata correction) but drop the now-dead file
+        // references so downstream tooling can detect this needs regeneration.
+        updates.storagePath = '';
+        updates.downloadURL = '';
+        updates.prescriptionSaveId = '';
+        updates.pdfSourceFileMissing = true;
       }
     }
 
     await setDoc(doc(db, HISTORY_COLLECTION, item.historyDocId), updates, { merge: true });
     historyUpdated += 1;
 
-    if (item.isPrescription) {
+    if (item.isPrescription && !sourceFileMissing) {
       const mergedRecord = { ...entry, ...updates };
       const link = buildPatientPrescriptionLink(mergedRecord, item.historyDocId);
       const list = patientLinkUpdates.get(item.currentId) || [];
@@ -269,6 +279,7 @@ async function main() {
 
   console.log('');
   console.log(`Storage files copied: ${storageCopied}`);
+  console.log(`Storage files missing (patientId still relinked, needs PDF regeneration): ${storageMissing}`);
   console.log(`History docs relinked: ${historyUpdated}`);
   console.log(`Patient prescriptionHistory links added: ${patientLinksAdded}`);
   console.log('Relink complete.');

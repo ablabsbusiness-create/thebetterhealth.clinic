@@ -761,8 +761,8 @@
   </div>
 
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
-    import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { doc, getDoc, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { db } from './lib/firebase-init.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/lungs';
     const FIREBASE_COLLECTIONS = {
       patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
@@ -783,24 +783,6 @@
     const dobMonthInput = document.getElementById('dob-month');
     const dobYearInput = document.getElementById('dob-year');
     const searchParams = new URLSearchParams(window.location.search);
-    const firebaseEnv = import.meta.env || {};
-    const firebaseConfig = {
-      apiKey: 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
-      authDomain: 'clinci-dr-gunda.firebaseapp.com',
-      projectId: 'clinci-dr-gunda',
-      storageBucket: 'clinci-dr-gunda.firebasestorage.app',
-      messagingSenderId: '1059959825609',
-      appId: '1:1059959825609:web:8201599754706ac4661918',
-      measurementId: 'G-4V5JMVW45E'
-    };
-    const firebaseConfigured = Object.values(firebaseConfig).every(Boolean);
-    let db = null;
-
-    if (firebaseConfigured) {
-      const app = initializeApp(firebaseConfig);
-      db = getFirestore(app);
-    }
-
     function setSaveStatus(message, tone = '') {
       if (!saveStatus) {
         return;
@@ -863,13 +845,12 @@
       return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     }
 
-    async function savePatientToCloudRecords(patientId) {
+    async function savePatientToCloudRecordsTransactional(fallbackPatientId) {
       const normalizedDob = parseDobInput(dobDayInput.value, dobMonthInput.value, dobYearInput.value);
       const patientName = newPatientForm.elements.parentName.value.trim();
       const height = newPatientForm.elements.height.value.trim();
       const weight = newPatientForm.elements.weight.value.trim();
-      const patientRecord = {
-        patientId,
+      const baseRecord = {
         childName: patientName,
         patientName,
         parentName: patientName,
@@ -880,18 +861,57 @@
         phone: newPatientForm.elements.mobileNumber.value.trim(),
         mobileNumber: newPatientForm.elements.mobileNumber.value.trim(),
         email: newPatientForm.elements.email.value.trim(),
-        bloodGroup: newPatientForm.elements.bloodGroup.value.trim(),
-        createdAt: firebaseConfigured ? serverTimestamp() : new Date().toISOString()
+        bloodGroup: newPatientForm.elements.bloodGroup.value.trim()
       };
 
-      sessionStorage.setItem('newPatientDraft', JSON.stringify(patientRecord));
-
       if (!db) {
-        return false;
+        sessionStorage.setItem('newPatientDraft', JSON.stringify({
+          ...baseRecord,
+          patientId: fallbackPatientId,
+          createdAt: new Date().toISOString()
+        }));
+        return { patientId: fallbackPatientId, saved: false };
       }
 
-      await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId), patientRecord);
-      return true;
+      const patientId = await runTransaction(db, async (transaction) => {
+        const counterRef = doc(db, CLINIC_FIREBASE_NAMESPACE, 'counters', 'patientIds');
+        const counterSnapshot = await transaction.get(counterRef);
+        let nextSerial = Number(counterSnapshot.data()?.nextSerial);
+
+        if (!Number.isFinite(nextSerial) || nextSerial < 0) {
+          nextSerial = 0;
+        }
+
+        for (let attempts = 0; attempts < 20000; attempts += 1) {
+          const candidateId = buildPatientId(nextSerial);
+          const patientRef = doc(db, FIREBASE_COLLECTIONS.patients, candidateId);
+          const patientSnapshot = await transaction.get(patientRef);
+
+          if (!patientSnapshot.exists()) {
+            const now = serverTimestamp();
+            transaction.set(counterRef, {
+              prefix: 'TBL',
+              nextSerial: nextSerial + 1,
+              updatedAt: now
+            }, { merge: true });
+            transaction.set(patientRef, {
+              ...baseRecord,
+              patientId: candidateId,
+              idAssignedBy: 'client-transaction',
+              createdAt: now,
+              updatedAt: now
+            });
+            return candidateId;
+          }
+
+          nextSerial += 1;
+        }
+
+        throw new Error('Unable to assign a patient ID right now.');
+      });
+
+      sessionStorage.setItem('newPatientDraft', JSON.stringify({ ...baseRecord, patientId, createdAt: new Date().toISOString() }));
+      return { patientId, saved: true };
     }
 
     let autoPatientId = buildPatientId(0);
@@ -935,10 +955,10 @@
       continueBtn.textContent = 'Saving...';
 
       try {
-        autoPatientId = await buildUniquePatientId();
+        const { patientId: assignedPatientId, saved: savedToCloudRecords } = await savePatientToCloudRecordsTransactional(autoPatientId);
+        autoPatientId = assignedPatientId;
         patientIdOutput.textContent = autoPatientId;
         sessionStorage.setItem('newPatientId', autoPatientId);
-        const savedToCloudRecords = await savePatientToCloudRecords(autoPatientId);
         setSaveStatus(savedToCloudRecords
           ? `Patient details saved.`
           : `Patient ID created, but online saving is not available.`, savedToCloudRecords ? 'ready' : 'error');

@@ -1,0 +1,14 @@
+{
+  "generatedAt": "2026-07-08T08:07:10.794Z",
+  "writeMode": false,
+  "forceMode": false,
+  "totals": {
+    "patientsScanned": 3,
+    "historyDocsScanned": 5,
+    "patientsWithVitals": 0,
+    "noVitalsFound": 3,
+    "alreadyCurrent": 0,
+    "needsWrite": 0
+  },
+  "plan": []
+}

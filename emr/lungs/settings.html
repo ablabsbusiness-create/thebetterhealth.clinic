@@ -1529,9 +1529,9 @@
   </div>
 
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
-    import { collection, doc, getDoc, getDocs, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
-    import { getMetadata, getStorage, listAll, ref } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
+    import { collection, doc, getDoc, getDocs, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { getMetadata, listAll, ref } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
+    import { db, storage } from './lib/firebase-init.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/lungs';
     const FIREBASE_COLLECTIONS = {
       patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
@@ -1598,6 +1598,7 @@
     const CLINIC_STORAGE_LABEL = CLINIC_FIREBASE_NAMESPACE.includes('/lungs') ? 'lungs clinic' : 'kid clinic';
     const PRINT_HEADER_GAP_STORAGE_KEY = clinicStorageKey('previewPrintHeaderGapCm');
     const PRESCRIPTION_BRANDING_STORAGE_KEY = clinicStorageKey('prescriptionBrandingSettings');
+    const PRESCRIPTION_BRANDING_CACHED_AT_KEY = clinicStorageKey('prescriptionBrandingCachedAt');
     const CLINIC_DOC_PATH = CLINIC_FIREBASE_NAMESPACE.split('/');
     const PRESCRIPTION_BRANDING_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'prescriptionBranding'];
     const CLINIC_SETTINGS_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'settings'];
@@ -1627,20 +1628,6 @@
     };
     let storageAlertShown = false;
 
-    const firebaseEnv = import.meta.env || {};
-    const firebaseConfig = {
-      apiKey: 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
-      authDomain: 'clinci-dr-gunda.firebaseapp.com',
-      projectId: 'clinci-dr-gunda',
-      storageBucket: 'clinci-dr-gunda.firebasestorage.app',
-      messagingSenderId: '1059959825609',
-      appId: '1:1059959825609:web:8201599754706ac4661918',
-      measurementId: 'G-4V5JMVW45E'
-    };
-    const firebaseConfigured = Object.values(firebaseConfig).every(Boolean);
-    const firebaseApp = firebaseConfigured ? initializeApp(firebaseConfig) : null;
-    const db = firebaseApp ? getFirestore(firebaseApp) : null;
-    const storage = firebaseApp ? getStorage(firebaseApp) : null;
     let cloudSavePopupTimer = null;
 
     function showCloudSavePopup(message, title = 'Saved') {
@@ -1867,6 +1854,7 @@
         ...normalizePrescriptionLayout(settings)
       };
       localStorage.setItem(PRESCRIPTION_BRANDING_STORAGE_KEY, JSON.stringify(normalizedSettings));
+      localStorage.setItem(PRESCRIPTION_BRANDING_CACHED_AT_KEY, String(Date.now()));
       return normalizedSettings;
     }
 

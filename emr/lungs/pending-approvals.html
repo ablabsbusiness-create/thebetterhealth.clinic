@@ -178,8 +178,8 @@
     </div>
   </div>
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
-    import { collection, doc, getDoc, getDocs, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { collection, doc, getDocs, query, runTransaction, serverTimestamp, setDoc, where } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { db } from './lib/firebase-init.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/lungs';
     const FIREBASE_COLLECTIONS = {
       patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
@@ -197,9 +197,6 @@
     const statusNote = document.getElementById('status-note');
     const approveBtn = document.getElementById('approve-btn');
     const rejectBtn = document.getElementById('reject-btn');
-    const firebaseEnv = import.meta.env || {};
-    const firebaseConfig = { apiKey: 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo', authDomain: 'clinci-dr-gunda.firebaseapp.com', projectId: 'clinci-dr-gunda', storageBucket: 'clinci-dr-gunda.firebasestorage.app', messagingSenderId: '1059959825609', appId: '1:1059959825609:web:8201599754706ac4661918', measurementId: 'G-4V5JMVW45E' };
-    const db = getFirestore(initializeApp(firebaseConfig));
     let pendingItems = [];
     let activePendingId = '';
     function parseDobInput(dayValue, monthValue, yearValue) { const day = Number.parseInt(dayValue.trim(), 10); const month = Number.parseInt(monthValue.trim(), 10); const year = Number.parseInt(yearValue.trim(), 10); if (!day || !month || !yearValue.trim().match(/^\d{4}$/)) return ''; const parsed = new Date(year, month - 1, day); if (Number.isNaN(parsed.getTime()) || parsed.getFullYear() !== year || parsed.getMonth() !== month - 1 || parsed.getDate() !== day) return ''; return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`; }
@@ -210,7 +207,6 @@
     function setStatus(message, tone = '') { statusNote.textContent = message; statusNote.className = `status-note${tone ? ` ${tone}` : ''}`; }
     function updateQueueCount(count = pendingItems.length) { queueCount.textContent = `${count} pending`; }
     function buildPatientId(index = 0) { return `TBL${String(index).padStart(4, '0')}`; }
-    async function buildUniquePatientId() { for (let index = 0; index <= 9999; index += 1) { const candidate = buildPatientId(index); const snapshot = await getDoc(doc(db, FIREBASE_COLLECTIONS.patients, candidate)); if (!snapshot.exists()) return candidate; } throw new Error('Could not generate a unique patient ID right now.'); }
     function getActivePendingItem() { return pendingItems.find((item) => item.id === activePendingId) || null; }
     function escapeHtml(value) { return String(value || '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'", '&#39;'); }
     function getFilteredPendingItems() { const queryValue = queueSearch.value.trim().toLowerCase(); return queryValue ? pendingItems.filter((item) => getPendingSearchText(item).includes(queryValue)) : pendingItems; }
@@ -245,7 +241,7 @@
     async function loadPendingPatients() {
       setStatus('Loading pending intake submissions...');
       const pendingSnapshotPromise = getDocs(collection(db, FIREBASE_COLLECTIONS.pendingPatients)).catch(() => ({ docs: [] }));
-      const patientsSnapshotPromise = getDocs(collection(db, FIREBASE_COLLECTIONS.patients)).catch(() => ({ docs: [] }));
+      const patientsSnapshotPromise = getDocs(query(collection(db, FIREBASE_COLLECTIONS.patients), where('status', '==', 'pending'))).catch(() => ({ docs: [] }));
       const [pendingSnapshot, patientsSnapshot] = await Promise.all([pendingSnapshotPromise, patientsSnapshotPromise]);
       const directPendingItems = pendingSnapshot.docs.map((docSnapshot) => ({
         id: docSnapshot.id,
@@ -273,12 +269,8 @@
       if (!activeItem) { setStatus('Choose a pending submission first.', 'error'); return; }
       const normalizedDob = parseDobInput(reviewForm.elements.dobDay.value, reviewForm.elements.dobMonth.value, reviewForm.elements.dobYear.value);
       if (!normalizedDob) { setStatus('Please enter a valid date of birth before approving.', 'error'); return; }
-      const patientId = activeItem.sourceCollection === 'patients'
-        ? String(activeItem.patientId || activeItem.id).trim().toUpperCase()
-        : await buildUniquePatientId();
       const reviewedByValue = reviewForm.elements.reviewedBy.value.trim() || 'doctor-review';
-      const patientRecord = {
-        patientId,
+      const patientRecordBase = {
         childName: reviewForm.elements.childName.value.trim(),
         patientName: reviewForm.elements.childName.value.trim(),
         parentName: reviewForm.elements.childName.value.trim(),
@@ -289,7 +281,6 @@
         email: reviewForm.elements.email.value.trim(),
         bloodGroup: reviewForm.elements.bloodGroup.value.trim(),
         sourcePendingId: activeItem.sourceCollection === 'pendingPatients' ? activeItem.id : (activeItem.sourcePendingId || activeItem.id),
-        approvedPatientId: patientId,
         reviewedBy: reviewedByValue,
         reviewedAt: serverTimestamp(),
         decision: 'approved',
@@ -299,29 +290,59 @@
       };
       approveBtn.disabled = true; rejectBtn.disabled = true; setStatus('Approving and creating patient record...');
       try {
-        await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId), {
-          ...patientRecord,
-          ...(activeItem.sourceCollection === 'patients' ? { updatedAt: serverTimestamp() } : { createdAt: serverTimestamp() })
-        }, { merge: true });
-        if (activeItem.sourceCollection === 'pendingPatients') {
-          await setDoc(doc(db, FIREBASE_COLLECTIONS.pendingPatients, activeItem.id), {
-            childName: patientRecord.childName,
-            patientName: patientRecord.patientName,
-            parentName: patientRecord.parentName,
-            gender: patientRecord.gender,
-            dob: patientRecord.dob,
-            phone: patientRecord.phone,
-            mobileNumber: patientRecord.mobileNumber,
-            email: patientRecord.email,
-            bloodGroup: patientRecord.bloodGroup,
-            notes: patientRecord.notes,
-            reviewedBy: reviewedByValue,
-            reviewedAt: serverTimestamp(),
-            decision: 'approved',
-            status: 'approved',
-            approvedPatientId: patientId
+        let patientId;
+
+        if (activeItem.sourceCollection === 'patients') {
+          patientId = String(activeItem.patientId || activeItem.id).trim().toUpperCase();
+          await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId), {
+            ...patientRecordBase,
+            patientId,
+            approvedPatientId: patientId,
+            updatedAt: serverTimestamp()
           }, { merge: true });
+        } else {
+          patientId = await runTransaction(db, async (transaction) => {
+            const counterRef = doc(db, CLINIC_FIREBASE_NAMESPACE, 'counters', 'patientIds');
+            const counterSnapshot = await transaction.get(counterRef);
+            let nextSerial = Number(counterSnapshot.data()?.nextSerial);
+
+            if (!Number.isFinite(nextSerial) || nextSerial < 0) {
+              nextSerial = 0;
+            }
+
+            for (let attempts = 0; attempts < 20000; attempts += 1) {
+              const candidateId = buildPatientId(nextSerial);
+              const patientRef = doc(db, FIREBASE_COLLECTIONS.patients, candidateId);
+              const patientSnapshot = await transaction.get(patientRef);
+
+              if (!patientSnapshot.exists()) {
+                const now = serverTimestamp();
+                transaction.set(counterRef, {
+                  prefix: 'TBL',
+                  nextSerial: nextSerial + 1,
+                  updatedAt: now
+                }, { merge: true });
+                transaction.set(patientRef, {
+                  ...patientRecordBase,
+                  patientId: candidateId,
+                  approvedPatientId: candidateId,
+                  createdAt: now,
+                  updatedAt: now
+                });
+                transaction.set(doc(db, FIREBASE_COLLECTIONS.pendingPatients, activeItem.id), {
+                  ...patientRecordBase,
+                  approvedPatientId: candidateId
+                }, { merge: true });
+                return candidateId;
+              }
+
+              nextSerial += 1;
+            }
+
+            throw new Error('Unable to assign a patient ID right now.');
+          });
         }
+
         const vitalsUrl = `prescription?patientId=${encodeURIComponent(patientId)}`;
         window.location.href = vitalsUrl;
         return;
@@ -338,7 +359,8 @@
           reviewedAt: serverTimestamp(),
           decision: 'rejected',
           status: 'rejected',
-          notes: reviewForm.elements.notes.value.trim()
+          notes: reviewForm.elements.notes.value.trim(),
+          updatedAt: serverTimestamp()
         };
         await setDoc(doc(db, activeItem.sourceCollection === 'patients' ? FIREBASE_COLLECTIONS.patients : FIREBASE_COLLECTIONS.pendingPatients, activeItem.id), rejectPayload, { merge: true });
         activePendingId = '';

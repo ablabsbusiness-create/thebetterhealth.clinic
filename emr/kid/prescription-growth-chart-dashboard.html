@@ -2609,9 +2609,9 @@
 
   <script type="module">
     import { jsPDF } from 'https://cdn.jsdelivr.net/npm/jspdf@3.0.3/+esm';
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
-    import { addDoc, arrayUnion, collection, deleteField, doc, getDoc, getDocs, getFirestore, query, serverTimestamp, setDoc, where } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
-    import { getDownloadURL, getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
+    import { addDoc, arrayUnion, collection, deleteField, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where, writeBatch } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { getDownloadURL, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
+    import { db, storage } from './lib/firebase-init.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
     const FIREBASE_COLLECTIONS = {
       patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
@@ -2687,21 +2687,6 @@
     const menuToggle = document.getElementById('menu-toggle');
     const primaryNav = document.getElementById('primary-nav');
     const navLinks = [...document.querySelectorAll('#primary-nav .nav-link')];
-    const IS_FILE_PROTOCOL = window.location.protocol === 'file:';
-    const firebaseEnv = import.meta.env || {};
-    const firebaseConfig = {
-      apiKey: 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
-      authDomain: 'clinci-dr-gunda.firebaseapp.com',
-      projectId: 'clinci-dr-gunda',
-      storageBucket: 'clinci-dr-gunda.firebasestorage.app',
-      messagingSenderId: '1059959825609',
-      appId: '1:1059959825609:web:8201599754706ac4661918',
-      measurementId: 'G-4V5JMVW45E'
-    };
-    const firebaseConfigured = !IS_FILE_PROTOCOL && Object.values(firebaseConfig).every(Boolean);
-    const firebaseApp = firebaseConfigured ? initializeApp(firebaseConfig) : null;
-    const db = firebaseApp ? getFirestore(firebaseApp) : null;
-    const storage = firebaseApp ? getStorage(firebaseApp) : null;
     const HISTORY_PAGE_SIZE = 6;
     const metricHistoryCountState = Object.fromEntries(Object.keys(metricInputs).map((key) => [key, 11]));
     let patientGrowthHistory = [];
@@ -3790,253 +3775,6 @@
       `;
     }
 
-    async function loadMergedPatientsForDashboard() {
-      if (!db) {
-        return { patients: [], history: [] };
-      }
-
-      const normalizeIdentityPatientId = (value) => String(value || '')
-        .trim()
-        .toUpperCase()
-        .replace(/#@#\d+$/i, '');
-
-      const normalizePatientPhone = (value) => {
-        const digits = String(value || '').replace(/\D/g, '');
-        if (!digits) {
-          return '';
-        }
-        return digits.length > 10 ? digits.slice(-10) : digits;
-      };
-
-      const isSyntheticPatientId = (value) => /#@#\d+$/i.test(String(value || '').trim());
-      const mergeUniqueByJson = (values) => {
-        const seen = new Set();
-        const merged = [];
-        for (const value of values) {
-          const key = JSON.stringify(value);
-          if (seen.has(key)) {
-            continue;
-          }
-          seen.add(key);
-          merged.push(value);
-        }
-        return merged;
-      };
-      const getDisplayName = (patient) => String(
-        patient?.childName
-        || [patient?.firstName, patient?.middleName, patient?.lastName].filter(Boolean).join(' ')
-        || patient?.patientId
-        || ''
-      ).trim();
-      const scorePatient = (patient) => {
-        const measurementHistory = Array.isArray(patient?.measurementHistory) ? patient.measurementHistory.length : 0;
-        const lastMeasurement = patient?.lastMeasurementRecord ? 1 : 0;
-        const syntheticPenalty = isSyntheticPatientId(patient?.patientId) || isSyntheticPatientId(patient?.id) ? -5 : 0;
-        const scalarFields = [
-          patient?.childName,
-          patient?.firstName,
-          patient?.middleName,
-          patient?.lastName,
-          patient?.phone,
-          patient?.mobileNumber,
-          patient?.dob,
-          patient?.gender,
-          patient?.parentName,
-          patient?.bloodGroup,
-          patient?.abhaId,
-          patient?.tags
-        ].filter((value) => String(value || '').trim()).length;
-
-        return (measurementHistory * 100) + (lastMeasurement * 20) + scalarFields + syntheticPenalty;
-      };
-      const mergePatients = (existing, incoming) => {
-        if (!existing) {
-          return incoming;
-        }
-        if (!incoming) {
-          return existing;
-        }
-
-        const preferred = scorePatient(incoming) > scorePatient(existing) ? incoming : existing;
-        const merged = { ...preferred };
-
-        for (const source of [existing, incoming]) {
-          for (const [key, value] of Object.entries(source)) {
-            if (value === undefined || value === null || value === '') {
-              continue;
-            }
-            if (key === 'measurementHistory') {
-              continue;
-            }
-            if (merged[key] === undefined || merged[key] === null || merged[key] === '') {
-              merged[key] = value;
-            }
-          }
-        }
-
-        merged.measurementHistory = mergeUniqueByJson([
-          ...(Array.isArray(existing.measurementHistory) ? existing.measurementHistory : []),
-          ...(Array.isArray(incoming.measurementHistory) ? incoming.measurementHistory : [])
-        ]);
-        merged.lastMeasurementRecord = merged.lastMeasurementRecord || existing.lastMeasurementRecord || incoming.lastMeasurementRecord || null;
-
-        const existingId = normalizeIdentityPatientId(existing.patientId || existing.id || '');
-        const incomingId = normalizeIdentityPatientId(incoming.patientId || incoming.id || '');
-        const preferredId = !isSyntheticPatientId(existing.patientId || existing.id || '') && existingId
-          ? existingId
-          : (!isSyntheticPatientId(incoming.patientId || incoming.id || '') && incomingId
-            ? incomingId
-            : existingId || incomingId);
-
-        if (preferredId) {
-          merged.patientId = preferredId;
-          merged.id = preferredId;
-        }
-
-        return merged;
-      };
-      const getPatientIdentityKey = (patient) => {
-        const patientId = normalizeIdentityPatientId(patient?.patientId || patient?.id || '');
-        const displayName = getDisplayName(patient).toLowerCase().replace(/\s+/g, ' ').trim();
-        const phone = normalizePatientPhone(patient?.phone || patient?.mobileNumber || patient?.mobile || '');
-
-        if (patientId) {
-          return `uid:${patientId}`;
-        }
-        if (displayName && phone) {
-          return `namephone:${displayName}|${phone}`;
-        }
-        if (displayName) {
-          return `name:${displayName}`;
-        }
-        if (phone) {
-          return `phone:${phone}`;
-        }
-        return `doc:${String(patient?.id || patient?.patientId || '').trim().toLowerCase()}`;
-      };
-
-      const patientsSnapshot = await getDocs(collection(db, FIREBASE_COLLECTIONS.patients)).catch((error) => {
-        console.warn(`Unable to load patient records: ${error.message}`);
-        if (lastHistoryDebug) {
-          lastHistoryDebug.errorMessage = `patients load failed: ${error.message}`;
-        }
-        return { docs: [] };
-      });
-
-      const historySnapshot = await getDocs(collection(db, FIREBASE_COLLECTIONS.history)).catch((error) => {
-        console.warn(`Unable to load history records: ${error.message}`);
-        if (lastHistoryDebug) {
-          lastHistoryDebug.errorMessage = lastHistoryDebug.errorMessage
-            ? `${lastHistoryDebug.errorMessage}; history load failed: ${error.message}`
-            : `history load failed: ${error.message}`;
-        }
-        return { docs: [] };
-      });
-
-      const remoteHistory = historySnapshot.docs.map((docSnapshot) => ({
-        id: docSnapshot.id,
-        ...docSnapshot.data()
-      }));
-
-      const patientRecords = patientsSnapshot.docs.map((docSnapshot) => ({
-        id: docSnapshot.id,
-        ...docSnapshot.data()
-      }));
-
-      if (lastHistoryDebug) {
-        lastHistoryDebug.patientRecordsCount = patientRecords.length;
-      }
-
-      const allHistory = remoteHistory;
-      const historyByPatientId = new Map();
-      const filteredHistory = allHistory
-        .filter((entry) => entry.type !== 'prescription' && entry.source !== 'prescription-pdf')
-        .sort((left, right) => getHistoryTimestamp(right) - getHistoryTimestamp(left));
-
-      if (lastHistoryDebug) {
-        lastHistoryDebug.historyEntriesCount = filteredHistory.length;
-      }
-
-      filteredHistory.forEach((entry) => {
-        const entryPatientId = normalizeIdentityPatientId(entry.patientId || '');
-        if (!entryPatientId) {
-          return;
-        }
-
-        const entries = historyByPatientId.get(entryPatientId) || [];
-        entries.push(entry);
-        historyByPatientId.set(entryPatientId, entries);
-      });
-
-      historyByPatientId.forEach((entries) => {
-        entries.sort((left, right) => getHistoryTimestamp(right) - getHistoryTimestamp(left));
-      });
-
-      const mergedPatientsByIdentity = new Map();
-      const seenPatientIds = new Set();
-
-      patientRecords.forEach((patient) => {
-        if (patient.status === 'pending' || patient.status === 'rejected') {
-          return;
-        }
-
-        const entryPatientId = normalizeIdentityPatientId(patient.patientId || patient.id || '');
-        const patientHistoryEntries = entryPatientId ? historyByPatientId.get(entryPatientId) || [] : [];
-
-        const preparedPatient = {
-          ...patient,
-          patientId: entryPatientId || patient.patientId || patient.id || '',
-          id: entryPatientId || patient.id || patient.patientId || '',
-          measurementHistory: mergeUniqueByJson([
-            ...(Array.isArray(patient.measurementHistory) ? patient.measurementHistory : []),
-            ...patientHistoryEntries
-          ]),
-          lastMeasurementRecord: patient.lastMeasurementRecord || patientHistoryEntries[0] || null
-        };
-
-        const identityKey = getPatientIdentityKey(preparedPatient);
-        const existing = mergedPatientsByIdentity.get(identityKey);
-        mergedPatientsByIdentity.set(identityKey, existing
-          ? mergePatients(existing, preparedPatient)
-          : preparedPatient);
-
-        if (entryPatientId) {
-          seenPatientIds.add(entryPatientId);
-        }
-      });
-
-      historyByPatientId.forEach((entries, entryPatientId) => {
-        if (seenPatientIds.has(entryPatientId)) {
-          return;
-        }
-
-        const latest = entries[0] || {};
-        const preparedHistoryPatient = {
-          id: `history-${entryPatientId}`,
-          patientId: normalizeIdentityPatientId(latest.patientId || entryPatientId),
-          childName: latest.childName || latest.patientName || '',
-          firstName: latest.firstName || '',
-          middleName: latest.middleName || '',
-          lastName: latest.lastName || '',
-          parentName: latest.parentName || '',
-          phone: latest.phone || '',
-          gender: latest.gender || '',
-          dob: latest.dob || '',
-          measurementHistory: entries,
-          lastMeasurementRecord: entries[0] || latest,
-          fromHistoryOnly: true
-        };
-
-        const identityKey = getPatientIdentityKey(preparedHistoryPatient);
-        const existing = mergedPatientsByIdentity.get(identityKey);
-        mergedPatientsByIdentity.set(identityKey, existing
-          ? mergePatients(existing, preparedHistoryPatient)
-          : preparedHistoryPatient);
-      });
-
-      return { patients: [...mergedPatientsByIdentity.values()], historyByPatientId };
-    }
-
     async function loadHistoryEntriesForPatient(patientId) {
       if (!db || !patientId) {
         return [];
@@ -4833,7 +4571,7 @@
       autoFillPatientDetails();
     }
 
-    async function saveHistoryRecord() {
+    async function saveHistoryRecord(batch = null) {
       if (!db) {
         return { ok: false, reason: 'Cloud records are not configured.' };
       }
@@ -4882,12 +4620,17 @@
         chartPdfSavedAt: latestChartPdfUploadResult?.savedAt || ''
       };
 
-      await setDoc(doc(db, FIREBASE_COLLECTIONS.history, episodeId), historyRecord, { merge: true });
+      const historyRef = doc(db, FIREBASE_COLLECTIONS.history, episodeId);
+      if (batch) {
+        batch.set(historyRef, historyRecord, { merge: true });
+      } else {
+        await setDoc(historyRef, historyRecord, { merge: true });
+      }
       await syncPrescriptionPdfHistoryForPatient(historyRecord.patientId, historyRecord);
       return { ok: true };
     }
 
-    async function saveMeasurementsToPatientRecord() {
+    async function saveMeasurementsToPatientRecord(batch = null) {
       const patientId = patientIdInput.value.trim().toUpperCase();
 
       if (!db || !patientId) {
@@ -4931,11 +4674,17 @@
         measurementEntry.chartFormatVersion = CHART_PREVIEW_VERSION;
       }
 
-      await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId), {
+      const patientRef = doc(db, FIREBASE_COLLECTIONS.patients, patientId);
+      const patientPatch = {
         lastMeasurementRecord: measurementEntry,
         measurementHistory: arrayUnion(measurementEntry),
         updatedAt: serverTimestamp()
-      }, { merge: true });
+      };
+      if (batch) {
+        batch.set(patientRef, patientPatch, { merge: true });
+      } else {
+        await setDoc(patientRef, patientPatch, { merge: true });
+      }
 
       setPatientGrowthHistory([measurementEntry, ...patientGrowthHistory]);
       updatePageMeta({
@@ -4975,7 +4724,7 @@
       const localRecords = readJson(LOCAL_PRESCRIPTION_HISTORY_KEY, []);
       let updatedCount = 0;
 
-      for (const recordDoc of snapshot.docs) {
+      await Promise.all(snapshot.docs.map(async (recordDoc) => {
         const current = recordDoc.data() || {};
         const patch = {
           childName: vitalsPatch.childName ?? current.childName ?? '',
@@ -5009,7 +4758,7 @@
             savedAt: localRecords[localIndex].savedAt || new Date().toISOString()
           };
         }
-      }
+      }));
 
       if (updatedCount > 0) {
         localStorage.setItem(LOCAL_PRESCRIPTION_HISTORY_KEY, JSON.stringify(localRecords));
@@ -6130,15 +5879,23 @@
       latestChartPdfUploadResult = null;
       saveLocalRecord();
 
-      const patientMeasurementResult = await saveMeasurementsToPatientRecord().catch((error) => ({
+      const saveBatch = db ? writeBatch(db) : null;
+
+      const patientMeasurementResult = await saveMeasurementsToPatientRecord(saveBatch).catch((error) => ({
         ok: false,
         reason: error.message
       }));
 
-      const historyResult = await saveHistoryRecord().catch((error) => ({
+      const historyResult = await saveHistoryRecord(saveBatch).catch((error) => ({
         ok: false,
         reason: error.message
       }));
+
+      if (saveBatch) {
+        await saveBatch.commit().catch((error) => {
+          console.warn(`Unable to commit patient/history batch: ${error.message}`);
+        });
+      }
 
       statusNote.textContent = 'Charts are ready. Continue to prescription.';
       statusNote.classList.add('visible');

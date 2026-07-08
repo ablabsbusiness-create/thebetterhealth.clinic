@@ -837,8 +837,8 @@
   </div>
 
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
-    import { doc, getDoc, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { doc, getDoc, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { db } from './lib/firebase-init.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
     const FIREBASE_COLLECTIONS = {
       patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
@@ -851,18 +851,6 @@
     const clinicStorageKey = (key) => `${CLINIC_LOCAL_STORAGE_PREFIX}:${key}`;
     const CLINIC_USER_NAME_STORAGE_KEY = clinicStorageKey('clinicUserName');
 
-    const firebaseEnv = import.meta.env || {};
-    const firebaseConfig = {
-      apiKey: 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
-      authDomain: 'clinci-dr-gunda.firebaseapp.com',
-      projectId: 'clinci-dr-gunda',
-      storageBucket: 'clinci-dr-gunda.firebasestorage.app',
-      messagingSenderId: '1059959825609',
-      appId: '1:1059959825609:web:8201599754706ac4661918',
-      measurementId: 'G-4V5JMVW45E'
-    };
-
-    const db = Object.values(firebaseConfig).every(Boolean) ? getFirestore(initializeApp(firebaseConfig)) : null;
     const patientIdInput = document.getElementById('patient-id-input');
     const backToProfileLink = document.getElementById('back-to-profile-link');
     const statusNote = document.getElementById('status-note');
@@ -1481,7 +1469,8 @@
 
       await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, currentPatient.patientId), {
         vaccinationRecords,
-        vaccinationUpdatedAt: serverTimestamp()
+        vaccinationUpdatedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
       }, { merge: true });
 
       currentPatient = { ...currentPatient, vaccinationRecords };
@@ -1523,7 +1512,8 @@
 
       await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, currentPatient.patientId), {
         vaccinationRecords,
-        vaccinationUpdatedAt: serverTimestamp()
+        vaccinationUpdatedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
       }, { merge: true });
 
       currentPatient = { ...currentPatient, vaccinationRecords };
