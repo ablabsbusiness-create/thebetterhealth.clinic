@@ -1312,21 +1312,6 @@
         </article>
 
         <article class="stat-card">
-          <strong>Total Patients</strong>
-          <div id="patient-count-total" class="stat-value">0</div>
-          <div class="combined-usage">
-            <div class="combined-usage-label">
-              <span>Kid Clinic</span>
-              <span id="patient-count-kid">Loading...</span>
-            </div>
-            <div class="combined-usage-label">
-              <span>Lungs Clinic</span>
-              <span id="patient-count-lungs">Loading...</span>
-            </div>
-          </div>
-        </article>
-
-        <article class="stat-card">
           <strong>Space Used</strong>
           <div id="pdf-size" class="stat-value">0 KB</div>
           <div class="usage-meter" aria-hidden="true">
@@ -1544,7 +1529,7 @@
   </div>
 
   <script type="module">
-    import { collection, doc, getCountFromServer, getDoc, getDocs, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { doc, getDoc, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     import { db } from './lib/firebase-init.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/lungs';
     const FIREBASE_COLLECTIONS = {
@@ -1561,9 +1546,6 @@
     const primaryNav = document.getElementById('primary-nav');
     const navLinks = [...document.querySelectorAll('#primary-nav .nav-link')];
     const pdfCount = document.getElementById('pdf-count');
-    const patientCountTotal = document.getElementById('patient-count-total');
-    const patientCountKid = document.getElementById('patient-count-kid');
-    const patientCountLungs = document.getElementById('patient-count-lungs');
     const pdfSize = document.getElementById('pdf-size');
     const usageFill = document.getElementById('usage-fill');
     const usageCaption = document.getElementById('usage-caption');
@@ -2078,34 +2060,6 @@
       }
     }
 
-    async function getPatientCount(clinicNamespace) {
-      try {
-        const snapshot = await getCountFromServer(collection(db, `${clinicNamespace}/patients`));
-        return snapshot.data().count || 0;
-      } catch (error) {
-        console.warn(`Unable to load patient count for ${clinicNamespace}: ${error.message}`);
-        return null;
-      }
-    }
-
-    async function updatePatientCounts() {
-      if (!db) {
-        patientCountTotal.textContent = '0';
-        patientCountKid.textContent = 'Unavailable';
-        patientCountLungs.textContent = 'Unavailable';
-        return;
-      }
-
-      const [kidCount, lungsCount] = await Promise.all([
-        getPatientCount('clinics/kid'),
-        getPatientCount('clinics/lungs')
-      ]);
-
-      patientCountKid.textContent = kidCount === null ? 'Unavailable' : String(kidCount);
-      patientCountLungs.textContent = lungsCount === null ? 'Unavailable' : String(lungsCount);
-      patientCountTotal.textContent = String((kidCount || 0) + (lungsCount || 0));
-    }
-
     async function updatePdfStats() {
       if (!db) {
         pdfCount.textContent = '0';
@@ -2349,7 +2303,6 @@
     }
 
     updatePdfStats();
-    updatePatientCounts();
   </script>
 </body>
 </html>
