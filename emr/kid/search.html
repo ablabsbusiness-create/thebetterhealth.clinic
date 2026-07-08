@@ -4427,16 +4427,13 @@
       const worklistPatients = getWorklistPatients(patients, selectedWorklistDate, selectedWorklistMode, searchValue);
       const renderedWorklistPatients = worklistPatients.slice(0, SEARCH_RENDER_LIMIT);
       const selectedPatientPool = patients;
-      if (!IS_PATIENT_DETAILS_PAGE && !selectedPatientId && worklistPatients[0]) {
-        selectedPatientId = formatVisiblePatientId(worklistPatients[0].patientId);
-      }
       if (selectedPatientId && !patients.some((patient) => formatVisiblePatientId(patient.patientId) === selectedPatientId)) {
         selectedPatientId = '';
       }
 
       const selectedPatient = selectedPatientId
         ? selectedPatientPool.find((patient) => formatVisiblePatientId(patient.patientId) === selectedPatientId) || null
-        : (!IS_PATIENT_DETAILS_PAGE ? worklistPatients[0] || null : null);
+        : null;
       const selectedPatientIdValue = selectedPatient ? formatVisiblePatientId(selectedPatient.patientId) : '';
       const selectedHistoryDate = selectedPatientIdValue ? historyDateFilters[selectedPatientIdValue] || '' : '';
       const childName = selectedPatient ? getPatientDisplayName(selectedPatient) : 'Select a patient';
