@@ -4260,11 +4260,6 @@
       const gender = formatMissing(patient.gender, 'Gender not saved');
       const dob = formatDateDisplay(patient.dob);
       const phone = formatPhoneDisplay(patient.phone);
-      const visits = getPatientVisitEntriesForDate(patient, dateValue);
-      const prescriptions = getPrescriptionEntriesForDate(patientId, dateValue);
-      const hasAppointment = patientHasAppointmentOnDate(patient, dateValue);
-      const wasSeen = visits.length > 0 || prescriptions.length > 0;
-      const isQueued = patientIsQueuedOnDate(patient, dateValue);
       const isActive = selectedPatientId === patientId;
       const parentNameValue = getSavedParentName(patient);
       const subtitleParts = patientId ? [patientId] : [];
@@ -4291,7 +4286,6 @@
               </div>
             </div>
             ${idLineHtml}
-            ${!visits.length && wasSeen ? '<div class="worklist-item-note">Prescription saved on this date</div>' : ''}
           </div>
         </article>
       `;
