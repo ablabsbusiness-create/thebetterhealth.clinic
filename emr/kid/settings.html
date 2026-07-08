@@ -1313,6 +1313,21 @@
         </article>
 
         <article class="stat-card">
+          <strong>Total Patients</strong>
+          <div id="patient-count-total" class="stat-value">0</div>
+          <div class="combined-usage">
+            <div class="combined-usage-label">
+              <span>Kid Clinic</span>
+              <span id="patient-count-kid">Loading...</span>
+            </div>
+            <div class="combined-usage-label">
+              <span>Lungs Clinic</span>
+              <span id="patient-count-lungs">Loading...</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="stat-card">
           <strong>Space Used</strong>
           <div id="pdf-size" class="stat-value">0 KB</div>
           <div class="usage-meter" aria-hidden="true">
@@ -1530,9 +1545,8 @@
   </div>
 
   <script type="module">
-    import { collection, doc, getDoc, getDocs, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
-    import { getMetadata, listAll, ref } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
-    import { db, storage } from './lib/firebase-init.js';
+    import { collection, doc, getCountFromServer, getDoc, getDocs, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { db } from './lib/firebase-init.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
     const FIREBASE_COLLECTIONS = {
       patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
@@ -1548,6 +1562,9 @@
     const primaryNav = document.getElementById('primary-nav');
     const navLinks = [...document.querySelectorAll('#primary-nav .nav-link')];
     const pdfCount = document.getElementById('pdf-count');
+    const patientCountTotal = document.getElementById('patient-count-total');
+    const patientCountKid = document.getElementById('patient-count-kid');
+    const patientCountLungs = document.getElementById('patient-count-lungs');
     const pdfSize = document.getElementById('pdf-size');
     const usageFill = document.getElementById('usage-fill');
     const usageCaption = document.getElementById('usage-caption');
@@ -2045,21 +2062,53 @@
       });
     }
 
-    async function collectPdfStorageRefs(prefix) {
-      const pdfRefs = [];
+    async function readStorageStats(clinicNamespace) {
+      try {
+        const snapshot = await getDoc(doc(db, clinicNamespace, 'clinicSettings', 'storageStats'));
+        if (!snapshot.exists()) {
+          return { pdfCount: 0, totalBytes: 0 };
+        }
+        const data = snapshot.data();
+        return {
+          pdfCount: Number(data.pdfCount) || 0,
+          totalBytes: Number(data.totalBytes) || 0
+        };
+      } catch (error) {
+        console.warn(`Unable to load storage stats for ${clinicNamespace}: ${error.message}`);
+        return { pdfCount: 0, totalBytes: 0 };
+      }
+    }
 
-      async function walk(folderRef) {
-        const listing = await listAll(folderRef);
-        pdfRefs.push(...listing.items.filter((itemRef) => itemRef.name.toLowerCase().endsWith('.pdf')));
-        await Promise.all(listing.prefixes.map((childRef) => walk(childRef)));
+    async function getPatientCount(clinicNamespace) {
+      try {
+        const snapshot = await getCountFromServer(collection(db, `${clinicNamespace}/patients`));
+        return snapshot.data().count || 0;
+      } catch (error) {
+        console.warn(`Unable to load patient count for ${clinicNamespace}: ${error.message}`);
+        return null;
+      }
+    }
+
+    async function updatePatientCounts() {
+      if (!db) {
+        patientCountTotal.textContent = '0';
+        patientCountKid.textContent = 'Unavailable';
+        patientCountLungs.textContent = 'Unavailable';
+        return;
       }
 
-      await walk(ref(storage, prefix));
-      return pdfRefs;
+      const [kidCount, lungsCount] = await Promise.all([
+        getPatientCount('clinics/kid'),
+        getPatientCount('clinics/lungs')
+      ]);
+
+      patientCountKid.textContent = kidCount === null ? 'Unavailable' : String(kidCount);
+      patientCountLungs.textContent = lungsCount === null ? 'Unavailable' : String(lungsCount);
+      patientCountTotal.textContent = String((kidCount || 0) + (lungsCount || 0));
     }
 
     async function updatePdfStats() {
-      if (!db || !storage) {
+      if (!db) {
         pdfCount.textContent = '0';
         pdfSize.textContent = '0 KB';
         usageCaption.textContent = 'Cloud records are not configured';
@@ -2071,65 +2120,22 @@
       }
 
       try {
-        const pdfRefs = [
-          ...(await collectPdfStorageRefs(`${CLINIC_STORAGE_PREFIX}/prescriptions`)),
-          ...(await collectPdfStorageRefs(`${CLINIC_STORAGE_PREFIX}/chart-pdfs`))
-        ];
-        const combinedPdfRefs = (await Promise.all(COMBINED_CLINIC_STORAGE_PREFIXES.flatMap((prefix) => [
-          collectPdfStorageRefs(`${prefix}/prescriptions`),
-          collectPdfStorageRefs(`${prefix}/chart-pdfs`)
-        ]))).flat();
+        const statsByClinic = await Promise.all(
+          COMBINED_CLINIC_STORAGE_PREFIXES.map((prefix) => readStorageStats(prefix))
+        );
+        const ownIndex = COMBINED_CLINIC_STORAGE_PREFIXES.indexOf(CLINIC_FIREBASE_NAMESPACE);
+        const ownStats = ownIndex >= 0 ? statsByClinic[ownIndex] : { pdfCount: 0, totalBytes: 0 };
+        const combinedStats = statsByClinic.reduce((acc, stats) => ({
+          pdfCount: acc.pdfCount + stats.pdfCount,
+          totalBytes: acc.totalBytes + stats.totalBytes
+        }), { pdfCount: 0, totalBytes: 0 });
 
-        pdfCount.textContent = String(pdfRefs.length);
-
-        let totalBytes = 0;
-        let resolvedFiles = 0;
-        let combinedTotalBytes = 0;
-        let combinedResolvedFiles = 0;
-
-        await Promise.all(pdfRefs.map(async (storageRef) => {
-          try {
-            const metadata = await getMetadata(storageRef);
-            totalBytes += Number(metadata.size || 0);
-            resolvedFiles += 1;
-          } catch (error) {
-            console.warn(`Unable to read PDF metadata for ${storageRef.fullPath}: ${error.message}`);
-          }
-        }));
-
-        await Promise.all(combinedPdfRefs.map(async (storageRef) => {
-          try {
-            const metadata = await getMetadata(storageRef);
-            combinedTotalBytes += Number(metadata.size || 0);
-            combinedResolvedFiles += 1;
-          } catch (error) {
-            console.warn(`Unable to read combined PDF metadata for ${storageRef.fullPath}: ${error.message}`);
-          }
-        }));
-
-        pdfSize.textContent = formatBytes(totalBytes);
-        combinedPdfSize.textContent = formatBytes(combinedTotalBytes);
-        updateUsageBar(totalBytes);
-        updateCombinedUsageBar(combinedTotalBytes);
-        checkStorageAlert(totalBytes);
-
-        if (pdfRefs.length === 0) {
-          usageCaption.textContent = `0% of ${FIREBASE_STORAGE_LABEL} free storage used`;
-        }
-
-        if (combinedPdfRefs.length === 0) {
-          combinedUsageCaption.textContent = `0% of ${COMBINED_STORAGE_LABEL} free storage used`;
-        }
-
-        if (resolvedFiles === pdfRefs.length && combinedResolvedFiles === combinedPdfRefs.length) {
-          return;
-        }
-        if (resolvedFiles !== pdfRefs.length) {
-          usageCaption.textContent = `${(totalBytes / FIREBASE_FREE_STORAGE_BYTES * 100).toFixed(totalBytes >= FIREBASE_FREE_STORAGE_BYTES * 0.1 ? 1 : 2)}% of ${FIREBASE_STORAGE_LABEL} free storage used`;
-        }
-        if (combinedResolvedFiles !== combinedPdfRefs.length) {
-          combinedUsageCaption.textContent = `${(combinedTotalBytes / COMBINED_FREE_STORAGE_BYTES * 100).toFixed(combinedTotalBytes >= COMBINED_FREE_STORAGE_BYTES * 0.1 ? 1 : 2)}% of ${COMBINED_STORAGE_LABEL} free storage used`;
-        }
+        pdfCount.textContent = String(ownStats.pdfCount);
+        pdfSize.textContent = formatBytes(ownStats.totalBytes);
+        combinedPdfSize.textContent = formatBytes(combinedStats.totalBytes);
+        updateUsageBar(ownStats.totalBytes);
+        updateCombinedUsageBar(combinedStats.totalBytes);
+        checkStorageAlert(ownStats.totalBytes);
       } catch (error) {
         console.warn(`Unable to load PDF stats: ${error.message}`);
         pdfCount.textContent = '0';
@@ -2344,6 +2350,7 @@
     }
 
     updatePdfStats();
+    updatePatientCounts();
   </script>
 </body>
 </html>

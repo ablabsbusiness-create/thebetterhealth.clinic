@@ -889,8 +889,8 @@
   <script type="module">
     import html2canvas from 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/+esm';
     import { jsPDF } from 'https://cdn.jsdelivr.net/npm/jspdf@3.0.3/+esm';
-    import { arrayUnion, doc, getDoc, serverTimestamp, writeBatch } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
-    import { getDownloadURL, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
+    import { arrayUnion, doc, getDoc, increment, serverTimestamp, setDoc, writeBatch } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { getDownloadURL, getMetadata, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
     import { db, storage } from './lib/firebase-init.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/lungs';
     const FIREBASE_COLLECTIONS = {
@@ -902,6 +902,31 @@
     const CLINIC_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE;
     const CLINIC_LOCAL_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE.replace(/\//g, ':');
     const clinicStorageKey = (key) => `${CLINIC_LOCAL_STORAGE_PREFIX}:${key}`;
+    const STORAGE_STATS_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'storageStats'];
+
+    async function getExistingPdfSize(storageRef) {
+      try {
+        const metadata = await getMetadata(storageRef);
+        return Number(metadata.size) || 0;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function recordPdfStorageStat(oldSize, newBytes) {
+      if (!db) {
+        return;
+      }
+      const isNewFile = oldSize === null;
+      const byteDelta = Number(newBytes || 0) - (isNewFile ? 0 : oldSize);
+      setDoc(doc(db, ...STORAGE_STATS_DOC_PATH), {
+        ...(isNewFile ? { pdfCount: increment(1) } : {}),
+        totalBytes: increment(byteDelta),
+        updatedAt: serverTimestamp()
+      }, { merge: true }).catch((error) => {
+        console.warn(`Unable to update storage stats: ${error.message}`);
+      });
+    }
 
     const primaryNav = document.getElementById('primary-nav');
     const rxSheet = document.getElementById('rx-sheet');
@@ -1909,12 +1934,14 @@
       if (storage) {
         try {
           const storageRef = ref(storage, storagePath);
+          const existingSize = await getExistingPdfSize(storageRef);
           await uploadBytes(storageRef, pdfBlob, {
             contentType: 'application/pdf',
             contentDisposition: 'inline'
           });
           downloadURL = await getDownloadURL(storageRef);
           persistedStoragePath = storagePath;
+          recordPdfStorageStat(existingSize, pdfBlob.size);
         } catch (error) {
           warning = error.message;
           console.warn(`Prescription PDF upload skipped: ${error.message}`);

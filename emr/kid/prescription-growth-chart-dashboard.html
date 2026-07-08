@@ -2609,8 +2609,8 @@
 
   <script type="module">
     import { jsPDF } from 'https://cdn.jsdelivr.net/npm/jspdf@3.0.3/+esm';
-    import { addDoc, arrayUnion, collection, deleteField, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where, writeBatch } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
-    import { getDownloadURL, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
+    import { addDoc, arrayUnion, collection, deleteField, doc, getDoc, getDocs, increment, query, serverTimestamp, setDoc, where, writeBatch } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { getDownloadURL, getMetadata, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
     import { db, storage } from './lib/firebase-init.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
     const FIREBASE_COLLECTIONS = {
@@ -2622,6 +2622,31 @@
     const CLINIC_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE;
     const CLINIC_LOCAL_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE.replace(/\//g, ':');
     const clinicStorageKey = (key) => `${CLINIC_LOCAL_STORAGE_PREFIX}:${key}`;
+    const STORAGE_STATS_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'storageStats'];
+
+    async function getExistingPdfSize(storageRef) {
+      try {
+        const metadata = await getMetadata(storageRef);
+        return Number(metadata.size) || 0;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function recordPdfStorageStat(oldSize, newBytes) {
+      if (!db) {
+        return;
+      }
+      const isNewFile = oldSize === null;
+      const byteDelta = Number(newBytes || 0) - (isNewFile ? 0 : oldSize);
+      setDoc(doc(db, ...STORAGE_STATS_DOC_PATH), {
+        ...(isNewFile ? { pdfCount: increment(1) } : {}),
+        totalBytes: increment(byteDelta),
+        updatedAt: serverTimestamp()
+      }, { merge: true }).catch((error) => {
+        console.warn(`Unable to update storage stats: ${error.message}`);
+      });
+    }
     const VITALS_DRAFT_STORAGE_PREFIX = clinicStorageKey('consultVitalsDraft');
 
     const metricInputs = {
@@ -4781,7 +4806,9 @@
         contentDisposition: 'inline'
       };
 
+      const existingSize = await getExistingPdfSize(storageRef);
       await uploadBytes(storageRef, pdfBlob, metadata);
+      recordPdfStorageStat(existingSize, pdfBlob.size);
       const downloadURL = await getDownloadURL(storageRef);
       return {
         ok: true,
