@@ -14,6 +14,12 @@
       "runtimeArgs": ["run", "dev"],
       "cwd": "emr/lungs",
       "port": 5174
+    },
+    {
+      "name": "pedianex-marketing",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--yes", "serve", "-l", "4321", "marketing"],
+      "port": 4321
     }
   ]
 }

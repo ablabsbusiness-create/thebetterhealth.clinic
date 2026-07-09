@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PediaNex — Pediatric EMR built for children's clinics</title>
+<meta name="description" content="PediaNex is the EMR built only for pediatrics — growth charts, vaccination reminders, milestone tracking, and a parent portal in one system. Book a free demo." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#F6F8F6; --surface:#ECEFE9; --surface-2:#E2E7DF;
+    --ink:#10221D; --ink-soft:#435750; --muted:#6E7C74;
+    --teal:#1F5A48; --teal-deep:#123A2E; --teal-tint:#E4EDE8;
+    --amber:#C97A1F; --amber-soft:#F3E1C4; --amber-ink:#241703;
+    --rose:#C14A61; --rose-soft:#F3DCE1;
+    --line:rgba(16,34,29,0.14); --line-soft:rgba(16,34,29,0.08);
+    --shadow:0 1px 2px rgba(16,34,29,.06),0 12px 30px rgba(16,34,29,.08);
+    --radius:16px;
+    --serif:"Fraunces",Georgia,serif;
+    --sans:"Inter",-apple-system,"Segoe UI",system-ui,sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#0B1714; --surface:#12211C; --surface-2:#182B24;
+      --ink:#EAF1EC; --ink-soft:#A8BAB1; --muted:#7D8D85;
+      --teal:#4FA687; --teal-deep:#2E6B5A; --teal-tint:#152B23;
+      --amber:#E3A44C; --amber-soft:#3A2B14; --amber-ink:#0B0703;
+      --rose:#E38B9C; --rose-soft:#3A2028;
+      --line:rgba(234,241,236,0.16); --line-soft:rgba(234,241,236,0.08);
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 34px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0B1714; --surface:#12211C; --surface-2:#182B24;
+    --ink:#EAF1EC; --ink-soft:#A8BAB1; --muted:#7D8D85;
+    --teal:#4FA687; --teal-deep:#2E6B5A; --teal-tint:#152B23;
+    --amber:#E3A44C; --amber-soft:#3A2B14; --amber-ink:#0B0703;
+    --rose:#E38B9C; --rose-soft:#3A2028;
+    --line:rgba(234,241,236,0.16); --line-soft:rgba(234,241,236,0.08);
+  }
+  :root[data-theme="light"]{
+    --paper:#F6F8F6; --surface:#ECEFE9; --surface-2:#E2E7DF;
+    --ink:#10221D; --ink-soft:#435750; --muted:#6E7C74;
+    --teal:#1F5A48; --teal-deep:#123A2E; --teal-tint:#E4EDE8;
+    --amber:#C97A1F; --amber-soft:#F3E1C4; --amber-ink:#241703;
+    --rose:#C14A61; --rose-soft:#F3DCE1;
+    --line:rgba(16,34,29,0.14); --line-soft:rgba(16,34,29,0.08);
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink); font-family:var(--sans);
+    line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  img,svg{max-width:100%;}
+  a{color:inherit; text-decoration:none;}
+  .num{font-family:var(--mono); font-variant-numeric:tabular-nums;}
+  .wrap{max-width:1160px; margin:0 auto; padding:0 24px;}
+  section{padding:88px 0;}
+  @media (max-width:720px){ section{padding:56px 0;} .wrap{padding:0 20px;} }
+  h1,h2,h3{font-family:var(--serif); letter-spacing:-.01em; text-wrap:balance; margin:0;}
+  h2{font-size:2.1rem; line-height:1.15;}
+  h3{font-size:1.2rem; line-height:1.3;}
+  .eyebrow{display:inline-flex; align-items:center; gap:8px; text-transform:uppercase; letter-spacing:.09em; font-size:12px; font-weight:700; color:var(--teal);}
+  .eyebrow::before{content:""; width:6px; height:6px; border-radius:50%; background:var(--amber);}
+  .section-head{max-width:640px; margin:0 0 44px;}
+  .section-head p{color:var(--ink-soft); font-size:1.05rem; margin:12px 0 0;}
+  .muted{color:var(--muted);}
+
+  a:focus-visible, button:focus-visible, summary:focus-visible{outline:2px solid var(--amber); outline-offset:3px; border-radius:4px;}
+
+  /* Buttons */
+  .btn{display:inline-flex; align-items:center; gap:8px; font-weight:600; font-size:15px; padding:13px 24px; border-radius:999px; border:1px solid transparent; cursor:pointer; transition:transform .15s ease, box-shadow .15s ease;}
+  .btn-primary{background:var(--amber); color:var(--amber-ink);}
+  .btn-primary:hover{transform:translateY(-1px); box-shadow:0 8px 20px rgba(201,122,31,.35);}
+  .btn-ghost{background:transparent; color:var(--ink); border-color:var(--line);}
+  .btn-ghost:hover{border-color:var(--teal); color:var(--teal);}
+  .btn-link{color:var(--teal); font-weight:600; font-size:14px; text-decoration:underline; text-underline-offset:3px;}
+  @media (prefers-reduced-motion: reduce){ .btn{transition:none;} }
+
+  /* Header */
+  header.site{position:sticky; top:0; z-index:40; background:color-mix(in srgb, var(--paper) 88%, transparent); backdrop-filter:blur(10px); border-bottom:1px solid var(--line-soft);}
+  header.site .wrap{display:flex; align-items:center; justify-content:space-between; height:72px;}
+  .logo{display:flex; align-items:center; gap:9px; font-family:var(--serif); font-weight:700; font-size:1.15rem;}
+  nav.primary{display:flex; align-items:center; gap:28px; font-size:14.5px; font-weight:500;}
+  nav.primary a{color:var(--ink-soft);}
+  nav.primary a:hover{color:var(--teal);}
+  .header-actions{display:flex; align-items:center; gap:14px;}
+  @media (max-width:820px){ nav.primary{display:none;} }
+
+  /* Curve divider */
+  .curve{display:block; width:100%; height:34px; opacity:.6;}
+  .curve path{fill:none; stroke:var(--teal); stroke-width:1.6; stroke-linecap:round;}
+  .curve circle{fill:var(--amber);}
+
+  /* Hero */
+  .hero{padding:76px 0 40px;}
+  .hero .grid{display:grid; grid-template-columns:1.05fr .95fr; gap:56px; align-items:center;}
+  @media (max-width:900px){ .hero .grid{grid-template-columns:1fr;} }
+  .hero h1{font-size:3rem; line-height:1.08; margin:16px 0 20px;}
+  .hero .lede{font-size:1.1rem; color:var(--ink-soft); max-width:46ch; margin:0 0 30px;}
+  .hero .cta-row{display:flex; align-items:center; gap:20px; flex-wrap:wrap;}
+  .hero .trust-line{margin-top:22px; font-size:13px; color:var(--muted); display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+  .hero .trust-line span:not(:last-child)::after{content:"·"; margin-left:8px; color:var(--line);}
+
+  .device{border-radius:18px; overflow:hidden; box-shadow:var(--shadow); border:1px solid var(--line-soft); background:var(--surface); transform:rotate(1.2deg);}
+  .device .bar{display:flex; gap:6px; padding:11px 14px; background:var(--surface-2);}
+  .device .bar span{width:9px; height:9px; border-radius:50%; background:var(--line);}
+  .device .screen{padding:22px; background:linear-gradient(180deg,var(--surface),var(--paper));}
+  .mini-card{background:var(--paper); border:1px solid var(--line-soft); border-radius:12px; padding:14px 16px; margin-bottom:12px;}
+  .mini-card .label{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:6px;}
+  .growth-svg{display:block; width:100%; height:70px;}
+  .growth-svg path.percentile{fill:none; stroke:var(--line); stroke-width:1;}
+  .growth-svg path.child{fill:none; stroke:var(--teal); stroke-width:2.4; stroke-linecap:round;}
+  .growth-svg circle{fill:var(--amber);}
+  .pill-row{display:flex; gap:8px; flex-wrap:wrap;}
+  .pill{font-size:12px; padding:5px 10px; border-radius:999px; background:var(--teal-tint); color:var(--teal); font-weight:600;}
+  .pill.amber{background:var(--amber-soft); color:var(--amber);}
+
+  /* Stats band */
+  .stats{background:var(--surface); border-top:1px solid var(--line-soft); border-bottom:1px solid var(--line-soft);}
+  .stats .logos{display:flex; gap:40px; flex-wrap:wrap; justify-content:center; align-items:center; opacity:.55; font-weight:700; font-size:14px; letter-spacing:.02em; margin-bottom:44px; filter:grayscale(1);}
+  .stat-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:20px;}
+  @media (max-width:760px){ .stat-grid{grid-template-columns:repeat(2,1fr);} }
+  .stat-tile{text-align:center;}
+  .stat-tile .num{font-size:2.2rem; font-weight:700; color:var(--teal); display:block;}
+  .stat-tile .cap{font-size:13.5px; color:var(--ink-soft); margin-top:4px;}
+
+  /* Problems */
+  .pain-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px;}
+  @media (max-width:900px){ .pain-grid{grid-template-columns:repeat(2,1fr);} }
+  @media (max-width:600px){ .pain-grid{grid-template-columns:1fr;} }
+  .pain-card{background:var(--surface); border:1px solid var(--line-soft); border-left:3px solid var(--rose); border-radius:12px; padding:22px;}
+  .pain-card h3{font-size:1.05rem; margin-bottom:8px;}
+  .pain-card p{color:var(--ink-soft); font-size:14px; margin:0 0 12px;}
+  .pain-card .solved{font-size:12.5px; font-weight:700; color:var(--teal);}
+
+  /* Features */
+  .feature-row{display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:center; padding:40px 0; border-top:1px solid var(--line-soft);}
+  .feature-row:first-of-type{border-top:none;}
+  .feature-row.reverse .feature-copy{order:2;}
+  @media (max-width:800px){ .feature-row, .feature-row.reverse{grid-template-columns:1fr;} .feature-row.reverse .feature-copy{order:0;} }
+  .feature-copy .tag{display:inline-block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--teal); background:var(--teal-tint); padding:4px 10px; border-radius:999px; margin-bottom:12px;}
+  .feature-copy h3{font-size:1.5rem; margin-bottom:10px;}
+  .feature-copy p{color:var(--ink-soft); margin:0;}
+  .feature-visual{background:var(--surface); border:1px solid var(--line-soft); border-radius:var(--radius); padding:26px; min-height:160px; display:flex; align-items:center; justify-content:center;}
+
+  .icon-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:8px;}
+  @media (max-width:760px){ .icon-grid{grid-template-columns:1fr 1fr;} }
+  @media (max-width:520px){ .icon-grid{grid-template-columns:1fr;} }
+  .icon-card{background:var(--surface); border:1px solid var(--line-soft); border-radius:12px; padding:18px;}
+  .icon-card .ic{width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; background:var(--amber-soft); color:var(--amber); margin-bottom:12px;}
+  .icon-card h4{margin:0 0 4px; font-size:14.5px; font-family:var(--sans); font-weight:700;}
+  .icon-card p{margin:0; font-size:13px; color:var(--muted);}
+
+  .mid-cta{margin:36px 0 0; background:var(--teal-tint); border-radius:14px; padding:22px 26px; display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap;}
+  .mid-cta p{margin:0; font-weight:600;}
+
+  /* How it works */
+  .steps{display:grid; grid-template-columns:repeat(4,1fr); gap:0; position:relative;}
+  @media (max-width:820px){ .steps{grid-template-columns:1fr; gap:26px;} }
+  .step{padding:0 18px 0 0; position:relative;}
+  .step .step-num{font-family:var(--mono); color:var(--amber); font-weight:700; font-size:13px; display:block; margin-bottom:10px;}
+  .step h4{font-family:var(--sans); font-size:15px; font-weight:700; margin:0 0 6px;}
+  .step p{font-size:13.5px; color:var(--muted); margin:0;}
+
+  /* Showcase */
+  .tabs{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:24px;}
+  .tab-btn{font-size:13.5px; font-weight:600; padding:9px 16px; border-radius:999px; border:1px solid var(--line); background:transparent; color:var(--ink-soft); cursor:pointer;}
+  .tab-btn[aria-selected="true"]{background:var(--teal); color:var(--paper); border-color:var(--teal);}
+  .showcase-frame{background:var(--surface); border:1px solid var(--line-soft); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow);}
+  .showcase-frame .bar{display:flex; gap:6px; padding:12px 16px; background:var(--surface-2);}
+  .showcase-frame .bar span{width:9px; height:9px; border-radius:50%; background:var(--line);}
+  .tab-panel{display:none; padding:32px; min-height:280px;}
+  .tab-panel[data-active="true"]{display:block;}
+  .tab-panel .callout{position:relative; background:var(--paper); border:1px solid var(--line-soft); border-radius:12px; padding:20px; margin-bottom:14px;}
+  .tab-panel .callout .chip{display:inline-block; font-size:11.5px; font-weight:700; background:var(--amber-soft); color:var(--amber); padding:4px 10px; border-radius:999px; margin-bottom:8px;}
+
+  /* Why choose */
+  .pull-quote{background:var(--surface); border-left:3px solid var(--amber); border-radius:12px; padding:24px 26px; margin-bottom:28px;}
+  .pull-quote p{font-family:var(--serif); font-size:1.25rem; line-height:1.4; margin:0;}
+  table{width:100%; border-collapse:collapse; font-size:14.5px;}
+  th,td{text-align:left; padding:14px 16px; border-bottom:1px solid var(--line-soft);}
+  th{font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted);}
+  tbody tr td:nth-child(2){color:var(--teal); font-weight:600;}
+  .table-wrap{overflow-x:auto; border:1px solid var(--line-soft); border-radius:var(--radius);}
+  .table-wrap table{min-width:560px;}
+
+  /* Testimonials */
+  .testi-grid{display:grid; grid-template-columns:1.3fr 1fr 1fr; gap:18px;}
+  @media (max-width:860px){ .testi-grid{grid-template-columns:1fr;} }
+  .testi-card{background:var(--surface); border:1px solid var(--line-soft); border-radius:var(--radius); padding:26px;}
+  .testi-card.featured{background:var(--teal-deep); color:#EFF5F1;}
+  .testi-card p.quote{font-family:var(--serif); font-size:1.05rem; margin:0 0 16px;}
+  .testi-card.featured .quote{font-size:1.3rem;}
+  .who{display:flex; align-items:center; gap:10px; font-size:13.5px;}
+  .avatar{width:34px; height:34px; border-radius:50%; background:var(--amber-soft); color:var(--amber); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px;}
+  .testi-card.featured .avatar{background:rgba(255,255,255,.15); color:#EFF5F1;}
+  .who .name{font-weight:700;}
+  .who .role{color:var(--muted); font-size:12.5px;}
+  .testi-card.featured .role{color:#B9D4C6;}
+
+  /* Pricing */
+  .price-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px;}
+  @media (max-width:860px){ .price-grid{grid-template-columns:1fr;} }
+  .price-card{background:var(--surface); border:1px solid var(--line-soft); border-radius:var(--radius); padding:28px;}
+  .price-card.popular{border:2px solid var(--amber); position:relative; transform:translateY(-8px); box-shadow:var(--shadow);}
+  .popular-badge{position:absolute; top:-13px; right:22px; background:var(--amber); color:var(--amber-ink); font-size:11.5px; font-weight:700; padding:4px 12px; border-radius:999px;}
+  .price-card h3{margin-bottom:6px;}
+  .price-card .price{font-family:var(--mono); font-size:1.9rem; font-weight:600; margin:14px 0 4px;}
+  .price-card .price small{font-family:var(--sans); font-size:13px; color:var(--muted); font-weight:400;}
+  .price-card ul{list-style:none; padding:0; margin:20px 0 24px; font-size:14px; color:var(--ink-soft);}
+  .price-card li{padding:7px 0; border-top:1px solid var(--line-soft); display:flex; gap:8px;}
+  .price-card li:first-child{border-top:none;}
+  .price-card .btn{width:100%; justify-content:center;}
+  .price-note{text-align:center; margin-top:26px; color:var(--muted); font-size:13.5px;}
+
+  /* FAQ */
+  .faq-group{margin-bottom:26px;}
+  .faq-group > .glabel{font-size:12px; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); font-weight:700; margin-bottom:10px;}
+  details{border-bottom:1px solid var(--line-soft); padding:16px 0;}
+  details summary{cursor:pointer; font-weight:600; font-size:15px; list-style:none; display:flex; justify-content:space-between; align-items:center; gap:12px;}
+  details summary::-webkit-details-marker{display:none;}
+  details summary::after{content:"+"; font-size:20px; color:var(--muted); flex-shrink:0;}
+  details[open] summary::after{content:"–";}
+  details p{color:var(--ink-soft); margin:12px 0 0; font-size:14.5px; max-width:64ch;}
+
+  /* Final CTA */
+  .final-cta{background:var(--teal-deep); border-radius:24px; padding:60px 40px; text-align:center; color:#F2F7F3;}
+  .final-cta h2{color:#fff; font-size:2rem; margin-bottom:12px;}
+  .final-cta p{color:#C7DED2; max-width:46ch; margin:0 auto 26px;}
+  .final-cta .wa{display:block; margin-top:16px; color:#C7DED2; font-size:13.5px; text-decoration:underline;}
+
+  /* Footer */
+  footer.site{background:var(--teal-deep); color:#DDEDE4; padding:64px 0 28px;}
+  .foot-grid{display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:32px; padding-bottom:36px; border-bottom:1px solid rgba(255,255,255,.12);}
+  @media (max-width:760px){ .foot-grid{grid-template-columns:1fr 1fr;} }
+  .foot-grid h5{font-size:12px; text-transform:uppercase; letter-spacing:.07em; color:#9FC3B2; margin:0 0 14px;}
+  .foot-grid ul{list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:9px; font-size:14px;}
+  .foot-grid a:hover{color:#fff;}
+  .foot-bottom{display:flex; justify-content:space-between; align-items:center; padding-top:22px; font-size:12.5px; color:#9FC3B2; flex-wrap:wrap; gap:10px;}
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap">
+    <a class="logo" href="#top">
+      <svg width="24" height="24" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="12" fill="none" stroke="var(--teal)" stroke-width="1.4"/><path d="M5 15 C 9 8, 13 18, 17 10 C 19 6, 20 9, 21 11" fill="none" stroke="var(--amber)" stroke-width="1.6" stroke-linecap="round"/></svg>
+      PediaNex
+    </a>
+    <nav class="primary" aria-label="Primary">
+      <a href="#features">Features</a>
+      <a href="#how-it-works">How it works</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <div class="header-actions">
+      <a class="btn-link" href="#" style="text-decoration:none;">Log in</a>
+      <a class="btn btn-primary" href="#book-demo">Book a Demo</a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="hero">
+    <div class="wrap grid">
+      <div>
+        <span class="eyebrow">Pediatric EMR, built for kids' care</span>
+        <h1>The clinic software your smallest patients deserve.</h1>
+        <p class="lede">PediaNex replaces paper charts, Excel growth trackers, and manual reminder calls with one system built only for pediatrics.</p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="#book-demo">Book a Free Demo</a>
+          <a class="btn btn-ghost" href="https://wa.me/910000000000" target="_blank" rel="noopener">Chat on WhatsApp</a>
+        </div>
+        <div class="trust-line">
+          <span>No setup fees</span>
+          <span>Live in under 2 weeks</span>
+          <span>Built for HIPAA/DPDP compliance</span>
+        </div>
+      </div>
+      <div class="device">
+        <div class="bar"><span></span><span></span><span></span></div>
+        <div class="screen">
+          <div class="mini-card">
+            <div class="label">Growth · Percentile</div>
+            <svg class="growth-svg" viewBox="0 0 280 70" preserveAspectRatio="none" aria-hidden="true">
+              <path class="percentile" d="M0 55 C 70 45, 140 40, 280 22"/>
+              <path class="percentile" d="M0 40 C 70 32, 140 26, 280 10"/>
+              <path class="child" d="M0 58 C 60 50, 120 34, 180 26 C 210 22, 240 20, 280 16"/>
+              <circle cx="280" cy="16" r="4"/>
+            </svg>
+            <div class="pill-row"><span class="pill">72nd percentile</span><span class="pill amber">On track</span></div>
+          </div>
+          <div class="mini-card">
+            <div class="label">Vaccination due</div>
+            <div style="display:flex; justify-content:space-between; font-size:13.5px;">
+              <span>MMR — 2nd dose</span><span class="muted num">in 6 days</span>
+            </div>
+          </div>
+          <div class="mini-card" style="margin-bottom:0;">
+            <div class="label">Next visit</div>
+            <div style="display:flex; justify-content:space-between; font-size:13.5px;">
+              <span>Aarav Mehta, 4y</span><span class="muted num">10:30 AM</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="stats">
+    <div class="wrap">
+      <div class="logos" aria-hidden="true">
+        <span>Sunrise Kids Clinic</span><span>Little Sprouts Pediatrics</span><span>Bloom Child Care</span><span>Anderson Hills Pediatrics</span>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-tile"><span class="num">38%</span><div class="cap">less time on documentation per visit</div></div>
+        <div class="stat-tile"><span class="num">2×</span><div class="cap">faster vaccination-schedule lookups</div></div>
+        <div class="stat-tile"><span class="num">98%</span><div class="cap">of parents open WhatsApp reminders</div></div>
+        <div class="stat-tile"><span class="num">500+</span><div class="cap">pediatric clinics onboarded</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="problems">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Problems we solve</span>
+        <h2>The frustrations pediatricians actually deal with.</h2>
+      </div>
+      <div class="pain-grid">
+        <div class="pain-card"><h3>"Vaccination schedules live in Excel."</h3><p>Missed doses and manual follow-up calls eat into every week.</p><div class="solved">→ Vaccination Scheduling &amp; Reminders</div></div>
+        <div class="pain-card"><h3>"I calculate growth percentiles by hand."</h3><p>Error-prone, slow, and impossible to trend over time.</p><div class="solved">→ Growth Charts</div></div>
+        <div class="pain-card"><h3>"Parents call about refills constantly."</h3><p>Front desk time disappears into prescription phone tag.</p><div class="solved">→ Digital Prescriptions</div></div>
+        <div class="pain-card"><h3>"No-shows quietly drain revenue."</h3><p>No automated reminder loop means empty slots go unnoticed.</p><div class="solved">→ Appointment Management</div></div>
+        <div class="pain-card"><h3>"I spend evenings finishing notes."</h3><p>Documentation eats into family time, every single day.</p><div class="solved">→ AI-Powered Documentation</div></div>
+        <div class="pain-card"><h3>"I can't see how the clinic is doing."</h3><p>No visibility into revenue, visit volume, or missed milestones.</p><div class="solved">→ Analytics &amp; Reports</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="features">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Features</span>
+        <h2>Everything a pediatric clinic runs on, in one system.</h2>
+      </div>
+
+      <div class="feature-row">
+        <div class="feature-copy">
+          <span class="tag">Clinical</span>
+          <h3>Electronic Medical Records</h3>
+          <p>One pediatric-specific chart per child — well-visit templates, sick-visit templates, and adolescent care, not a generic adult record with pediatrics wedged in.</p>
+        </div>
+        <div class="feature-visual">
+          <svg width="100%" height="120" viewBox="0 0 300 120" aria-hidden="true"><rect x="10" y="10" width="280" height="14" rx="4" fill="var(--line-soft)"/><rect x="10" y="34" width="200" height="10" rx="3" fill="var(--line-soft)"/><rect x="10" y="52" width="240" height="10" rx="3" fill="var(--line-soft)"/><rect x="10" y="80" width="130" height="28" rx="6" fill="var(--teal-tint)"/></svg>
+        </div>
+      </div>
+
+      <div class="feature-row reverse">
+        <div class="feature-copy">
+          <span class="tag">Clinical</span>
+          <h3>Growth Charts</h3>
+          <p>WHO/CDC percentiles calculated and plotted automatically at every visit, trended across years without a spreadsheet in sight.</p>
+        </div>
+        <div class="feature-visual">
+          <svg width="100%" height="120" viewBox="0 0 300 120" aria-hidden="true">
+            <path d="M10 100 C 90 80, 170 60, 290 20" fill="none" stroke="var(--teal)" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M10 110 C 90 95, 170 85, 290 55" fill="none" stroke="var(--line)" stroke-width="1"/>
+            <circle cx="290" cy="20" r="4.5" fill="var(--amber)"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="feature-row">
+        <div class="feature-copy">
+          <span class="tag">Clinical</span>
+          <h3>Development Milestone Tracking</h3>
+          <p>Age-linked milestone checklists flag developmental delays early, instead of relying on memory during a rushed visit.</p>
+        </div>
+        <div class="feature-visual">
+          <div class="pill-row" style="justify-content:center;">
+            <span class="pill amber">Sits without support ✓</span><span class="pill">First words — due 14mo</span><span class="pill amber">Walks alone ✓</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-row reverse">
+        <div class="feature-copy">
+          <span class="tag">Clinical</span>
+          <h3>Digital Prescriptions</h3>
+          <p>Dosing calculated by the child's weight automatically, sent straight to the parent's phone — no handwriting, no refill calls.</p>
+        </div>
+        <div class="feature-visual">
+          <div class="mini-card" style="width:100%; margin:0;">
+            <div class="label">Dosing example</div>
+            <div class="num" style="font-size:1.5rem;">120<small style="font-size:.9rem; font-family:var(--sans);">mg / 5mL</small></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-row">
+        <div class="feature-copy">
+          <span class="tag">Clinical</span>
+          <h3>AI-Powered Documentation</h3>
+          <p>Ambient note-taking during the visit, drafted into a structured chart automatically — the notes finish before you leave the room.</p>
+        </div>
+        <div class="feature-visual">
+          <svg width="100%" height="120" viewBox="0 0 300 120" aria-hidden="true"><rect x="10" y="10" width="280" height="100" rx="10" fill="var(--paper)" stroke="var(--line-soft)"/><rect x="26" y="26" width="120" height="8" rx="3" fill="var(--amber-soft)"/><rect x="26" y="46" width="248" height="8" rx="3" fill="var(--line-soft)"/><rect x="26" y="64" width="200" height="8" rx="3" fill="var(--line-soft)"/><rect x="26" y="82" width="160" height="8" rx="3" fill="var(--line-soft)"/></svg>
+        </div>
+      </div>
+
+      <div class="mid-cta">
+        <p>Still charting on paper? Let's fix that.</p>
+        <a class="btn btn-primary" href="#book-demo">Book a Demo</a>
+      </div>
+
+      <div class="icon-grid" style="margin-top:44px;">
+        <div class="icon-card"><div class="ic">📅</div><h4>Appointment Management</h4><p>Calendar, waitlists, and no-show tracking in one view.</p></div>
+        <div class="icon-card"><div class="ic">🧾</div><h4>Billing &amp; Invoicing</h4><p>Insurance claims and parent-facing invoices from the same record.</p></div>
+        <div class="icon-card"><div class="ic">📊</div><h4>Analytics &amp; Reports</h4><p>Revenue, visit volume, and vaccination-coverage dashboards.</p></div>
+        <div class="icon-card"><div class="ic">💬</div><h4>WhatsApp / SMS Reminders</h4><p>Appointment and vaccine-due alerts sent where parents actually read them.</p></div>
+        <div class="icon-card"><div class="ic">💉</div><h4>Vaccination Scheduling</h4><p>Auto-generated schedules with escalating reminders for overdue doses.</p></div>
+        <div class="icon-card"><div class="ic">👨‍👩‍👧</div><h4>Parent Portal</h4><p>Growth history, prescriptions, and upcoming vaccines, visible to the family.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="how-it-works">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">How PediaNex works</span>
+        <h2>Live in under two weeks.</h2>
+      </div>
+      <div class="steps">
+        <div class="step"><span class="step-num">01</span><h4>Book a demo</h4><p>A pediatrician-led walkthrough of your specific workflow, not a generic sales pitch.</p></div>
+        <div class="step"><span class="step-num">02</span><h4>We migrate your records</h4><p>Existing patient charts and immunization history are imported for you.</p></div>
+        <div class="step"><span class="step-num">03</span><h4>Your team gets trained</h4><p>Live sessions plus an on-demand video library for new hires later.</p></div>
+        <div class="step"><span class="step-num">04</span><h4>Go live, fully supported</h4><p>A named contact for your first 30 days, not a support ticket queue.</p></div>
+      </div>
+      <div style="text-align:center; margin-top:36px;"><a class="btn btn-primary" href="#book-demo">Start Your Migration — Book a Demo</a></div>
+    </div>
+  </section>
+
+  <section id="showcase">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Product showcase</span>
+        <h2>See the dashboard your team will actually use.</h2>
+      </div>
+      <div class="tabs" role="tablist" aria-label="Product views">
+        <button class="tab-btn" role="tab" aria-selected="true" data-tab="dashboard">Dashboard</button>
+        <button class="tab-btn" role="tab" aria-selected="false" data-tab="growth">Growth Chart</button>
+        <button class="tab-btn" role="tab" aria-selected="false" data-tab="vaccine">Vaccination Tracker</button>
+        <button class="tab-btn" role="tab" aria-selected="false" data-tab="parent">Parent App</button>
+      </div>
+      <div class="showcase-frame">
+        <div class="bar"><span></span><span></span><span></span></div>
+        <div class="tab-panel" data-active="true" data-panel="dashboard">
+          <div class="callout"><span class="chip">Today's visits</span><p style="margin:0; font-size:14px;">14 scheduled · 2 waiting · next: Aarav Mehta, 10:30 AM</p></div>
+          <div class="callout"><span class="chip">Revenue this month</span><p style="margin:0; font-size:14px;">₹4,82,000 · up 12% vs last month</p></div>
+        </div>
+        <div class="tab-panel" data-panel="growth">
+          <div class="callout"><span class="chip">Percentile calculated automatically</span><p style="margin:0; font-size:14px;">72nd percentile for weight-for-age, plotted against WHO standards at every visit.</p></div>
+        </div>
+        <div class="tab-panel" data-panel="vaccine">
+          <div class="callout"><span class="chip">One-tap WhatsApp reminder</span><p style="margin:0; font-size:14px;">MMR 2nd dose due in 6 days — reminder queued to send automatically.</p></div>
+        </div>
+        <div class="tab-panel" data-panel="parent">
+          <div class="callout"><span class="chip">Parent view</span><p style="margin:0; font-size:14px;">Growth history, past prescriptions, and upcoming vaccines — visible to the family, read-only.</p></div>
+        </div>
+      </div>
+      <div style="text-align:center; margin-top:32px;"><a class="btn btn-primary" href="#book-demo">Book a Live Demo</a></div>
+    </div>
+  </section>
+
+  <section id="why">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Why choose PediaNex</span>
+        <h2>Not a generic EMR with pediatrics bolted on.</h2>
+      </div>
+      <div class="pull-quote"><p>"PediaNex is built for pediatric workflows from the first line of code — not a general EMR with a pediatrics module added afterward."</p></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th></th><th>PediaNex</th><th>Generic EMR / legacy tool</th></tr></thead>
+          <tbody>
+            <tr><td>Built for</td><td>Pediatrics only, from the chart template up</td><td class="muted" style="font-weight:400;">Adult medicine, with pediatrics bolted on</td></tr>
+            <tr><td>Reminders</td><td>WhatsApp/SMS-native, opened by parents</td><td class="muted" style="font-weight:400;">Email only, rarely opened</td></tr>
+            <tr><td>Documentation</td><td>AI-assisted, trained on pediatric visits</td><td class="muted" style="font-weight:400;">Manual typing or generic transcription</td></tr>
+            <tr><td>Growth tracking</td><td>Automatic WHO/CDC percentile charts</td><td class="muted" style="font-weight:400;">Manual calculation or none</td></tr>
+            <tr><td>Setup time</td><td>Under 2 weeks, migration included</td><td class="muted" style="font-weight:400;">Months, migration is your problem</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="text-align:center; margin-top:28px;"><a class="btn-link" href="#book-demo">See the difference in a live demo →</a></div>
+    </div>
+  </section>
+
+  <section id="testimonials">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Testimonials</span>
+        <h2>What pediatricians say after switching.</h2>
+      </div>
+      <div class="testi-grid">
+        <div class="testi-card featured">
+          <p class="quote">"Cut my after-hours charting from two hours to twenty minutes. I get home for dinner again."</p>
+          <div class="who"><div class="avatar">DR</div><div><div class="name">Dr. Ritu Shah</div><div class="role">Sunrise Kids Clinic, Mumbai · 11 yrs in practice</div></div></div>
+        </div>
+        <div class="testi-card">
+          <p class="quote">"Parents actually open the WhatsApp reminders. No-shows dropped almost immediately."</p>
+          <div class="who"><div class="avatar">AK</div><div><div class="name">Dr. Arjun Kumar</div><div class="role">Little Sprouts Pediatrics, Bengaluru</div></div></div>
+        </div>
+        <div class="testi-card">
+          <p class="quote">"Migration took nine days, not the three months our old vendor quoted."</p>
+          <div class="who"><div class="avatar">MP</div><div><div class="name">Dr. Meera Pillai</div><div class="role">Bloom Child Care, Pune</div></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Pricing</span>
+        <h2>Priced for how your clinic actually runs.</h2>
+      </div>
+      <div class="price-grid">
+        <div class="price-card">
+          <h3>Solo Practitioner</h3>
+          <p class="muted" style="font-size:13.5px;">For a single-doctor clinic getting off paper.</p>
+          <div class="price">₹12,999<small>/year</small></div>
+          <ul>
+            <li>✓ EMR &amp; growth charts</li>
+            <li>✓ Vaccination scheduling</li>
+            <li>✓ WhatsApp/SMS reminders</li>
+            <li>✓ Parent portal</li>
+          </ul>
+          <a class="btn btn-ghost" href="#book-demo">Book a Demo</a>
+        </div>
+        <div class="price-card popular">
+          <span class="popular-badge">Most popular</span>
+          <h3>Growing Clinic</h3>
+          <p class="muted" style="font-size:13.5px;">Multiple providers, front desk + billing included.</p>
+          <div class="price">₹24,999<small>/year</small></div>
+          <ul>
+            <li>✓ Everything in Solo</li>
+            <li>✓ Billing &amp; invoicing</li>
+            <li>✓ AI-powered documentation</li>
+            <li>✓ Analytics &amp; reports</li>
+          </ul>
+          <a class="btn btn-primary" href="#book-demo">Book a Demo</a>
+        </div>
+        <div class="price-card">
+          <h3>Multi-Location Group</h3>
+          <p class="muted" style="font-size:13.5px;">Centralized analytics across every branch.</p>
+          <div class="price" style="font-size:1.3rem;">Contact Sales</div>
+          <ul>
+            <li>✓ Everything in Growing Clinic</li>
+            <li>✓ Cross-branch analytics</li>
+            <li>✓ Dedicated account manager</li>
+            <li>✓ Custom onboarding</li>
+          </ul>
+          <a class="btn btn-ghost" href="#book-demo">Talk to Sales</a>
+        </div>
+      </div>
+      <p class="price-note">Free data migration on every plan · No long-term lock-in</p>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap" style="max-width:720px;">
+      <div class="section-head">
+        <span class="eyebrow">FAQ</span>
+        <h2>Questions clinic owners ask before switching.</h2>
+      </div>
+
+      <div class="faq-group">
+        <div class="glabel">Security</div>
+        <details open><summary>Is my patient data secure and compliant?</summary><p>Yes — PediaNex is built for HIPAA and DPDP compliance, with end-to-end encryption for all patient records.</p></details>
+        <details><summary>Where is data stored?</summary><p>Data is stored in region-appropriate, access-controlled cloud infrastructure with regular backups.</p></details>
+      </div>
+      <div class="faq-group">
+        <div class="glabel">Onboarding</div>
+        <details><summary>What happens to my existing patient records?</summary><p>We migrate your existing charts and vaccination history for you as part of onboarding — it's included, not an add-on.</p></details>
+        <details><summary>How long is training?</summary><p>Live training sessions run during onboarding, plus an on-demand video library for any new hires afterward.</p></details>
+        <details><summary>What if my clinic has spotty internet?</summary><p>PediaNex caches recent charts locally so you can keep working through short outages, syncing once you're back online.</p></details>
+      </div>
+      <div class="faq-group">
+        <div class="glabel">Using it day to day</div>
+        <details><summary>Do parents need to download an app?</summary><p>No — the parent portal works in any mobile browser; an app is optional, not required.</p></details>
+        <details><summary>Can I use it on my phone during rounds?</summary><p>Yes, PediaNex is fully responsive and works on phone, tablet, and desktop.</p></details>
+      </div>
+      <div class="faq-group">
+        <div class="glabel">Commercial</div>
+        <details><summary>How long is the contract?</summary><p>Annual billing with no long-term lock-in — you can leave at the end of any term.</p></details>
+        <details><summary>Can I try it before switching fully?</summary><p>Yes — a live demo on your own sample workflow is the first step, before any commitment.</p></details>
+      </div>
+
+      <div style="text-align:center; margin-top:8px;"><a class="btn-link" href="#book-demo">Still have questions? Talk to us →</a></div>
+    </div>
+  </section>
+
+  <section id="book-demo">
+    <div class="wrap">
+      <div class="final-cta">
+        <h2>Give your practice back its time.</h2>
+        <p>See PediaNex running on your own patient workflow in twenty minutes.</p>
+        <a class="btn btn-primary" href="#book-demo">Book a Free Demo</a>
+        <a class="wa" href="https://wa.me/910000000000" target="_blank" rel="noopener">or chat with us on WhatsApp →</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <div class="logo" style="color:#fff; margin-bottom:10px;">
+          <svg width="22" height="22" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="12" fill="none" stroke="#9FC3B2" stroke-width="1.4"/><path d="M5 15 C 9 8, 13 18, 17 10 C 19 6, 20 9, 21 11" fill="none" stroke="#E3A44C" stroke-width="1.6" stroke-linecap="round"/></svg>
+          PediaNex
+        </div>
+        <p style="font-size:13.5px; color:#9FC3B2; max-width:28ch;">Pediatric EMR built only for children's clinics.</p>
+      </div>
+      <div>
+        <h5>Product</h5>
+        <ul><li><a href="#features">Features</a></li><li><a href="#pricing">Pricing</a></li><li><a href="#book-demo">Book a Demo</a></li></ul>
+      </div>
+      <div>
+        <h5>Company</h5>
+        <ul><li><a href="#">About</a></li><li><a href="#">Careers</a></li><li><a href="#">Blog</a></li></ul>
+      </div>
+      <div>
+        <h5>Legal</h5>
+        <ul><li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li><li><a href="#">HIPAA / DPDP</a></li></ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 PediaNex. All rights reserved.</span>
+      <span>Bengaluru, India</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.querySelectorAll('.tab-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var target = btn.getAttribute('data-tab');
+      document.querySelectorAll('.tab-btn').forEach(function(b){ b.setAttribute('aria-selected', b === btn ? 'true' : 'false'); });
+      document.querySelectorAll('.tab-panel').forEach(function(p){ p.setAttribute('data-active', p.getAttribute('data-panel') === target ? 'true' : 'false'); });
+    });
+  });
+</script>
+
+</body>
+</html>
