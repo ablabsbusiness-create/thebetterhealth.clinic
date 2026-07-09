@@ -103,25 +103,35 @@
         linear-gradient(180deg, #f5faf3 0%, #eaf3ec 55%, #e6f1e9 100%);
     }
 
-    .page-shell {
-      width: min(560px, calc(100% - 32px));
-      margin: 0 auto;
-      padding: 40px 0 72px;
-      display: grid;
-      gap: 22px;
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(12px);
+      background: rgba(248, 252, 248, 0.85);
+      border-bottom: 1px solid rgba(215, 226, 217, 0.95);
+      box-shadow: 0 8px 24px rgba(22, 38, 29, 0.05);
     }
 
-    .brand-row {
+    .topbar {
+      width: min(1180px, calc(100% - 28px));
+      margin: 0 auto;
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+    }
+
+    .brand {
       display: flex;
       align-items: center;
       gap: 14px;
-      padding: 0 4px;
+      min-width: 0;
     }
 
     .brand-mark {
-      width: 48px;
-      height: 48px;
-      border-radius: 15px;
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
       display: grid;
       place-items: center;
       background: linear-gradient(135deg, #34d399, #15803d);
@@ -131,42 +141,32 @@
     }
 
     .brand-mark svg {
-      width: 24px;
-      height: 24px;
+      width: 22px;
+      height: 22px;
     }
 
-    .brand-text strong {
+    .brand-copy strong {
       display: block;
-      font-size: 17px;
+      font-size: 15.5px;
       font-weight: 700;
-      line-height: 1.25;
+      line-height: 1.2;
       letter-spacing: -0.01em;
     }
 
-    .brand-text span {
+    .brand-copy span {
+      display: block;
+      margin-top: 2px;
       color: var(--muted);
-      font-size: 13px;
+      font-size: 12.5px;
       font-weight: 500;
     }
 
-    .hero {
-      padding: 2px 4px 6px;
-    }
-
-    .hero h1 {
-      margin: 0 0 8px;
-      font-size: 27px;
-      font-weight: 700;
-      line-height: 1.2;
-      letter-spacing: -0.015em;
-    }
-
-    .hero p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 14.5px;
-      line-height: 1.65;
-      max-width: 46ch;
+    .page-shell {
+      width: min(560px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 72px;
+      display: grid;
+      gap: 22px;
     }
 
     .panel {
@@ -177,24 +177,8 @@
       box-shadow: var(--shadow-panel);
     }
 
-    .panel-eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 14px;
-      padding: 5px 12px;
-      border-radius: 999px;
-      background: var(--brand-soft);
-      color: var(--brand-strong);
-      font-size: 11.5px;
-      font-weight: 700;
-      letter-spacing: 0.02em;
-      text-transform: uppercase;
-    }
-
-    .panel-eyebrow svg {
-      width: 13px;
-      height: 13px;
+    .panel.is-hidden {
+      display: none;
     }
 
     form {
@@ -623,10 +607,6 @@
         border-radius: 20px;
       }
 
-      .hero h1 {
-        font-size: 23px;
-      }
-
       .dob-group {
         grid-template-columns: 1fr 1fr 1.3fr;
         gap: 6px;
@@ -647,32 +627,34 @@
     }
   </style>
   <link rel="stylesheet" href="mobile-app.css" />
+  <style>
+    @media (max-width: 760px) {
+      .page-shell,
+      .panel {
+        padding-bottom: 14px !important;
+      }
+    }
+  </style>
 </head>
 <body>
+  <header class="site-header">
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 21s-7.5-4.6-10-9.3C.4 8.2 2 4.5 5.6 4a4.7 4.7 0 0 1 6.4 2 4.7 4.7 0 0 1 6.4-2c3.6.5 5.2 4.2 3.6 7.7C19.5 16.4 12 21 12 21Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="brand-copy">
+          <strong>The Better Kids Clinic</strong>
+          <span>Patient Portal</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
   <div class="page-shell">
-    <div class="brand-row">
-      <div class="brand-mark">
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 21s-7.5-4.6-10-9.3C.4 8.2 2 4.5 5.6 4a4.7 4.7 0 0 1 6.4 2 4.7 4.7 0 0 1 6.4-2c3.6.5 5.2 4.2 3.6 7.7C19.5 16.4 12 21 12 21Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
-      <div class="brand-text">
-        <strong>The Better Kids Clinic</strong>
-        <span>Patient Portal</span>
-      </div>
-    </div>
-
-    <div class="hero">
-      <h1>View your child's prescriptions</h1>
-      <p>Enter the patient ID and date of birth exactly as given at the clinic to see past visits and download prescriptions.</p>
-    </div>
-
-    <section class="panel">
-      <span class="panel-eyebrow">
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 11a7 7 0 0 1-14 0M12 18v3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Verify to continue
-      </span>
-
+    <section id="lookup-panel" class="panel">
       <form id="lookup-form">
         <label for="patient-id-number">
           Patient ID
@@ -750,6 +732,7 @@
     const lookupSubmit = document.getElementById('lookup-submit');
     const formMessage = document.getElementById('form-message');
     const formMessageText = document.getElementById('form-message-text');
+    const lookupPanel = document.getElementById('lookup-panel');
     const loadingPanel = document.getElementById('loading-panel');
     const resultsPanel = document.getElementById('results-panel');
     const resultsTitle = document.getElementById('results-title');
@@ -988,6 +971,7 @@
 
         resultsTitle.textContent = `Visit history for ${patientId}`;
         resultsSubtitle.textContent = entries.length === 1 ? '1 visit found' : `${entries.length} visits found`;
+        lookupPanel.classList.add('is-hidden');
         resultsPanel.classList.add('is-visible');
         await renderVisits(entries);
         resultsPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1001,11 +985,13 @@
     lookupForm.addEventListener('submit', handleLookup);
     resultsReset.addEventListener('click', () => {
       resultsPanel.classList.remove('is-visible');
+      lookupPanel.classList.remove('is-hidden');
       clearFormMessage();
       patientIdNumberInput.value = '';
       dobDayInput.value = '';
       dobMonthInput.value = '';
       dobYearInput.value = '';
+      lookupPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
       patientIdNumberInput.focus();
     });
   </script>
