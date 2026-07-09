@@ -31,6 +31,7 @@ const PUBLIC_PATHS = new Set([
   '/intake',
   '/rx',
   '/KID/rx',
+  '/portal',
   '/api/auth/login',
   '/api/auth/logout',
   '/api/patients/create',

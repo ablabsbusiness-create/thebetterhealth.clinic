@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Patient Portal | The Better Kids Clinic EMR</title>
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="manifest" href="/emr/kid/site.webmanifest" />
+  <meta name="description" content="Patient portal for The Better Kids Clinic, letting parents view and download their child's past prescriptions." />
+  <link rel="canonical" href="https://www.thebetterhealth.clinic/emr/kid/portal" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="The Better Health Clinic" />
+  <meta property="og:title" content="Patient Portal | The Better Kids Clinic EMR" />
+  <meta property="og:description" content="Patient portal for The Better Kids Clinic, letting parents view and download their child's past prescriptions." />
+  <meta property="og:url" content="https://www.thebetterhealth.clinic/emr/kid/portal" />
+  <meta property="og:locale" content="en_IN" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Patient Portal | The Better Kids Clinic EMR" />
+  <meta name="twitter:description" content="Patient portal for The Better Kids Clinic, letting parents view and download their child's past prescriptions." />
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://www.thebetterhealth.clinic/#website",
+      "name": "The Better Health Clinic",
+      "url": "https://www.thebetterhealth.clinic/"
+    },
+    {
+      "@type": "MedicalClinic",
+      "@id": "https://www.thebetterhealth.clinic/#clinic",
+      "name": "The Better Health Clinic",
+      "url": "https://www.thebetterhealth.clinic/",
+      "telephone": [
+        "+919686183999",
+        "+919513988840"
+      ],
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "#155, 2nd Cross, 1st stage, Arekere MICO Layout, Off Bannerghatta Road",
+        "addressLocality": "Bengaluru",
+        "postalCode": "560076",
+        "addressCountry": "IN"
+      },
+      "medicalSpecialty": [
+        "Pediatrics",
+        "Pulmonology"
+      ]
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://www.thebetterhealth.clinic/emr/kid/portal#webpage",
+      "url": "https://www.thebetterhealth.clinic/emr/kid/portal",
+      "name": "Patient Portal | The Better Kids Clinic EMR",
+      "description": "Patient portal for The Better Kids Clinic, letting parents view and download their child's past prescriptions.",
+      "isPartOf": {
+        "@id": "https://www.thebetterhealth.clinic/#website"
+      },
+      "about": {
+        "@id": "https://www.thebetterhealth.clinic/#clinic"
+      }
+    }
+  ]
+}
+  </script>
+  <style>
+    :root {
+      --bg: #eef4ef;
+      --panel: #ffffff;
+      --ink: #1b2a21;
+      --muted: #607067;
+      --line: #d7e2d9;
+      --brand: #166534;
+      --brand-soft: #dcfce7;
+      --brand-strong: #14532d;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Outfit, system-ui, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(34, 197, 94, 0.14), transparent 28%),
+        linear-gradient(180deg, #f5faf3 0%, #edf5ef 100%);
+    }
+
+    .page-shell {
+      width: min(560px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 60px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #22c55e, #15803d);
+      color: #fff;
+      font-weight: 800;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .brand-text strong {
+      display: block;
+      font-size: 16px;
+      line-height: 1.2;
+    }
+
+    .brand-text span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .panel {
+      padding: 26px 24px;
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 18px 45px rgba(22, 38, 29, 0.08);
+    }
+
+    .panel h1 {
+      margin: 0 0 6px;
+      font-size: 22px;
+      line-height: 1.2;
+    }
+
+    .panel > p {
+      margin: 0 0 20px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    form {
+      display: grid;
+      gap: 14px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    input {
+      width: 100%;
+      min-height: 46px;
+      padding: 0 14px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: #fbfdfb;
+      color: var(--ink);
+      font: inherit;
+      font-size: 15px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: rgba(22, 101, 52, 0.45);
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.14);
+    }
+
+    .patient-id-group {
+      display: flex;
+      align-items: stretch;
+      gap: 8px;
+    }
+
+    .patient-id-prefix {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 56px;
+      padding: 0 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--brand-soft);
+      color: var(--brand-strong);
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 0.02em;
+    }
+
+    .patient-id-group input {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .dob-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.4fr;
+      gap: 8px;
+    }
+
+    .dob-group input {
+      text-align: center;
+    }
+
+    .btn-primary {
+      margin-top: 4px;
+      min-height: 48px;
+      border: 0;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #22c55e, #15803d);
+      color: #fff;
+      font: inherit;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 12px 24px rgba(22, 101, 52, 0.22);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.65;
+      cursor: default;
+    }
+
+    .form-message {
+      display: none;
+      margin: 0;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .form-message.is-visible {
+      display: block;
+    }
+
+    .form-message.is-error {
+      background: #fef2f2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+
+    .form-message.is-info {
+      background: #f8fafc;
+      color: var(--muted);
+      border: 1px solid var(--line);
+    }
+
+    .results-panel {
+      display: none;
+    }
+
+    .results-panel.is-visible {
+      display: grid;
+      gap: 12px;
+    }
+
+    .results-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .results-head h2 {
+      margin: 0;
+      font-size: 17px;
+    }
+
+    .results-head button {
+      border: 0;
+      background: none;
+      color: var(--brand);
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .visit-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .visit-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: #fbfdfb;
+    }
+
+    .visit-card-date {
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .visit-card-sub {
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .visit-card-actions {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .visit-card-actions a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 0 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      border: 1px solid var(--line);
+      color: var(--ink);
+      background: #fff;
+    }
+
+    .visit-card-actions a.is-primary {
+      border-color: transparent;
+      background: var(--brand-soft);
+      color: var(--brand-strong);
+    }
+
+    .loading-spinner {
+      display: none;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      padding: 8px 0;
+    }
+
+    .loading-spinner.is-visible {
+      display: block;
+    }
+  </style>
+  <link rel="stylesheet" href="mobile-app.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <div class="brand-row">
+      <div class="brand-mark">+</div>
+      <div class="brand-text">
+        <strong>The Better Kids Clinic</strong>
+        <span>Patient Portal</span>
+      </div>
+    </div>
+
+    <section class="panel">
+      <h1>View your child's prescriptions</h1>
+      <p>Enter the patient ID and date of birth exactly as given at the clinic to see past visits and download prescriptions.</p>
+
+      <form id="lookup-form">
+        <label for="patient-id-number">
+          Patient ID
+          <div class="patient-id-group">
+            <span class="patient-id-prefix">TBK</span>
+            <input id="patient-id-number" name="patientIdNumber" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0000" autocomplete="off" required>
+          </div>
+        </label>
+        <label>
+          Date of birth
+          <div class="dob-group">
+            <input id="dob-day" name="dobDay" type="text" inputmode="numeric" placeholder="DD" maxlength="2" required>
+            <input id="dob-month" name="dobMonth" type="text" inputmode="numeric" placeholder="MM" maxlength="2" required>
+            <input id="dob-year" name="dobYear" type="text" inputmode="numeric" placeholder="YYYY" maxlength="4" required>
+          </div>
+        </label>
+        <button id="lookup-submit" class="btn-primary" type="submit">View my records</button>
+        <p id="form-message" class="form-message"></p>
+      </form>
+    </section>
+
+    <p id="loading-spinner" class="loading-spinner">Loading records...</p>
+
+    <section id="results-panel" class="results-panel">
+      <div class="results-head">
+        <h2 id="results-title">Visit history</h2>
+        <button id="results-reset" type="button">Search again</button>
+      </div>
+      <div id="visit-list" class="visit-list"></div>
+    </section>
+  </div>
+
+  <script type="module">
+    import { collection, doc, getDoc, getDocs, orderBy, query, where } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { getDownloadURL, ref } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
+    import { db, storage } from './lib/firebase-init.js';
+
+    const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
+    const FIREBASE_COLLECTIONS = {
+      patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
+      history: `${CLINIC_FIREBASE_NAMESPACE}/history`
+    };
+
+    const PATIENT_ID_PREFIX = 'TBK';
+    const PATIENT_ID_WIDTH = 4;
+
+    const lookupForm = document.getElementById('lookup-form');
+    const patientIdNumberInput = document.getElementById('patient-id-number');
+    const dobDayInput = document.getElementById('dob-day');
+    const dobMonthInput = document.getElementById('dob-month');
+    const dobYearInput = document.getElementById('dob-year');
+    const lookupSubmit = document.getElementById('lookup-submit');
+    const formMessage = document.getElementById('form-message');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    const resultsPanel = document.getElementById('results-panel');
+    const resultsTitle = document.getElementById('results-title');
+    const resultsReset = document.getElementById('results-reset');
+    const visitList = document.getElementById('visit-list');
+
+    const NO_MATCH_MESSAGE = "We couldn't find a match for that patient ID and date of birth. Please check and try again.";
+
+    function getNormalizedPatientId(value) {
+      return String(value || '').trim().toUpperCase().replace(/#@#\d+$/i, '');
+    }
+
+    function buildPatientIdFromNumber(rawNumber) {
+      const digits = String(rawNumber || '').trim().replace(/\D/g, '');
+      if (!digits) {
+        return '';
+      }
+      return `${PATIENT_ID_PREFIX}${digits.padStart(PATIENT_ID_WIDTH, '0')}`;
+    }
+
+    function parseDobInput(dayValue, monthValue, yearValue) {
+      const day = Number.parseInt(dayValue.trim(), 10);
+      const month = Number.parseInt(monthValue.trim(), 10);
+      const year = Number.parseInt(yearValue.trim(), 10);
+
+      if (!day || !month || !yearValue.trim().match(/^\d{4}$/)) {
+        return '';
+      }
+
+      const parsed = new Date(year, month - 1, day);
+
+      if (
+        Number.isNaN(parsed.getTime()) ||
+        parsed.getFullYear() !== year ||
+        parsed.getMonth() !== month - 1 ||
+        parsed.getDate() !== day
+      ) {
+        return '';
+      }
+
+      return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    }
+
+    function showFormMessage(text, type = 'error') {
+      formMessage.textContent = text;
+      formMessage.classList.remove('is-error', 'is-info');
+      formMessage.classList.add('is-visible', type === 'error' ? 'is-error' : 'is-info');
+    }
+
+    function clearFormMessage() {
+      formMessage.textContent = '';
+      formMessage.classList.remove('is-visible', 'is-error', 'is-info');
+    }
+
+    function formatDateDisplay(dateValue) {
+      if (!dateValue) {
+        return 'Date not recorded';
+      }
+      const parsed = new Date(dateValue);
+      if (Number.isNaN(parsed.getTime())) {
+        return String(dateValue);
+      }
+      return parsed.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function isPublicPdfUrl(value) {
+      return /^(https?:|blob:|data:)/i.test(String(value || '').trim());
+    }
+
+    function normalizeStoragePath(value) {
+      const rawValue = String(value || '').trim();
+      if (!rawValue || isPublicPdfUrl(rawValue)) {
+        return '';
+      }
+      try {
+        return decodeURIComponent(rawValue).replace(/^\/+/, '');
+      } catch {
+        return rawValue.replace(/^\/+/, '');
+      }
+    }
+
+    async function resolvePrescriptionPdfUrl(record) {
+      const directUrl = String(record?.downloadURL || record?.downloadUrl || record?.pdfURL || record?.pdfUrl || '').trim();
+      if (isPublicPdfUrl(directUrl)) {
+        return directUrl;
+      }
+      const storagePath = normalizeStoragePath(
+        record?.storagePath || record?.fullPath || record?.filePath || record?.pdfPath || record?.path || record?.prescriptionSaveId
+      );
+      if (!storagePath || !storage) {
+        return '';
+      }
+      try {
+        return await getDownloadURL(ref(storage, storagePath));
+      } catch {
+        return '';
+      }
+    }
+
+    function getPdfViewerUrl(pdfUrl) {
+      return pdfUrl ? `pdf-viewer.html?url=${encodeURIComponent(pdfUrl)}&embed=1` : '';
+    }
+
+    function getVisitSortValue(entry) {
+      const value = entry.createdAtIso || entry.createdAt || entry.savedAt || entry.updatedAt || '';
+      const parsed = new Date(value);
+      return Number.isNaN(parsed.getTime()) ? 0 : parsed.getTime();
+    }
+
+    function renderVisitCard(entry, pdfUrl) {
+      const card = document.createElement('div');
+      card.className = 'visit-card';
+
+      const info = document.createElement('div');
+      const dateLine = document.createElement('div');
+      dateLine.className = 'visit-card-date';
+      dateLine.textContent = formatDateDisplay(entry.createdAtIso || entry.createdAt || entry.savedAt || entry.updatedAt);
+      info.appendChild(dateLine);
+
+      if (!pdfUrl) {
+        const sub = document.createElement('div');
+        sub.className = 'visit-card-sub';
+        sub.textContent = 'PDF not available for this visit yet.';
+        info.appendChild(sub);
+      }
+
+      card.appendChild(info);
+
+      if (pdfUrl) {
+        const actions = document.createElement('div');
+        actions.className = 'visit-card-actions';
+
+        const viewLink = document.createElement('a');
+        viewLink.href = getPdfViewerUrl(pdfUrl);
+        viewLink.target = '_blank';
+        viewLink.rel = 'noopener';
+        viewLink.textContent = 'View';
+        actions.appendChild(viewLink);
+
+        const downloadLink = document.createElement('a');
+        downloadLink.href = pdfUrl;
+        downloadLink.target = '_blank';
+        downloadLink.rel = 'noopener';
+        downloadLink.className = 'is-primary';
+        downloadLink.textContent = 'Download';
+        actions.appendChild(downloadLink);
+
+        card.appendChild(actions);
+      }
+
+      return card;
+    }
+
+    async function renderVisits(entries) {
+      visitList.innerHTML = '';
+
+      if (!entries.length) {
+        const empty = document.createElement('p');
+        empty.className = 'visit-card-sub';
+        empty.textContent = 'No saved prescriptions were found for this patient yet.';
+        visitList.appendChild(empty);
+        return;
+      }
+
+      const sorted = [...entries].sort((a, b) => getVisitSortValue(b) - getVisitSortValue(a));
+
+      for (const entry of sorted) {
+        const pdfUrl = await resolvePrescriptionPdfUrl(entry);
+        visitList.appendChild(renderVisitCard(entry, pdfUrl));
+      }
+    }
+
+    function setLoading(isLoading) {
+      loadingSpinner.classList.toggle('is-visible', isLoading);
+      lookupSubmit.disabled = isLoading;
+    }
+
+    async function handleLookup(event) {
+      event.preventDefault();
+      clearFormMessage();
+      resultsPanel.classList.remove('is-visible');
+
+      const patientId = getNormalizedPatientId(buildPatientIdFromNumber(patientIdNumberInput.value));
+      const dob = parseDobInput(dobDayInput.value, dobMonthInput.value, dobYearInput.value);
+
+      if (!patientId) {
+        showFormMessage('Please enter the number from your patient ID.');
+        return;
+      }
+
+      if (!dob) {
+        showFormMessage('Please enter a valid date of birth.');
+        return;
+      }
+
+      if (!db) {
+        showFormMessage('Records are not available right now. Please try again later.');
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const patientSnapshot = await getDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId));
+
+        if (!patientSnapshot.exists() || String(patientSnapshot.data()?.dob || '') !== dob) {
+          showFormMessage(NO_MATCH_MESSAGE);
+          return;
+        }
+
+        const historyQuery = query(
+          collection(db, FIREBASE_COLLECTIONS.history),
+          where('patientId', '==', patientId),
+          orderBy('createdAtIso', 'desc')
+        );
+
+        let entries = [];
+        try {
+          const snapshot = await getDocs(historyQuery);
+          entries = snapshot.docs.map((docSnapshot) => ({ id: docSnapshot.id, ...docSnapshot.data() }));
+        } catch {
+          const fallbackSnapshot = await getDocs(
+            query(collection(db, FIREBASE_COLLECTIONS.history), where('patientId', '==', patientId))
+          );
+          entries = fallbackSnapshot.docs.map((docSnapshot) => ({ id: docSnapshot.id, ...docSnapshot.data() }));
+        }
+
+        resultsTitle.textContent = `Visit history for ${patientId}`;
+        resultsPanel.classList.add('is-visible');
+        await renderVisits(entries);
+      } catch (error) {
+        showFormMessage(error?.message || 'Something went wrong while loading records. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    lookupForm.addEventListener('submit', handleLookup);
+    resultsReset.addEventListener('click', () => {
+      resultsPanel.classList.remove('is-visible');
+      clearFormMessage();
+      patientIdNumberInput.value = '';
+      dobDayInput.value = '';
+      dobMonthInput.value = '';
+      dobYearInput.value = '';
+      patientIdNumberInput.focus();
+    });
+  </script>
+</body>
+</html>
