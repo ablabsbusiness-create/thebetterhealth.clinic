@@ -20,6 +20,7 @@ const PUBLIC_PATHS = new Set([
   '/password',
   '/intake',
   '/rx',
+  '/portal',
   '/api/auth/login',
   '/api/auth/logout'
 ]);

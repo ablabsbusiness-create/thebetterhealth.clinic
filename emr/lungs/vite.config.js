@@ -155,6 +155,7 @@ export default defineConfig({
         receptionQr: resolve(__dirname, 'reception-qr.html'),
         intake: resolve(__dirname, 'intake.html'),
         rx: resolve(__dirname, 'rx.html'),
+        portal: resolve(__dirname, 'portal.html'),
         settings: resolve(__dirname, 'settings.html'),
         search: resolve(__dirname, 'search.html')
       }
