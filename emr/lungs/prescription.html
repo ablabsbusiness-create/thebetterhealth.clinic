@@ -285,9 +285,12 @@
     }
 
     .section-row.has-detail-slot {
-      grid-template-columns: minmax(0, 1fr) minmax(340px, 430px);
       position: relative;
       align-items: stretch;
+    }
+
+    .section-row.has-detail-slot.is-detail-open {
+      grid-template-columns: minmax(0, 1fr) minmax(340px, 430px);
     }
 
     .section-detail-slot {
@@ -1196,7 +1199,8 @@
         padding: 0;
       }
 
-      .section-row.has-detail-slot {
+      .section-row.has-detail-slot,
+      .section-row.has-detail-slot.is-detail-open {
         grid-template-columns: 1fr;
       }
 
@@ -1505,7 +1509,8 @@
     const medicineCatalog = new Map();
     const sectionItemDetails = {
       Symptoms: new Map(),
-      Finding: new Map()
+      Finding: new Map(),
+      Diagnosis: new Map()
     };
     const prescriptionSelections = {};
     let activeMedicine = '';
@@ -1513,7 +1518,7 @@
     let lastAddMedicineTrigger = null;
     let pendingAddMedicineResolve = null;
     const sectionDetailSlots = new Map();
-    const DETAIL_SECTIONS = new Set(['Symptoms', 'Finding', 'Medication']);
+    const DETAIL_SECTIONS = new Set(['Symptoms', 'Finding', 'Diagnosis', 'Medication']);
     const MEDICINE_DETAIL_STORAGE_KEY = clinicStorageKey('prescriptionMedicineDetails');
     const CUSTOM_TEMPLATE_STORAGE_KEY = clinicStorageKey('prescriptionCustomTemplates');
     const PRESCRIPTION_TEMPLATE_CACHE_KEY = clinicStorageKey('prescriptionCloudTemplates');
@@ -1587,6 +1592,10 @@
         return 'Select a finding and its note box will appear here.';
       }
 
+      if (sectionName === 'Diagnosis') {
+        return 'Select a diagnosis and its note box will appear here.';
+      }
+
       return 'Extra details for this section will appear here.';
     }
 
@@ -1616,7 +1625,6 @@
         if (DETAIL_SECTIONS.has(sectionName)) {
           row.classList.add('has-detail-slot');
           const slot = createSectionDetailSlot(sectionName);
-          slot.classList.add('is-ready');
           sectionDetailSlots.set(sectionName, slot);
           row.appendChild(slot);
         }
@@ -1632,10 +1640,13 @@
       sectionDetailSlots.forEach((slot, name) => {
         const placeholder = slot.querySelector('.section-side-placeholder');
         const isTarget = name === sectionName;
-        slot.classList.toggle('is-ready', DETAIL_SECTIONS.has(name));
+        const row = slot.closest('.section-row');
+        const shouldOpen = isTarget && Boolean(activePanel);
+        slot.classList.toggle('is-ready', shouldOpen);
+        row?.classList.toggle('is-detail-open', shouldOpen);
 
         if (placeholder) {
-          placeholder.hidden = isTarget && Boolean(activePanel);
+          placeholder.hidden = true;
         }
 
         if (!isTarget) {
@@ -3002,12 +3013,12 @@
           return;
         }
 
-        if ((sectionName === 'Symptoms' || sectionName === 'Finding') && shouldSelect) {
+        if ((sectionName === 'Symptoms' || sectionName === 'Finding' || sectionName === 'Diagnosis') && shouldSelect) {
           getSectionItemDetail(sectionName, value);
           openSelectionDetailModal(sectionName, value, trigger);
         }
 
-        if ((sectionName === 'Symptoms' || sectionName === 'Finding') && !shouldSelect && sectionItemDetails[sectionName]) {
+        if ((sectionName === 'Symptoms' || sectionName === 'Finding' || sectionName === 'Diagnosis') && !shouldSelect && sectionItemDetails[sectionName]) {
           sectionItemDetails[sectionName].delete(value);
           saveSelectionDetailsToDraft();
         }
@@ -3118,7 +3129,17 @@
           return;
         }
 
-        toggleValue(selectedButton.dataset.selectedValue, false, selectedButton);
+        const selectedValue = selectedButton.dataset.selectedValue;
+        const clickedRemove = Boolean(event.target.closest('.selected-item-remove'));
+        const hasDetailPanel = sectionName === 'Symptoms' || sectionName === 'Finding' || sectionName === 'Diagnosis';
+
+        if (clickedRemove || !hasDetailPanel) {
+          toggleValue(selectedValue, false, selectedButton);
+          return;
+        }
+
+        getSectionItemDetail(sectionName, selectedValue);
+        openSelectionDetailModal(sectionName, selectedValue, selectedButton);
       });
 
       bubbleWrap.addEventListener('click', async (event) => {
