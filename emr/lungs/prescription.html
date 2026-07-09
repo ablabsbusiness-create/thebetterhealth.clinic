@@ -284,52 +284,8 @@
       align-items: start;
     }
 
-    .section-row.has-detail-slot {
-      position: relative;
-      align-items: stretch;
-    }
-
-    .section-row.has-detail-slot.is-detail-open {
-      grid-template-columns: minmax(0, 1fr) minmax(340px, 430px);
-    }
-
     .section-detail-slot {
-      display: none;
-      gap: 10px;
-      align-self: stretch;
-      position: relative;
-      padding-left: 10px;
-    }
-
-    .section-detail-slot.is-ready {
-      display: grid;
-    }
-
-    .section-detail-slot::before,
-    .section-detail-slot::after {
-      content: '';
-      position: absolute;
-      display: block;
-    }
-
-    .section-detail-slot::before {
-      top: 6px;
-      bottom: 6px;
-      left: 0;
-      width: 1px;
-      background: linear-gradient(180deg, rgba(22, 101, 52, 0.06), rgba(34, 197, 94, 0.28), rgba(22, 101, 52, 0.06));
-      border-radius: 999px;
-    }
-
-    .section-detail-slot::after {
-      top: calc(50% - 4px);
-      left: -3px;
-      width: 7px;
-      height: 7px;
-      border-radius: 999px;
-      background: #dcfce7;
-      border: 1px solid rgba(22, 101, 52, 0.18);
-      box-shadow: 0 0 0 3px rgba(220, 252, 231, 0.55);
+      display: contents;
     }
 
     .section-side-placeholder {
@@ -533,29 +489,33 @@
 
     .medicine-detail-panel {
       width: 100%;
-      height: 100%;
-      max-height: none;
+      max-width: 480px;
+      max-height: 85vh;
       display: grid;
       align-content: start;
       gap: 0;
       padding: 0;
       border-radius: 16px;
       border: 1px solid rgba(215, 226, 217, 0.72);
-      background: rgba(255, 255, 255, 0.96);
-      box-shadow: none;
-      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 24px 60px rgba(15, 23, 19, 0.32);
+      overflow: hidden auto;
     }
 
     .medicine-modal {
-      position: static;
+      position: fixed;
+      inset: 0;
       display: none;
-      padding: 0;
-      background: none;
-      backdrop-filter: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(15, 23, 19, 0.45);
+      backdrop-filter: blur(2px);
+      z-index: 1000;
     }
 
     .medicine-modal.is-open {
-      display: block;
+      display: flex;
     }
 
     .medicine-modal-head {
@@ -605,11 +565,13 @@
 
     .add-medicine-panel {
       width: 100%;
+      max-width: 560px;
+      max-height: 85vh;
       border-radius: 16px;
       border: 1px solid rgba(215, 226, 217, 0.96);
       background: #fff;
-      box-shadow: 0 16px 30px rgba(22, 38, 29, 0.08);
-      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(15, 23, 19, 0.32);
+      overflow: hidden auto;
     }
 
     .add-medicine-form {
@@ -1131,7 +1093,7 @@
 
       .medicine-detail-panel {
         width: 100%;
-        max-height: none;
+        max-height: 90vh;
         border-radius: 18px;
       }
 
@@ -1197,20 +1159,6 @@
 
       .content-panel {
         padding: 0;
-      }
-
-      .section-row.has-detail-slot,
-      .section-row.has-detail-slot.is-detail-open {
-        grid-template-columns: 1fr;
-      }
-
-      .section-detail-slot {
-        padding-left: 0;
-      }
-
-      .section-detail-slot::before,
-      .section-detail-slot::after {
-        display: none;
       }
 
       .status-chip {
@@ -1623,7 +1571,6 @@
         row.appendChild(card);
 
         if (DETAIL_SECTIONS.has(sectionName)) {
-          row.classList.add('has-detail-slot');
           const slot = createSectionDetailSlot(sectionName);
           sectionDetailSlots.set(sectionName, slot);
           row.appendChild(slot);
@@ -1640,10 +1587,6 @@
       sectionDetailSlots.forEach((slot, name) => {
         const placeholder = slot.querySelector('.section-side-placeholder');
         const isTarget = name === sectionName;
-        const row = slot.closest('.section-row');
-        const shouldOpen = isTarget && Boolean(activePanel);
-        slot.classList.toggle('is-ready', shouldOpen);
-        row?.classList.toggle('is-detail-open', shouldOpen);
 
         if (placeholder) {
           placeholder.hidden = true;
@@ -2030,6 +1973,21 @@
     medicineModalClose.addEventListener('click', closeMedicineModal);
     selectionDetailClose.addEventListener('click', closeSelectionDetailModal);
     addMedicineBack.addEventListener('click', () => closeAddMedicineModal(null));
+    medicineModal.addEventListener('click', (event) => {
+      if (event.target === medicineModal) {
+        closeMedicineModal();
+      }
+    });
+    selectionDetailModal.addEventListener('click', (event) => {
+      if (event.target === selectionDetailModal) {
+        closeSelectionDetailModal();
+      }
+    });
+    addMedicineModal.addEventListener('click', (event) => {
+      if (event.target === addMedicineModal) {
+        closeAddMedicineModal(null);
+      }
+    });
     addMedicineForm.addEventListener('submit', (event) => {
       event.preventDefault();
       const name = toTitleCase(addMedicineName.value);
