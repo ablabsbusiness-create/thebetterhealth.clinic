@@ -284,8 +284,76 @@
       align-items: start;
     }
 
+    .section-row.has-detail-slot {
+      grid-template-columns: minmax(0, 1fr) minmax(340px, 430px);
+      position: relative;
+      align-items: stretch;
+    }
+
     .section-detail-slot {
-      display: contents;
+      display: none;
+      gap: 10px;
+      align-self: stretch;
+      position: relative;
+      padding-left: 10px;
+    }
+
+    .section-detail-slot.is-ready {
+      display: grid;
+    }
+
+    .section-detail-slot::before,
+    .section-detail-slot::after {
+      content: '';
+      position: absolute;
+      display: block;
+    }
+
+    .section-detail-slot::before {
+      top: 6px;
+      bottom: 6px;
+      left: 0;
+      width: 1px;
+      background: linear-gradient(180deg, rgba(22, 101, 52, 0.06), rgba(34, 197, 94, 0.28), rgba(22, 101, 52, 0.06));
+      border-radius: 999px;
+    }
+
+    .section-detail-slot::after {
+      top: calc(50% - 4px);
+      left: -3px;
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #dcfce7;
+      border: 1px solid rgba(22, 101, 52, 0.18);
+      box-shadow: 0 0 0 3px rgba(220, 252, 231, 0.55);
+    }
+
+    .section-side-placeholder {
+      display: grid;
+      gap: 8px;
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(215, 226, 217, 0.72);
+      background: rgba(248, 252, 249, 0.88);
+      box-shadow: none;
+    }
+
+    .section-side-placeholder[hidden] {
+      display: none;
+    }
+
+    .section-side-placeholder h3 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .section-side-placeholder p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
     }
 
     .page-action-row {
@@ -462,33 +530,29 @@
 
     .medicine-detail-panel {
       width: 100%;
-      max-width: 480px;
-      max-height: 85vh;
+      height: 100%;
+      max-height: none;
       display: grid;
       align-content: start;
       gap: 0;
       padding: 0;
       border-radius: 16px;
       border: 1px solid rgba(215, 226, 217, 0.72);
-      background: #fff;
-      box-shadow: 0 24px 60px rgba(15, 23, 19, 0.32);
-      overflow: hidden auto;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: none;
+      overflow: hidden;
     }
 
     .medicine-modal {
-      position: fixed;
-      inset: 0;
+      position: static;
       display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      background: rgba(15, 23, 19, 0.45);
-      backdrop-filter: blur(2px);
-      z-index: 1000;
+      padding: 0;
+      background: none;
+      backdrop-filter: none;
     }
 
     .medicine-modal.is-open {
-      display: flex;
+      display: block;
     }
 
     .medicine-modal-head {
@@ -538,13 +602,11 @@
 
     .add-medicine-panel {
       width: 100%;
-      max-width: 560px;
-      max-height: 85vh;
       border-radius: 16px;
       border: 1px solid rgba(215, 226, 217, 0.96);
       background: #fff;
-      box-shadow: 0 24px 60px rgba(15, 23, 19, 0.32);
-      overflow: hidden auto;
+      box-shadow: 0 16px 30px rgba(22, 38, 29, 0.08);
+      overflow: hidden;
     }
 
     .add-medicine-form {
@@ -1066,7 +1128,7 @@
 
       .medicine-detail-panel {
         width: 100%;
-        max-height: 90vh;
+        max-height: none;
         border-radius: 18px;
       }
 
@@ -1132,6 +1194,19 @@
 
       .content-panel {
         padding: 0;
+      }
+
+      .section-row.has-detail-slot {
+        grid-template-columns: 1fr;
+      }
+
+      .section-detail-slot {
+        padding-left: 0;
+      }
+
+      .section-detail-slot::before,
+      .section-detail-slot::after {
+        display: none;
       }
 
       .status-chip {
@@ -1430,8 +1505,7 @@
     const medicineCatalog = new Map();
     const sectionItemDetails = {
       Symptoms: new Map(),
-      Finding: new Map(),
-      Diagnosis: new Map()
+      Finding: new Map()
     };
     const prescriptionSelections = {};
     let activeMedicine = '';
@@ -1439,7 +1513,7 @@
     let lastAddMedicineTrigger = null;
     let pendingAddMedicineResolve = null;
     const sectionDetailSlots = new Map();
-    const DETAIL_SECTIONS = new Set(['Symptoms', 'Finding', 'Diagnosis', 'Medication']);
+    const DETAIL_SECTIONS = new Set(['Symptoms', 'Finding', 'Medication']);
     const MEDICINE_DETAIL_STORAGE_KEY = clinicStorageKey('prescriptionMedicineDetails');
     const CUSTOM_TEMPLATE_STORAGE_KEY = clinicStorageKey('prescriptionCustomTemplates');
     const PRESCRIPTION_TEMPLATE_CACHE_KEY = clinicStorageKey('prescriptionCloudTemplates');
@@ -1500,10 +1574,33 @@
 
     let lastMedicineTrigger = null;
 
+    function getSectionPlaceholderCopy(sectionName) {
+      if (sectionName === 'Medication') {
+        return 'Select a medicine to set dose, timing, duration, and notes here.';
+      }
+
+      if (sectionName === 'Symptoms') {
+        return 'Select a symptom and its days, severity, and notes will appear here.';
+      }
+
+      if (sectionName === 'Finding') {
+        return 'Select a finding and its note box will appear here.';
+      }
+
+      return 'Extra details for this section will appear here.';
+    }
+
     function createSectionDetailSlot(sectionName) {
       const slot = document.createElement('aside');
       slot.className = 'section-detail-slot';
       slot.dataset.sectionSlot = sectionName;
+      slot.innerHTML = `
+        <div class="section-side-placeholder">
+          <div class="eyebrow">${escapeHtml(sectionName)}</div>
+          <h3>${escapeHtml(sectionName)} details</h3>
+          <p>${escapeHtml(getSectionPlaceholderCopy(sectionName))}</p>
+        </div>
+      `;
       return slot;
     }
 
@@ -1517,7 +1614,9 @@
         row.appendChild(card);
 
         if (DETAIL_SECTIONS.has(sectionName)) {
+          row.classList.add('has-detail-slot');
           const slot = createSectionDetailSlot(sectionName);
+          slot.classList.add('is-ready');
           sectionDetailSlots.set(sectionName, slot);
           row.appendChild(slot);
         }
@@ -1531,7 +1630,15 @@
       });
 
       sectionDetailSlots.forEach((slot, name) => {
-        if (name !== sectionName) {
+        const placeholder = slot.querySelector('.section-side-placeholder');
+        const isTarget = name === sectionName;
+        slot.classList.toggle('is-ready', DETAIL_SECTIONS.has(name));
+
+        if (placeholder) {
+          placeholder.hidden = isTarget && Boolean(activePanel);
+        }
+
+        if (!isTarget) {
           return;
         }
 
@@ -1912,21 +2019,6 @@
     medicineModalClose.addEventListener('click', closeMedicineModal);
     selectionDetailClose.addEventListener('click', closeSelectionDetailModal);
     addMedicineBack.addEventListener('click', () => closeAddMedicineModal(null));
-    medicineModal.addEventListener('click', (event) => {
-      if (event.target === medicineModal) {
-        closeMedicineModal();
-      }
-    });
-    selectionDetailModal.addEventListener('click', (event) => {
-      if (event.target === selectionDetailModal) {
-        closeSelectionDetailModal();
-      }
-    });
-    addMedicineModal.addEventListener('click', (event) => {
-      if (event.target === addMedicineModal) {
-        closeAddMedicineModal(null);
-      }
-    });
     addMedicineForm.addEventListener('submit', (event) => {
       event.preventDefault();
       const name = toTitleCase(addMedicineName.value);
@@ -2910,12 +3002,12 @@
           return;
         }
 
-        if ((sectionName === 'Symptoms' || sectionName === 'Finding' || sectionName === 'Diagnosis') && shouldSelect) {
+        if ((sectionName === 'Symptoms' || sectionName === 'Finding') && shouldSelect) {
           getSectionItemDetail(sectionName, value);
           openSelectionDetailModal(sectionName, value, trigger);
         }
 
-        if ((sectionName === 'Symptoms' || sectionName === 'Finding' || sectionName === 'Diagnosis') && !shouldSelect && sectionItemDetails[sectionName]) {
+        if ((sectionName === 'Symptoms' || sectionName === 'Finding') && !shouldSelect && sectionItemDetails[sectionName]) {
           sectionItemDetails[sectionName].delete(value);
           saveSelectionDetailsToDraft();
         }
@@ -3026,17 +3118,7 @@
           return;
         }
 
-        const selectedValue = selectedButton.dataset.selectedValue;
-        const clickedRemove = Boolean(event.target.closest('.selected-item-remove'));
-        const hasDetailPanel = sectionName === 'Symptoms' || sectionName === 'Finding' || sectionName === 'Diagnosis';
-
-        if (clickedRemove || !hasDetailPanel) {
-          toggleValue(selectedValue, false, selectedButton);
-          return;
-        }
-
-        getSectionItemDetail(sectionName, selectedValue);
-        openSelectionDetailModal(sectionName, selectedValue, selectedButton);
+        toggleValue(selectedButton.dataset.selectedValue, false, selectedButton);
       });
 
       bubbleWrap.addEventListener('click', async (event) => {
