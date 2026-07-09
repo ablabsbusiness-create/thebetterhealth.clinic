@@ -288,33 +288,6 @@
       display: contents;
     }
 
-    .section-side-placeholder {
-      display: grid;
-      gap: 8px;
-      padding: 14px;
-      border-radius: 16px;
-      border: 1px solid rgba(215, 226, 217, 0.72);
-      background: rgba(248, 252, 249, 0.88);
-      box-shadow: none;
-    }
-
-    .section-side-placeholder[hidden] {
-      display: none;
-    }
-
-    .section-side-placeholder h3 {
-      margin: 0;
-      font-size: 18px;
-      line-height: 1.2;
-    }
-
-    .section-side-placeholder p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.6;
-    }
-
     .page-action-row {
       display: flex;
       justify-content: flex-end;
@@ -1527,37 +1500,10 @@
 
     let lastMedicineTrigger = null;
 
-    function getSectionPlaceholderCopy(sectionName) {
-      if (sectionName === 'Medication') {
-        return 'Select a medicine to set dose, timing, duration, and notes here.';
-      }
-
-      if (sectionName === 'Symptoms') {
-        return 'Select a symptom and its days, severity, and notes will appear here.';
-      }
-
-      if (sectionName === 'Finding') {
-        return 'Select a finding and its note box will appear here.';
-      }
-
-      if (sectionName === 'Diagnosis') {
-        return 'Select a diagnosis and its note box will appear here.';
-      }
-
-      return 'Extra details for this section will appear here.';
-    }
-
     function createSectionDetailSlot(sectionName) {
       const slot = document.createElement('aside');
       slot.className = 'section-detail-slot';
       slot.dataset.sectionSlot = sectionName;
-      slot.innerHTML = `
-        <div class="section-side-placeholder">
-          <div class="eyebrow">${escapeHtml(sectionName)}</div>
-          <h3>${escapeHtml(sectionName)} details</h3>
-          <p>${escapeHtml(getSectionPlaceholderCopy(sectionName))}</p>
-        </div>
-      `;
       return slot;
     }
 
@@ -1585,14 +1531,7 @@
       });
 
       sectionDetailSlots.forEach((slot, name) => {
-        const placeholder = slot.querySelector('.section-side-placeholder');
-        const isTarget = name === sectionName;
-
-        if (placeholder) {
-          placeholder.hidden = true;
-        }
-
-        if (!isTarget) {
+        if (name !== sectionName) {
           return;
         }
 
