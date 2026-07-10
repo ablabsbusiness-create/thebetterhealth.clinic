@@ -232,7 +232,7 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: min(92vw, 16rem);
+      width: min(92vw, 24rem);
       min-height: 2.4rem;
       overflow: visible;
       padding: 0.1rem 0.5rem;
@@ -251,6 +251,7 @@
       color: #2E7D6B;
       text-shadow: 0 8px 24px rgba(46,125,107,0.18);
       opacity: 1;
+      white-space: nowrap;
       transform: translate(-50%, -50%);
       z-index: 1;
       pointer-events: none;
@@ -389,27 +390,29 @@
         padding: 0;
       }
       .name-slot {
-        width: min(88vw, 12rem);
+        width: min(88vw, 18rem);
         min-height: 2rem;
       }
       .name-stage {
-        font-size: 1.3rem;
+        font-size: 0.98rem;
       }
       .hero-kid-badge {
-        font-size: 0.78rem;
-        padding: 0.58rem 0.86rem;
+        font-size: 0.82rem;
+        padding: 0.62rem 0.9rem;
       }
       .hero-tagline {
-        padding: 0.72rem 0.85rem;
-        border-radius: 1.1rem;
-        font-size: 0.98rem;
-        line-height: 1.38;
+        padding: 0;
+        font-size: 1rem;
+        line-height: 1.4;
       }
       .hero-respiratory-note {
-        padding: 0.78rem 0.9rem;
-        border-radius: 1.05rem;
-        font-size: 0.92rem;
-        line-height: 1.35;
+        padding: 0;
+        border-radius: 0;
+        font-size: 1rem;
+        line-height: 1.4;
+        background: none;
+        border: none;
+        box-shadow: none;
       }
       .gallery-carousel-track {
         gap: 1rem;
@@ -1212,18 +1215,13 @@
 <!-- ==========================================
        HERO SECTION
   ========================================== -->
-<section class="hero-soft relative overflow-hidden pt-7 pb-12 md:pt-10 md:pb-12" id="home">
+<section class="hero-soft relative overflow-hidden pt-4 pb-12 md:pt-6 md:pb-12" id="home">
 <div class="hero-cloud one"></div>
 <div class="hero-cloud two"></div>
-<div class="max-w-6xl mx-auto px-4 grid lg:grid-cols-[1.05fr_0.95fr] gap-6 items-center">
+<div class="max-w-6xl mx-auto px-4 grid lg:grid-cols-[1.05fr_0.95fr] gap-16 items-start">
 <div class="hero-content fade-in max-w-2xl mx-auto text-center">
-<div class="flex justify-center mb-4">
-<div class="hero-kid-badge">
-<span class="dot"></span> Pulmonology and chest care
-      </div>
-</div>
-<h1 class="text-5xl md:text-6xl xl:text-7xl font-bold leading-tight text-brand-dark mb-3">Breathe Better</h1>
-<p class="text-xl md:text-2xl text-gray-600 leading-relaxed">with expert chest care</p>
+<h1 class="text-4xl md:text-5xl xl:text-6xl font-bold leading-tight text-brand-dark mb-3">The Better Lungs Clinic</h1>
+<p class="text-xl md:text-2xl text-gray-600 leading-relaxed">for your</p>
 <div class="mt-2 mb-3 flex items-center justify-center">
 <div class="name-slot">
 <span class="name-stage font-heading text-brand-green" id="hero-name"></span>
@@ -1232,39 +1230,25 @@
 <p class="text-base md:text-lg text-gray-500 leading-relaxed max-w-xl mx-auto">Dr. Chaitanya Sravanthi R offers calm, evidence-based respiratory and sleep care with 14+ years of experience across asthma, COPD, TB, ILD, sleep apnea, chronic cough, and post-COVID lung concerns.</p>
 <div class="mt-4">
 <div class="hero-respiratory-note">
-<span>The Better Lungs Clinic cares for every small breath concern and every big chest worry.</span>
+<span>Dr. Chaitanya cares for every small breath concern and every big chest worry.</span>
 </div>
 </div>
 <div class="mt-6 hero-cta-wrap">
-<div class="hero-book-button-wrap">
 <a class="bg-brand-orange hover:bg-brand-orange-dark text-white font-bold px-7 py-3.5 rounded-full shadow-orange transition-colors text-base" href="https://www.thebetterhealth.clinic/the-better-lungs-clinic/contact"> Book Consultation </a>
-</div>
-<a class="border-2 border-brand-orange text-brand-orange hover:bg-brand-orange hover:text-white font-bold px-7 py-3.5 rounded-full transition-colors text-base" data-open-breathing-modal="true" href="#breathing-test"> Breathing Test </a> <a class="border-2 border-brand-green text-brand-green hover:bg-brand-green hover:text-white font-bold px-7 py-3.5 rounded-full transition-colors text-base" href="https://www.thebetterhealth.clinic/the-better-lungs-clinic/services"> View Services </a>
+<a class="border-2 border-brand-green text-brand-green hover:bg-brand-green hover:text-white font-bold px-7 py-3.5 rounded-full transition-colors text-base" href="https://www.thebetterhealth.clinic/the-better-lungs-clinic/services"> View Services </a>
 </div>
 <div class="hidden md:grid mt-8 grid-cols-1 sm:grid-cols-2 gap-4 justify-center">
 <div class="hero-stat rounded-3xl p-4 text-center sm:col-start-1 sm:col-end-3 max-w-md mx-auto w-full">
-<div class="text-sm font-bold text-brand-green uppercase tracking-wide">Respiratory Care Focus</div>
-<div class="mt-2 text-sm text-gray-600">Asthma checkups, chronic cough review, lung function guidance, and long-term breathing support.</div>
+<div class="text-sm font-bold text-brand-green uppercase tracking-wide">5.0 Rating</div>
+<div class="mt-2 text-sm text-gray-600">97 public Google review highlights centered on Dr. Chaitanya's patient respiratory care.</div>
 </div>
 </div>
 </div>
-<div class="hidden lg:block fade-in">
+<div class="hidden lg:block fade-in mt-6">
 <div class="hero-photo-shell max-w-xl mx-auto">
 <div class="hero-photo-card rounded-5xl overflow-hidden p-4 md:p-5">
 <div class="rounded-4xl overflow-hidden">
 <img alt="Chest specialist in a calm respiratory clinic room" src="https://images.unsplash.com/photo-1584515933487-779824d29309?w=1200&amp;auto=format&amp;fit=crop&amp;q=80"/>
-</div>
-<div class="mt-5">
-<div class="flex flex-wrap gap-2">
-<span class="hero-info-pill">Dr. Chaitanya Sravanthi R</span> <span class="hero-info-pill">South Bangalore</span> <span class="hero-info-pill">Respiratory Reviews</span>
-</div>
-<div class="mt-4">
-<h2 class="text-2xl md:text-3xl font-bold text-brand-dark">The Better Lungs Clinic by Dr. Chaitanya Sravanthi R</h2>
-<p class="mt-2 text-sm md:text-base text-gray-600 leading-relaxed">The Better Health.Clinic, #155, 2nd Cross, 1st stage, Arekere MICO Layout, Off Bannerghatta road, Bengaluru - 560076 (Landmark: adjacent to Little Millenium Pre-School)</p>
-</div>
-<div class="mt-4 flex flex-wrap gap-3">
-<a class="bg-brand-green hover:bg-brand-green-dark text-white font-bold px-5 py-3 rounded-full transition-colors shadow-soft" href="tel:9513988840"> Call 9513988840 </a> <a class="border border-brand-green text-brand-green hover:bg-brand-green hover:text-white font-bold px-5 py-3 rounded-full transition-colors" href="https://www.thebetterhealth.clinic/the-better-lungs-clinic/contact"> Book Visit </a>
-</div>
 </div>
 </div>
 </div>
@@ -2168,7 +2152,20 @@
     });
 
     const heroName = document.getElementById('hero-name');
-    const heroNames = ['Breathe', 'Relief', 'Airflow', 'Recovery', 'Comfort', 'Lungs'];
+    const heroNames = [
+      'Old Breathing Problem',
+      'ಉಸಿರಾಟದ ಸಮಸ್ಯೆ',
+      'Midnight Cough',
+      'శ్వాస సమస్య',
+      'Restless Sleep',
+      'மூச்சுத் திணறல்',
+      'Tight Chest',
+      'ശ്വാസതടസ്സം',
+      'Endless Wheeze',
+      'पुरानी खांसी',
+      'Long Covid Fog',
+      'Peaceful Breaths'
+    ];
     let heroNameIndex = 0;
 
     if (heroName) {
@@ -2178,11 +2175,14 @@
 
       const typeHeroName = (name, onDone) => {
         let charIndex = 0;
+        const characters = typeof Intl !== 'undefined' && Intl.Segmenter
+          ? Array.from(new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(name), (part) => part.segment)
+          : Array.from(name);
         heroName.textContent = '';
         const typer = setInterval(() => {
           charIndex += 1;
-          heroName.textContent = name.slice(0, charIndex);
-          if (charIndex >= name.length) {
+          heroName.textContent = characters.slice(0, charIndex).join('');
+          if (charIndex >= characters.length) {
             clearInterval(typer);
             if (onDone) onDone();
           }
@@ -2199,7 +2199,7 @@
         });
       };
 
-      window.requestAnimationFrame(loopHeroNames);
+      loopHeroNames();
     }
 
   </script>

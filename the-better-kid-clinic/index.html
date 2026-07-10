@@ -196,9 +196,23 @@
       flex-shrink: 0;
     }
     .hero-tagline {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.65rem;
       max-width: 34rem;
-      padding: 0;
+      padding: 0.9rem 1.1rem;
+      border-radius: 1.25rem;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid rgba(46,125,107,0.12);
+      box-shadow: 0 12px 26px rgba(31,41,55,0.06);
+    }
+    .hero-tagline .pulse {
+      width: 0.7rem;
+      height: 0.7rem;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #FF8A4C, #ffb07a);
+      box-shadow: 0 0 0 8px rgba(255,138,76,0.12);
+      flex-shrink: 0;
     }
     .hero-cta-wrap {
       position: relative;
@@ -799,17 +813,12 @@
 <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
        HERO SECTION
   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
-<section class="hero-soft relative overflow-hidden pt-7 pb-12 md:pt-10 md:pb-12" id="home">
+<section class="hero-soft relative overflow-hidden pt-4 pb-12 md:pt-6 md:pb-12" id="home">
 <div class="hero-cloud one"></div>
 <div class="hero-cloud two"></div>
-<div class="max-w-6xl mx-auto px-4 grid lg:grid-cols-[1.05fr_0.95fr] gap-6 items-center">
+<div class="max-w-6xl mx-auto px-4 grid lg:grid-cols-[1.05fr_0.95fr] gap-6 items-start">
 <div class="hero-content fade-in max-w-2xl mx-auto text-center">
-<div class="flex justify-center mb-4">
-<div class="hero-kid-badge">
-<span class="dot"></span> Gentle child specialist care
-      </div>
-</div>
-<h1 class="text-5xl md:text-6xl xl:text-7xl font-bold leading-tight text-brand-dark mb-3">The Better Kids Clinic</h1>
+<h1 class="text-4xl md:text-5xl xl:text-6xl font-bold leading-tight text-brand-dark mb-3">The Better Kids Clinic</h1>
 <p class="text-xl md:text-2xl text-gray-600 leading-relaxed">for your child</p>
 <div class="mt-2 mb-3 flex items-center justify-center">
 <div class="name-slot">
@@ -817,7 +826,11 @@
 </div>
 </div>
 <p class="text-base md:text-lg text-gray-500 leading-relaxed max-w-xl mx-auto">Dr. Gunda Srinivas brings 18+ years of pediatric and pediatric emergency experience, clear guidance, and reassuring support for every family at The Better Kids Clinic.</p>
-<p class="hero-tagline mt-3 text-lg md:text-xl font-bold text-brand-green max-w-xl mx-auto">Dr. Gunda cares for every small name and every big worry.</p>
+<div class="mt-4 flex justify-center">
+<div class="hero-tagline font-bold text-brand-green">
+<span>Dr. Gunda cares for every small name and every big worry.</span>
+</div>
+</div>
 <div class="mt-6 hero-cta-wrap">
 <a class="bg-brand-orange hover:bg-brand-orange-dark text-white font-bold px-7 py-3.5 rounded-full shadow-orange transition-colors text-base" href="#contact"> Book Appointment </a>
 <a class="border-2 border-brand-green text-brand-green hover:bg-brand-green hover:text-white font-bold px-7 py-3.5 rounded-full transition-colors text-base" href="https://www.thebetterhealth.clinic/the-better-kid-clinic/services"> Explore Services </a>
@@ -829,23 +842,11 @@
 </div>
 </div>
 </div>
-<div class="hidden lg:block fade-in">
+<div class="hidden lg:block fade-in mt-6">
 <div class="hero-photo-shell max-w-xl mx-auto">
 <div class="hero-photo-card rounded-5xl overflow-hidden p-4 md:p-5">
 <div class="rounded-4xl overflow-hidden">
 <img alt="Doctor with child patient in a calm clinic room" src="https://images.unsplash.com/photo-1584515933487-779824d29309?w=1200&amp;auto=format&amp;fit=crop&amp;q=80"/>
-</div>
-<div class="mt-5">
-<div class="flex flex-wrap gap-2">
-<span class="hero-info-pill">Dr. Gunda Srinivas</span> <span class="hero-info-pill">South Bangalore</span> <span class="hero-info-pill">Open Mon-Sat</span>
-</div>
-<div class="mt-4">
-<h2 class="text-2xl md:text-3xl font-bold text-brand-dark">Dr. Gunda Srinivas's The Better Kids Clinic</h2>
-<p class="mt-2 text-sm md:text-base text-gray-600 leading-relaxed">The Better Health.Clinic, #155, 2nd Cross, 1st stage, Arekere MICO Layout, Off Bannerghatta road, Bengaluru - 560076 (Landmark: adjacent to Little Millenium Pre-School)</p>
-</div>
-<div class="mt-4 flex flex-wrap gap-3">
-<a class="bg-brand-green hover:bg-brand-green-dark text-white font-bold px-5 py-3 rounded-full transition-colors shadow-soft" href="tel:9686183999"> Call 9686183999 </a> <a class="border border-brand-green text-brand-green hover:bg-brand-green hover:text-white font-bold px-5 py-3 rounded-full transition-colors" href="https://www.thebetterhealth.clinic/the-better-kid-clinic/contact"> Book Visit </a>
-</div>
 </div>
 </div>
 </div>
