@@ -3,7 +3,7 @@ import {
   createSessionToken,
   getAccessPassword,
   isAuthConfigured
-} from '../../lib/auth.js';
+} from '../../../emr/lungs/lib/auth.js';
 
 function sendJson(res, statusCode, payload, extraHeaders = {}) {
   res.statusCode = statusCode;
@@ -31,8 +31,7 @@ async function readJsonBody(req) {
 
     req.on('end', () => {
       try {
-        const rawBody = Buffer.concat(chunks).toString('utf-8') || '{}';
-        resolve(JSON.parse(rawBody));
+        resolve(JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}'));
       } catch (error) {
         reject(error);
       }
@@ -71,7 +70,6 @@ export default async function handler(req, res) {
   }
 
   const token = await createSessionToken();
-
   sendJson(res, 200, { ok: true }, {
     'Set-Cookie': buildSessionCookie(token)
   });

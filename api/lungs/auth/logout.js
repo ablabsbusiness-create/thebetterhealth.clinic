@@ -1,4 +1,4 @@
-import { buildClearedSessionCookie } from '../../lib/auth.js';
+import { buildClearedSessionCookie } from '../../../emr/lungs/lib/auth.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {

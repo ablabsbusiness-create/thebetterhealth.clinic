@@ -3,7 +3,7 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     match /clinics/{clinicId}/{allPaths=**} {
-      allow read, write: if clinicId in ['kid', 'lungs', 'ab-labs'];
+      allow read, write: if clinicId in ['kid', 'lungs'];
     }
 
     match /{allPaths=**} {

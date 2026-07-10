@@ -145,10 +145,6 @@
     {
       "source": "/emr/lungs/pdf-viewer",
       "destination": "/emr/lungs/pdf-viewer.html"
-    },
-    {
-      "source": "/emr/ab-labs",
-      "destination": "/emr/ab-labs/index.html"
     }
   ]
 }

@@ -3,7 +3,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function isAllowedClinic(clinicId) {
-      return clinicId in ['kid', 'lungs', 'ab-labs'];
+      return clinicId in ['kid', 'lungs'];
     }
 
     match /clinics/{clinicId} {

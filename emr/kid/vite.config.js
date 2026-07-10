@@ -129,7 +129,7 @@ export default defineConfig({
             const normalizedPath = normalizeAppPath(requestUrl.pathname);
             const authenticated = await isAuthenticatedCookieHeader(req.headers.cookie || '');
 
-            if (normalizedPath === '/api/auth/login') {
+            if (normalizedPath === '/api/kid/auth/login') {
               if (req.method !== 'POST') {
                 sendJson(res, 405, { error: 'Method not allowed.' });
                 return;
@@ -164,7 +164,7 @@ export default defineConfig({
               return;
             }
 
-            if (normalizedPath === '/api/auth/logout') {
+            if (normalizedPath === '/api/kid/auth/logout') {
               if (req.method !== 'POST') {
                 sendJson(res, 405, { error: 'Method not allowed.' });
                 return;

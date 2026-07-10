@@ -1,7 +1,6 @@
 param(
   [string[]]$Buckets = @(
-    "clinci-dr-gunda.firebasestorage.app",
-    "ab-labs-91f38.firebasestorage.app"
+    "clinci-dr-gunda.firebasestorage.app"
   )
 )
 
