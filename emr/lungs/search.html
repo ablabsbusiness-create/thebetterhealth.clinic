@@ -2718,6 +2718,19 @@
       return viewerUrl ? `${viewerUrl}&embed=1` : downloadUrl;
     }
 
+    let filterPatientsRefreshTimer = null;
+
+    function scheduleFilterPatientsRefresh() {
+      if (filterPatientsRefreshTimer !== null) {
+        return;
+      }
+
+      filterPatientsRefreshTimer = window.setTimeout(() => {
+        filterPatientsRefreshTimer = null;
+        filterPatients();
+      }, 80);
+    }
+
     function ensurePrescriptionDownloadUrl(entry) {
       const existingUrl = getPrescriptionDownloadUrl(entry);
       const storagePath = getPrescriptionStoragePath(entry);
@@ -2737,7 +2750,7 @@
             }
           });
           prescriptionDownloadUrlLoads.delete(storagePath);
-          filterPatients();
+          scheduleFilterPatientsRefresh();
           return downloadURL;
         })
         .catch((error) => {
@@ -3018,7 +3031,7 @@
           storagePrescriptionPatientIdsLoaded.add(patientId);
           storagePrescriptionPatientLoads.delete(patientId);
           if (mergeHistoryEntries(entries)) {
-            filterPatients();
+            scheduleFilterPatientsRefresh();
           }
         })
         .catch((error) => {
@@ -3057,7 +3070,7 @@
           fullHistoryPatientIdsLoaded.add(patientId);
           fullHistoryPatientLoads.delete(patientId);
           if (mergeHistoryEntries(entries)) {
-            filterPatients();
+            scheduleFilterPatientsRefresh();
           }
         })
         .catch((error) => {
