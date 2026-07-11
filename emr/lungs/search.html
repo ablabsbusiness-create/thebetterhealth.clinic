@@ -3916,28 +3916,25 @@
       const latestPrescription = prescriptions[0] || null;
       const height = formatValueWithUnit(patient.height, 'cm');
       const weight = formatValueWithUnit(patient.weight, 'kg');
-      const phone = formatMissing(patient.phone || patient.mobileNumber, 'Not saved');
-      const dob = formatDateDisplay(patient.dob);
-      const gender = formatMissing(patient.gender, 'Not saved');
+      const latestVitals = getMeasurementEntries(patient)[0] || null;
+      const spo2 = latestVitals && latestVitals.spo2 ? `${latestVitals.spo2}%` : 'Not saved';
+      const bp = latestVitals && (latestVitals.systolic || latestVitals.diastolic)
+        ? `${latestVitals.systolic || '-'}/${latestVitals.diastolic || '-'} mmHg`
+        : 'Not saved';
       const lastPrescriptionText = latestPrescription
         ? `Last prescription: ${formatPrescriptionDate(latestPrescription)}`
         : 'No prescriptions saved yet.';
 
       const rows = [
-        ['Patient ID', patientId || 'Not saved'],
-        ['Phone', phone],
-        ['DOB', dob],
-        ['Gender', gender],
         ['Weight', weight],
         ['Height', height],
+        ['SpO2', spo2],
+        ['BP', bp],
         ['Saved PDFs', String(prescriptions.length)]
       ];
 
       return `
         <div class="patient-snapshot">
-          <div class="patient-snapshot-actions">
-            <button class="patient-edit-btn" type="button" data-edit-patient="${escapeHtml(patientId)}">Edit Details</button>
-          </div>
           <div class="patient-snapshot-grid">
             ${rows.map(([label, value]) => `
               <div class="patient-snapshot-item">

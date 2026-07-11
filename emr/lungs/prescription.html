@@ -277,6 +277,84 @@
       gap: 12px;
     }
 
+    .vitals-summary-card {
+      display: grid;
+      gap: 12px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(215, 226, 217, 0.82);
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 12px 28px rgba(22, 38, 29, 0.06);
+    }
+
+    .vitals-summary-head {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .vitals-summary-head h2 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .vitals-summary-head p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .vitals-summary-date {
+      align-self: center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #f8fbf9;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .vitals-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .vitals-summary-stat {
+      display: grid;
+      gap: 4px;
+      padding: 14px;
+      border-radius: 14px;
+      background: linear-gradient(180deg, #fbfdfb, #f4faf5);
+      border: 1px solid #e4efe6;
+    }
+
+    .vitals-summary-label {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .vitals-summary-value {
+      color: var(--brand-strong);
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+
+    .vitals-summary-empty {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
     .section-row {
       display: grid;
       grid-template-columns: 1fr;
@@ -1069,6 +1147,18 @@
         gap: 0;
       }
 
+      .vitals-summary-card {
+        margin-bottom: 12px;
+      }
+
+      .vitals-summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .vitals-summary-head {
+        grid-template-columns: 1fr;
+      }
+
       .medicine-detail-content {
         grid-auto-flow: row;
         grid-auto-columns: unset;
@@ -1255,6 +1345,31 @@
   <div class="page-shell">
     <section class="content-panel">
       <div class="content-layout">
+        <article id="vitals-summary-card" class="vitals-summary-card" hidden>
+          <div class="vitals-summary-head">
+            <div>
+              <h2>Vitals</h2>
+              <p id="vitals-summary-subtitle">Most recent saved vitals for this patient.</p>
+            </div>
+            <div id="vitals-summary-date" class="vitals-summary-date">No date</div>
+          </div>
+          <div class="vitals-summary-grid">
+            <div class="vitals-summary-stat">
+              <span class="vitals-summary-label">SpO2</span>
+              <span id="vitals-summary-spo2" class="vitals-summary-value">-</span>
+            </div>
+            <div class="vitals-summary-stat">
+              <span class="vitals-summary-label">Systolic BP</span>
+              <span id="vitals-summary-systolic" class="vitals-summary-value">-</span>
+            </div>
+            <div class="vitals-summary-stat">
+              <span class="vitals-summary-label">Diastolic BP</span>
+              <span id="vitals-summary-diastolic" class="vitals-summary-value">-</span>
+            </div>
+          </div>
+          <div id="vitals-summary-empty" class="vitals-summary-empty" hidden>No vitals are available yet for this patient.</div>
+        </article>
+
         <div class="card-grid">
           <article class="rx-card">
             <div class="rx-card-head">
@@ -1481,6 +1596,13 @@
     const navLinks = [...document.querySelectorAll('#primary-nav .nav-link')];
     const rxCards = [...document.querySelectorAll('.rx-card')];
     const statusChip = document.querySelector('.status-chip');
+    const vitalsSummaryCard = document.getElementById('vitals-summary-card');
+    const vitalsSummarySubtitle = document.getElementById('vitals-summary-subtitle');
+    const vitalsSummaryDate = document.getElementById('vitals-summary-date');
+    const vitalsSummarySpo2 = document.getElementById('vitals-summary-spo2');
+    const vitalsSummarySystolic = document.getElementById('vitals-summary-systolic');
+    const vitalsSummaryDiastolic = document.getElementById('vitals-summary-diastolic');
+    const vitalsSummaryEmpty = document.getElementById('vitals-summary-empty');
     const cardGrid = document.querySelector('.card-grid');
     const medicineModal = document.getElementById('medicine-modal');
     const medicineModalClose = document.getElementById('medicine-modal-close');
@@ -2195,6 +2317,53 @@
     function getActiveChartRecord() {
       const chartRecords = getRecentChartRecords();
       return chartRecords[0] || null;
+    }
+
+    function formatVitalStat(value, unit) {
+      const raw = String(value ?? '').trim();
+      return raw ? `${raw} ${unit}` : '-';
+    }
+
+    function formatVitalsSummaryDate(record) {
+      const rawDate = record?.vitalsUpdatedAt?.toDate ? record.vitalsUpdatedAt.toDate() : record?.vitalsUpdatedAt || '';
+      if (!rawDate) {
+        return 'No date';
+      }
+
+      const parsed = new Date(rawDate);
+      if (Number.isNaN(parsed.getTime())) {
+        return 'No date';
+      }
+
+      return parsed.toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      });
+    }
+
+    function renderVitalsSummary(record) {
+      if (!vitalsSummaryCard) {
+        return;
+      }
+
+      const hasAnyVital = [record?.spo2, record?.systolic, record?.diastolic].some((value) => String(value ?? '').trim());
+      if (!record || !hasAnyVital) {
+        vitalsSummaryCard.hidden = true;
+        return;
+      }
+
+      const patientName = (record.patientName || record.childName || '').trim();
+
+      vitalsSummaryCard.hidden = false;
+      vitalsSummarySubtitle.textContent = patientName
+        ? `Most recent saved vitals for ${patientName}.`
+        : 'Most recent saved vitals for this patient.';
+      vitalsSummaryDate.textContent = formatVitalsSummaryDate(record);
+      vitalsSummarySpo2.textContent = formatVitalStat(record.spo2, '%');
+      vitalsSummarySystolic.textContent = formatVitalStat(record.systolic, 'mmHg');
+      vitalsSummaryDiastolic.textContent = formatVitalStat(record.diastolic, 'mmHg');
+      vitalsSummaryEmpty.hidden = hasAnyVital;
     }
 
     function writePatientPrescriptionRecord(record) {
@@ -3138,7 +3307,8 @@
     async function initPrescriptionData() {
       loadMedicineDetailsFromStorage();
       cleanupExpiredMedicineDetails();
-      await loadPatientRecordForPrescription();
+      const patientRecord = await loadPatientRecordForPrescription();
+      renderVitalsSummary(patientRecord);
 
       const localTemplates = mergeWithSavedTemplates(readPrescriptionTemplateCache() || prescriptionTemplates);
       Object.entries(localTemplates).forEach(([sectionName, items]) => {

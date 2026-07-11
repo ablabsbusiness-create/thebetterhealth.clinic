@@ -96,7 +96,9 @@
       min-height: 100vh;
       font-family: 'Outfit', system-ui, sans-serif;
       color: var(--ink);
-      background: #f4f7f5;
+      background:
+        radial-gradient(circle at top left, rgba(34, 197, 94, 0.14), transparent 28%),
+        linear-gradient(180deg, #f5faf3 0%, #edf5ef 100%);
     }
 
     .site-header {
@@ -178,54 +180,149 @@
       color: var(--brand-strong);
     }
 
+    .menu-toggle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      margin-left: auto;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.82);
+      color: var(--ink);
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(22, 38, 29, 0.08);
+    }
+
+    .menu-toggle-inner {
+      display: grid;
+      gap: 4px;
+    }
+
+    .menu-toggle-bar {
+      display: block;
+      width: 18px;
+      height: 2px;
+      border-radius: 999px;
+      background: currentColor;
+      transition: transform 0.18s ease, opacity 0.18s ease;
+    }
+
+    .menu-toggle[aria-expanded="true"] .menu-toggle-bar:nth-child(1) {
+      transform: translateY(6px) rotate(45deg);
+    }
+
+    .menu-toggle[aria-expanded="true"] .menu-toggle-bar:nth-child(2) {
+      opacity: 0;
+    }
+
+    .menu-toggle[aria-expanded="true"] .menu-toggle-bar:nth-child(3) {
+      transform: translateY(-6px) rotate(-45deg);
+    }
+
     .page-shell {
       width: min(680px, calc(100% - 32px));
-      margin: 32px auto 72px;
+      margin: -10px auto 72px;
       display: grid;
       gap: 18px;
     }
 
-    .patient-context {
+    .page-intro {
       display: flex;
-      align-items: center;
+      align-items: end;
       justify-content: space-between;
-      gap: 12px;
-      padding: 16px 20px;
-      background: var(--panel-strong);
-      border: 1px solid var(--line);
-      border-radius: var(--radius-md);
+      gap: 20px;
+      margin: 32px 0 4px;
+    }
+
+    .page-intro h1 {
+      margin: 0;
+      font-size: clamp(28px, 3.4vw, 40px);
+      line-height: 1.05;
+    }
+
+    .page-meta {
+      display: block;
+      margin-top: 20px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(215, 226, 217, 0.95);
       box-shadow: var(--shadow);
+      color: inherit;
+      text-decoration: none;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
     }
 
-    .patient-context strong {
+    .page-meta:hover,
+    .page-meta:focus-visible {
+      border-color: rgba(22, 101, 52, 0.28);
+      box-shadow: 0 18px 45px rgba(22, 101, 52, 0.12);
+      transform: translateY(-1px);
+      outline: none;
+    }
+
+    .page-meta strong {
       display: block;
+      margin-bottom: 6px;
       font-size: 16px;
+      line-height: 1.4;
     }
 
-    .patient-context span {
+    .page-meta span {
       display: block;
-      margin-top: 2px;
       color: var(--muted);
-      font-size: 13px;
+      font-size: 14px;
+      line-height: 1.55;
+      margin-top: 4px;
+    }
+
+    .page-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 2px 14px;
+      margin-top: 4px;
+    }
+
+    .page-meta-grid span {
+      margin-top: 0;
     }
 
     .panel {
       padding: 28px;
-      background: var(--panel-strong);
-      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.84);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(215, 226, 217, 0.58);
       border-radius: var(--radius-lg);
-      box-shadow: var(--shadow);
+      box-shadow: 0 20px 46px rgba(22, 38, 29, 0.08);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--brand-soft);
+      color: var(--brand-strong);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
     }
 
     .panel h2 {
       margin: 0 0 4px;
-      font-size: 18px;
+      font-size: 20px;
     }
 
     .panel .panel-copy {
       margin: 0 0 20px;
       color: var(--muted);
-      font-size: 13px;
+      font-size: 14px;
+      line-height: 1.55;
     }
 
     .vitals-grid {
@@ -331,26 +428,64 @@
     }
 
     @media (max-width: 640px) {
+      .site-header {
+        position: static;
+      }
+
       .topbar {
         min-height: auto;
         padding: 12px 0;
         flex-wrap: wrap;
         gap: 12px;
+        align-items: stretch;
+      }
+
+      .brand {
+        width: auto;
+        flex: 1 1 auto;
+      }
+
+      .menu-toggle {
+        display: inline-flex;
+        flex-shrink: 0;
       }
 
       .nav-links {
         width: 100%;
-        justify-content: space-between;
+        order: 3;
+        margin-left: 0;
+        display: none;
+        flex-direction: column;
+        gap: 6px;
+        padding: 10px;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.96);
+        box-shadow: 0 14px 28px rgba(22, 38, 29, 0.08);
+      }
+
+      .nav-links.is-open {
+        display: flex;
       }
 
       .nav-link {
-        flex: 1 1 auto;
+        width: 100%;
+        min-height: 42px;
         justify-content: center;
-        padding: 0 10px;
+        padding: 10px 12px;
+        border-radius: 14px;
       }
 
       .page-shell {
-        margin: 20px auto 56px;
+        margin: 16px auto 56px;
+      }
+
+      .page-intro {
+        margin-top: 16px;
+      }
+
+      .page-intro h1 {
+        font-size: clamp(24px, 8vw, 32px);
       }
 
       .panel {
@@ -374,7 +509,22 @@
         </div>
       </div>
 
-      <nav class="nav-links" aria-label="Primary">
+      <button
+        class="menu-toggle"
+        id="menu-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="primary-nav"
+        aria-label="Toggle navigation"
+      >
+        <span class="menu-toggle-inner" aria-hidden="true">
+          <span class="menu-toggle-bar"></span>
+          <span class="menu-toggle-bar"></span>
+          <span class="menu-toggle-bar"></span>
+        </span>
+      </button>
+
+      <nav id="primary-nav" class="nav-links" aria-label="Primary">
         <a class="nav-link" href="/emr/lungs/index">Dashboard</a>
         <a class="nav-link active" href="/emr/lungs/search">Enter Clinic</a>
         <a class="nav-link" href="/emr/lungs/pending-approvals">Approvals</a>
@@ -384,16 +534,25 @@
   </header>
 
   <div class="page-shell">
-    <div class="patient-context">
+    <section class="page-intro">
       <div>
-        <strong id="patient-name-display">Loading patient...</strong>
-        <span id="patient-id-display"></span>
+        <h1>Vitals</h1>
       </div>
-      <a class="btn-secondary-link" href="/emr/lungs/search">Change patient</a>
-    </div>
+    </section>
+
+    <a id="page-meta-link" class="page-meta" href="/emr/lungs/search" aria-label="Edit patient details">
+      <strong id="patient-name-display">Loading patient...</strong>
+      <span id="patient-id-display"></span>
+      <div class="page-meta-grid">
+        <span id="page-meta-phone">Ph -</span>
+        <span id="page-meta-height">Height -</span>
+        <span id="page-meta-weight">Weight -</span>
+      </div>
+    </a>
 
     <section class="panel">
-      <h2>Vitals</h2>
+      <span class="eyebrow">Step 1 · Vitals</span>
+      <h2>Current vitals</h2>
       <p class="panel-copy">Enter the patient's current vitals, then continue to the prescription.</p>
 
       <form id="vitals-form">
@@ -425,6 +584,37 @@
     import { doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     import { db } from './lib/firebase-init.js';
 
+    const menuToggle = document.getElementById('menu-toggle');
+    const primaryNav = document.getElementById('primary-nav');
+    const navLinks = [...document.querySelectorAll('#primary-nav .nav-link')];
+
+    function closeMobileMenu() {
+      if (!menuToggle || !primaryNav) {
+        return;
+      }
+      menuToggle.setAttribute('aria-expanded', 'false');
+      primaryNav.classList.remove('is-open');
+    }
+
+    function toggleMobileMenu() {
+      if (!menuToggle || !primaryNav) {
+        return;
+      }
+      const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
+      menuToggle.setAttribute('aria-expanded', String(!isOpen));
+      primaryNav.classList.toggle('is-open', !isOpen);
+    }
+
+    if (menuToggle && primaryNav) {
+      menuToggle.addEventListener('click', toggleMobileMenu);
+      navLinks.forEach((link) => link.addEventListener('click', closeMobileMenu));
+      window.addEventListener('resize', () => {
+        if (window.innerWidth > 640) {
+          closeMobileMenu();
+        }
+      });
+    }
+
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/lungs';
     const FIREBASE_COLLECTIONS = {
       patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`
@@ -432,6 +622,10 @@
 
     const patientNameDisplay = document.getElementById('patient-name-display');
     const patientIdDisplay = document.getElementById('patient-id-display');
+    const pageMetaLink = document.getElementById('page-meta-link');
+    const pageMetaPhone = document.getElementById('page-meta-phone');
+    const pageMetaHeight = document.getElementById('page-meta-height');
+    const pageMetaWeight = document.getElementById('page-meta-weight');
     const vitalsForm = document.getElementById('vitals-form');
     const continueBtn = document.getElementById('continue-btn');
     const formMessage = document.getElementById('form-message');
@@ -442,6 +636,23 @@
     function getCurrentPatientId() {
       const params = new URLSearchParams(window.location.search);
       return (params.get('patientId') || '').trim().toUpperCase();
+    }
+
+    function formatPhoneDisplay(value, fallback = 'Phone not saved') {
+      const digits = String(value || '').replace(/\D/g, '');
+      if (!digits) {
+        return fallback;
+      }
+      return digits.length >= 10 ? `+91 ${digits.slice(-10)}` : value;
+    }
+
+    function formatPageMetaMetric(value, unit) {
+      const normalized = String(value || '').trim();
+      return normalized ? `${normalized} ${unit}` : '-';
+    }
+
+    function getPatientEditUrl(id) {
+      return id ? `/emr/lungs/search?patientId=${encodeURIComponent(id)}` : '/emr/lungs/search';
     }
 
     function showFormMessage(text) {
@@ -458,6 +669,10 @@
 
     if (!patientId) {
       window.location.href = '/emr/lungs/search';
+    }
+
+    if (pageMetaLink) {
+      pageMetaLink.href = getPatientEditUrl(patientId);
     }
 
     async function loadPatient() {
@@ -479,6 +694,10 @@
         const name = patient.patientName || patient.childName || patient.parentName || patientId;
         patientNameDisplay.textContent = name;
         patientIdDisplay.textContent = patientId;
+
+        if (pageMetaPhone) pageMetaPhone.textContent = `Ph - ${formatPhoneDisplay(patient.phone || patient.mobileNumber, '')}`;
+        if (pageMetaHeight) pageMetaHeight.textContent = `Height - ${formatPageMetaMetric(patient.height, 'cm')}`;
+        if (pageMetaWeight) pageMetaWeight.textContent = `Weight - ${formatPageMetaMetric(patient.weight, 'kg')}`;
 
         spo2Input.value = patient.spo2 || '';
         systolicInput.value = patient.systolic || '';
