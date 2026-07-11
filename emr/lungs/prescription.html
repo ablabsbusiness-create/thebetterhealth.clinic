@@ -1757,7 +1757,10 @@
         slot.classList.toggle('is-ready', DETAIL_SECTIONS.has(name));
 
         if (placeholder) {
-          placeholder.hidden = isTarget && Boolean(activePanel);
+          const hasSelections = name === 'Medication'
+            ? selectedMedicines.size > 0
+            : Boolean(prescriptionSelections[name] && prescriptionSelections[name].size > 0);
+          placeholder.hidden = (isTarget && Boolean(activePanel)) || hasSelections;
         }
 
         if (!isTarget) {
