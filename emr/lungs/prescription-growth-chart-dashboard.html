@@ -328,7 +328,7 @@
 
     .vitals-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: 1fr;
       gap: 14px;
     }
 
@@ -636,6 +636,14 @@
             Diastolic BP (mmHg)
             <input id="diastolic-input" name="diastolic" type="number" inputmode="numeric" min="0" step="1" placeholder="e.g. 80">
           </label>
+          <label class="vitals-field" for="weight-input">
+            Weight (kg)
+            <input id="weight-input" name="weight" type="number" inputmode="decimal" min="0" step="0.1" placeholder="e.g. 62">
+          </label>
+          <label class="vitals-field" for="height-input">
+            Height (cm)
+            <input id="height-input" name="height" type="number" inputmode="decimal" min="0" step="0.1" placeholder="e.g. 165">
+          </label>
         </div>
 
         <p id="form-message" class="form-message" role="alert"></p>
@@ -699,6 +707,8 @@
     const spo2Input = document.getElementById('spo2-input');
     const systolicInput = document.getElementById('systolic-input');
     const diastolicInput = document.getElementById('diastolic-input');
+    const weightInput = document.getElementById('weight-input');
+    const heightInput = document.getElementById('height-input');
 
     function getCurrentPatientId() {
       const params = new URLSearchParams(window.location.search);
@@ -770,6 +780,8 @@
         spo2Input.value = patient.spo2 || '';
         systolicInput.value = patient.systolic || '';
         diastolicInput.value = patient.diastolic || '';
+        weightInput.value = patient.weight || '';
+        heightInput.value = patient.height || '';
       } catch (error) {
         patientNameDisplay.textContent = patientId;
         patientIdDisplay.textContent = 'Unable to load patient details.';
@@ -795,6 +807,8 @@
           spo2: spo2Input.value.trim(),
           systolic: systolicInput.value.trim(),
           diastolic: diastolicInput.value.trim(),
+          weight: weightInput.value.trim(),
+          height: heightInput.value.trim(),
           vitalsUpdatedAt: serverTimestamp()
         }, { merge: true });
 
