@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Vitals | The Better Lungs Clinic EMR</title>
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="manifest" href="/emr/lungs/site.webmanifest" />
+  <meta name="description" content="Vitals page for The Better Lungs Clinic EMR, supporting clinic workflows and patient care operations at The Better Health Clinic." />
+  <link rel="canonical" href="https://www.thebetterhealth.clinic/emr/lungs/prescription-growth-chart-dashboard" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="The Better Health Clinic" />
+  <meta property="og:title" content="Vitals | The Better Lungs Clinic EMR" />
+  <meta property="og:description" content="Vitals page for The Better Lungs Clinic EMR, supporting clinic workflows and patient care operations at The Better Health Clinic." />
+  <meta property="og:url" content="https://www.thebetterhealth.clinic/emr/lungs/prescription-growth-chart-dashboard" />
+  <meta property="og:locale" content="en_IN" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Vitals | The Better Lungs Clinic EMR" />
+  <meta name="twitter:description" content="Vitals page for The Better Lungs Clinic EMR, supporting clinic workflows and patient care operations at The Better Health Clinic." />
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://www.thebetterhealth.clinic/#website",
+      "name": "The Better Health Clinic",
+      "url": "https://www.thebetterhealth.clinic/"
+    },
+    {
+      "@type": "MedicalClinic",
+      "@id": "https://www.thebetterhealth.clinic/#clinic",
+      "name": "The Better Health Clinic",
+      "url": "https://www.thebetterhealth.clinic/",
+      "telephone": [
+        "+919686183999",
+        "+919513988840"
+      ],
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "#155, 2nd Cross, 1st stage, Arekere MICO Layout, Off Bannerghatta Road",
+        "addressLocality": "Bengaluru",
+        "postalCode": "560076",
+        "addressCountry": "IN"
+      },
+      "medicalSpecialty": [
+        "Pediatrics",
+        "Pulmonology"
+      ]
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://www.thebetterhealth.clinic/emr/lungs/prescription-growth-chart-dashboard#webpage",
+      "url": "https://www.thebetterhealth.clinic/emr/lungs/prescription-growth-chart-dashboard",
+      "name": "Vitals | The Better Lungs Clinic EMR",
+      "description": "Vitals page for The Better Lungs Clinic EMR, supporting clinic workflows and patient care operations at The Better Health Clinic.",
+      "isPartOf": {
+        "@id": "https://www.thebetterhealth.clinic/#website"
+      },
+      "about": {
+        "@id": "https://www.thebetterhealth.clinic/#clinic"
+      }
+    }
+  ]
+}
+  </script><script type="module" src="./auth-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #eef4ef;
+      --panel: #fcfdf8;
+      --panel-strong: #ffffff;
+      --ink: #1b2a21;
+      --muted: #607067;
+      --faint: #8a988f;
+      --line: #d7e2d9;
+      --brand: #166534;
+      --brand-soft: #dcfce7;
+      --brand-strong: #14532d;
+      --danger: #b91c1c;
+      --danger-soft: #fef2f2;
+      --danger-line: #fecaca;
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+      --shadow: 0 18px 45px rgba(22, 38, 29, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Outfit', system-ui, sans-serif;
+      color: var(--ink);
+      background: #f4f7f5;
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(12px);
+      background: rgba(248, 252, 248, 0.85);
+      border-bottom: 1px solid rgba(215, 226, 217, 0.95);
+      box-shadow: 0 8px 24px rgba(22, 38, 29, 0.05);
+    }
+
+    .topbar {
+      width: min(1180px, calc(100% - 28px));
+      margin: 0 auto;
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      background: linear-gradient(135deg, #166534, #22c55e);
+      color: #fff;
+      flex-shrink: 0;
+      box-shadow: 0 10px 22px rgba(22, 101, 52, 0.22);
+    }
+
+    .brand-copy strong {
+      display: block;
+      font-size: 15px;
+      line-height: 1.1;
+    }
+
+    .brand-copy span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: auto;
+      flex-wrap: wrap;
+    }
+
+    .nav-link {
+      min-height: 40px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 16px;
+      border-radius: 999px;
+      color: #5f6f66;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      background: var(--brand-soft);
+      color: var(--brand-strong);
+    }
+
+    .page-shell {
+      width: min(680px, calc(100% - 32px));
+      margin: 32px auto 72px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .patient-context {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 20px;
+      background: var(--panel-strong);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow);
+    }
+
+    .patient-context strong {
+      display: block;
+      font-size: 16px;
+    }
+
+    .patient-context span {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .panel {
+      padding: 28px;
+      background: var(--panel-strong);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+    }
+
+    .panel h2 {
+      margin: 0 0 4px;
+      font-size: 18px;
+    }
+
+    .panel .panel-copy {
+      margin: 0 0 20px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .vitals-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    label.vitals-field {
+      display: grid;
+      gap: 7px;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    input {
+      width: 100%;
+      min-height: 48px;
+      padding: 0 14px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--line);
+      background: #fbfdfb;
+      color: var(--ink);
+      font: inherit;
+      font-size: 15.5px;
+      font-weight: 600;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+
+    input::placeholder {
+      color: var(--faint);
+      font-weight: 500;
+    }
+
+    input:focus {
+      border-color: var(--brand);
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.14);
+    }
+
+    .form-actions {
+      margin-top: 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .btn-primary {
+      min-height: 50px;
+      padding: 0 26px;
+      border: 0;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, #22c55e, #15803d);
+      color: #fff;
+      font: inherit;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 14px 26px rgba(21, 128, 61, 0.26);
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.65;
+      cursor: default;
+      transform: none;
+    }
+
+    .btn-secondary-link {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .btn-secondary-link:hover {
+      color: var(--brand-strong);
+    }
+
+    .form-message {
+      margin: 16px 0 0;
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      display: none;
+    }
+
+    .form-message.is-visible {
+      display: block;
+    }
+
+    .form-message.is-error {
+      background: var(--danger-soft);
+      color: var(--danger);
+      border: 1px solid var(--danger-line);
+    }
+
+    @media (max-width: 640px) {
+      .topbar {
+        min-height: auto;
+        padding: 12px 0;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .nav-links {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .nav-link {
+        flex: 1 1 auto;
+        justify-content: center;
+        padding: 0 10px;
+      }
+
+      .page-shell {
+        margin: 20px auto 56px;
+      }
+
+      .panel {
+        padding: 20px;
+      }
+
+      .vitals-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-mark">🩺</div>
+        <div class="brand-copy">
+          <strong>The Better Lungs Clinic</strong>
+          <span>Vitals</span>
+        </div>
+      </div>
+
+      <nav class="nav-links" aria-label="Primary">
+        <a class="nav-link" href="/emr/lungs/index">Dashboard</a>
+        <a class="nav-link active" href="/emr/lungs/search">Enter Clinic</a>
+        <a class="nav-link" href="/emr/lungs/pending-approvals">Approvals</a>
+        <a class="nav-link" href="/emr/lungs/settings">Settings</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell">
+    <div class="patient-context">
+      <div>
+        <strong id="patient-name-display">Loading patient...</strong>
+        <span id="patient-id-display"></span>
+      </div>
+      <a class="btn-secondary-link" href="/emr/lungs/search">Change patient</a>
+    </div>
+
+    <section class="panel">
+      <h2>Vitals</h2>
+      <p class="panel-copy">Enter the patient's current vitals, then continue to the prescription.</p>
+
+      <form id="vitals-form">
+        <div class="vitals-grid">
+          <label class="vitals-field" for="spo2-input">
+            SpO2 (%)
+            <input id="spo2-input" name="spo2" type="number" inputmode="numeric" min="0" max="100" step="1" placeholder="e.g. 98">
+          </label>
+          <label class="vitals-field" for="systolic-input">
+            Systolic BP (mmHg)
+            <input id="systolic-input" name="systolic" type="number" inputmode="numeric" min="0" step="1" placeholder="e.g. 120">
+          </label>
+          <label class="vitals-field" for="diastolic-input">
+            Diastolic BP (mmHg)
+            <input id="diastolic-input" name="diastolic" type="number" inputmode="numeric" min="0" step="1" placeholder="e.g. 80">
+          </label>
+        </div>
+
+        <p id="form-message" class="form-message" role="alert"></p>
+
+        <div class="form-actions">
+          <button id="continue-btn" class="btn-primary" type="submit">Continue</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <script type="module">
+    import { doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { db } from './lib/firebase-init.js';
+
+    const CLINIC_FIREBASE_NAMESPACE = 'clinics/lungs';
+    const FIREBASE_COLLECTIONS = {
+      patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`
+    };
+
+    const patientNameDisplay = document.getElementById('patient-name-display');
+    const patientIdDisplay = document.getElementById('patient-id-display');
+    const vitalsForm = document.getElementById('vitals-form');
+    const continueBtn = document.getElementById('continue-btn');
+    const formMessage = document.getElementById('form-message');
+    const spo2Input = document.getElementById('spo2-input');
+    const systolicInput = document.getElementById('systolic-input');
+    const diastolicInput = document.getElementById('diastolic-input');
+
+    function getCurrentPatientId() {
+      const params = new URLSearchParams(window.location.search);
+      return (params.get('patientId') || '').trim().toUpperCase();
+    }
+
+    function showFormMessage(text) {
+      formMessage.textContent = text;
+      formMessage.classList.add('is-visible', 'is-error');
+    }
+
+    function clearFormMessage() {
+      formMessage.textContent = '';
+      formMessage.classList.remove('is-visible', 'is-error');
+    }
+
+    const patientId = getCurrentPatientId();
+
+    if (!patientId) {
+      window.location.href = '/emr/lungs/search';
+    }
+
+    async function loadPatient() {
+      if (!db) {
+        patientNameDisplay.textContent = patientId;
+        patientIdDisplay.textContent = 'Records are not available right now.';
+        return;
+      }
+
+      try {
+        const snapshot = await getDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId));
+        if (!snapshot.exists()) {
+          patientNameDisplay.textContent = patientId;
+          patientIdDisplay.textContent = 'Patient not found.';
+          return;
+        }
+
+        const patient = snapshot.data();
+        const name = patient.patientName || patient.childName || patient.parentName || patientId;
+        patientNameDisplay.textContent = name;
+        patientIdDisplay.textContent = patientId;
+
+        spo2Input.value = patient.spo2 || '';
+        systolicInput.value = patient.systolic || '';
+        diastolicInput.value = patient.diastolic || '';
+      } catch (error) {
+        patientNameDisplay.textContent = patientId;
+        patientIdDisplay.textContent = 'Unable to load patient details.';
+      }
+    }
+
+    loadPatient();
+
+    vitalsForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      clearFormMessage();
+
+      if (!db) {
+        showFormMessage('Records are not available right now. Please try again later.');
+        return;
+      }
+
+      continueBtn.disabled = true;
+      try {
+        await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId), {
+          spo2: spo2Input.value.trim(),
+          systolic: systolicInput.value.trim(),
+          diastolic: diastolicInput.value.trim(),
+          vitalsUpdatedAt: serverTimestamp()
+        }, { merge: true });
+
+        window.location.href = `/emr/lungs/prescription?patientId=${encodeURIComponent(patientId)}`;
+      } catch (error) {
+        showFormMessage(error?.message || 'Unable to save vitals. Please try again.');
+        continueBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

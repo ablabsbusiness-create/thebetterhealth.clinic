@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import { resolve } from 'node:path';
 import {
   buildClearedSessionCookie,
@@ -44,7 +44,10 @@ function readRequestBody(req) {
   });
 }
 
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  Object.assign(process.env, loadEnv(mode, __dirname, ''));
+
+  return {
   root: __dirname,
   envDir: __dirname,
   publicDir: resolve(__dirname, 'public'),
@@ -149,6 +152,7 @@ export default defineConfig({
         dashboard: resolve(__dirname, 'clinci.html'),
         newPatient: resolve(__dirname, 'new-patient.html'),
         prescription: resolve(__dirname, 'prescription.html'),
+        prescriptionGrowthChart: resolve(__dirname, 'prescription-growth-chart-dashboard.html'),
         preview: resolve(__dirname, 'preview.html'),
         pdfViewer: resolve(__dirname, 'pdf-viewer.html'),
         pendingApprovals: resolve(__dirname, 'pending-approvals.html'),
@@ -161,4 +165,5 @@ export default defineConfig({
       }
     }
   }
+  };
 });
