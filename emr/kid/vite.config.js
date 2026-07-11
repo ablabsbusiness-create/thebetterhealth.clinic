@@ -259,10 +259,8 @@ export default defineConfig({
         rx: resolve(__dirname, 'rx.html'),
         portal: resolve(__dirname, 'portal.html'),
         settings: resolve(__dirname, 'settings.html'),
-        test: resolve(__dirname, 'test.html'),
         prescriptionGrowthChart: resolve(__dirname, 'prescription-growth-chart-dashboard.html'),
         vaccination: resolve(__dirname, 'vaccination.html'),
-        vacination: resolve(__dirname, 'vacination.html'),
         search: resolve(__dirname, 'search.html')
       }
     }
