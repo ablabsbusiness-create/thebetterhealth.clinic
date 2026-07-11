@@ -199,12 +199,19 @@
       return `TBL${String(index).padStart(4, '0')}`;
     }
     async function buildUniquePatientId() {
-      for (let index = 0; index <= 9999; index += 1) {
-        const candidate = buildPatientId(index);
+      const counterRef = doc(db, CLINIC_FIREBASE_NAMESPACE, 'counters', 'patientIds');
+      const counterSnapshot = await getDoc(counterRef);
+      let nextSerial = Number(counterSnapshot.data()?.nextSerial || 0);
+      if (!Number.isFinite(nextSerial) || nextSerial < 0) {
+        nextSerial = 0;
+      }
+      for (let attempts = 0; attempts < 20000; attempts += 1) {
+        const candidate = buildPatientId(nextSerial);
         const snapshot = await getDoc(doc(db, FIREBASE_COLLECTIONS.patients, candidate));
         if (!snapshot.exists()) {
           return candidate;
         }
+        nextSerial += 1;
       }
       throw new Error('Could not create a patient ID right now.');
     }

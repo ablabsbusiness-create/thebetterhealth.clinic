@@ -3307,8 +3307,10 @@
     async function initPrescriptionData() {
       loadMedicineDetailsFromStorage();
       cleanupExpiredMedicineDetails();
-      const patientRecord = await loadPatientRecordForPrescription();
-      renderVitalsSummary(patientRecord);
+      renderVitalsSummary(getActiveChartRecord());
+      loadPatientRecordForPrescription()
+        .then((patientRecord) => renderVitalsSummary(patientRecord))
+        .catch((error) => console.warn(`Unable to load patient details for prescription: ${error.message}`));
 
       const localTemplates = mergeWithSavedTemplates(readPrescriptionTemplateCache() || prescriptionTemplates);
       Object.entries(localTemplates).forEach(([sectionName, items]) => {

@@ -431,6 +431,103 @@
       color: #9a3412;
     }
 
+    .skeleton-shell {
+      display: grid;
+      grid-template-columns: 340px minmax(0, 1fr);
+      min-height: calc(100vh - 121px);
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .skeleton-sidebar,
+    .skeleton-main {
+      padding: 18px;
+    }
+
+    .skeleton-sidebar {
+      border-right: 1px solid var(--line);
+      background: #fbfdfb;
+    }
+
+    .skeleton-main {
+      display: grid;
+      gap: 16px;
+      align-content: start;
+    }
+
+    .skeleton-tabs,
+    .skeleton-pills,
+    .skeleton-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .skeleton-tabs {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      margin-bottom: 18px;
+    }
+
+    .skeleton-pills {
+      grid-template-columns: repeat(2, minmax(96px, 112px));
+    }
+
+    .skeleton-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .skeleton-item,
+    .skeleton-card {
+      padding: 14px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .skeleton-item + .skeleton-item {
+      margin-top: 10px;
+    }
+
+    .skeleton-tab,
+    .skeleton-pill,
+    .skeleton-line,
+    .skeleton-block {
+      position: relative;
+      overflow: hidden;
+      border-radius: 4px;
+      background: #edf3ef;
+    }
+
+    .skeleton-tab,
+    .skeleton-pill {
+      height: 34px;
+    }
+
+    .skeleton-line {
+      height: 12px;
+      margin-bottom: 10px;
+    }
+
+    .skeleton-block {
+      min-height: 74px;
+    }
+
+    .skeleton-tab::after,
+    .skeleton-pill::after,
+    .skeleton-line::after,
+    .skeleton-block::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      transform: translateX(-100%);
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.74), transparent);
+      animation: skeleton-shimmer 1.35s ease-in-out infinite;
+    }
+
+    @keyframes skeleton-shimmer {
+      100% {
+        transform: translateX(100%);
+      }
+    }
+
     .results-dashboard {
       display: grid;
       grid-template-columns: 340px minmax(0, 1fr);
@@ -2130,6 +2227,7 @@
     import { collection, doc, getDocs, limit, orderBy, query, serverTimestamp, setDoc, where } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     import { getDownloadURL, getMetadata, listAll, ref } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
     import { db, storage } from './lib/firebase-init.js';
+    const SEARCH_RENDER_LIMIT = 80;
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/lungs';
     const FIREBASE_COLLECTIONS = {
       patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
@@ -4080,12 +4178,13 @@
 
       const counts = getWorklistCounts(patients, selectedWorklistDate);
       const worklistPatients = getWorklistPatients(patients, selectedWorklistDate, selectedWorklistMode, searchValue);
+      const renderedWorklistPatients = worklistPatients.slice(0, SEARCH_RENDER_LIMIT);
       if (selectedPatientId && !patients.some((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId)) {
         selectedPatientId = '';
       }
 
       const selectedPatient = selectedPatientId
-        ? worklistPatients.find((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId) || null
+        ? patients.find((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId) || null
         : null;
       const selectedPatientIdValue = selectedPatient ? formatMissing(selectedPatient.patientId, 'ID not saved') : '';
       const selectedHistoryDate = selectedPatientIdValue ? historyDateFilters[selectedPatientIdValue] || '' : '';
@@ -4126,8 +4225,8 @@
             </div>
 
             <div class="worklist-list">
-              ${worklistPatients.length
-                ? worklistPatients.map((patient) => renderWorklistItemHtml(patient, selectedWorklistDate)).join('')
+              ${renderedWorklistPatients.length
+                ? renderedWorklistPatients.map((patient) => renderWorklistItemHtml(patient, selectedWorklistDate)).join('')
                 : `<div class="worklist-empty">${searchValue ? 'No matching patients were found.' : selectedWorklistMode === 'queue' ? 'No patients were added to queue for this date yet.' : 'No patients have been seen on this date yet.'}</div>`}
             </div>
           </aside>
@@ -4516,28 +4615,7 @@
 
       setStatus(showedCache ? 'Updating records...' : 'Loading patients...');
 
-      try {
-        const [
-          { patientRecords, usedLegacyPatients },
-          { snapshot: historySnapshot, usedLegacy: usedLegacyHistory }
-        ] = await Promise.all([
-          loadPatientRecordsWithDeltaSync(),
-          getDocsWithLegacyFallback(FIREBASE_COLLECTIONS.history, 'history', [orderBy('createdAtIso', 'desc'), limit(HISTORY_FETCH_LIMIT)]).catch((error) => {
-            console.warn(`Unable to load history records: ${error.message}`);
-            return { snapshot: { docs: [] }, usedLegacy: false };
-          })
-        ]);
-        const remoteHistory = historySnapshot.docs
-          .map((docSnapshot) => normalizePrescriptionEntry({
-            id: docSnapshot.id,
-            ...docSnapshot.data()
-          }))
-          .filter((entry) => !usedLegacyHistory || recordBelongsToCurrentClinic(entry))
-          .filter(Boolean);
-        if (patientRecords.length === 0 && remoteHistory.length === 0) {
-          clearLocalPrescriptionEntries();
-        }
-
+      function mergeAndRenderPatients(patientRecords, remoteHistory, usedLegacyPatients, usedLegacyHistory) {
         const localHistory = getLocalPrescriptionEntries()
           .map((entry) => normalizePrescriptionEntry(entry))
           .filter(Boolean);
@@ -4653,6 +4731,37 @@
         if (usedLegacyPatients || usedLegacyHistory) {
           setStatus('Showing patients from older shared records. Ask support to finish separating clinic records.', 'warning');
         }
+      }
+
+      try {
+        const { patientRecords, usedLegacyPatients } = await loadPatientRecordsWithDeltaSync();
+
+        if (patientRecords.length === 0) {
+          clearLocalPrescriptionEntries();
+        }
+
+        mergeAndRenderPatients(patientRecords, [], usedLegacyPatients, false);
+        setStatus(showedCache ? 'Records updated. Loading visit history...' : 'Patients loaded. Loading visit history...');
+
+        getDocsWithLegacyFallback(FIREBASE_COLLECTIONS.history, 'history', [orderBy('createdAtIso', 'desc'), limit(HISTORY_FETCH_LIMIT)])
+          .then(({ snapshot: historySnapshot, usedLegacy: usedLegacyHistory }) => {
+            const remoteHistory = historySnapshot.docs
+              .map((docSnapshot) => normalizePrescriptionEntry({
+                id: docSnapshot.id,
+                ...docSnapshot.data()
+              }))
+              .filter((entry) => !usedLegacyHistory || recordBelongsToCurrentClinic(entry))
+              .filter(Boolean);
+
+            mergeAndRenderPatients(patientRecords, remoteHistory, usedLegacyPatients, usedLegacyHistory);
+            if (!(usedLegacyPatients || usedLegacyHistory)) {
+              setStatus('Showing all patients.');
+            }
+          })
+          .catch((error) => {
+            console.warn(`Unable to load history records: ${error.message}`);
+            setStatus('Patients loaded. Visit history will appear when the connection allows it.', 'warning');
+          });
       } catch (error) {
         if (!showedCache) {
           allPatients = [];
