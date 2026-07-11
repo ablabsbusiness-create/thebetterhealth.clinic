@@ -3020,6 +3020,12 @@
     const GROWTH_CHART_DEBUG = new URLSearchParams(window.location.search).has('growthDebug')
       || localStorage.getItem('growthChartDebug') === '1';
     const CAN_USE_PYTHON_CHART_SERVICE = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+    const GROWTH_CHART_STANDARD_STORAGE_KEY = 'clinics:kid:growthChartStandard';
+    let lastWeightOmittedForWhoCap = false;
+
+    function getGrowthChartStandard() {
+      return localStorage.getItem(GROWTH_CHART_STANDARD_STORAGE_KEY) === 'WHO' ? 'WHO' : 'IAP';
+    }
     const LOCAL_RECORD_KEY = clinicStorageKey('growthChartRecentRecords');
     const LOCAL_PATIENT_DETAIL_CACHE_PREFIX = clinicStorageKey('patientDetailCache');
     const PATIENT_DETAIL_CACHE_TTL_MS = 5 * 60 * 1000;
@@ -5315,6 +5321,17 @@
         return [];
       }
 
+      // The selected standard applies uniformly across every age. For 0-5,
+      // IAP and WHO curves are numerically identical (IAP itself endorses the
+      // WHO Child Growth Standards for that age), so both selections resolve
+      // to real chart entries pointing at the same underlying reference data.
+      const standard = getGrowthChartStandard();
+      const isWho5to18 = standard === 'WHO' && ageBand === '5to18';
+      const standardSuffix = ageBand === '0to5'
+        ? (standard === 'IAP' ? 'Iap' : '')
+        : (isWho5to18 ? 'Who' : '');
+      lastWeightOmittedForWhoCap = false;
+
       const requests = [];
       const addMetricRequest = (templateKey, metricKey) => {
         const template = templateLibrary[templateKey];
@@ -5330,19 +5347,27 @@
       };
 
       if (selectedValues.includes('Height')) {
-        addMetricRequest(`${sexPrefix}Height${ageBand}`, 'height');
+        addMetricRequest(`${sexPrefix}Height${ageBand}${standardSuffix}`, 'height');
       }
 
       if (selectedValues.includes('Weight')) {
-        addMetricRequest(`${sexPrefix}Weight${ageBand}`, 'weight');
+        // WHO does not publish weight-for-age past 10 years; omit rather than
+        // silently mixing in an IAP chart under the WHO label.
+        if (!isWho5to18) {
+          addMetricRequest(`${sexPrefix}Weight${ageBand}${standardSuffix}`, 'weight');
+        } else if (patientData.ageYears <= 10) {
+          addMetricRequest(`${sexPrefix}Weight5to10Who`, 'weight');
+        } else {
+          lastWeightOmittedForWhoCap = true;
+        }
       }
 
       if (selectedValues.includes('Head Circumference-for-Age') && ageBand === '0to5') {
-        addMetricRequest(`${sexPrefix}Head${ageBand}`, 'head');
+        addMetricRequest(`${sexPrefix}Head${ageBand}${standardSuffix}`, 'head');
       }
 
       if (selectedValues.includes('BMI')) {
-        addMetricRequest(`${sexPrefix}Bmi${ageBand}`, 'bmi');
+        addMetricRequest(`${sexPrefix}Bmi${ageBand}${standardSuffix}`, 'bmi');
       }
 
       return requests;
@@ -5531,11 +5556,18 @@
         generatedPdfBase64 = '';
         await renderCanvasFromGeneratedPreview(generatedPreviewPages[0] || null);
 
-        setChartPreviewMessage('Charts are ready for preview and download.', 'ready');
+        setChartPreviewMessage(getChartReadyMessage(), 'ready');
         return;
       }
 
-      setChartPreviewMessage('Charts are ready for preview and download.', 'ready');
+      setChartPreviewMessage(getChartReadyMessage(), 'ready');
+    }
+
+    function getChartReadyMessage() {
+      if (lastWeightOmittedForWhoCap) {
+        return 'Charts are ready. Weight-for-age (WHO) is only published up to 10 years, so it was left out for this age — switch to IAP in Settings to see weight-for-age beyond 10 years.';
+      }
+      return 'Charts are ready for preview and download.';
     }
 
     function getSelectedCharts() {

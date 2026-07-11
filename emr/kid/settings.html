@@ -1353,6 +1353,31 @@
           </div>
         </article>
 
+        <div id="growth-chart-settings" class="settings-divider">Growth Charts</div>
+        <article class="stat-card setting-card">
+          <div class="setting-card-head">
+            <div class="setting-card-title">
+              <div>
+                <strong>Growth Chart Standard</strong>
+                <div class="setting-copy">Reference charts used for ages 5-18. Ages 0-5 always use the WHO Child Growth Standards, which both IAP and WHO recommend for that age.</div>
+              </div>
+            </div>
+          </div>
+          <div class="setting-card-body">
+            <div class="setting-control">
+              <label class="setting-input-wrap" for="growth-chart-standard-select">
+                Standard
+                <select id="growth-chart-standard-select">
+                  <option value="IAP">IAP (Indian Academy of Pediatrics)</option>
+                  <option value="WHO">WHO (World Health Organization)</option>
+                </select>
+              </label>
+              <button id="save-growth-chart-standard-btn" class="setting-save" type="button">Save Setting</button>
+            </div>
+            <div id="growth-chart-standard-status" class="setting-status">Current standard: IAP for ages 5-18</div>
+          </div>
+        </article>
+
         <div id="prescription-layout-settings" class="settings-divider">Prescription Layout</div>
         <article class="stat-card setting-card prescription-ui-card">
           <div class="setting-card-head">
@@ -1555,6 +1580,9 @@
     const combinedUsageCaption = document.getElementById('combined-usage-caption');
     const printGapSettingInput = document.getElementById('print-gap-setting-input');
     const savePrintGapBtn = document.getElementById('save-print-gap-btn');
+    const growthChartStandardSelect = document.getElementById('growth-chart-standard-select');
+    const saveGrowthChartStandardBtn = document.getElementById('save-growth-chart-standard-btn');
+    const growthChartStandardStatus = document.getElementById('growth-chart-standard-status');
     const signOutBtn = document.getElementById('sign-out-btn');
     const printGapSettingStatus = document.getElementById('print-gap-setting-status');
     const clinicTitleInput = document.getElementById('clinic-title-input');
@@ -1597,6 +1625,8 @@
     const STORAGE_SUPPORT_PHONE = '917357397888';
     const CLINIC_STORAGE_LABEL = CLINIC_FIREBASE_NAMESPACE.includes('/lungs') ? 'lungs clinic' : 'kid clinic';
     const PRINT_HEADER_GAP_STORAGE_KEY = clinicStorageKey('previewPrintHeaderGapCm');
+    const GROWTH_CHART_STANDARD_STORAGE_KEY = clinicStorageKey('growthChartStandard');
+    const DEFAULT_GROWTH_CHART_STANDARD = 'IAP';
     const PRESCRIPTION_BRANDING_STORAGE_KEY = clinicStorageKey('prescriptionBrandingSettings');
     const PRESCRIPTION_BRANDING_CACHED_AT_KEY = clinicStorageKey('prescriptionBrandingCachedAt');
     const CLINIC_DOC_PATH = CLINIC_FIREBASE_NAMESPACE.split('/');
@@ -1614,6 +1644,7 @@
       printWithoutHeaderTitle: 'Print Without Header',
       printWithoutHeaderDescription: 'Choose how much blank top space to leave when you print or save without the prescription header.',
       printHeaderGapCm: 0,
+      growthChartStandard: DEFAULT_GROWTH_CHART_STANDARD,
       prescriptionLanguage: 'English',
       prescriptionFontFamily: 'Arial',
       prescriptionFontSize: 14,
@@ -1834,6 +1865,51 @@
       updatePrintGapSettingStatus(safeValue, `Saved gap: ${safeValue.toFixed(1)} cm in this browser`);
     }
 
+    function normalizeGrowthChartStandard(value) {
+      return String(value || '').toUpperCase() === 'WHO' ? 'WHO' : DEFAULT_GROWTH_CHART_STANDARD;
+    }
+
+    function getSavedGrowthChartStandard() {
+      const localValue = localStorage.getItem(GROWTH_CHART_STANDARD_STORAGE_KEY);
+      const brandingValue = readBrandingSettings().growthChartStandard;
+      return normalizeGrowthChartStandard(localValue ?? brandingValue);
+    }
+
+    function updateGrowthChartStandardStatus(value, message) {
+      const safeValue = normalizeGrowthChartStandard(value);
+      if (growthChartStandardSelect) {
+        growthChartStandardSelect.value = safeValue;
+      }
+      if (growthChartStandardStatus) {
+        growthChartStandardStatus.textContent = message || `Current standard: ${safeValue} for ages 5-18`;
+      }
+    }
+
+    async function saveGrowthChartStandardSetting() {
+      const safeValue = normalizeGrowthChartStandard(growthChartStandardSelect.value);
+      localStorage.setItem(GROWTH_CHART_STANDARD_STORAGE_KEY, safeValue);
+      const nextSettings = cacheBrandingSettings({
+        ...readBrandingSettings(),
+        growthChartStandard: safeValue
+      });
+
+      if (db) {
+        await saveClinicSettingsToCloud(nextSettings);
+        const confirmedSnapshot = await getDoc(doc(db, ...CLINIC_SETTINGS_DOC_PATH));
+        const confirmedValue = normalizeGrowthChartStandard(confirmedSnapshot.data()?.growthChartStandard);
+        localStorage.setItem(GROWTH_CHART_STANDARD_STORAGE_KEY, confirmedValue);
+        cacheBrandingSettings({
+          ...readBrandingSettings(),
+          growthChartStandard: confirmedValue
+        });
+        updateGrowthChartStandardStatus(confirmedValue, `Saved standard: ${confirmedValue} to cloud records`);
+        showCloudSavePopup('Growth chart standard saved.');
+        return;
+      }
+
+      updateGrowthChartStandardStatus(safeValue, `Saved standard: ${safeValue} in this browser`);
+    }
+
     function readBrandingSettings() {
       try {
         const parsed = JSON.parse(localStorage.getItem(PRESCRIPTION_BRANDING_STORAGE_KEY) || '{}');
@@ -1939,6 +2015,8 @@
         });
         localStorage.setItem(PRINT_HEADER_GAP_STORAGE_KEY, String(normalizePrintGapCm(firestoreSettings.printHeaderGapCm)));
         updatePrintGapSettingStatus(normalizePrintGapCm(firestoreSettings.printHeaderGapCm));
+        localStorage.setItem(GROWTH_CHART_STANDARD_STORAGE_KEY, normalizeGrowthChartStandard(firestoreSettings.growthChartStandard));
+        updateGrowthChartStandardStatus(normalizeGrowthChartStandard(firestoreSettings.growthChartStandard));
         populateBrandingForm(firestoreSettings);
         if (brandingSettingStatus) {
           brandingSettingStatus.textContent = 'Current branding: loaded from cloud records.';
@@ -1994,6 +2072,7 @@
         printWithoutHeaderTitle: DEFAULT_BRANDING.printWithoutHeaderTitle,
         printWithoutHeaderDescription: DEFAULT_BRANDING.printWithoutHeaderDescription,
         printHeaderGapCm: getSavedPrintGapCm(),
+        growthChartStandard: getSavedGrowthChartStandard(),
         ...collectPrescriptionLayoutForm(),
         signatureDataUrl: current.signatureDataUrl || ''
       };
@@ -2169,6 +2248,20 @@
         if (event.key === 'Enter') {
           event.preventDefault();
           savePrintGapBtn.click();
+        }
+      });
+    }
+
+    if (saveGrowthChartStandardBtn && growthChartStandardSelect) {
+      updateGrowthChartStandardStatus(getSavedGrowthChartStandard());
+      saveGrowthChartStandardBtn.addEventListener('click', async () => {
+        saveGrowthChartStandardBtn.disabled = true;
+        try {
+          await saveGrowthChartStandardSetting();
+        } catch (error) {
+          updateGrowthChartStandardStatus(getSavedGrowthChartStandard(), `Saved locally, but Cloud save failed: ${error.message}`);
+        } finally {
+          saveGrowthChartStandardBtn.disabled = false;
         }
       });
     }
