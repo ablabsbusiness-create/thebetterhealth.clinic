@@ -103,6 +103,10 @@
         linear-gradient(180deg, #f5faf3 0%, #eaf3ec 55%, #e6f1e9 100%);
     }
 
+    body.has-bottom-nav {
+      padding-bottom: calc(84px + env(safe-area-inset-bottom));
+    }
+
     .site-header {
       position: sticky;
       top: 0;
@@ -596,6 +600,97 @@
       text-decoration: none;
     }
 
+    .bottom-nav {
+      display: none;
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 40;
+      justify-content: center;
+      padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+      pointer-events: none;
+    }
+
+    .bottom-nav.is-visible {
+      display: flex;
+    }
+
+    .bottom-nav-inner {
+      pointer-events: auto;
+      width: min(420px, 100%);
+      display: flex;
+      gap: 6px;
+      padding: 6px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid var(--line);
+      box-shadow: 0 16px 34px rgba(20, 46, 30, 0.16);
+      backdrop-filter: blur(14px);
+    }
+
+    .bottom-nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      min-height: 56px;
+      padding: 8px 6px;
+      border-radius: 14px;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 11.5px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .bottom-nav-item svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .bottom-nav-item.is-active {
+      background: var(--brand-soft);
+      color: var(--brand-strong);
+    }
+
+    .nav-toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(88px + env(safe-area-inset-bottom));
+      transform: translate(-50%, 8px);
+      z-index: 50;
+      max-width: min(360px, calc(100% - 32px));
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      background: var(--brand-strong);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.5;
+      text-align: center;
+      box-shadow: 0 16px 30px rgba(20, 46, 30, 0.24);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .nav-toast.is-visible {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    .nav-toast a {
+      color: #fff;
+      text-decoration: underline;
+    }
+
     @media (max-width: 480px) {
       .page-shell {
         padding: 28px 0 56px;
@@ -623,6 +718,33 @@
 
       .visit-card-actions a {
         flex: 1;
+      }
+    }
+
+    @media (max-width: 760px) {
+      body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100dvh;
+        padding-bottom: 0;
+      }
+
+      body.has-bottom-nav {
+        padding-bottom: calc(84px + env(safe-area-inset-bottom));
+      }
+
+      .site-header {
+        flex-shrink: 0;
+      }
+
+      .page-shell {
+        margin: auto 0;
+        padding-top: 14px;
+        padding-bottom: 14px;
+      }
+
+      .panel {
+        padding-bottom: 14px;
       }
     }
   </style>
@@ -700,6 +822,21 @@
 
     <p class="footnote">Trouble finding your records? Call the clinic at <a href="tel:+919686183999">+91 96861 83999</a>.</p>
   </div>
+
+  <nav class="bottom-nav" aria-label="Portal navigation">
+    <div class="bottom-nav-inner">
+      <a class="bottom-nav-item is-active" href="/emr/lungs/portal" aria-current="page">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 3h8l4 4v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 12h6M9 16h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <span>Prescriptions</span>
+      </a>
+      <button type="button" class="bottom-nav-item" id="appointment-tab">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3.5" y="5" width="17" height="16" rx="3" stroke="currentColor" stroke-width="2"/><path d="M3.5 10h17M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <span>Appointment</span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="nav-toast" id="nav-toast">Appointment booking is coming soon. Call <a href="tel:+919686183999">+91 96861 83999</a> to book.</div>
 
   <script type="module">
     import { collection, doc, getDoc, getDocs, orderBy, query, where } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
@@ -1024,8 +1161,10 @@
         resultsSubtitle.textContent = entries.length === 1 ? '1 visit found' : `${entries.length} visits found`;
         lookupPanel.classList.add('is-hidden');
         resultsPanel.classList.add('is-visible');
+        document.body.classList.add('has-bottom-nav');
+        document.querySelector('.bottom-nav')?.classList.add('is-visible');
         await renderVisits(entries);
-        resultsPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } catch (error) {
         showFormMessage(error?.message || 'Something went wrong while loading records. Please try again.');
       } finally {
@@ -1037,6 +1176,8 @@
     resultsReset.addEventListener('click', () => {
       resultsPanel.classList.remove('is-visible');
       lookupPanel.classList.remove('is-hidden');
+      document.body.classList.remove('has-bottom-nav');
+      document.querySelector('.bottom-nav')?.classList.remove('is-visible');
       clearFormMessage();
       patientIdNumberInput.value = '';
       dobDayInput.value = '';
@@ -1044,6 +1185,26 @@
       dobYearInput.value = '';
       lookupPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
       patientIdNumberInput.focus();
+    });
+  </script>
+
+  <script>
+    const prescriptionsTab = document.querySelector('.bottom-nav-item.is-active');
+    const appointmentTab = document.getElementById('appointment-tab');
+    const navToast = document.getElementById('nav-toast');
+    let navToastTimer = null;
+
+    prescriptionsTab?.addEventListener('click', (event) => {
+      event.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    appointmentTab?.addEventListener('click', () => {
+      navToast.classList.add('is-visible');
+      window.clearTimeout(navToastTimer);
+      navToastTimer = window.setTimeout(() => {
+        navToast.classList.remove('is-visible');
+      }, 4000);
     });
   </script>
 </body>
