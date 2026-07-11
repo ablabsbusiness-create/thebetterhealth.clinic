@@ -4249,10 +4249,10 @@
                 <div class="doctor-detail-stack">
                   <section class="doctor-card">
                     <div class="doctor-card-head">
-                      <h3>Patient Snapshot</h3>
+                      <h3>Vitals Trend</h3>
                     </div>
                     <div class="doctor-card-body is-compact">
-                      ${renderPatientSnapshotHtml(selectedPatient, selectedPatientIdValue)}
+                      ${renderMeasurementTableHtml(selectedPatient, selectedHistoryDate) || '<p class="doctor-card-note">No vitals trend has been saved yet.</p>'}
                     </div>
                   </section>
                 </div>
