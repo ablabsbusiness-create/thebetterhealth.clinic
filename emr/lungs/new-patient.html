@@ -942,7 +942,25 @@
       return { patientId, saved: true };
     }
 
-    let autoPatientId = buildPatientId(0);
+    const PATIENT_SERIAL_HINT_KEY = 'lungsNextPatientSerialHint';
+
+    function readPatientSerialHint() {
+      const stored = Number(localStorage.getItem(PATIENT_SERIAL_HINT_KEY));
+      return Number.isFinite(stored) && stored >= 0 ? stored : 0;
+    }
+
+    function writePatientSerialHint(patientId) {
+      const match = /^TBL(\d+)$/i.exec(String(patientId || '').trim());
+      if (!match) {
+        return;
+      }
+      const serial = Number(match[1]);
+      if (serial >= readPatientSerialHint()) {
+        localStorage.setItem(PATIENT_SERIAL_HINT_KEY, String(serial + 1));
+      }
+    }
+
+    let autoPatientId = buildPatientId(readPatientSerialHint());
     patientIdOutput.textContent = autoPatientId;
     sessionStorage.setItem('newPatientId', autoPatientId);
 
@@ -951,6 +969,7 @@
         autoPatientId = nextPatientId;
         patientIdOutput.textContent = autoPatientId;
         sessionStorage.setItem('newPatientId', autoPatientId);
+        writePatientSerialHint(autoPatientId);
       })
       .catch((error) => {
         console.warn(`Unable to prefill the next patient ID: ${error.message}`);
@@ -987,6 +1006,7 @@
         autoPatientId = assignedPatientId;
         patientIdOutput.textContent = autoPatientId;
         sessionStorage.setItem('newPatientId', autoPatientId);
+        writePatientSerialHint(autoPatientId);
         setSaveStatus(savedToCloudRecords
           ? `Patient details saved.`
           : `Patient ID created, but online saving is not available.`, savedToCloudRecords ? 'ready' : 'error');
