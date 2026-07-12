@@ -2152,6 +2152,11 @@
       return url.toString();
     }
 
+    function buildPortalLink() {
+      const url = new URL('portal', window.location.href);
+      return url.toString().replace(/^https?:\/\//, '');
+    }
+
     downloadPdfBtn.addEventListener('click', async () => {
       downloadPdfBtn.disabled = true;
       downloadPdfBtn.textContent = isMobileDownloadView() ? 'Preparing PNG...' : 'Preparing...';
@@ -2185,6 +2190,7 @@
         const chartRecord = getCurrentChartRecord();
         const branding = getPrescriptionBranding();
         const prescriptionLink = buildShortPrescriptionLink(builtRecord.saveId);
+        const portalLink = buildPortalLink();
         const message = [
           `Hello ${chartRecord?.patientName || chartRecord?.childName || 'Patient'},`,
           '',
@@ -2195,7 +2201,9 @@
           `Clinic: ${branding.clinicTitle || DEFAULT_BRANDING.clinicTitle}`,
           '',
           `Regards,`,
-          `AB Labs`
+          `AB Labs`,
+          '',
+          `_View all your past visits anytime: ${portalLink}_`
         ].join('\n');
         openWhatsAppChat(chartRecord?.phone || builtRecord.phone || '', message);
         ensurePrescriptionSaved().catch((error) => {
