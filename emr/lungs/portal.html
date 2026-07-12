@@ -1154,6 +1154,19 @@
       otpSubmit.disabled = isLoading;
     }
 
+    function resetRecaptcha() {
+      try {
+        recaptchaVerifier?.clear();
+      } catch {
+        // Ignore teardown failures from an already-cleared or never-rendered widget.
+      }
+      recaptchaVerifier = null;
+      const container = document.getElementById('recaptcha-container');
+      if (container) {
+        container.innerHTML = '';
+      }
+    }
+
     function getRecaptchaVerifier() {
       if (!recaptchaVerifier) {
         recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' });
@@ -1248,8 +1261,7 @@
         otpForm.classList.remove('is-hidden');
         otpCodeInput.focus();
       } catch (error) {
-        recaptchaVerifier?.clear?.();
-        recaptchaVerifier = null;
+        resetRecaptcha();
         showFormMessage(error?.message || 'Something went wrong while sending the verification code. Please try again.');
       } finally {
         setLoading(false);
@@ -1290,6 +1302,7 @@
     function resetToLookup() {
       confirmationResult = null;
       pendingPatientId = '';
+      resetRecaptcha();
       otpForm.classList.add('is-hidden');
       lookupForm.classList.remove('is-hidden');
       lookupPanel.classList.remove('is-hidden');
