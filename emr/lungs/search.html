@@ -3687,39 +3687,11 @@
 
       const rows = [
         {
-          label: 'Weight',
-          unit: 'kg',
-          key: 'weight',
-          placeholder: 'kg',
-          getValue: (entry) => formatMetricCellValue(entry.weight)
-        },
-        {
-          label: 'Height',
-          unit: 'cm',
-          key: 'height',
-          placeholder: 'cm',
-          getValue: (entry) => formatMetricCellValue(entry.height)
-        },
-        {
-          label: 'Ofc',
-          unit: 'cm',
-          key: 'head',
-          placeholder: 'cm',
-          getValue: (entry) => formatMetricCellValue(entry.head)
-        },
-        {
           label: 'SPO2',
           unit: '%',
           key: 'spo2',
           placeholder: '%',
           getValue: (entry) => formatMetricCellValue(entry.spo2)
-        },
-        {
-          label: 'Pulse',
-          unit: '/min',
-          key: 'pulse',
-          placeholder: 'bpm',
-          getValue: (entry) => formatMetricCellValue(entry.pulse)
         },
         {
           label: 'Systolic',
@@ -3736,11 +3708,18 @@
           getValue: (entry) => formatMetricCellValue(entry.diastolic)
         },
         {
-          label: 'Temperature',
-          unit: '°C',
-          key: 'temp',
-          placeholder: 'C',
-          getValue: (entry) => formatMetricCellValue(entry.temp)
+          label: 'Weight',
+          unit: 'kg',
+          key: 'weight',
+          placeholder: 'kg',
+          getValue: (entry) => formatMetricCellValue(entry.weight)
+        },
+        {
+          label: 'Height',
+          unit: 'cm',
+          key: 'height',
+          placeholder: 'cm',
+          getValue: (entry) => formatMetricCellValue(entry.height)
         }
       ];
 
