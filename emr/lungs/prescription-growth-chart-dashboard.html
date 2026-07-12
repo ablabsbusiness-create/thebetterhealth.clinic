@@ -265,29 +265,20 @@
     }
 
     .page-meta strong {
-      display: block;
-      margin-bottom: 6px;
       font-size: 16px;
       line-height: 1.4;
     }
 
     .page-meta span {
-      display: block;
       color: var(--muted);
       font-size: 14px;
       line-height: 1.55;
-      margin-top: 4px;
     }
 
     .page-meta-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 2px 14px;
-      margin-top: 4px;
-    }
-
-    .page-meta-grid span {
-      margin-top: 0;
     }
 
     .panel {
@@ -608,9 +599,9 @@
     </section>
 
     <a id="page-meta-link" class="page-meta" href="/emr/lungs/search" aria-label="Edit patient details">
-      <strong id="patient-name-display">Loading patient...</strong>
-      <span id="patient-id-display"></span>
       <div class="page-meta-grid">
+        <strong id="patient-name-display">Loading patient...</strong>
+        <span id="patient-id-display"></span>
         <span id="page-meta-phone">Ph -</span>
         <span id="page-meta-height">Height -</span>
         <span id="page-meta-weight">Weight -</span>
