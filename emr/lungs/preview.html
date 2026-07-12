@@ -972,6 +972,8 @@
     const statusChip = document.querySelector('.status-chip');
     let prescriptionSavePromise = null;
     let savedPrescriptionRecord = null;
+    let prescriptionBuildPromise = null;
+    let builtPrescriptionRecord = null;
     let preparedChartRecord = null;
     let activePrescriptionBranding = null;
     const CHART_PREVIEW_VERSION = 'lungs-no-chart-preview';
@@ -2042,6 +2044,34 @@
       return { ok: true, downloadURL, storagePath: persistedStoragePath, previewImageURL, previewImagePath, warning };
     }
 
+    async function ensurePrescriptionPdfBuilt() {
+      if (builtPrescriptionRecord) {
+        return builtPrescriptionRecord;
+      }
+
+      if (prescriptionBuildPromise) {
+        return prescriptionBuildPromise;
+      }
+
+      prescriptionBuildPromise = (async () => {
+        const details = await buildPdf();
+        const { pdf, patientId, childName, phone, previewBlob } = details;
+        const fallbackSaveId = window.crypto?.randomUUID
+          ? `rx-${patientId || 'UNKNOWN'}-${window.crypto.randomUUID()}`
+          : `rx-${patientId || 'UNKNOWN'}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+        const saveId = details.draftId || fallbackSaveId;
+        const fileName = `${saveId}.pdf`;
+        const pdfBlob = pdf.output('blob');
+        builtPrescriptionRecord = { ...details, patientId, childName, phone, previewBlob, saveId, fileName, pdfBlob };
+        return builtPrescriptionRecord;
+      })().catch((error) => {
+        prescriptionBuildPromise = null;
+        throw error;
+      });
+
+      return prescriptionBuildPromise;
+    }
+
     async function ensurePrescriptionSaved() {
       if (savedPrescriptionRecord) {
         return savedPrescriptionRecord;
@@ -2053,16 +2083,10 @@
 
       prescriptionSavePromise = (async () => {
         setPreviewStatus('Saving prescription...');
-        const details = await buildPdf();
-        const { pdf, patientId, childName, phone, previewBlob } = details;
-        const fallbackSaveId = window.crypto?.randomUUID
-          ? `rx-${patientId || 'UNKNOWN'}-${window.crypto.randomUUID()}`
-          : `rx-${patientId || 'UNKNOWN'}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-        const saveId = details.draftId || fallbackSaveId;
-        const fileName = `${saveId}.pdf`;
-        const pdfBlob = pdf.output('blob');
+        const built = await ensurePrescriptionPdfBuilt();
+        const { pdf, patientId, childName, phone, previewBlob, saveId, fileName, pdfBlob } = built;
         const saveResult = await savePrescriptionPdfToCloudStorage(pdfBlob, fileName, {
-          ...details,
+          ...built,
           patientId,
           childName,
           phone,
@@ -2133,14 +2157,17 @@
       downloadPdfBtn.textContent = isMobileDownloadView() ? 'Preparing PNG...' : 'Preparing...';
 
       try {
-        const savedRecord = await ensurePrescriptionSaved();
-        if (isMobileDownloadView() && savedRecord.previewBlob) {
-          const pngFileName = savedRecord.fileName.replace(/\.pdf$/i, '.png');
-          downloadBlob(savedRecord.previewBlob, pngFileName);
+        const builtRecord = await ensurePrescriptionPdfBuilt();
+        if (isMobileDownloadView() && builtRecord.previewBlob) {
+          const pngFileName = builtRecord.fileName.replace(/\.pdf$/i, '.png');
+          downloadBlob(builtRecord.previewBlob, pngFileName);
         } else {
-          savedRecord.pdf.save(savedRecord.fileName);
+          builtRecord.pdf.save(builtRecord.fileName);
         }
         clearPrescriptionLocalData();
+        ensurePrescriptionSaved().catch((error) => {
+          console.warn(`Prescription background save failed: ${error.message}`);
+        });
       } catch (error) {
         console.warn(`Unable to save prescription PDF: ${error.message}`);
       } finally {
@@ -2154,23 +2181,26 @@
       whatsappBtn.textContent = 'Opening...';
 
       try {
-        const savedRecord = await ensurePrescriptionSaved();
+        const builtRecord = await ensurePrescriptionPdfBuilt();
         const chartRecord = getCurrentChartRecord();
         const branding = getPrescriptionBranding();
-        const prescriptionLink = savedRecord.downloadURL || buildShortPrescriptionLink(savedRecord.saveId);
+        const prescriptionLink = buildShortPrescriptionLink(builtRecord.saveId);
         const message = [
           `Hello ${chartRecord?.patientName || chartRecord?.childName || 'Patient'},`,
           '',
           `You can see your prescription PDF here:`,
           prescriptionLink,
           '',
-          `Patient ID: ${savedRecord.patientId || chartRecord?.patientId || '-'}`,
+          `Patient ID: ${builtRecord.patientId || chartRecord?.patientId || '-'}`,
           `Clinic: ${branding.clinicTitle || DEFAULT_BRANDING.clinicTitle}`,
           '',
           `Regards,`,
           `AB Labs`
         ].join('\n');
-        openWhatsAppChat(chartRecord?.phone || savedRecord.phone || '', message);
+        openWhatsAppChat(chartRecord?.phone || builtRecord.phone || '', message);
+        ensurePrescriptionSaved().catch((error) => {
+          console.warn(`Prescription background save failed: ${error.message}`);
+        });
       } catch (error) {
         console.warn(`Unable to prepare WhatsApp prescription link: ${error.message}`);
       } finally {
@@ -2218,6 +2248,8 @@
     function invalidateSavedPrescriptionCache() {
       prescriptionSavePromise = null;
       savedPrescriptionRecord = null;
+      prescriptionBuildPromise = null;
+      builtPrescriptionRecord = null;
     }
 
     function applySavedPreviewSettings(refreshSavedPdf = false) {
