@@ -1013,7 +1013,7 @@
         console.log(savedToCloudRecords
           ? `Saved with Patient ID ${autoPatientId}.`
           : `Patient ID ${autoPatientId} generated locally. Configure cloud records to store this online.`);
-        window.location.href = `prescription?patientId=${encodeURIComponent(autoPatientId)}`;
+        window.location.href = `prescription-growth-chart-dashboard?patientId=${encodeURIComponent(autoPatientId)}`;
       } catch (error) {
         console.error(`Cloud save failed: ${error.message}`);
         setSaveStatus(`Unable to save patient details: ${error.message}. Please try again.`, 'error');

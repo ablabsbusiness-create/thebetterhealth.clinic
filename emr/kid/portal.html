@@ -846,10 +846,6 @@
           <span id="results-subtitle"></span>
         </div>
         <div style="display: flex; gap: 4px;">
-          <button id="results-reset" type="button">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 18 3 12l6-6M3 12h12a5 5 0 0 1 5 5v1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Search again
-          </button>
           <button id="logout-button" type="button">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             Log out
@@ -903,7 +899,6 @@
     const resultsPanel = document.getElementById('results-panel');
     const resultsTitle = document.getElementById('results-title');
     const resultsSubtitle = document.getElementById('results-subtitle');
-    const resultsReset = document.getElementById('results-reset');
     const visitList = document.getElementById('visit-list');
 
     const otpForm = document.getElementById('otp-form');
@@ -1329,6 +1324,9 @@
     }
 
     async function handleLogout() {
+      if (!window.confirm('Log out?')) {
+        return;
+      }
       try {
         await signOut(auth);
       } catch {
@@ -1348,13 +1346,6 @@
     lookupForm.addEventListener('submit', handleLookup);
     otpForm.addEventListener('submit', handleOtpVerify);
     otpBack.addEventListener('click', resetToLookup);
-    resultsReset.addEventListener('click', () => {
-      resetToLookup();
-      patientIdNumberInput.value = '';
-      phoneNumberInput.value = '';
-      lookupPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      patientIdNumberInput.focus();
-    });
     logoutButton.addEventListener('click', handleLogout);
 
     let hasAutoRestored = false;

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Privacy Policy &amp; Terms of Service | The Better Health Clinic</title>
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <meta name="robots" content="noindex, follow" />
+  <meta name="description" content="Privacy Policy and Terms of Service for The Better Health Clinic, including how we use Firebase Phone Authentication (OTP) to verify patients." />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="The Better Health Clinic" />
+  <meta property="og:title" content="Privacy Policy & Terms of Service | The Better Health Clinic" />
+  <meta property="og:description" content="Privacy Policy and Terms of Service for The Better Health Clinic, including how we use Firebase Phone Authentication (OTP) to verify patients." />
+  <meta property="og:url" content="https://www.thebetterhealth.clinic/tos" />
+  <meta property="og:locale" content="en_IN" />
+  <link rel="canonical" href="https://www.thebetterhealth.clinic/tos" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;0,800;1,700;1,800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              beige:     '#F6F1E9',
+              'beige-2': '#EDE5D6',
+              'beige-3': '#E2D8C7',
+              warm:      '#C8A97E',
+              'warm-dark':'#A8844F',
+              dark:      '#1C1917',
+              mid:       '#57534E',
+              teal:      '#2D7B6F',
+              'teal-2':  '#235F55',
+              sky:       '#3B82C4',
+              'sky-2':   '#2B6499',
+            }
+          },
+          fontFamily: {
+            sans:  ['Inter', 'sans-serif'],
+            serif: ['"Playfair Display"', 'serif'],
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    :root {
+      --bg-primary:   #F6F1E9;
+      --bg-secondary: #EDE5D6;
+      --text-primary: #1C1917;
+      --accent-beige: #C8A97E;
+      --accent-dark:  #A8844F;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+    }
+    .highlight { font-family: 'Playfair Display', serif; font-style: italic; }
+    #navbar {
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      background: rgba(246,241,233,0.85);
+      border-bottom: 1px solid rgba(200,169,126,0.18);
+    }
+    .doc-card {
+      background: #fff;
+      border: 1px solid rgba(200,169,126,0.22);
+      border-radius: 1.25rem;
+      box-shadow: 0 8px 40px rgba(28,25,23,0.06);
+    }
+    .doc-card h2 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 800;
+    }
+    .doc-card h3 { font-weight: 700; }
+    .doc-card p, .doc-card li { color: #44403C; line-height: 1.7; }
+    .doc-card a { color: var(--accent-dark); text-decoration: underline; text-underline-offset: 2px; }
+    .toc a {
+      display: block;
+      padding: 6px 0;
+      color: #57534E;
+      text-decoration: none;
+      border-bottom: 1px dashed rgba(200,169,126,0.35);
+      font-size: 0.88rem;
+    }
+    .toc a:hover { color: var(--accent-dark); }
+    .btn-warm {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--accent-beige); color: white;
+      font-weight: 700; font-size: 0.9rem;
+      padding: 11px 24px; border-radius: 99px;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s;
+      box-shadow: 0 4px 18px rgba(200,169,126,0.35);
+    }
+    .btn-warm:hover { background: var(--accent-dark); transform: translateY(-1px); }
+  </style>
+</head>
+<body class="antialiased">
+
+  <header id="navbar" class="fixed top-0 left-0 right-0 z-50">
+    <div class="max-w-5xl mx-auto px-5 py-4 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#2D7B6F,#3B82C4);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2C8 2 5 5 5 9c0 3 2 5.5 5 6.8V20h2v-1h2v1h2v-4.2c3-1.3 5-3.8 5-6.8 0-4-3-7-7-7z" fill="white" opacity="0.9"/>
+            <path d="M10 13v-2H8v-2h2V7h2v2h2v2h-2v2h-2z" fill="white"/>
+          </svg>
+        </div>
+        <div class="leading-tight">
+          <div class="font-serif font-bold text-base text-stone-900 leading-none">The Better Health</div>
+          <div class="text-xs font-semibold tracking-widest text-stone-500 uppercase">Clinic</div>
+        </div>
+      </a>
+      <a href="/#contact-cta" class="btn-warm hidden sm:inline-flex">Contact Us</a>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-5 pt-32 pb-24">
+
+    <div class="mb-10">
+      <span class="text-xs font-bold tracking-widest uppercase text-stone-500">Legal</span>
+      <h1 class="font-serif font-extrabold text-3xl sm:text-4xl mt-2 text-stone-900">
+        Privacy Policy &amp; <span class="highlight">Terms of Service</span>
+      </h1>
+      <p class="text-stone-600 mt-3 max-w-2xl">
+        This page explains how The Better Health Clinic collects, uses, and protects your information, including
+        how we use phone number verification (OTP) to sign you in, and the terms that apply when you use our
+        website and services.
+      </p>
+      <p class="text-sm text-stone-500 mt-2">Last updated: 12 July 2026</p>
+    </div>
+
+    <div class="grid lg:grid-cols-[220px_1fr] gap-10">
+
+      <!-- TOC -->
+      <aside class="hidden lg:block">
+        <div class="sticky top-28 doc-card p-5">
+          <p class="text-xs font-bold tracking-widest uppercase text-stone-500 mb-2">Privacy Policy</p>
+          <nav class="toc mb-4">
+            <a href="#pp-info-we-collect">Information we collect</a>
+            <a href="#pp-phone-auth">Phone number sign-in (OTP)</a>
+            <a href="#pp-how-we-use">How we use information</a>
+            <a href="#pp-sharing">Sharing &amp; third parties</a>
+            <a href="#pp-medical-data">Medical &amp; health records</a>
+            <a href="#pp-children">Children's information</a>
+            <a href="#pp-retention">Data retention</a>
+            <a href="#pp-security">Security</a>
+            <a href="#pp-rights">Your rights &amp; choices</a>
+          </nav>
+          <p class="text-xs font-bold tracking-widest uppercase text-stone-500 mb-2">Terms of Service</p>
+          <nav class="toc">
+            <a href="#tos-acceptance">Acceptance of terms</a>
+            <a href="#tos-use">Use of the site &amp; services</a>
+            <a href="#tos-appointments">Appointments &amp; medical disclaimer</a>
+            <a href="#tos-accounts">Accounts &amp; OTP responsibility</a>
+            <a href="#tos-liability">Limitation of liability</a>
+            <a href="#tos-changes">Changes to these terms</a>
+            <a href="#tos-law">Governing law</a>
+            <a href="#tos-contact">Contact us</a>
+          </nav>
+        </div>
+      </aside>
+
+      <!-- Content -->
+      <div class="space-y-6">
+
+        <!-- PRIVACY POLICY -->
+        <section class="doc-card p-6 sm:p-8">
+          <h2 class="text-2xl mb-4 text-stone-900">Privacy Policy</h2>
+          <p>
+            The Better Health Clinic ("we", "us", "our") operates thebetterhealth.clinic and provides pediatric
+            care (The Better Kids Clinic) and pulmonary/lung care (The Better Lungs Clinic) in Arekere MICO Layout,
+            Bengaluru. This Privacy Policy describes how we collect, use, and safeguard information when you visit
+            our website, book an appointment, or sign in using your phone number.
+          </p>
+
+          <h3 id="pp-info-we-collect" class="text-lg mt-6 mb-2 text-stone-900">1. Information we collect</h3>
+          <ul class="list-disc pl-5 space-y-1">
+            <li><strong>Contact details</strong>: name, phone number, and (if provided) email address, when you book an appointment or contact us.</li>
+            <li><strong>Phone verification data</strong>: your phone number and the one-time password (OTP) verification status when you sign in via Firebase Phone Authentication.</li>
+            <li><strong>Patient &amp; health information</strong>: details you or your child's guardian share with our doctors, such as symptoms, vitals, and visit history, recorded as part of clinical care.</li>
+            <li><strong>Usage data</strong>: basic technical information such as browser type, device, and pages visited, collected automatically for site functioning and security.</li>
+          </ul>
+
+          <h3 id="pp-phone-auth" class="text-lg mt-6 mb-2 text-stone-900">2. Phone number sign-in (OTP) via Firebase</h3>
+          <p>
+            To let you securely access appointment or patient-related features, we use
+            <strong>Firebase Phone Authentication</strong>, a service provided by Google. When you sign in:
+          </p>
+          <ul class="list-disc pl-5 space-y-1 mt-2">
+            <li>You enter your phone number and we (via Firebase) send a one-time password (OTP) by SMS to verify that number belongs to you.</li>
+            <li>Firebase's invisible reCAPTCHA may run in your browser to confirm you are not a bot before an OTP is sent.</li>
+            <li>Once verified, Firebase issues a secure authentication token that identifies your session; we do not receive or store your OTP code itself.</li>
+            <li>Your phone number and Firebase user ID are stored so we can recognize you on return visits and link you to your appointment or patient records.</li>
+            <li>Standard SMS charges from your carrier may apply to receiving the OTP.</li>
+          </ul>
+          <p class="mt-2">
+            Firebase (Google) processes this data under its own privacy terms as our authentication provider. See
+            <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener noreferrer">Firebase's Privacy and Security policy</a>
+            for details on how Google handles this data.
+          </p>
+
+          <h3 id="pp-how-we-use" class="text-lg mt-6 mb-2 text-stone-900">3. How we use your information</h3>
+          <ul class="list-disc pl-5 space-y-1">
+            <li>To verify your identity and secure your account or appointment access.</li>
+            <li>To schedule, confirm, or remind you about appointments.</li>
+            <li>To provide clinical care and maintain accurate patient records.</li>
+            <li>To respond to enquiries sent through our contact form, phone, or WhatsApp.</li>
+            <li>To maintain the security, integrity, and proper functioning of our website and systems.</li>
+          </ul>
+
+          <h3 id="pp-sharing" class="text-lg mt-6 mb-2 text-stone-900">4. Sharing &amp; third parties</h3>
+          <p>
+            We do not sell your personal or health information. We share limited data only with:
+          </p>
+          <ul class="list-disc pl-5 space-y-1 mt-2">
+            <li><strong>Firebase / Google Cloud</strong>: for phone authentication, secure data storage, and hosting.</li>
+            <li><strong>Our clinical staff and doctors</strong>: for the purpose of providing your care.</li>
+            <li><strong>Law enforcement or regulators</strong>: only when required by applicable Indian law.</li>
+          </ul>
+
+          <h3 id="pp-medical-data" class="text-lg mt-6 mb-2 text-stone-900">5. Medical &amp; health records</h3>
+          <p>
+            Health information shared with our doctors is treated as confidential medical data and is used solely
+            for diagnosis, treatment, and continuity of care, consistent with applicable Indian healthcare
+            regulations. Access to patient records within our clinic systems is restricted to authorized clinical
+            and administrative staff.
+          </p>
+
+          <h3 id="pp-children" class="text-lg mt-6 mb-2 text-stone-900">6. Children's information</h3>
+          <p>
+            As a pediatric clinic, we routinely process information about children, always provided and controlled
+            by a parent or legal guardian. A guardian's verified phone number is used as the account identifier for
+            a child's appointment or records; we do not knowingly collect information directly from a child without
+            guardian involvement.
+          </p>
+
+          <h3 id="pp-retention" class="text-lg mt-6 mb-2 text-stone-900">7. Data retention</h3>
+          <p>
+            We retain contact and authentication data for as long as your account is active, and medical records for
+            the period required by applicable healthcare recordkeeping norms in India. You may request deletion of
+            non-clinical account data at any time, subject to our legal and medical recordkeeping obligations.
+          </p>
+
+          <h3 id="pp-security" class="text-lg mt-6 mb-2 text-stone-900">8. Security</h3>
+          <p>
+            We rely on Firebase Authentication and Google Cloud infrastructure, which use industry-standard
+            encryption in transit and at rest. Access to patient and account data within our systems is limited to
+            authorized personnel. No method of transmission or storage is 100% secure, and we cannot guarantee
+            absolute security.
+          </p>
+
+          <h3 id="pp-rights" class="text-lg mt-6 mb-2 text-stone-900">9. Your rights &amp; choices</h3>
+          <ul class="list-disc pl-5 space-y-1">
+            <li>You may request access to, correction of, or deletion of your personal data by contacting us below.</li>
+            <li>You may sign out of a phone-verified session at any time; this revokes the associated Firebase token.</li>
+            <li>You may ask us to stop using your phone number for reminders or non-essential communication.</li>
+          </ul>
+        </section>
+
+        <!-- TERMS OF SERVICE -->
+        <section class="doc-card p-6 sm:p-8">
+          <h2 class="text-2xl mb-4 text-stone-900">Terms of Service</h2>
+
+          <h3 id="tos-acceptance" class="text-lg mt-2 mb-2 text-stone-900">1. Acceptance of terms</h3>
+          <p>
+            By using thebetterhealth.clinic, booking an appointment, or signing in with your phone number, you agree
+            to these Terms of Service and to the Privacy Policy above. If you do not agree, please do not use the
+            site or our online services.
+          </p>
+
+          <h3 id="tos-use" class="text-lg mt-6 mb-2 text-stone-900">2. Use of the site &amp; services</h3>
+          <p>
+            This website provides information about The Better Health Clinic, our doctors, and services, and allows
+            you to request appointments and access patient-related features. You agree to provide accurate
+            information, use the site lawfully, and not attempt to disrupt, probe, or gain unauthorized access to
+            our systems.
+          </p>
+
+          <h3 id="tos-appointments" class="text-lg mt-6 mb-2 text-stone-900">3. Appointments &amp; medical disclaimer</h3>
+          <p>
+            Content on this website is for general informational purposes and does not constitute medical advice.
+            Appointment requests made online are subject to confirmation by phone. In a medical emergency, please
+            call our clinic directly or visit the nearest emergency facility rather than relying on the website.
+          </p>
+
+          <h3 id="tos-accounts" class="text-lg mt-6 mb-2 text-stone-900">4. Accounts &amp; OTP responsibility</h3>
+          <p>
+            When you sign in using Firebase Phone Authentication, you are responsible for keeping access to your
+            registered phone number secure, as OTPs sent to that number are used to verify your identity. Notify us
+            immediately if you believe your phone number or account access has been compromised or if you change
+            your registered number.
+          </p>
+
+          <h3 id="tos-liability" class="text-lg mt-6 mb-2 text-stone-900">5. Limitation of liability</h3>
+          <p>
+            To the extent permitted by law, The Better Health Clinic is not liable for indirect, incidental, or
+            consequential damages arising from use of this website or delays/failures in third-party services
+            (including SMS delivery for OTP verification) that are outside our reasonable control.
+          </p>
+
+          <h3 id="tos-changes" class="text-lg mt-6 mb-2 text-stone-900">6. Changes to these terms</h3>
+          <p>
+            We may update this Privacy Policy and these Terms of Service from time to time. Material changes will be
+            reflected by an updated "Last updated" date on this page. Continued use of the site after changes means
+            you accept the revised terms.
+          </p>
+
+          <h3 id="tos-law" class="text-lg mt-6 mb-2 text-stone-900">7. Governing law</h3>
+          <p>
+            These terms are governed by the laws of India, and any disputes shall be subject to the exclusive
+            jurisdiction of the courts in Bengaluru, Karnataka.
+          </p>
+
+          <h3 id="tos-contact" class="text-lg mt-6 mb-2 text-stone-900">8. Contact us</h3>
+          <p>
+            For questions about this Privacy Policy, these Terms of Service, or to exercise your data rights,
+            contact us at:
+          </p>
+          <ul class="list-disc pl-5 space-y-1 mt-2">
+            <li>Phone: <a href="tel:9686183999">9686183999</a> / <a href="tel:9513988840">9513988840</a></li>
+            <li>Address: #155, 2nd Cross, 1st stage, Arekere MICO Layout, Off Bannerghatta Road, Bengaluru 560076</li>
+          </ul>
+        </section>
+
+        <div class="text-center pt-2">
+          <a href="/" class="btn-warm">Back to Home</a>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+</body>
+</html>
