@@ -1512,7 +1512,9 @@
       recaptchaVerifier = null;
       const container = document.getElementById('recaptcha-container');
       if (container) {
-        container.innerHTML = '';
+        const freshContainer = document.createElement('div');
+        freshContainer.id = 'recaptcha-container';
+        container.replaceWith(freshContainer);
       }
     }
 
