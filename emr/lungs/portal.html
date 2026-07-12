@@ -843,10 +843,16 @@
           <h2 id="results-title">Visit history</h2>
           <span id="results-subtitle"></span>
         </div>
-        <button id="results-reset" type="button">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 18 3 12l6-6M3 12h12a5 5 0 0 1 5 5v1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Search again
-        </button>
+        <div style="display: flex; gap: 4px;">
+          <button id="results-reset" type="button">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 18 3 12l6-6M3 12h12a5 5 0 0 1 5 5v1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Search again
+          </button>
+          <button id="logout-button" type="button">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Log out
+          </button>
+        </div>
       </div>
       <div id="visit-list" class="visit-list"></div>
     </section>
@@ -872,7 +878,7 @@
   <script type="module">
     import { collection, doc, getDoc, getDocs, orderBy, query, where } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     import { getDownloadURL, ref } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
-    import { RecaptchaVerifier, signInWithPhoneNumber, signOut } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js';
+    import { onAuthStateChanged, RecaptchaVerifier, signInWithPhoneNumber, signOut } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js';
     import { db, storage, auth } from './lib/firebase-init.js';
 
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/lungs';
@@ -905,6 +911,9 @@
     const otpMessageText = document.getElementById('otp-message-text');
     const otpHint = document.getElementById('otp-hint');
     const otpBack = document.getElementById('otp-back');
+    const logoutButton = document.getElementById('logout-button');
+
+    const VERIFIED_PATIENT_STORAGE_KEY = 'lungsPortalVerifiedPatientId';
 
     const NO_MATCH_MESSAGE = "We couldn't find a match for that patient ID and phone number. Please check and try again.";
 
@@ -1288,8 +1297,12 @@
       try {
         await confirmationResult.confirm(code);
         clearLookupState();
+        try {
+          localStorage.setItem(VERIFIED_PATIENT_STORAGE_KEY, pendingPatientId);
+        } catch {
+          // Ignore storage failures (private browsing, storage disabled, etc.).
+        }
         await showRecords(pendingPatientId);
-        await signOut(auth).catch(() => {});
       } catch (error) {
         showOtpMessage(error?.code === 'auth/invalid-verification-code'
           ? 'That code is incorrect. Please try again.'
@@ -1313,6 +1326,23 @@
       clearOtpMessage();
     }
 
+    async function handleLogout() {
+      try {
+        await signOut(auth);
+      } catch {
+        // Ignore sign-out failures; we still clear local state below.
+      }
+      try {
+        localStorage.removeItem(VERIFIED_PATIENT_STORAGE_KEY);
+      } catch {
+        // Ignore storage failures (private browsing, storage disabled, etc.).
+      }
+      resetToLookup();
+      patientIdNumberInput.value = '';
+      phoneNumberInput.value = '';
+      lookupPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
     lookupForm.addEventListener('submit', handleLookup);
     otpForm.addEventListener('submit', handleOtpVerify);
     otpBack.addEventListener('click', resetToLookup);
@@ -1323,6 +1353,37 @@
       lookupPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
       patientIdNumberInput.focus();
     });
+    logoutButton.addEventListener('click', handleLogout);
+
+    let hasAutoRestored = false;
+    if (auth) {
+      onAuthStateChanged(auth, (user) => {
+        if (hasAutoRestored) {
+          return;
+        }
+        hasAutoRestored = true;
+
+        if (!user) {
+          return;
+        }
+
+        let storedPatientId = '';
+        try {
+          storedPatientId = localStorage.getItem(VERIFIED_PATIENT_STORAGE_KEY) || '';
+        } catch {
+          storedPatientId = '';
+        }
+
+        if (!storedPatientId) {
+          return;
+        }
+
+        setLoading(true);
+        showRecords(storedPatientId)
+          .catch(() => resetToLookup())
+          .finally(() => setLoading(false));
+      });
+    }
   </script>
 
   <script>

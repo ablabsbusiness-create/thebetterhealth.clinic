@@ -185,6 +185,35 @@
       display: none;
     }
 
+    form.is-hidden {
+      display: none;
+    }
+
+    .text-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 0;
+      background: none;
+      color: var(--brand-dark);
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 8px 4px;
+      justify-self: start;
+    }
+
+    .text-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    #recaptcha-container {
+      display: flex;
+      justify-content: center;
+    }
+
     form {
       display: grid;
       gap: 16px;
@@ -262,18 +291,6 @@
       min-width: 0;
       font-variant-numeric: tabular-nums;
       letter-spacing: 0.02em;
-    }
-
-    .dob-group {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1.5fr;
-      gap: 8px;
-    }
-
-    .dob-group input {
-      text-align: center;
-      font-variant-numeric: tabular-nums;
-      letter-spacing: 0.03em;
     }
 
     .btn-primary {
@@ -702,11 +719,6 @@
         border-radius: 20px;
       }
 
-      .dob-group {
-        grid-template-columns: 1fr 1fr 1.3fr;
-        gap: 6px;
-      }
-
       .visit-card {
         flex-direction: column;
         align-items: stretch;
@@ -778,18 +790,14 @@
             <input id="patient-id-number" name="patientIdNumber" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0000" autocomplete="off" required>
           </div>
         </label>
-        <label>
-          Date of birth
-          <div class="dob-group">
-            <input id="dob-day" name="dobDay" type="text" inputmode="numeric" placeholder="DD" maxlength="2" required>
-            <input id="dob-month" name="dobMonth" type="text" inputmode="numeric" placeholder="MM" maxlength="2" required>
-            <input id="dob-year" name="dobYear" type="text" inputmode="numeric" placeholder="YYYY" maxlength="4" required>
-          </div>
-          <span class="hint">Must match the date of birth given at registration.</span>
+        <label for="phone-number">
+          Phone number
+          <input id="phone-number" name="phoneNumber" type="tel" inputmode="tel" placeholder="Enter phone number" autocomplete="tel" required>
+          <span class="hint">Must match the phone number given at registration.</span>
         </label>
         <button id="lookup-submit" class="btn-primary" type="submit">
           <svg class="btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="m21 21-4.3-4.3M18 11a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span class="btn-label">View my records</span>
+          <span class="btn-label">Send verification code</span>
           <span class="btn-spinner"></span>
         </button>
         <p id="form-message" class="form-message">
@@ -797,6 +805,29 @@
           <span id="form-message-text"></span>
         </p>
       </form>
+
+      <form id="otp-form" class="is-hidden">
+        <label for="otp-code">
+          Verification code
+          <input id="otp-code" name="otpCode" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code" required>
+          <span class="hint" id="otp-hint">Enter the code sent to your phone.</span>
+        </label>
+        <button id="otp-submit" class="btn-primary" type="submit">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="btn-label">Verify and view records</span>
+          <span class="btn-spinner"></span>
+        </button>
+        <p id="otp-message" class="form-message">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <span id="otp-message-text"></span>
+        </p>
+        <button id="otp-back" type="button" class="text-btn">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 18 3 12l6-6M3 12h12a5 5 0 0 1 5 5v1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Change phone number
+        </button>
+      </form>
+
+      <div id="recaptcha-container"></div>
     </section>
 
     <div id="loading-panel" class="loading-panel">
@@ -814,10 +845,16 @@
           <h2 id="results-title">Visit history</h2>
           <span id="results-subtitle"></span>
         </div>
-        <button id="results-reset" type="button">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 18 3 12l6-6M3 12h12a5 5 0 0 1 5 5v1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Search again
-        </button>
+        <div style="display: flex; gap: 4px;">
+          <button id="results-reset" type="button">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 18 3 12l6-6M3 12h12a5 5 0 0 1 5 5v1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Search again
+          </button>
+          <button id="logout-button" type="button">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Log out
+          </button>
+        </div>
       </div>
       <div id="visit-list" class="visit-list"></div>
     </section>
@@ -843,7 +880,8 @@
   <script type="module">
     import { collection, doc, getDoc, getDocs, orderBy, query, where } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     import { getDownloadURL, ref } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
-    import { db, storage } from './lib/firebase-init.js';
+    import { onAuthStateChanged, RecaptchaVerifier, signInWithPhoneNumber, signOut } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js';
+    import { db, storage, auth } from './lib/firebase-init.js';
 
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
     const FIREBASE_COLLECTIONS = {
@@ -856,9 +894,7 @@
 
     const lookupForm = document.getElementById('lookup-form');
     const patientIdNumberInput = document.getElementById('patient-id-number');
-    const dobDayInput = document.getElementById('dob-day');
-    const dobMonthInput = document.getElementById('dob-month');
-    const dobYearInput = document.getElementById('dob-year');
+    const phoneNumberInput = document.getElementById('phone-number');
     const lookupSubmit = document.getElementById('lookup-submit');
     const formMessage = document.getElementById('form-message');
     const formMessageText = document.getElementById('form-message-text');
@@ -870,7 +906,23 @@
     const resultsReset = document.getElementById('results-reset');
     const visitList = document.getElementById('visit-list');
 
-    const NO_MATCH_MESSAGE = "We couldn't find a match for that patient ID and date of birth. Please check and try again.";
+    const otpForm = document.getElementById('otp-form');
+    const otpCodeInput = document.getElementById('otp-code');
+    const otpSubmit = document.getElementById('otp-submit');
+    const otpMessage = document.getElementById('otp-message');
+    const otpMessageText = document.getElementById('otp-message-text');
+    const otpHint = document.getElementById('otp-hint');
+    const otpBack = document.getElementById('otp-back');
+    const logoutButton = document.getElementById('logout-button');
+
+    const VERIFIED_PATIENT_STORAGE_KEY = 'kidPortalVerifiedPatientId';
+
+    const NO_MATCH_MESSAGE = "We couldn't find a match for that patient ID and phone number. Please check and try again.";
+
+    const DEFAULT_COUNTRY_CODE = '+91';
+    let confirmationResult = null;
+    let recaptchaVerifier = null;
+    let pendingPatientId = '';
 
     const LOCKOUT_STORAGE_KEY = 'kidPortalLookupState';
     const MAX_ATTEMPTS_BEFORE_LOCKOUT = 5;
@@ -938,27 +990,25 @@
       return `${PATIENT_ID_PREFIX}${digits.padStart(PATIENT_ID_WIDTH, '0')}`;
     }
 
-    function parseDobInput(dayValue, monthValue, yearValue) {
-      const day = Number.parseInt(dayValue.trim(), 10);
-      const month = Number.parseInt(monthValue.trim(), 10);
-      const year = Number.parseInt(yearValue.trim(), 10);
+    function getPhoneDigits(value) {
+      return String(value || '').trim().replace(/\D/g, '').replace(/^0+/, '');
+    }
 
-      if (!day || !month || !yearValue.trim().match(/^\d{4}$/)) {
+    function normalizePhoneForCompare(value) {
+      const digits = getPhoneDigits(value);
+      return digits.length > 10 ? digits.slice(-10) : digits;
+    }
+
+    function phoneToE164(value) {
+      const digits = getPhoneDigits(value);
+      if (!digits) {
         return '';
       }
-
-      const parsed = new Date(year, month - 1, day);
-
-      if (
-        Number.isNaN(parsed.getTime()) ||
-        parsed.getFullYear() !== year ||
-        parsed.getMonth() !== month - 1 ||
-        parsed.getDate() !== day
-      ) {
-        return '';
+      if (String(value || '').trim().startsWith('+')) {
+        return `+${digits}`;
       }
-
-      return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const local = digits.length > 10 ? digits.slice(-10) : digits;
+      return `${DEFAULT_COUNTRY_CODE}${local}`;
     }
 
     function showFormMessage(text, type = 'error') {
@@ -970,6 +1020,17 @@
     function clearFormMessage() {
       formMessageText.textContent = '';
       formMessage.classList.remove('is-visible', 'is-error', 'is-info');
+    }
+
+    function showOtpMessage(text, type = 'error') {
+      otpMessageText.textContent = text;
+      otpMessage.classList.remove('is-error', 'is-info');
+      otpMessage.classList.add('is-visible', type === 'error' ? 'is-error' : 'is-info');
+    }
+
+    function clearOtpMessage() {
+      otpMessageText.textContent = '';
+      otpMessage.classList.remove('is-visible', 'is-error', 'is-info');
     }
 
     function formatDateDisplay(dateValue) {
@@ -1099,6 +1160,63 @@
       lookupSubmit.disabled = isLoading;
     }
 
+    function setOtpLoading(isLoading) {
+      otpSubmit.classList.toggle('is-loading', isLoading);
+      otpSubmit.disabled = isLoading;
+    }
+
+    function resetRecaptcha() {
+      try {
+        recaptchaVerifier?.clear();
+      } catch {
+        // Ignore teardown failures from an already-cleared or never-rendered widget.
+      }
+      recaptchaVerifier = null;
+      const container = document.getElementById('recaptcha-container');
+      if (container) {
+        container.innerHTML = '';
+      }
+    }
+
+    function getRecaptchaVerifier() {
+      if (!recaptchaVerifier) {
+        recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' });
+      }
+      return recaptchaVerifier;
+    }
+
+    async function loadHistoryEntries(patientId) {
+      const historyQuery = query(
+        collection(db, FIREBASE_COLLECTIONS.history),
+        where('patientId', '==', patientId),
+        orderBy('createdAtIso', 'desc')
+      );
+
+      try {
+        const snapshot = await getDocs(historyQuery);
+        return snapshot.docs.map((docSnapshot) => ({ id: docSnapshot.id, ...docSnapshot.data() }));
+      } catch {
+        const fallbackSnapshot = await getDocs(
+          query(collection(db, FIREBASE_COLLECTIONS.history), where('patientId', '==', patientId))
+        );
+        return fallbackSnapshot.docs.map((docSnapshot) => ({ id: docSnapshot.id, ...docSnapshot.data() }));
+      }
+    }
+
+    async function showRecords(patientId) {
+      const entries = await loadHistoryEntries(patientId);
+
+      resultsTitle.textContent = `Visit history for ${patientId}`;
+      resultsSubtitle.textContent = entries.length === 1 ? '1 visit found' : `${entries.length} visits found`;
+      otpForm.classList.add('is-hidden');
+      lookupPanel.classList.add('is-hidden');
+      resultsPanel.classList.add('is-visible');
+      document.body.classList.add('has-bottom-nav');
+      document.querySelector('.bottom-nav')?.classList.add('is-visible');
+      await renderVisits(entries);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
     async function handleLookup(event) {
       event.preventDefault();
       clearFormMessage();
@@ -1112,19 +1230,19 @@
       }
 
       const patientId = getNormalizedPatientId(buildPatientIdFromNumber(patientIdNumberInput.value));
-      const dob = parseDobInput(dobDayInput.value, dobMonthInput.value, dobYearInput.value);
+      const enteredPhone = normalizePhoneForCompare(phoneNumberInput.value);
 
       if (!patientId) {
         showFormMessage('Please enter the number from your patient ID.');
         return;
       }
 
-      if (!dob) {
-        showFormMessage('Please enter a valid date of birth.');
+      if (enteredPhone.length !== 10) {
+        showFormMessage('Please enter a valid 10-digit phone number.');
         return;
       }
 
-      if (!db) {
+      if (!db || !auth) {
         showFormMessage('Records are not available right now. Please try again later.');
         return;
       }
@@ -1133,61 +1251,141 @@
 
       try {
         const patientSnapshot = await getDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId));
+        const patientData = patientSnapshot.data();
+        const registeredPhone = normalizePhoneForCompare(patientData?.phone || patientData?.mobileNumber || '');
 
-        if (!patientSnapshot.exists() || String(patientSnapshot.data()?.dob || '') !== dob) {
+        if (!patientSnapshot.exists() || !registeredPhone || registeredPhone !== enteredPhone) {
           recordFailedAttempt();
           showFormMessage(NO_MATCH_MESSAGE);
           return;
         }
 
-        clearLookupState();
+        const e164Phone = phoneToE164(phoneNumberInput.value);
+        confirmationResult = await signInWithPhoneNumber(auth, e164Phone, getRecaptchaVerifier());
+        pendingPatientId = patientId;
 
-        const historyQuery = query(
-          collection(db, FIREBASE_COLLECTIONS.history),
-          where('patientId', '==', patientId),
-          orderBy('createdAtIso', 'desc')
-        );
-
-        let entries = [];
-        try {
-          const snapshot = await getDocs(historyQuery);
-          entries = snapshot.docs.map((docSnapshot) => ({ id: docSnapshot.id, ...docSnapshot.data() }));
-        } catch {
-          const fallbackSnapshot = await getDocs(
-            query(collection(db, FIREBASE_COLLECTIONS.history), where('patientId', '==', patientId))
-          );
-          entries = fallbackSnapshot.docs.map((docSnapshot) => ({ id: docSnapshot.id, ...docSnapshot.data() }));
-        }
-
-        resultsTitle.textContent = `Visit history for ${patientId}`;
-        resultsSubtitle.textContent = entries.length === 1 ? '1 visit found' : `${entries.length} visits found`;
-        lookupPanel.classList.add('is-hidden');
-        resultsPanel.classList.add('is-visible');
-        document.body.classList.add('has-bottom-nav');
-        document.querySelector('.bottom-nav')?.classList.add('is-visible');
-        await renderVisits(entries);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        clearFormMessage();
+        otpHint.textContent = `Enter the code sent to ${e164Phone}.`;
+        otpCodeInput.value = '';
+        clearOtpMessage();
+        lookupForm.classList.add('is-hidden');
+        otpForm.classList.remove('is-hidden');
+        otpCodeInput.focus();
       } catch (error) {
-        showFormMessage(error?.message || 'Something went wrong while loading records. Please try again.');
+        resetRecaptcha();
+        showFormMessage(error?.message || 'Something went wrong while sending the verification code. Please try again.');
       } finally {
         setLoading(false);
       }
     }
 
-    lookupForm.addEventListener('submit', handleLookup);
-    resultsReset.addEventListener('click', () => {
-      resultsPanel.classList.remove('is-visible');
+    async function handleOtpVerify(event) {
+      event.preventDefault();
+      clearOtpMessage();
+
+      const code = otpCodeInput.value.trim();
+      if (!/^\d{6}$/.test(code)) {
+        showOtpMessage('Please enter the 6-digit code.');
+        return;
+      }
+
+      if (!confirmationResult) {
+        showOtpMessage('Your session expired. Please request a new code.');
+        return;
+      }
+
+      setOtpLoading(true);
+
+      try {
+        await confirmationResult.confirm(code);
+        clearLookupState();
+        try {
+          localStorage.setItem(VERIFIED_PATIENT_STORAGE_KEY, pendingPatientId);
+        } catch {
+          // Ignore storage failures (private browsing, storage disabled, etc.).
+        }
+        await showRecords(pendingPatientId);
+      } catch (error) {
+        showOtpMessage(error?.code === 'auth/invalid-verification-code'
+          ? 'That code is incorrect. Please try again.'
+          : (error?.message || 'Could not verify that code. Please try again.'));
+      } finally {
+        setOtpLoading(false);
+      }
+    }
+
+    function resetToLookup() {
+      confirmationResult = null;
+      pendingPatientId = '';
+      resetRecaptcha();
+      otpForm.classList.add('is-hidden');
+      lookupForm.classList.remove('is-hidden');
       lookupPanel.classList.remove('is-hidden');
+      resultsPanel.classList.remove('is-visible');
       document.body.classList.remove('has-bottom-nav');
       document.querySelector('.bottom-nav')?.classList.remove('is-visible');
       clearFormMessage();
+      clearOtpMessage();
+    }
+
+    async function handleLogout() {
+      try {
+        await signOut(auth);
+      } catch {
+        // Ignore sign-out failures; we still clear local state below.
+      }
+      try {
+        localStorage.removeItem(VERIFIED_PATIENT_STORAGE_KEY);
+      } catch {
+        // Ignore storage failures (private browsing, storage disabled, etc.).
+      }
+      resetToLookup();
       patientIdNumberInput.value = '';
-      dobDayInput.value = '';
-      dobMonthInput.value = '';
-      dobYearInput.value = '';
+      phoneNumberInput.value = '';
+      lookupPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    lookupForm.addEventListener('submit', handleLookup);
+    otpForm.addEventListener('submit', handleOtpVerify);
+    otpBack.addEventListener('click', resetToLookup);
+    resultsReset.addEventListener('click', () => {
+      resetToLookup();
+      patientIdNumberInput.value = '';
+      phoneNumberInput.value = '';
       lookupPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
       patientIdNumberInput.focus();
     });
+    logoutButton.addEventListener('click', handleLogout);
+
+    let hasAutoRestored = false;
+    if (auth) {
+      onAuthStateChanged(auth, (user) => {
+        if (hasAutoRestored) {
+          return;
+        }
+        hasAutoRestored = true;
+
+        if (!user) {
+          return;
+        }
+
+        let storedPatientId = '';
+        try {
+          storedPatientId = localStorage.getItem(VERIFIED_PATIENT_STORAGE_KEY) || '';
+        } catch {
+          storedPatientId = '';
+        }
+
+        if (!storedPatientId) {
+          return;
+        }
+
+        setLoading(true);
+        showRecords(storedPatientId)
+          .catch(() => resetToLookup())
+          .finally(() => setLoading(false));
+      });
+    }
   </script>
 
   <script>
