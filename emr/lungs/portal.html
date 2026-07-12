@@ -708,6 +708,205 @@
       text-decoration: underline;
     }
 
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(17, 28, 20, 0.45);
+      backdrop-filter: blur(2px);
+    }
+
+    .modal-overlay.is-visible {
+      display: flex;
+    }
+
+    .modal-card {
+      width: min(360px, 100%);
+      padding: 24px;
+      border-radius: var(--radius-lg);
+      background: var(--panel);
+      box-shadow: 0 24px 60px rgba(20, 46, 30, 0.28);
+      display: grid;
+      gap: 10px;
+    }
+
+    .modal-card h3 {
+      margin: 0;
+      font-size: 16.5px;
+      font-weight: 700;
+    }
+
+    .modal-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13.5px;
+      font-weight: 500;
+      line-height: 1.5;
+    }
+
+    .modal-actions {
+      margin-top: 8px;
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .modal-btn-secondary,
+    .modal-btn-primary {
+      min-height: 42px;
+      padding: 0 18px;
+      border-radius: var(--radius-sm);
+      font: inherit;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1.5px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .modal-btn-primary {
+      border-color: transparent;
+      background: linear-gradient(135deg, #22c55e, #15803d);
+      color: #fff;
+      box-shadow: var(--shadow-btn);
+    }
+
+    .phone-input-group {
+      display: flex;
+      align-items: stretch;
+      gap: 8px;
+    }
+
+    .phone-input-prefix {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 52px;
+      padding: 0 10px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid transparent;
+      background: linear-gradient(135deg, var(--brand-soft), #cdf3d8);
+      color: var(--brand-strong);
+      font-weight: 800;
+      font-size: 15.5px;
+    }
+
+    .phone-input-group input {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .consent-text {
+      margin: -4px 0 0;
+      color: var(--faint);
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.5;
+    }
+
+    .consent-text a {
+      color: var(--brand-dark);
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .consent-text a:hover {
+      text-decoration: underline;
+    }
+
+    .auth-illustration {
+      display: none;
+    }
+
+    @media (min-width: 900px) {
+      .auth-layout {
+        display: grid;
+        grid-template-columns: minmax(360px, 460px) 1fr;
+        align-items: stretch;
+        min-height: calc(100vh - 73px);
+      }
+
+      .auth-illustration {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 48px;
+        background:
+          radial-gradient(circle at 15% 10%, rgba(34, 197, 94, 0.14), transparent 40%),
+          linear-gradient(180deg, #f2f8f3 0%, #e9f3ec 100%);
+        border-right: 1px solid var(--line);
+      }
+
+      .auth-illustration-inner {
+        max-width: 340px;
+        text-align: center;
+        display: grid;
+        justify-items: center;
+        gap: 22px;
+      }
+
+      .illustration-art {
+        width: 180px;
+        height: 180px;
+        display: grid;
+        place-items: center;
+      }
+
+      .illustration-art svg {
+        width: 100%;
+        height: 100%;
+      }
+
+      .auth-illustration-inner h2 {
+        margin: 0;
+        font-size: 21px;
+        font-weight: 800;
+        color: var(--brand-dark);
+      }
+
+      .auth-illustration-inner p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 1.55;
+      }
+
+      .illustration-dots {
+        display: flex;
+        gap: 8px;
+      }
+
+      .illustration-dots .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        border: 0;
+        padding: 0;
+        background: #c6d8ca;
+        cursor: pointer;
+        transition: background 0.2s ease, transform 0.2s ease;
+      }
+
+      .illustration-dots .dot.is-active {
+        background: var(--brand);
+        transform: scale(1.3);
+      }
+
+      .page-shell {
+        margin: 0 auto;
+        width: 100%;
+        max-width: 480px;
+        padding: 56px 48px;
+        align-content: center;
+      }
+    }
+
     @media (max-width: 480px) {
       .page-shell {
         padding: 28px 0 56px;
@@ -778,14 +977,28 @@
     </div>
   </header>
 
+  <div class="auth-layout">
+    <aside class="auth-illustration">
+      <div class="auth-illustration-inner">
+        <div class="illustration-art" id="illustration-art"></div>
+        <h2 id="illustration-title"></h2>
+        <p id="illustration-subtitle"></p>
+        <div class="illustration-dots" id="illustration-dots"></div>
+      </div>
+    </aside>
+
   <div class="page-shell">
     <section id="lookup-panel" class="panel">
       <form id="lookup-form">
         <label for="phone-number">
           Phone number
-          <input id="phone-number" name="phoneNumber" type="tel" inputmode="tel" placeholder="Enter phone number" autocomplete="tel" required>
+          <div class="phone-input-group">
+            <span class="phone-input-prefix">+91</span>
+            <input id="phone-number" name="phoneNumber" type="tel" inputmode="tel" placeholder="98765 43210" autocomplete="tel" required>
+          </div>
           <span class="hint">Must match the phone number given at registration.</span>
         </label>
+        <p class="consent-text">By continuing, you agree to our <a href="/tos" target="_blank" rel="noopener">Terms of Use</a> and <a href="/tos" target="_blank" rel="noopener">Privacy Policy</a>.</p>
         <button id="lookup-submit" class="btn-primary" type="submit">
           <svg class="btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="m21 21-4.3-4.3M18 11a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <span class="btn-label">Send verification code</span>
@@ -864,6 +1077,7 @@
 
     <p class="footnote">Trouble finding your records? Call the clinic at <a href="tel:+919686183999">+91 96861 83999</a>.</p>
   </div>
+  </div>
 
   <nav class="bottom-nav" aria-label="Portal navigation">
     <div class="bottom-nav-inner">
@@ -879,6 +1093,17 @@
   </nav>
 
   <div class="nav-toast" id="nav-toast">Appointment booking is coming soon. Call <a href="tel:+919686183999">+91 96861 83999</a> to book.</div>
+
+  <div id="logout-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="logout-modal-title">
+    <div class="modal-card">
+      <h3 id="logout-modal-title">Log out?</h3>
+      <p>You'll need to verify your phone number again to view your records.</p>
+      <div class="modal-actions">
+        <button id="logout-cancel" type="button" class="modal-btn-secondary">Cancel</button>
+        <button id="logout-confirm" type="button" class="modal-btn-primary">Log out</button>
+      </div>
+    </div>
+  </div>
 
   <script type="module">
     import { collection, getDocs, orderBy, query, where } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
@@ -916,6 +1141,10 @@
     const otpHint = document.getElementById('otp-hint');
     const otpBack = document.getElementById('otp-back');
     const logoutButton = document.getElementById('logout-button');
+
+    const logoutModal = document.getElementById('logout-modal');
+    const logoutCancelButton = document.getElementById('logout-cancel');
+    const logoutConfirmButton = document.getElementById('logout-confirm');
 
     const NO_MATCH_MESSAGE = "We couldn't find a match for that phone number. Please check and try again.";
 
@@ -1380,8 +1609,49 @@
       clearOtpMessage();
     }
 
+    function confirmLogout() {
+      return new Promise((resolve) => {
+        logoutModal.classList.add('is-visible');
+
+        function cleanup(result) {
+          logoutModal.classList.remove('is-visible');
+          logoutCancelButton.removeEventListener('click', onCancel);
+          logoutConfirmButton.removeEventListener('click', onConfirm);
+          logoutModal.removeEventListener('click', onOverlayClick);
+          document.removeEventListener('keydown', onKeydown);
+          resolve(result);
+        }
+
+        function onCancel() {
+          cleanup(false);
+        }
+
+        function onConfirm() {
+          cleanup(true);
+        }
+
+        function onOverlayClick(event) {
+          if (event.target === logoutModal) {
+            cleanup(false);
+          }
+        }
+
+        function onKeydown(event) {
+          if (event.key === 'Escape') {
+            cleanup(false);
+          }
+        }
+
+        logoutCancelButton.addEventListener('click', onCancel);
+        logoutConfirmButton.addEventListener('click', onConfirm);
+        logoutModal.addEventListener('click', onOverlayClick);
+        document.addEventListener('keydown', onKeydown);
+      });
+    }
+
     async function handleLogout() {
-      if (!window.confirm('Log out?')) {
+      const confirmed = await confirmLogout();
+      if (!confirmed) {
         return;
       }
       try {
@@ -1453,6 +1723,72 @@
 
     if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
       navigator.serviceWorker.register('/emr/lungs/sw.js', { scope: '/emr/lungs/' }).catch(() => {});
+    }
+
+    const ILLUSTRATION_SLIDES = [
+      {
+        title: 'Visit History',
+        subtitle: 'See every visit and prescription in one place, any time you need it.',
+        art: '<svg viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="90" cy="90" r="80" fill="#dcfce7"/><rect x="52" y="46" width="76" height="92" rx="12" fill="#fff" stroke="#15803d" stroke-width="3"/><path d="M52 70h76" stroke="#15803d" stroke-width="3"/><path d="M66 46v14M114 46v14" stroke="#15803d" stroke-width="3" stroke-linecap="round"/><path d="M66 92h48M66 108h32" stroke="#15803d" stroke-width="3" stroke-linecap="round"/><circle cx="120" cy="122" r="18" fill="#15803d"/><path d="m113 122 5 5 10-11" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+      },
+      {
+        title: 'Secure OTP Login',
+        subtitle: "Verify with your phone number — no passwords to remember.",
+        art: '<svg viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="90" cy="90" r="80" fill="#dcfce7"/><path d="M90 42c-16 6-32 8-32 8v40c0 26 15 40 32 48 17-8 32-22 32-48V50s-16-2-32-8Z" fill="#fff" stroke="#15803d" stroke-width="3" stroke-linejoin="round"/><path d="M76 90l10 10 20-22" stroke="#15803d" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+      },
+      {
+        title: 'Family Records',
+        subtitle: 'One phone number, every linked patient — switch between them instantly.',
+        art: '<svg viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="90" cy="90" r="80" fill="#dcfce7"/><circle cx="72" cy="72" r="18" fill="#fff" stroke="#15803d" stroke-width="3"/><circle cx="112" cy="80" r="14" fill="#fff" stroke="#15803d" stroke-width="3"/><path d="M40 132c0-20 14-32 32-32s32 12 32 32" stroke="#15803d" stroke-width="3" stroke-linecap="round" fill="none"/><path d="M96 132c2-16 12-26 26-26s26 10 26 26" stroke="#15803d" stroke-width="3" stroke-linecap="round" fill="none"/></svg>'
+      }
+    ];
+
+    const illustrationArt = document.getElementById('illustration-art');
+    const illustrationTitle = document.getElementById('illustration-title');
+    const illustrationSubtitle = document.getElementById('illustration-subtitle');
+    const illustrationDots = document.getElementById('illustration-dots');
+
+    if (illustrationArt && illustrationDots) {
+      let activeSlide = 0;
+      let slideTimer = null;
+
+      ILLUSTRATION_SLIDES.forEach((_, index) => {
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.className = 'dot';
+        dot.setAttribute('aria-label', `Slide ${index + 1}`);
+        dot.addEventListener('click', () => goToSlide(index, true));
+        illustrationDots.appendChild(dot);
+      });
+
+      function renderSlide(index) {
+        const slide = ILLUSTRATION_SLIDES[index];
+        illustrationArt.innerHTML = slide.art;
+        illustrationTitle.textContent = slide.title;
+        illustrationSubtitle.textContent = slide.subtitle;
+        [...illustrationDots.children].forEach((dot, dotIndex) => {
+          dot.classList.toggle('is-active', dotIndex === index);
+        });
+      }
+
+      function goToSlide(index, resetTimer) {
+        activeSlide = index;
+        renderSlide(activeSlide);
+        if (resetTimer) {
+          window.clearInterval(slideTimer);
+          startAutoAdvance();
+        }
+      }
+
+      function startAutoAdvance() {
+        slideTimer = window.setInterval(() => {
+          activeSlide = (activeSlide + 1) % ILLUSTRATION_SLIDES.length;
+          renderSlide(activeSlide);
+        }, 4000);
+      }
+
+      renderSlide(activeSlide);
+      startAutoAdvance();
     }
   </script>
 </body>
