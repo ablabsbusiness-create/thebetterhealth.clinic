@@ -1065,14 +1065,17 @@
           <h2 id="results-title">Visit history</h2>
           <span id="results-subtitle"></span>
         </div>
-        <div style="display: flex; gap: 4px;">
-          <button id="logout-button" type="button">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Log out
-          </button>
-        </div>
       </div>
       <div id="visit-list" class="visit-list"></div>
+    </section>
+
+    <section id="settings-panel" class="results-panel">
+      <div class="results-head">
+        <div class="results-head-text">
+          <h2>Settings</h2>
+        </div>
+      </div>
+      <div id="settings-list" class="visit-list"></div>
     </section>
 
     <p class="footnote">Trouble finding your records? Call the clinic at <a href="tel:+919686183999">+91 96861 83999</a>.</p>
@@ -1088,6 +1091,10 @@
       <button type="button" class="bottom-nav-item" id="appointment-tab">
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3.5" y="5" width="17" height="16" rx="3" stroke="currentColor" stroke-width="2"/><path d="M3.5 10h17M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         <span>Appointment</span>
+      </button>
+      <button type="button" class="bottom-nav-item" id="settings-tab">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.09A1.7 1.7 0 0 0 15 4.6a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 1.56 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Settings</span>
       </button>
     </div>
   </nav>
@@ -1132,6 +1139,8 @@
     const resultsTitle = document.getElementById('results-title');
     const resultsSubtitle = document.getElementById('results-subtitle');
     const visitList = document.getElementById('visit-list');
+    const settingsPanel = document.getElementById('settings-panel');
+    const settingsList = document.getElementById('settings-list');
 
     const otpForm = document.getElementById('otp-form');
     const otpCodeInput = document.getElementById('otp-code');
@@ -1140,7 +1149,12 @@
     const otpMessageText = document.getElementById('otp-message-text');
     const otpHint = document.getElementById('otp-hint');
     const otpBack = document.getElementById('otp-back');
-    const logoutButton = document.getElementById('logout-button');
+
+    const prescriptionsTab = document.querySelector('.bottom-nav-item.is-active');
+    const settingsTab = document.getElementById('settings-tab');
+    const appointmentTab = document.getElementById('appointment-tab');
+    const navToast = document.getElementById('nav-toast');
+    let navToastTimer = null;
 
     const logoutModal = document.getElementById('logout-modal');
     const logoutCancelButton = document.getElementById('logout-cancel');
@@ -1152,6 +1166,8 @@
     let confirmationResult = null;
     let recaptchaVerifier = null;
     let pendingPatients = [];
+    let currentPatientId = '';
+    let currentVisitEntries = [];
 
     const LOCKOUT_STORAGE_KEY = 'lungsPortalLookupState';
     const MAX_ATTEMPTS_BEFORE_LOCKOUT = 5;
@@ -1208,6 +1224,8 @@
     const ICON_EMPTY = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 3h8l4 4v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 12h6M9 16h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
     const ICON_PATIENT = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
     const ICON_CHEVRON = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const ICON_DOWNLOAD = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4v11m0 0-4-4m4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const ICON_LOGOUT = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
     function getPhoneDigits(value) {
       return String(value || '').trim().replace(/\D/g, '').replace(/^0+/, '');
@@ -1263,6 +1281,14 @@
       return parsed.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
     }
 
+    function buildPrescriptionFilename(entry) {
+      const dateValue = entry.createdAtIso || entry.createdAt || entry.savedAt || entry.updatedAt;
+      const parsed = new Date(dateValue);
+      const datePart = Number.isNaN(parsed.getTime()) ? 'undated' : parsed.toISOString().slice(0, 10);
+      const patientPart = (entry.patientId || currentPatientId || 'patient').replace(/[^A-Za-z0-9-]/g, '');
+      return `prescription-${patientPart}-${datePart}.pdf`;
+    }
+
     function isPublicPdfUrl(value) {
       return /^(https?:|blob:|data:)/i.test(String(value || '').trim());
     }
@@ -1316,7 +1342,7 @@
       return matches;
     }
 
-    function renderPatientCard(patient) {
+    function renderActionRow({ icon, title, subtitle, onClick }) {
       const card = document.createElement('button');
       card.type = 'button';
       card.className = 'visit-card patient-card';
@@ -1326,21 +1352,23 @@
 
       const dot = document.createElement('div');
       dot.className = 'visit-card-dot';
-      dot.innerHTML = ICON_PATIENT;
+      dot.innerHTML = icon;
       main.appendChild(dot);
 
       const text = document.createElement('div');
       text.className = 'visit-card-text';
 
-      const nameLine = document.createElement('div');
-      nameLine.className = 'visit-card-date';
-      nameLine.textContent = patient.patientName || patient.childName || patient.patientId;
-      text.appendChild(nameLine);
+      const titleLine = document.createElement('div');
+      titleLine.className = 'visit-card-date';
+      titleLine.textContent = title;
+      text.appendChild(titleLine);
 
-      const sub = document.createElement('div');
-      sub.className = 'visit-card-sub';
-      sub.textContent = patient.patientId;
-      text.appendChild(sub);
+      if (subtitle) {
+        const sub = document.createElement('div');
+        sub.className = 'visit-card-sub';
+        sub.textContent = subtitle;
+        text.appendChild(sub);
+      }
 
       main.appendChild(text);
       card.appendChild(main);
@@ -1350,12 +1378,21 @@
       chevron.innerHTML = ICON_CHEVRON;
       card.appendChild(chevron);
 
-      card.addEventListener('click', () => {
-        setLoading(true);
-        showRecords(patient.patientId).finally(() => setLoading(false));
-      });
+      card.addEventListener('click', onClick);
 
       return card;
+    }
+
+    function renderPatientCard(patient) {
+      return renderActionRow({
+        icon: ICON_PATIENT,
+        title: patient.patientName || patient.childName || patient.patientId,
+        subtitle: patient.patientId,
+        onClick: () => {
+          setLoading(true);
+          showRecords(patient.patientId).finally(() => setLoading(false));
+        }
+      });
     }
 
     async function showPatientSelect(patients) {
@@ -1369,6 +1406,7 @@
       otpForm.classList.add('is-hidden');
       lookupPanel.classList.add('is-hidden');
       resultsPanel.classList.remove('is-visible');
+      settingsPanel.classList.remove('is-visible');
       document.body.classList.remove('has-bottom-nav');
       document.querySelector('.bottom-nav')?.classList.remove('is-visible');
       patientSelectPanel.classList.add('is-visible');
@@ -1416,6 +1454,13 @@
         viewLink.className = 'is-primary';
         viewLink.innerHTML = `${ICON_VIEW}<span>View</span>`;
         actions.appendChild(viewLink);
+
+        const downloadLink = document.createElement('a');
+        downloadLink.href = pdfUrl;
+        downloadLink.rel = 'noopener';
+        downloadLink.download = buildPrescriptionFilename(entry);
+        downloadLink.innerHTML = `${ICON_DOWNLOAD}<span>Download</span>`;
+        actions.appendChild(downloadLink);
 
         card.appendChild(actions);
       }
@@ -1494,15 +1539,74 @@
       }
     }
 
+    function setActiveNavTab(tab) {
+      prescriptionsTab?.classList.toggle('is-active', tab === 'prescriptions');
+      settingsTab?.classList.toggle('is-active', tab === 'settings');
+    }
+
+    function renderSettingsPanel() {
+      settingsList.innerHTML = '';
+
+      const latestEntry = currentVisitEntries.length
+        ? [...currentVisitEntries].sort((a, b) => getVisitSortValue(b) - getVisitSortValue(a))[0]
+        : null;
+
+      settingsList.appendChild(renderActionRow({
+        icon: ICON_DOWNLOAD,
+        title: 'Download latest prescription',
+        subtitle: latestEntry
+          ? `From your visit on ${formatDateDisplay(latestEntry.createdAtIso || latestEntry.createdAt || latestEntry.savedAt || latestEntry.updatedAt)}`
+          : 'No prescriptions available yet',
+        onClick: handleDownloadLatest
+      }));
+
+      settingsList.appendChild(renderActionRow({
+        icon: ICON_LOGOUT,
+        title: 'Log out',
+        subtitle: 'You\'ll need to verify your phone number again',
+        onClick: handleLogout
+      }));
+    }
+
+    async function handleDownloadLatest() {
+      if (!currentVisitEntries.length) {
+        return;
+      }
+      const latestEntry = [...currentVisitEntries].sort((a, b) => getVisitSortValue(b) - getVisitSortValue(a))[0];
+      const pdfUrl = await resolvePrescriptionPdfUrl(latestEntry);
+      if (pdfUrl) {
+        window.open(pdfUrl, '_blank', 'noopener');
+      }
+    }
+
+    function showResultsView() {
+      settingsPanel.classList.remove('is-visible');
+      resultsPanel.classList.add('is-visible');
+      setActiveNavTab('prescriptions');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function showSettingsView() {
+      renderSettingsPanel();
+      resultsPanel.classList.remove('is-visible');
+      settingsPanel.classList.add('is-visible');
+      setActiveNavTab('settings');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
     async function showRecords(patientId) {
       const entries = await loadHistoryEntries(patientId);
+      currentPatientId = patientId;
+      currentVisitEntries = entries;
 
       resultsTitle.textContent = `Visit history for ${patientId}`;
       resultsSubtitle.textContent = entries.length === 1 ? '1 visit found' : `${entries.length} visits found`;
       otpForm.classList.add('is-hidden');
       lookupPanel.classList.add('is-hidden');
       patientSelectPanel.classList.remove('is-visible');
+      settingsPanel.classList.remove('is-visible');
       resultsPanel.classList.add('is-visible');
+      setActiveNavTab('prescriptions');
       document.body.classList.add('has-bottom-nav');
       document.querySelector('.bottom-nav')?.classList.add('is-visible');
       await renderVisits(entries);
@@ -1597,12 +1701,16 @@
     function resetToLookup() {
       confirmationResult = null;
       pendingPatients = [];
+      currentPatientId = '';
+      currentVisitEntries = [];
       resetRecaptcha();
       otpForm.classList.add('is-hidden');
       lookupForm.classList.remove('is-hidden');
       lookupPanel.classList.remove('is-hidden');
       resultsPanel.classList.remove('is-visible');
       patientSelectPanel.classList.remove('is-visible');
+      settingsPanel.classList.remove('is-visible');
+      setActiveNavTab('prescriptions');
       document.body.classList.remove('has-bottom-nav');
       document.querySelector('.bottom-nav')?.classList.remove('is-visible');
       clearFormMessage();
@@ -1667,8 +1775,22 @@
     lookupForm.addEventListener('submit', handleLookup);
     otpForm.addEventListener('submit', handleOtpVerify);
     otpBack.addEventListener('click', resetToLookup);
-    logoutButton.addEventListener('click', handleLogout);
     patientSelectLogoutButton.addEventListener('click', handleLogout);
+
+    prescriptionsTab?.addEventListener('click', (event) => {
+      event.preventDefault();
+      showResultsView();
+    });
+
+    settingsTab?.addEventListener('click', showSettingsView);
+
+    appointmentTab?.addEventListener('click', () => {
+      navToast.classList.add('is-visible');
+      window.clearTimeout(navToastTimer);
+      navToastTimer = window.setTimeout(() => {
+        navToast.classList.remove('is-visible');
+      }, 4000);
+    });
 
     let hasAutoRestored = false;
     if (auth) {
@@ -1703,24 +1825,6 @@
   </script>
 
   <script>
-    const prescriptionsTab = document.querySelector('.bottom-nav-item.is-active');
-    const appointmentTab = document.getElementById('appointment-tab');
-    const navToast = document.getElementById('nav-toast');
-    let navToastTimer = null;
-
-    prescriptionsTab?.addEventListener('click', (event) => {
-      event.preventDefault();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-
-    appointmentTab?.addEventListener('click', () => {
-      navToast.classList.add('is-visible');
-      window.clearTimeout(navToastTimer);
-      navToastTimer = window.setTimeout(() => {
-        navToast.classList.remove('is-visible');
-      }, 4000);
-    });
-
     if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
       navigator.serviceWorker.register('/emr/lungs/sw.js', { scope: '/emr/lungs/' }).catch(() => {});
     }
