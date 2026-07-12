@@ -6,7 +6,13 @@
 
   <title>Patient Portal | The Better Lungs Clinic EMR</title>
   <link rel="icon" href="/favicon.ico" sizes="any" />
-  <link rel="manifest" href="/emr/lungs/site.webmanifest" />
+  <link rel="manifest" href="/emr/lungs/portal.webmanifest" />
+  <link rel="apple-touch-icon" href="/emr/lungs/icons/apple-touch-icon.png" />
+  <meta name="theme-color" content="#15803d" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Lungs Portal" />
   <meta name="description" content="Patient portal for The Better Lungs Clinic, letting patients view and download their past prescriptions." />
   <link rel="canonical" href="https://www.thebetterhealth.clinic/emr/lungs/portal" />
   <meta property="og:type" content="website" />
@@ -265,32 +271,26 @@
       box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.14);
     }
 
-    .patient-id-group {
-      display: flex;
-      align-items: stretch;
-      gap: 8px;
+    .patient-card {
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
+      font: inherit;
+      color: inherit;
     }
 
-    .patient-id-prefix {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 60px;
-      padding: 0 12px;
-      border-radius: var(--radius-sm);
-      border: 1.5px solid transparent;
-      background: linear-gradient(135deg, var(--brand-soft), #cdf3d8);
-      color: var(--brand-strong);
-      font-weight: 800;
-      font-size: 15.5px;
-      letter-spacing: 0.03em;
+    .patient-card-chevron {
+      flex-shrink: 0;
+      display: grid;
+      place-items: center;
+      width: 20px;
+      height: 20px;
+      color: var(--faint);
     }
 
-    .patient-id-group input {
-      flex: 1;
-      min-width: 0;
-      font-variant-numeric: tabular-nums;
-      letter-spacing: 0.02em;
+    .patient-card-chevron svg {
+      width: 18px;
+      height: 18px;
     }
 
     .btn-primary {
@@ -781,13 +781,6 @@
   <div class="page-shell">
     <section id="lookup-panel" class="panel">
       <form id="lookup-form">
-        <label for="patient-id-number">
-          Patient ID
-          <div class="patient-id-group">
-            <span class="patient-id-prefix">TBL</span>
-            <input id="patient-id-number" name="patientIdNumber" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0000" autocomplete="off" required>
-          </div>
-        </label>
         <label for="phone-number">
           Phone number
           <input id="phone-number" name="phoneNumber" type="tel" inputmode="tel" placeholder="Enter phone number" autocomplete="tel" required>
@@ -837,6 +830,22 @@
       </div>
     </div>
 
+    <section id="patient-select-panel" class="results-panel">
+      <div class="results-head">
+        <div class="results-head-text">
+          <h2>Select patient</h2>
+          <span id="patient-select-subtitle"></span>
+        </div>
+        <div style="display: flex; gap: 4px;">
+          <button id="patient-select-logout-button" type="button">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Log out
+          </button>
+        </div>
+      </div>
+      <div id="patient-select-list" class="visit-list"></div>
+    </section>
+
     <section id="results-panel" class="results-panel">
       <div class="results-head">
         <div class="results-head-text">
@@ -872,7 +881,7 @@
   <div class="nav-toast" id="nav-toast">Appointment booking is coming soon. Call <a href="tel:+919686183999">+91 96861 83999</a> to book.</div>
 
   <script type="module">
-    import { collection, doc, getDoc, getDocs, orderBy, query, where } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { collection, getDocs, orderBy, query, where } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     import { getDownloadURL, ref } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
     import { onAuthStateChanged, RecaptchaVerifier, signInWithPhoneNumber, signOut } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js';
     import { db, storage, auth } from './lib/firebase-init.js';
@@ -883,17 +892,17 @@
       history: `${CLINIC_FIREBASE_NAMESPACE}/history`
     };
 
-    const PATIENT_ID_PREFIX = 'TBL';
-    const PATIENT_ID_WIDTH = 4;
-
     const lookupForm = document.getElementById('lookup-form');
-    const patientIdNumberInput = document.getElementById('patient-id-number');
     const phoneNumberInput = document.getElementById('phone-number');
     const lookupSubmit = document.getElementById('lookup-submit');
     const formMessage = document.getElementById('form-message');
     const formMessageText = document.getElementById('form-message-text');
     const lookupPanel = document.getElementById('lookup-panel');
     const loadingPanel = document.getElementById('loading-panel');
+    const patientSelectPanel = document.getElementById('patient-select-panel');
+    const patientSelectSubtitle = document.getElementById('patient-select-subtitle');
+    const patientSelectList = document.getElementById('patient-select-list');
+    const patientSelectLogoutButton = document.getElementById('patient-select-logout-button');
     const resultsPanel = document.getElementById('results-panel');
     const resultsTitle = document.getElementById('results-title');
     const resultsSubtitle = document.getElementById('results-subtitle');
@@ -908,14 +917,12 @@
     const otpBack = document.getElementById('otp-back');
     const logoutButton = document.getElementById('logout-button');
 
-    const VERIFIED_PATIENT_STORAGE_KEY = 'lungsPortalVerifiedPatientId';
-
-    const NO_MATCH_MESSAGE = "We couldn't find a match for that patient ID and phone number. Please check and try again.";
+    const NO_MATCH_MESSAGE = "We couldn't find a match for that phone number. Please check and try again.";
 
     const DEFAULT_COUNTRY_CODE = '+91';
     let confirmationResult = null;
     let recaptchaVerifier = null;
-    let pendingPatientId = '';
+    let pendingPatients = [];
 
     const LOCKOUT_STORAGE_KEY = 'lungsPortalLookupState';
     const MAX_ATTEMPTS_BEFORE_LOCKOUT = 5;
@@ -970,18 +977,8 @@
     const ICON_CALENDAR = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3.5" y="5" width="17" height="16" rx="3" stroke="currentColor" stroke-width="2"/><path d="M3.5 10h17M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
     const ICON_VIEW = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7-10.5-7-10.5-7Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/></svg>';
     const ICON_EMPTY = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 3h8l4 4v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 12h6M9 16h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
-
-    function getNormalizedPatientId(value) {
-      return String(value || '').trim().toUpperCase().replace(/#@#\d+$/i, '');
-    }
-
-    function buildPatientIdFromNumber(rawNumber) {
-      const digits = String(rawNumber || '').trim().replace(/\D/g, '');
-      if (!digits) {
-        return '';
-      }
-      return `${PATIENT_ID_PREFIX}${digits.padStart(PATIENT_ID_WIDTH, '0')}`;
-    }
+    const ICON_PATIENT = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+    const ICON_CHEVRON = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
     function getPhoneDigits(value) {
       return String(value || '').trim().replace(/\D/g, '').replace(/^0+/, '');
@@ -1075,6 +1072,78 @@
       const value = entry.createdAtIso || entry.createdAt || entry.savedAt || entry.updatedAt || '';
       const parsed = new Date(value);
       return Number.isNaN(parsed.getTime()) ? 0 : parsed.getTime();
+    }
+
+    async function findPatientsByPhone(enteredPhoneDigits) {
+      const snapshot = await getDocs(collection(db, FIREBASE_COLLECTIONS.patients));
+      const matches = [];
+      snapshot.forEach((docSnapshot) => {
+        const data = docSnapshot.data();
+        const registeredPhone = normalizePhoneForCompare(data?.phone || data?.mobileNumber || '');
+        if (registeredPhone && registeredPhone === enteredPhoneDigits) {
+          matches.push({ patientId: docSnapshot.id, ...data });
+        }
+      });
+      return matches;
+    }
+
+    function renderPatientCard(patient) {
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'visit-card patient-card';
+
+      const main = document.createElement('div');
+      main.className = 'visit-card-main';
+
+      const dot = document.createElement('div');
+      dot.className = 'visit-card-dot';
+      dot.innerHTML = ICON_PATIENT;
+      main.appendChild(dot);
+
+      const text = document.createElement('div');
+      text.className = 'visit-card-text';
+
+      const nameLine = document.createElement('div');
+      nameLine.className = 'visit-card-date';
+      nameLine.textContent = patient.patientName || patient.childName || patient.patientId;
+      text.appendChild(nameLine);
+
+      const sub = document.createElement('div');
+      sub.className = 'visit-card-sub';
+      sub.textContent = patient.patientId;
+      text.appendChild(sub);
+
+      main.appendChild(text);
+      card.appendChild(main);
+
+      const chevron = document.createElement('div');
+      chevron.className = 'patient-card-chevron';
+      chevron.innerHTML = ICON_CHEVRON;
+      card.appendChild(chevron);
+
+      card.addEventListener('click', () => {
+        setLoading(true);
+        showRecords(patient.patientId).finally(() => setLoading(false));
+      });
+
+      return card;
+    }
+
+    async function showPatientSelect(patients) {
+      patientSelectSubtitle.textContent = patients.length === 1
+        ? '1 patient linked to this number'
+        : `${patients.length} patients linked to this number`;
+
+      patientSelectList.innerHTML = '';
+      patients.forEach((patient) => patientSelectList.appendChild(renderPatientCard(patient)));
+
+      otpForm.classList.add('is-hidden');
+      lookupPanel.classList.add('is-hidden');
+      resultsPanel.classList.remove('is-visible');
+      document.body.classList.remove('has-bottom-nav');
+      document.querySelector('.bottom-nav')?.classList.remove('is-visible');
+      patientSelectPanel.classList.add('is-visible');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function renderVisitCard(entry, pdfUrl) {
@@ -1203,6 +1272,7 @@
       resultsSubtitle.textContent = entries.length === 1 ? '1 visit found' : `${entries.length} visits found`;
       otpForm.classList.add('is-hidden');
       lookupPanel.classList.add('is-hidden');
+      patientSelectPanel.classList.remove('is-visible');
       resultsPanel.classList.add('is-visible');
       document.body.classList.add('has-bottom-nav');
       document.querySelector('.bottom-nav')?.classList.add('is-visible');
@@ -1214,6 +1284,7 @@
       event.preventDefault();
       clearFormMessage();
       resultsPanel.classList.remove('is-visible');
+      patientSelectPanel.classList.remove('is-visible');
 
       const lookupState = getLookupState();
       const cooldownRemaining = lookupState.lockedUntil - Date.now();
@@ -1222,13 +1293,7 @@
         return;
       }
 
-      const patientId = getNormalizedPatientId(buildPatientIdFromNumber(patientIdNumberInput.value));
       const enteredPhone = normalizePhoneForCompare(phoneNumberInput.value);
-
-      if (!patientId) {
-        showFormMessage('Please enter the number from your patient ID.');
-        return;
-      }
 
       if (enteredPhone.length !== 10) {
         showFormMessage('Please enter a valid 10-digit phone number.');
@@ -1243,11 +1308,9 @@
       setLoading(true);
 
       try {
-        const patientSnapshot = await getDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId));
-        const patientData = patientSnapshot.data();
-        const registeredPhone = normalizePhoneForCompare(patientData?.phone || patientData?.mobileNumber || '');
+        const matches = await findPatientsByPhone(enteredPhone);
 
-        if (!patientSnapshot.exists() || !registeredPhone || registeredPhone !== enteredPhone) {
+        if (!matches.length) {
           recordFailedAttempt();
           showFormMessage(NO_MATCH_MESSAGE);
           return;
@@ -1255,7 +1318,7 @@
 
         const e164Phone = phoneToE164(phoneNumberInput.value);
         confirmationResult = await signInWithPhoneNumber(auth, e164Phone, getRecaptchaVerifier());
-        pendingPatientId = patientId;
+        pendingPatients = matches;
 
         clearFormMessage();
         otpHint.textContent = `Enter the code sent to ${e164Phone}.`;
@@ -1292,12 +1355,7 @@
       try {
         await confirmationResult.confirm(code);
         clearLookupState();
-        try {
-          localStorage.setItem(VERIFIED_PATIENT_STORAGE_KEY, pendingPatientId);
-        } catch {
-          // Ignore storage failures (private browsing, storage disabled, etc.).
-        }
-        await showRecords(pendingPatientId);
+        await showPatientSelect(pendingPatients);
       } catch (error) {
         showOtpMessage(error?.code === 'auth/invalid-verification-code'
           ? 'That code is incorrect. Please try again.'
@@ -1309,12 +1367,13 @@
 
     function resetToLookup() {
       confirmationResult = null;
-      pendingPatientId = '';
+      pendingPatients = [];
       resetRecaptcha();
       otpForm.classList.add('is-hidden');
       lookupForm.classList.remove('is-hidden');
       lookupPanel.classList.remove('is-hidden');
       resultsPanel.classList.remove('is-visible');
+      patientSelectPanel.classList.remove('is-visible');
       document.body.classList.remove('has-bottom-nav');
       document.querySelector('.bottom-nav')?.classList.remove('is-visible');
       clearFormMessage();
@@ -1330,13 +1389,7 @@
       } catch {
         // Ignore sign-out failures; we still clear local state below.
       }
-      try {
-        localStorage.removeItem(VERIFIED_PATIENT_STORAGE_KEY);
-      } catch {
-        // Ignore storage failures (private browsing, storage disabled, etc.).
-      }
       resetToLookup();
-      patientIdNumberInput.value = '';
       phoneNumberInput.value = '';
       lookupPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
@@ -1345,6 +1398,7 @@
     otpForm.addEventListener('submit', handleOtpVerify);
     otpBack.addEventListener('click', resetToLookup);
     logoutButton.addEventListener('click', handleLogout);
+    patientSelectLogoutButton.addEventListener('click', handleLogout);
 
     let hasAutoRestored = false;
     if (auth) {
@@ -1358,19 +1412,20 @@
           return;
         }
 
-        let storedPatientId = '';
-        try {
-          storedPatientId = localStorage.getItem(VERIFIED_PATIENT_STORAGE_KEY) || '';
-        } catch {
-          storedPatientId = '';
-        }
-
-        if (!storedPatientId) {
+        const phoneDigits = normalizePhoneForCompare(user.phoneNumber || '');
+        if (!phoneDigits || !db) {
           return;
         }
 
         setLoading(true);
-        showRecords(storedPatientId)
+        findPatientsByPhone(phoneDigits)
+          .then((matches) => {
+            if (!matches.length) {
+              resetToLookup();
+              return;
+            }
+            return showPatientSelect(matches);
+          })
           .catch(() => resetToLookup())
           .finally(() => setLoading(false));
       });
@@ -1395,6 +1450,10 @@
         navToast.classList.remove('is-visible');
       }, 4000);
     });
+
+    if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+      navigator.serviceWorker.register('/emr/lungs/sw.js', { scope: '/emr/lungs/' }).catch(() => {});
+    }
   </script>
 </body>
 </html>
