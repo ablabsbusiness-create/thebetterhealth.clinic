@@ -36,3 +36,10 @@ input:-webkit-autofill:focus {
   caret-color: var(--ink);
   transition: background-color 9999s ease-in-out 0s;
 }
+
+/* kid/mobile-app.css forces a 44px tap-target min-height on every
+   <button>, which also blows up these tiny carousel dot buttons. */
+.illustration-dots .dot {
+  min-height: 0 !important;
+  min-width: 0 !important;
+}
