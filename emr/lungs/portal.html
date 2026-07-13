@@ -271,6 +271,16 @@
       box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.14);
     }
 
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus {
+      -webkit-text-fill-color: var(--ink);
+      -webkit-box-shadow: 0 0 0 1000px #fbfdfb inset;
+      box-shadow: 0 0 0 1000px #fbfdfb inset;
+      caret-color: var(--ink);
+      transition: background-color 9999s ease-in-out 0s;
+    }
+
     .patient-card {
       width: 100%;
       text-align: left;
