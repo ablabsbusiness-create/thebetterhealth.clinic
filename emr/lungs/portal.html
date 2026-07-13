@@ -215,7 +215,7 @@
       height: 14px;
     }
 
-    #recaptcha-container {
+    .msg91-captcha {
       display: flex;
       justify-content: center;
     }
@@ -1043,7 +1043,7 @@
       <form id="otp-form" class="is-hidden">
         <label for="otp-code">
           Verification code
-          <input id="otp-code" name="otpCode" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code" required>
+          <input id="otp-code" name="otpCode" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="4-digit code" autocomplete="one-time-code" required>
           <span class="hint" id="otp-hint">Enter the code sent to your phone.</span>
         </label>
         <button id="otp-submit" class="btn-primary" type="submit">
@@ -1061,7 +1061,7 @@
         </button>
       </form>
 
-      <div id="recaptcha-container"></div>
+      <div id="msg91-captcha-container" class="msg91-captcha"></div>
     </section>
 
     <div id="loading-panel" class="loading-panel">
@@ -1145,8 +1145,7 @@
   <script type="module">
     import { collection, getDocs, orderBy, query, where } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     import { getDownloadURL, ref } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
-    import { onAuthStateChanged, RecaptchaVerifier, signInWithPhoneNumber, signOut } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js';
-    import { db, storage, auth } from './lib/firebase-init.js';
+    import { db, storage } from './lib/firebase-init.js';
 
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/lungs';
     const FIREBASE_COLLECTIONS = {
@@ -1193,8 +1192,7 @@
     const NO_MATCH_MESSAGE = "We couldn't find a match for that phone number. Please check and try again.";
 
     const DEFAULT_COUNTRY_CODE = '+91';
-    let confirmationResult = null;
-    let recaptchaVerifier = null;
+    let pendingPhoneDigits = '';
     let pendingPatients = [];
     let currentPatientId = '';
     let currentVisitEntries = [];
@@ -1256,6 +1254,60 @@
     const ICON_CHEVRON = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     const ICON_DOWNLOAD = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4v11m0 0-4-4m4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     const ICON_LOGOUT = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+    function waitForWidgetReady(timeoutMs = 8000) {
+      if (typeof window.sendOtp === 'function') {
+        return Promise.resolve();
+      }
+      return new Promise((resolve, reject) => {
+        const startedAt = Date.now();
+        const interval = window.setInterval(() => {
+          if (typeof window.sendOtp === 'function') {
+            window.clearInterval(interval);
+            resolve();
+          } else if (Date.now() - startedAt > timeoutMs) {
+            window.clearInterval(interval);
+            reject(new Error('Verification service is still loading. Please try again in a moment.'));
+          }
+        }, 150);
+      });
+    }
+
+    async function widgetSendOtp(identifier) {
+      await waitForWidgetReady();
+      return new Promise((resolve, reject) => {
+        window.sendOtp(
+          identifier,
+          (data) => resolve(data),
+          (error) => reject(new Error(error?.message || 'Could not send verification code. Please try again.'))
+        );
+      });
+    }
+
+    function extractAccessToken(data) {
+      if (typeof data === 'string') {
+        return data;
+      }
+      return String(data?.message || data?.['access-token'] || data?.token || '').trim();
+    }
+
+    async function widgetVerifyOtp(code) {
+      await waitForWidgetReady();
+      return new Promise((resolve, reject) => {
+        window.verifyOtp(
+          code,
+          (data) => {
+            const accessToken = extractAccessToken(data);
+            if (!accessToken) {
+              reject(new Error('Could not verify that code. Please try again.'));
+              return;
+            }
+            resolve(accessToken);
+          },
+          (error) => reject(new Error(error?.message || 'That code is incorrect. Please try again.'))
+        );
+      });
+    }
 
     function getPhoneDigits(value) {
       return String(value || '').trim().replace(/\D/g, '').replace(/^0+/, '');
@@ -1531,28 +1583,6 @@
       otpSubmit.disabled = isLoading;
     }
 
-    function resetRecaptcha() {
-      try {
-        recaptchaVerifier?.clear();
-      } catch {
-        // Ignore teardown failures from an already-cleared or never-rendered widget.
-      }
-      recaptchaVerifier = null;
-      const container = document.getElementById('recaptcha-container');
-      if (container) {
-        const freshContainer = document.createElement('div');
-        freshContainer.id = 'recaptcha-container';
-        container.replaceWith(freshContainer);
-      }
-    }
-
-    function getRecaptchaVerifier() {
-      if (!recaptchaVerifier) {
-        recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' });
-      }
-      return recaptchaVerifier;
-    }
-
     async function loadHistoryEntries(patientId) {
       const historyQuery = query(
         collection(db, FIREBASE_COLLECTIONS.history),
@@ -1665,7 +1695,7 @@
         return;
       }
 
-      if (!db || !auth) {
+      if (!db) {
         showFormMessage('Records are not available right now. Please try again later.');
         return;
       }
@@ -1682,7 +1712,9 @@
         }
 
         const e164Phone = phoneToE164(phoneNumberInput.value);
-        confirmationResult = await signInWithPhoneNumber(auth, e164Phone, getRecaptchaVerifier());
+        await widgetSendOtp(`91${enteredPhone}`);
+
+        pendingPhoneDigits = enteredPhone;
         pendingPatients = matches;
 
         clearFormMessage();
@@ -1693,7 +1725,6 @@
         otpForm.classList.remove('is-hidden');
         otpCodeInput.focus();
       } catch (error) {
-        resetRecaptcha();
         showFormMessage(error?.message || 'Something went wrong while sending the verification code. Please try again.');
       } finally {
         setLoading(false);
@@ -1705,12 +1736,12 @@
       clearOtpMessage();
 
       const code = otpCodeInput.value.trim();
-      if (!/^\d{6}$/.test(code)) {
-        showOtpMessage('Please enter the 6-digit code.');
+      if (!/^\d{4}$/.test(code)) {
+        showOtpMessage('Please enter the 4-digit code.');
         return;
       }
 
-      if (!confirmationResult) {
+      if (!pendingPhoneDigits) {
         showOtpMessage('Your session expired. Please request a new code.');
         return;
       }
@@ -1718,24 +1749,33 @@
       setOtpLoading(true);
 
       try {
-        await confirmationResult.confirm(code);
+        const accessToken = await widgetVerifyOtp(code);
+
+        const response = await fetch('/api/lungs/otp/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: pendingPhoneDigits, accessToken })
+        });
+        const result = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(result?.error || 'Could not verify that code. Please try again.');
+        }
+
         clearLookupState();
         await showPatientSelect(pendingPatients);
       } catch (error) {
-        showOtpMessage(error?.code === 'auth/invalid-verification-code'
-          ? 'That code is incorrect. Please try again.'
-          : (error?.message || 'Could not verify that code. Please try again.'));
+        showOtpMessage(error?.message || 'Could not verify that code. Please try again.');
       } finally {
         setOtpLoading(false);
       }
     }
 
     function resetToLookup() {
-      confirmationResult = null;
+      pendingPhoneDigits = '';
       pendingPatients = [];
       currentPatientId = '';
       currentVisitEntries = [];
-      resetRecaptcha();
       otpForm.classList.add('is-hidden');
       lookupForm.classList.remove('is-hidden');
       lookupPanel.classList.remove('is-hidden');
@@ -1795,7 +1835,7 @@
         return;
       }
       try {
-        await signOut(auth);
+        await fetch('/api/lungs/otp/logout', { method: 'POST' });
       } catch {
         // Ignore sign-out failures; we still clear local state below.
       }
@@ -1824,36 +1864,32 @@
       }, 4000);
     });
 
-    let hasAutoRestored = false;
-    if (auth) {
-      onAuthStateChanged(auth, (user) => {
-        if (hasAutoRestored) {
-          return;
-        }
-        hasAutoRestored = true;
-
-        if (!user) {
+    (async function restorePatientSession() {
+      try {
+        const response = await fetch('/api/lungs/otp/session');
+        if (!response.ok) {
           return;
         }
 
-        const phoneDigits = normalizePhoneForCompare(user.phoneNumber || '');
+        const result = await response.json();
+        const phoneDigits = normalizePhoneForCompare(result?.phone || '');
         if (!phoneDigits || !db) {
           return;
         }
 
         setLoading(true);
-        findPatientsByPhone(phoneDigits)
-          .then((matches) => {
-            if (!matches.length) {
-              resetToLookup();
-              return;
-            }
-            return showPatientSelect(matches);
-          })
-          .catch(() => resetToLookup())
-          .finally(() => setLoading(false));
-      });
-    }
+        const matches = await findPatientsByPhone(phoneDigits);
+        if (!matches.length) {
+          resetToLookup();
+          return;
+        }
+        await showPatientSelect(matches);
+      } catch {
+        // No valid session to restore; leave the lookup form as-is.
+      } finally {
+        setLoading(false);
+      }
+    })();
   </script>
 
   <script>
@@ -1926,6 +1962,42 @@
       renderSlide(activeSlide);
       startAutoAdvance();
     }
+  </script>
+
+  <script type="module">
+    const msg91WidgetConfiguration = {
+      widgetId: import.meta.env.VITE_MSG91_WIDGET_ID,
+      tokenAuth: import.meta.env.VITE_MSG91_TOKEN_AUTH,
+      exposeMethods: true,
+      captchaRenderId: 'msg91-captcha-container',
+      success: () => {},
+      failure: () => {}
+    };
+
+    (function loadOtpScript(urls) {
+      let i = 0;
+      function attempt() {
+        const s = document.createElement('script');
+        s.src = urls[i];
+        s.async = true;
+        s.onload = () => {
+          if (typeof window.initSendOTP === 'function') {
+            window.initSendOTP(msg91WidgetConfiguration);
+          }
+        };
+        s.onerror = () => {
+          i++;
+          if (i < urls.length) {
+            attempt();
+          }
+        };
+        document.head.appendChild(s);
+      }
+      attempt();
+    })([
+      'https://verify.msg91.com/otp-provider.js',
+      'https://verify.phone91.com/otp-provider.js'
+    ]);
   </script>
 </body>
 </html>
