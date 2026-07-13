@@ -9,3 +9,5 @@ dist/
 Thumbs.db
 .DS_Store
 __pycache__/
+
+public/portal-shared.css
