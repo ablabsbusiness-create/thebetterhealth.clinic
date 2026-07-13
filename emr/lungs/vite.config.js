@@ -161,7 +161,8 @@ export default defineConfig(({ mode }) => {
         rx: resolve(__dirname, 'rx.html'),
         portal: resolve(__dirname, 'portal.html'),
         settings: resolve(__dirname, 'settings.html'),
-        search: resolve(__dirname, 'search.html')
+        search: resolve(__dirname, 'search.html'),
+        editPatient: resolve(__dirname, 'edit-patient.html')
       }
     }
   }

@@ -720,7 +720,7 @@
     }
 
     function getPatientEditUrl(id) {
-      return id ? `/emr/lungs/search?patientId=${encodeURIComponent(id)}` : '/emr/lungs/search';
+      return id ? `/emr/lungs/edit-patient?patientId=${encodeURIComponent(id)}` : '/emr/lungs/search';
     }
 
     function showFormMessage(text) {
