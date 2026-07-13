@@ -24,6 +24,12 @@ export async function verifyAccessToken(accessToken) {
 
   const data = await response.json().catch(() => ({}));
   if (!response.ok || data?.type === 'error') {
+    console.error('MSG91 verifyAccessToken rejected', {
+      httpStatus: response.status,
+      responseType: data?.type,
+      responseMessage: data?.message,
+      authKeyLength: getAuthKey().length
+    });
     throw new Error(data?.message || 'That code is incorrect. Please try again.');
   }
   return data;
