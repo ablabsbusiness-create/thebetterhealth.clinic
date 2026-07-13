@@ -886,12 +886,20 @@
       transform: scale(1.3);
     }
 
+    body.post-login .auth-illustration {
+      display: none;
+    }
+
     @media (min-width: 900px) {
       .auth-layout {
         display: grid;
         grid-template-columns: minmax(360px, 460px) 1fr;
         align-items: stretch;
         min-height: calc(100vh - 73px);
+      }
+
+      body.post-login .auth-layout {
+        grid-template-columns: 1fr;
       }
 
       .auth-illustration {
@@ -1490,6 +1498,7 @@
       resultsPanel.classList.remove('is-visible');
       settingsPanel.classList.remove('is-visible');
       document.body.classList.remove('has-bottom-nav');
+      document.body.classList.add('post-login');
       document.querySelector('.bottom-nav')?.classList.remove('is-visible');
       patientSelectPanel.classList.add('is-visible');
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1670,6 +1679,7 @@
       resultsPanel.classList.add('is-visible');
       setActiveNavTab('prescriptions');
       document.body.classList.add('has-bottom-nav');
+      document.body.classList.add('post-login');
       document.querySelector('.bottom-nav')?.classList.add('is-visible');
       await renderVisits(entries);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1784,6 +1794,7 @@
       settingsPanel.classList.remove('is-visible');
       setActiveNavTab('prescriptions');
       document.body.classList.remove('has-bottom-nav');
+      document.body.classList.remove('post-login');
       document.querySelector('.bottom-nav')?.classList.remove('is-visible');
       clearFormMessage();
       clearOtpMessage();

@@ -1,9 +1,13 @@
-import { verifyAccessToken, isMsg91Configured } from '../../kid/_msg91.js';
+import { verifyAccessToken, isMsg91Configured } from '../_msg91.js';
 import {
   createPatientSessionToken,
+  verifyPatientSessionToken,
   buildPatientSessionCookie,
-  isPatientSessionConfigured
-} from '../../../emr/lungs/lib/patient-session.js';
+  buildClearedPatientSessionCookie,
+  isPatientSessionConfigured,
+  parseCookies,
+  getPatientSessionCookieName
+} from '../../../emr/kid/lib/patient-session.js';
 
 function sendJson(res, statusCode, payload, extraHeaders = {}) {
   res.statusCode = statusCode;
@@ -46,7 +50,7 @@ function normalizePhoneDigits(value) {
   return digits.length > 10 ? digits.slice(-10) : digits;
 }
 
-export default async function handler(req, res) {
+async function handleVerify(req, res) {
   if (req.method !== 'POST') {
     sendJson(res, 405, { error: 'Method not allowed.' });
     return;
@@ -90,4 +94,54 @@ export default async function handler(req, res) {
   sendJson(res, 200, { ok: true }, {
     'Set-Cookie': buildPatientSessionCookie(token)
   });
+}
+
+async function handleSession(req, res) {
+  if (req.method !== 'GET') {
+    sendJson(res, 405, { error: 'Method not allowed.' });
+    return;
+  }
+
+  const cookies = parseCookies(req.headers.cookie || '');
+  const token = cookies[getPatientSessionCookieName()];
+  const phone = await verifyPatientSessionToken(token);
+
+  if (!phone) {
+    sendJson(res, 401, { error: 'Not signed in.' });
+    return;
+  }
+
+  sendJson(res, 200, { phone });
+}
+
+async function handleLogout(req, res) {
+  if (req.method !== 'POST') {
+    sendJson(res, 405, { error: 'Method not allowed.' });
+    return;
+  }
+
+  sendJson(res, 200, { ok: true }, {
+    'Set-Cookie': buildClearedPatientSessionCookie()
+  });
+}
+
+export default async function handler(req, res) {
+  const action = req.query?.action;
+
+  if (action === 'verify') {
+    await handleVerify(req, res);
+    return;
+  }
+
+  if (action === 'session') {
+    await handleSession(req, res);
+    return;
+  }
+
+  if (action === 'logout') {
+    await handleLogout(req, res);
+    return;
+  }
+
+  sendJson(res, 404, { error: 'Not found.' });
 }
