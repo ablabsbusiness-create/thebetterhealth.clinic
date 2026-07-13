@@ -932,7 +932,7 @@
         border-radius: 20px;
       }
 
-      .visit-card {
+      .visit-card:not(.patient-card) {
         flex-direction: column;
         align-items: stretch;
       }
@@ -962,10 +962,14 @@
         flex-shrink: 0;
       }
 
-      .page-shell {
+      .auth-layout .page-shell {
         margin: auto 0;
         padding-top: 14px;
         padding-bottom: 14px;
+      }
+
+      body.post-login .auth-layout .page-shell {
+        margin: 0;
       }
 
       .panel {
