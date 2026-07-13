@@ -43,3 +43,15 @@ input:-webkit-autofill:focus {
   min-height: 0 !important;
   min-width: 0 !important;
 }
+
+/* .page-shell's "margin: auto 0" is meant to vertically center the
+   login card on phones, but auto margins only resolve outside normal
+   block flow — .auth-layout needs to actually be a flex column that
+   grows to fill the body for that centering to take effect. */
+@media (max-width: 760px) {
+  .auth-layout {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 !important;
+  }
+}
