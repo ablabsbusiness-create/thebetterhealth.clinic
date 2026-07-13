@@ -261,7 +261,8 @@ export default defineConfig({
         settings: resolve(__dirname, 'settings.html'),
         prescriptionGrowthChart: resolve(__dirname, 'prescription-growth-chart-dashboard.html'),
         vaccination: resolve(__dirname, 'vaccination.html'),
-        search: resolve(__dirname, 'search.html')
+        search: resolve(__dirname, 'search.html'),
+        certificates: resolve(__dirname, 'certificates.html')
       }
     }
   }
