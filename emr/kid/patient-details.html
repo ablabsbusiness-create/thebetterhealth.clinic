@@ -4114,7 +4114,7 @@
         return '';
       }
 
-      const patientId = formatMissing(patient.patientId, 'ID not saved');
+      const patientId = formatMissing(patient.patientId || patient.id, 'ID not saved');
       const showAll = Boolean(historyShowAll[patientId]) && !selectedDate;
       const allFilteredEntries = getEditableMeasurementEntries(patient, selectedDate);
       const visibleCount = showAll ? HISTORY_PAGE_SIZE : HISTORY_DEFAULT_VISIBLE_COUNT;
@@ -4465,7 +4465,7 @@
 
     function renderWorklistItemHtml(patient, dateValue) {
       const childName = getPatientDisplayName(patient);
-      const patientId = formatMissing(patient.patientId, 'ID not saved');
+      const patientId = formatMissing(patient.patientId || patient.id, 'ID not saved');
       const gender = formatMissing(patient.gender, 'Gender not saved');
       const dob = formatDateDisplay(patient.dob);
       const phone = formatPhoneDisplay(patient.phone);
@@ -4526,7 +4526,7 @@
         const parentNameHtml = parentName ? `<small>${parentName}</small>` : '';
         const dob = formatDateDisplay(patient.dob);
         const gender = formatMissing(patient.gender, 'Gender not saved');
-        const patientId = formatMissing(patient.patientId, 'ID not saved');
+        const patientId = formatMissing(patient.patientId || patient.id, 'ID not saved');
         const selectedHistoryDate = historyDateFilters[patientId] || '';
         const isExpanded = selectedPatientId === patientId;
 
@@ -4578,7 +4578,7 @@
 
       attachPrescriptionPreviewRendering();
       patients
-        .filter((patient) => selectedPatientId === formatMissing(patient.patientId, 'ID not saved'))
+        .filter((patient) => selectedPatientId === formatMissing(patient.patientId || patient.id, 'ID not saved'))
         .forEach((patient) => ensureStoragePrescriptionsForPatient(patient));
     }
 
@@ -4595,7 +4595,7 @@
       }
 
       if (IS_PATIENT_DETAILS_PAGE) {
-        const selectedPatient = patients.find((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId) || null;
+        const selectedPatient = patients.find((patient) => formatMissing(patient.patientId || patient.id, 'ID not saved') === selectedPatientId) || null;
         if (!selectedPatient) {
           renderPlaceholder('This patient record was not found.', {
             title: selectedPatientId ? `${selectedPatientId} was not found.` : 'No patient selected.',
@@ -4605,7 +4605,7 @@
           return;
         }
 
-        const selectedPatientIdValue = formatMissing(selectedPatient.patientId, 'ID not saved');
+        const selectedPatientIdValue = formatMissing(selectedPatient.patientId || selectedPatient.id, 'ID not saved');
         const selectedHistoryDate = historyDateFilters[selectedPatientIdValue] || '';
         const childName = getPatientDisplayName(selectedPatient);
         const parentName = getSavedParentName(selectedPatient);
@@ -4686,16 +4686,16 @@
       const renderedWorklistPatients = worklistPatients.slice(0, SEARCH_RENDER_LIMIT);
       const selectedPatientPool = patients;
       if (!selectedPatientId && worklistPatients[0]) {
-        selectedPatientId = formatMissing(worklistPatients[0].patientId, 'ID not saved');
+        selectedPatientId = formatMissing(worklistPatients[0].patientId || worklistPatients[0].id, 'ID not saved');
       }
-      if (selectedPatientId && !patients.some((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId)) {
+      if (selectedPatientId && !patients.some((patient) => formatMissing(patient.patientId || patient.id, 'ID not saved') === selectedPatientId)) {
         selectedPatientId = '';
       }
 
       const selectedPatient = selectedPatientId
-        ? selectedPatientPool.find((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId) || null
+        ? selectedPatientPool.find((patient) => formatMissing(patient.patientId || patient.id, 'ID not saved') === selectedPatientId) || null
         : worklistPatients[0] || null;
-      const selectedPatientIdValue = selectedPatient ? formatMissing(selectedPatient.patientId, 'ID not saved') : '';
+      const selectedPatientIdValue = selectedPatient ? formatMissing(selectedPatient.patientId || selectedPatient.id, 'ID not saved') : '';
       const selectedHistoryDate = selectedPatientIdValue ? historyDateFilters[selectedPatientIdValue] || '' : '';
       const childName = selectedPatient ? getPatientDisplayName(selectedPatient) : 'Select a patient';
       const parentName = getSavedParentName(selectedPatient);
@@ -4800,7 +4800,7 @@
           .map((entry) => entry.patient);
       }
 
-      if (!IS_PATIENT_DETAILS_PAGE && selectedPatientId && !filteredPatients.some((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId)) {
+      if (!IS_PATIENT_DETAILS_PAGE && selectedPatientId && !filteredPatients.some((patient) => formatMissing(patient.patientId || patient.id, 'ID not saved') === selectedPatientId)) {
         selectedPatientId = '';
       }
 

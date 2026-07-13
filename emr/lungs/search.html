@@ -3671,7 +3671,7 @@
         return '';
       }
 
-      const patientId = formatMissing(patient.patientId, 'ID not saved');
+      const patientId = formatMissing(patient.patientId || patient.id, 'ID not saved');
       const showAll = Boolean(historyShowAll[patientId]) && !selectedDate;
       const allFilteredEntries = getEditableMeasurementEntries(patient, selectedDate);
       const visibleCount = showAll ? HISTORY_PAGE_SIZE : HISTORY_DEFAULT_VISIBLE_COUNT;
@@ -4028,7 +4028,7 @@
 
     function renderWorklistItemHtml(patient, dateValue) {
       const childName = getPatientDisplayName(patient);
-      const patientId = formatMissing(patient.patientId, 'ID not saved');
+      const patientId = formatMissing(patient.patientId || patient.id, 'ID not saved');
       const gender = formatMissing(patient.gender, 'Gender not saved');
       const dob = formatDateDisplay(patient.dob);
       const phone = formatMissing(patient.phone, 'Phone not saved');
@@ -4084,7 +4084,7 @@
         const parentNameHtml = parentName ? `<small>${parentName}</small>` : '';
         const dob = formatDateDisplay(patient.dob);
         const gender = formatMissing(patient.gender, 'Gender not saved');
-        const patientId = formatMissing(patient.patientId, 'ID not saved');
+        const patientId = formatMissing(patient.patientId || patient.id, 'ID not saved');
         const selectedHistoryDate = historyDateFilters[patientId] || '';
         const isExpanded = selectedPatientId === patientId;
 
@@ -4136,7 +4136,7 @@
 
       attachPrescriptionPreviewRendering();
       patients
-        .filter((patient) => selectedPatientId === formatMissing(patient.patientId, 'ID not saved'))
+        .filter((patient) => selectedPatientId === formatMissing(patient.patientId || patient.id, 'ID not saved'))
         .forEach((patient) => {
           ensureStoragePrescriptionsForPatient(patient);
           ensureFullHistoryForPatient(patient);
@@ -4158,14 +4158,14 @@
       const counts = getWorklistCounts(patients, selectedWorklistDate);
       const worklistPatients = getWorklistPatients(patients, selectedWorklistDate, selectedWorklistMode, searchValue);
       const renderedWorklistPatients = worklistPatients.slice(0, SEARCH_RENDER_LIMIT);
-      if (selectedPatientId && !patients.some((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId)) {
+      if (selectedPatientId && !patients.some((patient) => formatMissing(patient.patientId || patient.id, 'ID not saved') === selectedPatientId)) {
         selectedPatientId = '';
       }
 
       const selectedPatient = selectedPatientId
-        ? patients.find((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId) || null
+        ? patients.find((patient) => formatMissing(patient.patientId || patient.id, 'ID not saved') === selectedPatientId) || null
         : null;
-      const selectedPatientIdValue = selectedPatient ? formatMissing(selectedPatient.patientId, 'ID not saved') : '';
+      const selectedPatientIdValue = selectedPatient ? formatMissing(selectedPatient.patientId || selectedPatient.id, 'ID not saved') : '';
       const selectedHistoryDate = selectedPatientIdValue ? historyDateFilters[selectedPatientIdValue] || '' : '';
       const childName = selectedPatient ? getPatientDisplayName(selectedPatient) : 'Select a patient';
       const parentName = getSavedParentName(selectedPatient);
@@ -4265,7 +4265,7 @@
         ? allPatients.filter((patient) => patientMatchesSearch(patient, searchValue))
         : allPatients;
 
-      if (selectedPatientId && !filteredPatients.some((patient) => formatMissing(patient.patientId, 'ID not saved') === selectedPatientId)) {
+      if (selectedPatientId && !filteredPatients.some((patient) => formatMissing(patient.patientId || patient.id, 'ID not saved') === selectedPatientId)) {
         selectedPatientId = '';
       }
 
