@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from who_growth_standards import WHO_0TO5_PERCENTILES, WHO_DISPLAY_COLUMNS
+
 
 STYLE = """
   <style>
@@ -372,15 +374,24 @@ def reference_curve_path(reference: dict, column: str, x: int, y: int, width: in
 
 
 def build_reference_curves(panel: dict, x: int, y: int, width: int, height: int) -> list[str]:
-    if panel.get("age_mode") != "years":
+    age_mode = panel.get("age_mode")
+    sex = panel.get("sex", "")
+    kind = panel["kind"]
+
+    if age_mode == "years":
+        reference = IAP_2015_PERCENTILES.get((sex, kind))
+        display_columns = IAP_DISPLAY_COLUMNS.get(kind, [])
+    elif age_mode == "months":
+        reference = WHO_0TO5_PERCENTILES.get((sex, kind))
+        display_columns = WHO_DISPLAY_COLUMNS.get(kind, [])
+    else:
         return []
 
-    reference = IAP_2015_PERCENTILES.get((panel.get("sex", ""), panel["kind"]))
-    if not reference:
+    if not reference or not display_columns:
         return []
 
     curves = []
-    for column in IAP_DISPLAY_COLUMNS[panel["kind"]]:
+    for column in display_columns:
         css_class = "median" if column == "P50" else "curve"
         curves.append(f'<path class="{css_class}" d="{reference_curve_path(reference, column, x, y, width, height)}"/>')
     return curves
@@ -448,8 +459,11 @@ def get_y_labels(panel: dict) -> list[str]:
 
 
 def get_percentile_labels(panel: dict) -> list[str]:
-    if panel.get("age_mode") == "years" and (panel.get("sex", ""), panel["kind"]) in IAP_2015_PERCENTILES:
+    sex_kind = (panel.get("sex", ""), panel["kind"])
+    if panel.get("age_mode") == "years" and sex_kind in IAP_2015_PERCENTILES:
         return IAP_DISPLAY_COLUMNS[panel["kind"]]
+    if panel.get("age_mode") == "months" and sex_kind in WHO_0TO5_PERCENTILES:
+        return WHO_DISPLAY_COLUMNS[panel["kind"]]
     return []
 
 

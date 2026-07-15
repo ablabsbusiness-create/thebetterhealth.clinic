@@ -17,6 +17,7 @@ from generate_minimal_iap_svgs import (
     get_percentile_labels,
     get_y_labels,
 )
+from who_growth_standards import WHO_0TO5_PERCENTILES, WHO_DISPLAY_COLUMNS
 
 
 SCALE = 4
@@ -65,15 +66,24 @@ def map_reference_point(age: float, value: float, axis: dict, x: int, y: int, wi
 
 
 def build_reference_curves(panel: dict, x: int, y: int, width: int, height: int):
-    if panel.get("age_mode") != "years":
+    age_mode = panel.get("age_mode")
+    sex = panel.get("sex", "")
+    kind = panel["kind"]
+
+    if age_mode == "years":
+        reference = IAP_2015_PERCENTILES.get((sex, kind))
+        display_columns = IAP_DISPLAY_COLUMNS.get(kind, [])
+    elif age_mode == "months":
+        reference = WHO_0TO5_PERCENTILES.get((sex, kind))
+        display_columns = WHO_DISPLAY_COLUMNS.get(kind, [])
+    else:
         return []
 
-    reference = IAP_2015_PERCENTILES.get((panel.get("sex", ""), panel["kind"]))
-    if not reference:
+    if not reference or not display_columns:
         return []
 
     curves = []
-    for column in IAP_DISPLAY_COLUMNS[panel["kind"]]:
+    for column in display_columns:
         column_index = reference["columns"].index(column) + 1
         points = [
             map_reference_point(row[0], row[column_index], reference["axis"], x, y, width, height)
