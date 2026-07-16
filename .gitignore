@@ -17,3 +17,6 @@ kid-emr-phone-screenshots-*/
 
 emr/ab-labs/
 emr/template/
+
+.env.vercel.example
+main versel env.txt
