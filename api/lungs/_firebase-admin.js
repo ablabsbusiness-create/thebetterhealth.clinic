@@ -4,7 +4,7 @@ const DEFAULT_STORAGE_BUCKET = 'clinci-dr-gunda.firebasestorage.app';
 const DEFAULT_PROJECT_ID = 'clinci-dr-gunda';
 
 function parseServiceAccount() {
-  const rawValue = String(process.env.KID_FIREBASE_SERVICE_ACCOUNT_KEY || process.env.KID_FIREBASE_SERVICE_ACCOUNT || '').trim();
+  const rawValue = String(process.env.LUNGS_FIREBASE_SERVICE_ACCOUNT_KEY || process.env.LUNGS_FIREBASE_SERVICE_ACCOUNT || '').trim();
 
   if (!rawValue) {
     return null;
@@ -27,13 +27,15 @@ function parseServiceAccount() {
 }
 
 export function getAdminApp() {
-  if (admin.apps.length) {
-    return admin.app();
+  const existingApp = admin.apps.find((app) => app?.name === 'lungs');
+
+  if (existingApp) {
+    return existingApp;
   }
 
   const serviceAccount = parseServiceAccount();
-  const projectId = String(process.env.KID_FIREBASE_PROJECT_ID || serviceAccount?.project_id || DEFAULT_PROJECT_ID).trim();
-  const storageBucket = String(process.env.KID_FIREBASE_STORAGE_BUCKET || DEFAULT_STORAGE_BUCKET).trim();
+  const projectId = String(process.env.LUNGS_FIREBASE_PROJECT_ID || serviceAccount?.project_id || DEFAULT_PROJECT_ID).trim();
+  const storageBucket = String(process.env.LUNGS_FIREBASE_STORAGE_BUCKET || DEFAULT_STORAGE_BUCKET).trim();
   const appOptions = { projectId, storageBucket };
 
   if (serviceAccount) {
@@ -42,7 +44,7 @@ export function getAdminApp() {
     appOptions.credential = admin.credential.applicationDefault();
   }
 
-  return admin.initializeApp(appOptions);
+  return admin.initializeApp(appOptions, 'lungs');
 }
 
 export function getAdminDb() {

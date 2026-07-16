@@ -1,4 +1,4 @@
-import { getAdminDb } from '../../kid/_firebase-admin.js';
+import { getAdminDb } from '../_firebase-admin.js';
 
 const CLINIC_NAMESPACE = 'clinics/lungs';
 const PATIENT_ID_PREFIX = 'TBL';
