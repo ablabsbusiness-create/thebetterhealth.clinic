@@ -2478,7 +2478,10 @@
         pulse: chartRecord?.pulse || '',
         systolic: chartRecord?.systolic || '',
         diastolic: chartRecord?.diastolic || '',
-        temp: chartRecord?.temp || ''
+        temp: chartRecord?.temp || '',
+        sections: draft?.sections || {},
+        sectionDetails: draft?.sectionDetails || {},
+        medicineDetails: draft?.medicineDetails || {}
       };
     }
 
@@ -2562,6 +2565,9 @@
         systolic: details.systolic || '',
         diastolic: details.diastolic || '',
         temp: details.temp || '',
+        sections: details.sections || {},
+        sectionDetails: details.sectionDetails || {},
+        medicineDetails: details.medicineDetails || {},
         fileName,
         storagePath: persistedStoragePath,
         previewImagePath,

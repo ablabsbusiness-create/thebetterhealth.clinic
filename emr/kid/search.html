@@ -643,44 +643,6 @@
       color: var(--brand-strong);
     }
 
-    .worklist-summary {
-      display: none;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    .worklist-summary-card {
-      padding: 12px;
-      border-radius: 16px;
-      border: 1px solid var(--line);
-      background: #fbfdfb;
-    }
-
-    .worklist-summary-card span {
-      display: block;
-      color: var(--muted);
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    .worklist-summary-card strong {
-      display: block;
-      margin-top: 6px;
-      font-size: 24px;
-      line-height: 1;
-      color: var(--brand-strong);
-    }
-
-    .worklist-summary-card small {
-      display: block;
-      margin-top: 6px;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.4;
-    }
-
     .worklist-list {
       min-height: 0;
       overflow: auto;
@@ -836,6 +798,24 @@
       background: #f4f7f5;
       color: #607067;
       cursor: default;
+    }
+
+    .worklist-item-cancel-btn {
+      width: auto;
+      min-height: 30px;
+      padding: 0 10px;
+      border-radius: 999px;
+      border: 1px solid #f3c9c9;
+      background: #fdeeee;
+      color: #b91c1c;
+      box-shadow: none;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .worklist-item-cancel-btn:hover {
+      transform: none;
+      background: #fbe1e1;
     }
 
     .worklist-item-note {
@@ -1922,7 +1902,6 @@
         padding: 12px;
       }
 
-      .worklist-summary,
       .doctor-visit-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
@@ -2087,7 +2066,6 @@
     const pdfPreviewLink = document.getElementById('pdf-preview-link');
     const pdfPreviewClose = document.getElementById('pdf-preview-close');
     const LOCAL_PRESCRIPTION_HISTORY_KEY = clinicStorageKey('savedPrescriptionHistory');
-    const LOCAL_WORKLIST_QUEUE_KEY = clinicStorageKey('patientWorklistQueueByDate');
     const LOCAL_SEARCH_CACHE_KEY = clinicStorageKey('patientSearchCache');
     const SEARCH_CACHE_TTL_MS = 10 * 60 * 1000;
     const SEARCH_CACHE_PATIENT_LIMIT = 2000;
@@ -2344,52 +2322,12 @@
       return true;
     }
 
-    function getQueueState() {
-      const raw = readLocalJson(LOCAL_WORKLIST_QUEUE_KEY, {});
-      return raw && typeof raw === 'object' ? raw : {};
-    }
-
-    function saveQueueState(queueState) {
-      try {
-        localStorage.setItem(LOCAL_WORKLIST_QUEUE_KEY, JSON.stringify(queueState));
-      } catch (error) {
-        console.warn(`Unable to save patient queue: ${error.message}`);
-      }
-    }
-
-    function getExplicitQueueIdsForDate(dateValue) {
-      const queueState = getQueueState();
-      const entries = Array.isArray(queueState[dateValue]) ? queueState[dateValue] : [];
-      return [...new Set(entries.map((value) => String(value || '').trim()).filter(Boolean))];
-    }
-
-    function addPatientToQueue(dateValue, patientId) {
-      const normalizedPatientId = String(patientId || '').trim();
-      if (!dateValue || !normalizedPatientId) {
-        return;
+    function patientIsCancelledOnDate(patient, dateValue) {
+      if (!dateValue || dateValue >= getTodayIsoDate()) {
+        return false;
       }
 
-      const queueState = getQueueState();
-      const nextEntries = new Set(getExplicitQueueIdsForDate(dateValue));
-      nextEntries.add(normalizedPatientId);
-      queueState[dateValue] = [...nextEntries];
-      saveQueueState(queueState);
-    }
-
-    function removePatientFromQueue(dateValue, patientId) {
-      const normalizedPatientId = String(patientId || '').trim();
-      if (!dateValue || !normalizedPatientId) {
-        return;
-      }
-
-      const queueState = getQueueState();
-      const nextEntries = getExplicitQueueIdsForDate(dateValue).filter((entry) => entry !== normalizedPatientId);
-      if (nextEntries.length) {
-        queueState[dateValue] = nextEntries;
-      } else {
-        delete queueState[dateValue];
-      }
-      saveQueueState(queueState);
+      return patientHasAppointmentOnDate(patient, dateValue) && !patientHasSeenActivityOnDate(patient, dateValue);
     }
 
     function getLocalPrescriptionEntries() {
@@ -3688,7 +3626,7 @@
       const seenPatientIds = new Set();
 
       patientRecords.forEach((patient) => {
-        if (patient.status === 'pending' || patient.status === 'rejected') {
+        if (patient.status === 'pending' || patient.status === 'rejected' || patient.status === 'merged') {
           return;
         }
         const patientId = getNormalizedPatientId(patient.patientId);
@@ -3820,20 +3758,14 @@
       return getPatientVisitEntriesForDate(patient, dateValue)[0] || getMeasurementEntries(patient)[0] || null;
     }
 
-    function getQueuedPatientIdSet(dateValue) {
-      return new Set(getExplicitQueueIdsForDate(dateValue));
-    }
-
     function getWorklistCounts(patients, dateValue) {
-      const queuedIds = getQueuedPatientIdSet(dateValue);
       let seen = 0;
       let queue = 0;
 
       patients.forEach((patient) => {
-        const hasSeen = patientHasSeenActivityOnDate(patient, dateValue);
-        if (hasSeen) {
+        if (patientHasSeenActivityOnDate(patient, dateValue)) {
           seen += 1;
-        } else if (patientIsQueuedOnDate(patient, dateValue, queuedIds)) {
+        } else if (patientIsQueuedOnDate(patient, dateValue)) {
           queue += 1;
         }
       });
@@ -3843,11 +3775,10 @@
 
     function getWorklistPatients(patients, dateValue, mode, searchValue = '') {
       const hasSearch = Boolean(String(searchValue || '').trim());
-      const queuedIds = getQueuedPatientIdSet(dateValue);
       const filtered = hasSearch
         ? [...patients]
         : mode === 'queue'
-          ? patients.filter((patient) => patientIsQueuedOnDate(patient, dateValue, queuedIds))
+          ? patients.filter((patient) => patientIsQueuedOnDate(patient, dateValue))
           : patients.filter((patient) => patientHasSeenActivityOnDate(patient, dateValue));
 
       return filtered.sort((left, right) => {
@@ -4170,14 +4101,8 @@
         || (patientId && getPrescriptionEntriesForDate(patientId, dateValue).length > 0);
     }
 
-    function patientIsQueuedOnDate(patient, dateValue, queuedIds = null) {
-      const patientId = String(patient?.patientId || '').trim();
-      if (!patientId) {
-        return false;
-      }
-
-      const ids = queuedIds || getQueuedPatientIdSet(dateValue);
-      return ids.has(patientId) && !patientHasSeenActivityOnDate(patient, dateValue);
+    function patientIsQueuedOnDate(patient, dateValue) {
+      return patientHasAppointmentOnDate(patient, dateValue) && !patientHasSeenActivityOnDate(patient, dateValue);
     }
 
     function renderPrescriptionListHtml(patientId, patient = null) {
@@ -4299,9 +4224,7 @@
                   <div class="worklist-item-meta">${gender} | ${dob}</div>
                 </div>
               </div>
-              <div class="worklist-item-actions">
-                ${phoneHtml}
-              </div>
+              ${phoneHtml}
             </div>
             ${idLineHtml}
           </div>
@@ -4420,23 +4343,10 @@
               <button class="worklist-tab ${selectedWorklistMode === 'seen' ? 'is-active' : ''}" type="button" data-worklist-mode="seen">Seen (${String(counts.seen).padStart(2, '0')})</button>
             </div>
 
-            <div class="worklist-summary">
-              <div class="worklist-summary-card">
-                <span>Seen</span>
-                <strong>${counts.seen}</strong>
-                <small>${getDateLabel(selectedWorklistDate)}</small>
-              </div>
-              <div class="worklist-summary-card">
-                <span>Queue</span>
-                <strong>${counts.queue}</strong>
-                <small>Appointments</small>
-              </div>
-            </div>
-
             <div class="worklist-list">
               ${renderedWorklistPatients.length
                 ? renderedWorklistPatients.map((patient) => renderWorklistItemHtml(patient, selectedWorklistDate)).join('')
-                : `<div class="worklist-empty">${searchValue ? 'No matching patients were found.' : selectedWorklistMode === 'queue' ? 'No patients were added to queue for this date yet.' : 'No patients have been seen on this date yet.'}</div>`}
+                : `<div class="worklist-empty">${searchValue ? 'No matching patients were found.' : selectedWorklistMode === 'queue' ? 'No patients have an appointment for this date yet.' : 'No patients have been seen on this date yet.'}</div>`}
             </div>
           </aside>
 
@@ -4451,6 +4361,7 @@
                   ${parentName ? `<span class="doctor-meta-chip">${parentName}</span>` : ''}
                   ${phone ? `<span class="doctor-meta-chip">${phone}</span>` : ''}
                   <a class="continue-link" href="/emr/kid/vaccination?patientId=${encodeURIComponent(selectedPatientIdValue)}">Vaccination</a>
+                  <a class="continue-link" href="/emr/kid/patient-details?patientId=${encodeURIComponent(selectedPatientIdValue)}">Payments</a>
                   <a class="continue-link" href="/emr/kid/certificates?patientId=${encodeURIComponent(selectedPatientIdValue)}">Certificates</a>
                   <a class="continue-link" href="/emr/kid/prescription-growth-chart-dashboard?patientId=${encodeURIComponent(selectedPatientIdValue)}">Start Consult</a>
                 </div>
@@ -4618,7 +4529,6 @@
       const historyPagePatientId = target.getAttribute('data-patient-id');
       const openProfilePatientId = target.closest('[data-open-profile]')?.getAttribute('data-open-profile');
       const selectedWorklistPatientId = target.closest('[data-select-worklist-patient]')?.getAttribute('data-select-worklist-patient');
-      const queuedPatientId = target.closest('[data-queue-patient]')?.getAttribute('data-queue-patient');
       const selectedMode = target.getAttribute('data-worklist-mode');
       const dateStep = target.getAttribute('data-worklist-date-step');
       const dateTrigger = target.closest('[data-worklist-date-trigger]');
@@ -4646,15 +4556,6 @@
           return;
         }
         selectedPatientId = selectedWorklistPatientId;
-        filterPatients();
-        return;
-      }
-
-      if (queuedPatientId) {
-        const patient = allPatients.find((entry) => formatMissing(entry.patientId, 'ID not saved') === queuedPatientId);
-        if (patient && !patientHasSeenActivityOnDate(patient, selectedWorklistDate) && !patientIsQueuedOnDate(patient, selectedWorklistDate)) {
-          addPatientToQueue(selectedWorklistDate, queuedPatientId);
-        }
         filterPatients();
         return;
       }
