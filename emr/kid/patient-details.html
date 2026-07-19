@@ -2693,7 +2693,7 @@
         return false;
       }
 
-      selectedPatientId = cache.selectedPatientId || selectedPatientId;
+      selectedPatientId = selectedPatientId || cache.selectedPatientId || '';
       allPatients = withTestPastChartsPatient(cache.patients)
         .filter((patient) => patient.status !== 'pending' && patient.status !== 'rejected')
         .map(preparePatientForSearch)
