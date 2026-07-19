@@ -2254,6 +2254,10 @@
       align-items: center;
     }
 
+    .bill-item-custom-input {
+      grid-column: 1 / -1;
+    }
+
     .bill-item-row select,
     .bill-item-row input,
     .billing-modal-body select,
@@ -5279,21 +5283,9 @@
         const patientPrescriptionEntries = getPrescriptionEntries(selectedPatientIdValue);
         const prescriptionCount = patientPrescriptionEntries.length;
         const latestPrescriptionEntry = patientPrescriptionEntries[0] || null;
-        const avatarLetter = childName.charAt(0).toUpperCase() || 'P';
 
         resultsPanel.innerHTML = `
           <div class="patient-profile-page payment-page">
-            <section class="patient-profile-hero">
-              <div class="patient-profile-avatar">${escapeHtml(avatarLetter)}</div>
-              <div class="patient-profile-title">
-                <h2>${escapeHtml(childName)}</h2>
-                <p>${escapeHtml(gender)} | ${escapeHtml(dob)} | ${escapeHtml(selectedPatientIdValue)}</p>
-              </div>
-              <div class="patient-profile-actions">
-                <a class="patient-profile-action is-muted" href="/emr/kid/search">Back</a>
-              </div>
-            </section>
-
             <section class="payment-due-panel">
               <div class="payment-due-stats">
                 <div class="payment-due-info">
@@ -5617,10 +5609,11 @@
       billItemsContainer.innerHTML = billItems.map((item, index) => `
         <div class="bill-item-row" data-item-index="${index}">
           <select data-field="description" data-item-index="${index}">
-            ${ITEM_PRESET_OPTIONS.map((option) => `<option value="${escapeHtml(option)}" ${item.description === option ? 'selected' : ''}>${escapeHtml(option)}</option>`).join('')}
+            ${ITEM_PRESET_OPTIONS.map((option) => `<option value="${escapeHtml(option)}" ${item.description === option ? 'selected' : ''}>${escapeHtml(option === 'Other' ? 'Add New' : option)}</option>`).join('')}
           </select>
           <input type="number" min="0" step="0.01" placeholder="0.00" value="${item.amount}" data-field="amount" data-item-index="${index}">
           <button type="button" class="bill-item-remove" data-remove-item-index="${index}" aria-label="Remove item">x</button>
+          ${item.description === 'Other' ? `<input type="text" class="bill-item-custom-input" placeholder="Enter custom item name" value="${escapeHtml(item.customDescription || '')}" data-field="customDescription" data-item-index="${index}">` : ''}
         </div>
       `).join('');
     }
@@ -5635,7 +5628,9 @@
 
     function resetBillForm(bill = null) {
       billItems = bill
-        ? bill.items.map((item) => ({ description: item.description, amount: item.amount }))
+        ? bill.items.map((item) => (ITEM_PRESET_OPTIONS.includes(item.description)
+          ? { description: item.description, amount: item.amount }
+          : { description: 'Other', customDescription: item.description, amount: item.amount }))
         : [{ description: ITEM_PRESET_OPTIONS[0], amount: '' }];
       billPaymentMethodSelect.innerHTML = PAYMENT_METHOD_OPTIONS.map((method) => `<option value="${escapeHtml(method)}">${escapeHtml(method)}</option>`).join('');
       billPaymentMethodSelect.value = bill?.paymentMethod || PAYMENT_METHOD_OPTIONS[0];
@@ -5745,12 +5740,19 @@
       billSaveExitBtn.disabled = true;
       billSavePrintBtn.disabled = true;
 
+      const finalItems = billItems.map((item) => ({
+        description: item.description === 'Other'
+          ? (item.customDescription || '').trim() || 'Other'
+          : item.description,
+        amount: item.amount
+      }));
+
       try {
         let bill;
         if (billingEditingBillId) {
           const updates = await withTimeout(updateBill(
             billingEditingBillId,
-            billItems,
+            finalItems,
             billPaymentMethodSelect.value,
             billAmountPaidInput.value
           ), 'Saving this bill is taking too long. Check your connection and try again.');
@@ -5759,7 +5761,7 @@
         } else {
           bill = await withTimeout(saveBill(
             billingActivePatientId,
-            billItems,
+            finalItems,
             billPaymentMethodSelect.value,
             billAmountPaidInput.value
           ), 'Saving this bill is taking too long. Check your connection and try again.');
@@ -5826,6 +5828,9 @@
         return;
       }
       billItems[index][field] = target.value;
+      if (field === 'description') {
+        renderBillItems();
+      }
       updateBillTotals();
     });
 
