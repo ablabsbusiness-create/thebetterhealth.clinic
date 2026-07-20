@@ -8,7 +8,7 @@ export class PrescriptionLazyLoader {
   constructor(options = {}) {
     this.loadingPrescriptions = new Map();
     this.loadedPrescriptions = new Set();
-    this.preloadDelay = options.preloadDelay || 100; // 100ms before triggering load
+    this.preloadDelay = options.preloadDelay ?? 0; // no artificial delay - previews are usually already on screen
     this.preloadMargin = options.preloadMargin || '100px'; // Start loading 100px before visible
     this.maxConcurrentLoads = options.maxConcurrentLoads || 5;
 

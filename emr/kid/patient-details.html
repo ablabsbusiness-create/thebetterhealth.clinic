@@ -2925,8 +2925,10 @@
       computeBillDue,
       computeItemsTotal,
       computePatientDue,
+      getBillingItemDefaultAmounts,
       getPatientBills,
       saveBill,
+      saveBillingItemDefaultAmount,
       updateBill
     } from './lib/billing.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
@@ -2977,6 +2979,29 @@
     let billItems = [{ description: ITEM_PRESET_OPTIONS[0], amount: '' }];
     let billingEditingBillId = null;
     let patientBillsCache = [];
+    let billItemDefaultAmounts = {};
+    let billItemDefaultsLoaded = false;
+
+    async function ensureBillItemDefaultsLoaded() {
+      if (billItemDefaultsLoaded) {
+        return;
+      }
+      billItemDefaultsLoaded = true;
+      billItemDefaultAmounts = await getBillingItemDefaultAmounts().catch(() => ({}));
+    }
+
+    function getBillItemDefaultKey(item) {
+      return item.description === 'Other'
+        ? (item.customDescription || '').trim()
+        : item.description;
+    }
+
+    function applyDefaultAmountIfBlank(item) {
+      const key = getBillItemDefaultKey(item);
+      if (key && !item.amount && billItemDefaultAmounts[key]) {
+        item.amount = String(billItemDefaultAmounts[key]);
+      }
+    }
     const LOCAL_PRESCRIPTION_HISTORY_KEY = clinicStorageKey('savedPrescriptionHistory');
     const LOCAL_WORKLIST_QUEUE_KEY = clinicStorageKey('patientWorklistQueueByDate');
     const LOCAL_WORKLIST_CANCELLED_KEY = clinicStorageKey('patientWorklistCancelledByDate');
@@ -5632,6 +5657,7 @@
           ? { description: item.description, amount: item.amount }
           : { description: 'Other', customDescription: item.description, amount: item.amount }))
         : [{ description: ITEM_PRESET_OPTIONS[0], amount: '' }];
+      billItems.forEach(applyDefaultAmountIfBlank);
       billPaymentMethodSelect.innerHTML = PAYMENT_METHOD_OPTIONS.map((method) => `<option value="${escapeHtml(method)}">${escapeHtml(method)}</option>`).join('');
       billPaymentMethodSelect.value = bill?.paymentMethod || PAYMENT_METHOD_OPTIONS[0];
       billAmountPaidInput.value = bill ? String(bill.amountPaid ?? 0) : '0';
@@ -5641,7 +5667,8 @@
       updateBillTotals();
     }
 
-    function openBillModal(patientId) {
+    async function openBillModal(patientId) {
+      await ensureBillItemDefaultsLoaded();
       billingActivePatientId = patientId;
       billingEditingBillId = null;
       billModalTitle.textContent = 'Add Bill / Payment';
@@ -5651,7 +5678,8 @@
       document.body.style.overflow = 'hidden';
     }
 
-    function openBillEditModal(patientId, bill) {
+    async function openBillEditModal(patientId, bill) {
+      await ensureBillItemDefaultsLoaded();
       billingActivePatientId = patientId;
       billingEditingBillId = bill.id;
       billModalTitle.textContent = `Edit Bill ${bill.billNo || ''}`;
@@ -5804,7 +5832,9 @@
     });
 
     billItemAddBtn.addEventListener('click', () => {
-      billItems.push({ description: ITEM_PRESET_OPTIONS[0], amount: '' });
+      const newItem = { description: ITEM_PRESET_OPTIONS[0], amount: '' };
+      applyDefaultAmountIfBlank(newItem);
+      billItems.push(newItem);
       renderBillItems();
       updateBillTotals();
     });
@@ -5829,7 +5859,19 @@
       }
       billItems[index][field] = target.value;
       if (field === 'description') {
+        billItems[index].amount = '';
+        applyDefaultAmountIfBlank(billItems[index]);
         renderBillItems();
+      } else if (field === 'customDescription') {
+        applyDefaultAmountIfBlank(billItems[index]);
+        renderBillItems();
+      } else if (field === 'amount') {
+        const key = getBillItemDefaultKey(billItems[index]);
+        const amountValue = Number(target.value) || 0;
+        if (key && amountValue > 0) {
+          billItemDefaultAmounts[key] = amountValue;
+          saveBillingItemDefaultAmount(key, amountValue).catch(() => {});
+        }
       }
       updateBillTotals();
     });

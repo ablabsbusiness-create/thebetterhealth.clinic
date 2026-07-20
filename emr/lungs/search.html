@@ -2141,7 +2141,6 @@
         <div class="brand-mark">🩺</div>
         <div class="brand-copy">
           <strong>The Better Health Clinic</strong>
-          <span>Growth Monitoring Portal</span>
         </div>
       </div>
 
@@ -3937,6 +3936,7 @@
               const cardPreviewUrl = escapeHtml(previewImageUrl);
               const shouldEmbedPdf = Boolean(downloadUrl && shouldEmbedPrescriptionPdfPreview());
               const hasResolvablePdf = Boolean(downloadUrl || getPrescriptionStoragePath(entry));
+              const storageLookupPending = !storagePrescriptionPatientIdsLoaded.has(getNormalizedPatientId(patientId));
 
               return `
                 <div class="prescription-preview-entry">
@@ -3961,7 +3961,9 @@
                             `
                             : hasResolvablePdf
                               ? '<div class="prescription-preview-placeholder is-static">Prescription PDF</div>'
-                              : '<div class="prescription-preview-placeholder is-error">Prescription PDF could not be loaded for this record.</div>'}
+                              : storageLookupPending
+                                ? '<div class="prescription-preview-placeholder is-static">Checking for prescription PDF...</div>'
+                                : '<div class="prescription-preview-placeholder is-error">Prescription PDF could not be loaded for this record.</div>'}
                         </div>
                       </div>
                       ${downloadUrl ? `<a class="prescription-preview-open-chip" href="${cardUrl}" target="_blank" rel="noopener noreferrer">Open prescription</a>` : ''}

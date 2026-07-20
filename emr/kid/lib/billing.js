@@ -1,6 +1,7 @@
 import {
   collection,
   doc,
+  getDoc,
   getDocs,
   query,
   runTransaction,
@@ -13,6 +14,7 @@ import { db } from './firebase-init.js';
 
 const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
 const BILLING_COUNTERS_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'billingCounters'];
+const BILLING_ITEM_DEFAULTS_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'billingItemDefaults'];
 const BILL_NO_PREFIX = 'Doc';
 const RECEIPT_NO_PREFIX = 'A';
 const BILL_NO_SEQUENCE_START = 1000000;
@@ -80,6 +82,27 @@ export function computePatientDue(bills = []) {
 
 export function computeItemsTotal(items = []) {
   return items.reduce((sum, item) => sum + (Number(item?.amount) || 0), 0);
+}
+
+export async function getBillingItemDefaultAmounts() {
+  if (!db) {
+    return {};
+  }
+
+  const defaultsRef = doc(db, ...BILLING_ITEM_DEFAULTS_DOC_PATH);
+  const snapshot = await getDoc(defaultsRef);
+  return snapshot.exists() ? (snapshot.data().amounts || {}) : {};
+}
+
+export async function saveBillingItemDefaultAmount(description, amount) {
+  const cleanDescription = String(description || '').trim();
+  const cleanAmount = Number(amount) || 0;
+  if (!db || !cleanDescription || cleanAmount <= 0) {
+    return;
+  }
+
+  const defaultsRef = doc(db, ...BILLING_ITEM_DEFAULTS_DOC_PATH);
+  await setDoc(defaultsRef, { amounts: { [cleanDescription]: cleanAmount } }, { merge: true });
 }
 
 async function allocateBillingNumbers(financialYear) {

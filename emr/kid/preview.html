@@ -181,15 +181,15 @@
       width: min(100%, 220px);
       justify-self: center;
       margin-inline: auto;
-      background: linear-gradient(135deg, #0f766e, #14b8a6);
+      background: linear-gradient(135deg, var(--brand), #22c55e);
       color: #ffffff;
-      box-shadow: 0 10px 22px rgba(15, 118, 110, 0.22);
+      box-shadow: 0 10px 22px rgba(22, 101, 52, 0.22);
       padding-inline: 18px;
     }
 
     .nav-link.nav-enter-clinic:hover,
     .nav-link.nav-enter-clinic.active {
-      background: linear-gradient(135deg, #0f5f59, #0d9488);
+      background: linear-gradient(135deg, var(--brand-strong), var(--brand));
       color: #ffffff;
     }
 
@@ -367,9 +367,9 @@
     }
 
     .btn-whatsapp {
-      background: #25d366;
+      background: var(--brand);
       color: #fff;
-      box-shadow: 0 12px 24px rgba(37, 211, 102, 0.18);
+      box-shadow: 0 12px 24px rgba(22, 101, 52, 0.18);
     }
 
     .header-mode-toggle {
@@ -858,11 +858,11 @@
       html,
       body {
         width: 210mm;
-        height: 297mm;
+        min-height: 297mm;
         margin: 0 !important;
         padding: 0 !important;
         background: #fff;
-        overflow: hidden;
+        overflow: visible;
       }
 
       .site-header,
@@ -896,16 +896,13 @@
       .rx-sheet {
         box-sizing: border-box;
         width: 210mm;
-        height: 297mm;
-        min-height: 0;
-        max-height: 297mm;
+        min-height: 297mm;
+        height: auto;
         padding: 8mm;
         border: 0;
         box-shadow: none;
         font-size: 10px;
-        overflow: hidden;
-        page-break-after: avoid;
-        page-break-inside: avoid;
+        overflow: visible;
       }
     }
 
@@ -1295,7 +1292,9 @@
       PAYMENT_METHOD_OPTIONS,
       computeBillDue,
       computeItemsTotal,
-      saveBill
+      getBillingItemDefaultAmounts,
+      saveBill,
+      saveBillingItemDefaultAmount
     } from './lib/billing.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
     const FIREBASE_COLLECTIONS = {
@@ -1352,6 +1351,29 @@
     const billSavePrintBtn = document.getElementById('bill-save-print-btn');
     let billItems = [{ description: ITEM_PRESET_OPTIONS[0], amount: '' }];
     let lastSavedBill = null;
+    let billItemDefaultAmounts = {};
+    let billItemDefaultsLoaded = false;
+
+    async function ensureBillItemDefaultsLoaded() {
+      if (billItemDefaultsLoaded) {
+        return;
+      }
+      billItemDefaultsLoaded = true;
+      billItemDefaultAmounts = await getBillingItemDefaultAmounts().catch(() => ({}));
+    }
+
+    function getBillItemDefaultKey(item) {
+      return item.description === 'Other'
+        ? (item.customDescription || '').trim()
+        : item.description;
+    }
+
+    function applyDefaultAmountIfBlank(item) {
+      const key = getBillItemDefaultKey(item);
+      if (key && !item.amount && billItemDefaultAmounts[key]) {
+        item.amount = String(billItemDefaultAmounts[key]);
+      }
+    }
     const withHeaderBtn = document.getElementById('with-header-btn');
     const withoutHeaderBtn = document.getElementById('without-header-btn');
     const PRESCRIPTION_DRAFT_STORAGE_KEY = clinicStorageKey('prescriptionDraft');
@@ -3146,6 +3168,7 @@
 
     function resetBillForm() {
       billItems = [{ description: ITEM_PRESET_OPTIONS[0], amount: '' }];
+      billItems.forEach(applyDefaultAmountIfBlank);
       billPaymentMethodSelect.innerHTML = PAYMENT_METHOD_OPTIONS.map((method) => `<option value="${escapeHtml(method)}">${escapeHtml(method)}</option>`).join('');
       billAmountPaidInput.value = '0';
       billErrorEl.textContent = '';
@@ -3154,7 +3177,8 @@
       updateBillTotals();
     }
 
-    function openBillModal() {
+    async function openBillModal() {
+      await ensureBillItemDefaultsLoaded();
       resetBillForm();
       billModal.classList.add('is-open');
       billModal.setAttribute('aria-hidden', 'false');
@@ -3301,7 +3325,9 @@
     });
 
     billItemAddBtn.addEventListener('click', () => {
-      billItems.push({ description: ITEM_PRESET_OPTIONS[0], amount: '' });
+      const newItem = { description: ITEM_PRESET_OPTIONS[0], amount: '' };
+      applyDefaultAmountIfBlank(newItem);
+      billItems.push(newItem);
       renderBillItems();
       updateBillTotals();
     });
@@ -3326,7 +3352,19 @@
       }
       billItems[index][field] = target.value;
       if (field === 'description') {
+        billItems[index].amount = '';
+        applyDefaultAmountIfBlank(billItems[index]);
         renderBillItems();
+      } else if (field === 'customDescription') {
+        applyDefaultAmountIfBlank(billItems[index]);
+        renderBillItems();
+      } else if (field === 'amount') {
+        const key = getBillItemDefaultKey(billItems[index]);
+        const amountValue = Number(target.value) || 0;
+        if (key && amountValue > 0) {
+          billItemDefaultAmounts[key] = amountValue;
+          saveBillingItemDefaultAmount(key, amountValue).catch(() => {});
+        }
       }
       updateBillTotals();
     });

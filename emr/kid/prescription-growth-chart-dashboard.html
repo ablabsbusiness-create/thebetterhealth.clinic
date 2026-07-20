@@ -5645,6 +5645,37 @@
       primaryNav.classList.toggle('is-open', !isOpen);
     }
 
+    let autoChartPreviewInFlight = false;
+
+    function canAutoPreviewChart() {
+      return Boolean(
+        patientIdInput.value.trim()
+        && childNameInput.value.trim()
+        && form.elements.gender.value
+        && dobInput.value
+        && getSelectedCharts().length > 0
+      );
+    }
+
+    async function maybeAutoPreviewChart() {
+      if (autoChartPreviewInFlight || generateBtn.textContent.trim() === 'Continue' || !canAutoPreviewChart()) {
+        return;
+      }
+
+      autoChartPreviewInFlight = true;
+      revealActions();
+      statusNote.textContent = 'Chart is being prepared. Please wait...';
+      statusNote.classList.add('visible');
+
+      try {
+        await renderGeneratedChart();
+      } catch (error) {
+        setChartPreviewMessage(`Unable to preview chart: ${error.message}`, 'warning');
+      } finally {
+        autoChartPreviewInFlight = false;
+      }
+    }
+
     Object.values(metricInputs).forEach((input) => {
       input.addEventListener('input', () => {
         updatePreview();
@@ -5653,6 +5684,10 @@
       input.addEventListener('change', () => {
         updatePreview();
         saveVitalsDraft();
+        maybeAutoPreviewChart();
+      });
+      input.addEventListener('blur', () => {
+        maybeAutoPreviewChart();
       });
     });
     if (metricHistoryMasterToggle) {
