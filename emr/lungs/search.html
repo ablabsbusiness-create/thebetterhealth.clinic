@@ -2223,10 +2223,19 @@
     </div>
   </div>
 
+  <script>
+    if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+      navigator.serviceWorker.register('/emr/lungs/sw.js', { scope: '/emr/lungs/' }).catch(() => {});
+    }
+  </script>
+
   <script type="module">
     import { collection, doc, getDocs, limit, orderBy, query, serverTimestamp, setDoc, where } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     import { getDownloadURL, getMetadata, listAll, ref } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
     import { db, storage } from './lib/firebase-init.js';
+    import { PrescriptionLazyLoader } from './lib/lazy-load.js';
+    import { startPerfMonitor, markAppTiming } from './lib/perf-monitor.js';
+    startPerfMonitor(document.title);
     const SEARCH_RENDER_LIMIT = 80;
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/lungs';
     const FIREBASE_COLLECTIONS = {
@@ -2279,6 +2288,7 @@
     const historyDateFilters = {};
     const historyShowAll = {};
     const historyPageIndexes = {};
+    const prescriptionLazyLoader = new PrescriptionLazyLoader({ preloadMargin: '200px', maxConcurrentLoads: 4 });
     let selectedPatientId = String(new URLSearchParams(window.location.search).get('patientId') || '').trim().toUpperCase();
     let selectedWorklistDate = getTodayIsoDate();
     let selectedWorklistMode = 'seen';
@@ -3253,15 +3263,24 @@
         ...resultsPanel.querySelectorAll('.prescription-preview-frame[data-preview-image-url]'),
         ...resultsPanel.querySelectorAll('.prescription-preview-embed[data-preview-pdf-url]')
       ];
+
+      prescriptionLazyLoader.disconnect();
+
       if (!previewElements.length) {
         return;
       }
 
-      previewElements.forEach((previewElement) => {
+      previewElements.forEach((previewElement, index) => {
+        previewElement.dataset.prescriptionId = previewElement.dataset.previewImageUrl || previewElement.dataset.previewPdfUrl || `preview-${index}`;
+
         if (previewElement instanceof HTMLImageElement) {
-          renderPrescriptionPreviewImage(previewElement);
+          prescriptionLazyLoader.observe(previewElement, async () => {
+            renderPrescriptionPreviewImage(previewElement);
+          });
         } else if (previewElement instanceof HTMLIFrameElement) {
-          renderPrescriptionPreviewPdf(previewElement);
+          prescriptionLazyLoader.observe(previewElement, async () => {
+            renderPrescriptionPreviewPdf(previewElement);
+          });
         }
       });
     }
@@ -4269,7 +4288,9 @@
         selectedPatientId = '';
       }
 
+      const finishRenderTiming = markAppTiming('worklist render');
       renderDoctorWorklist(filteredPatients, searchValue);
+      finishRenderTiming();
       setStatus(searchValue ? `Showing matches for "${searchValue}".` : 'Showing all patients.');
     }
 
@@ -4423,6 +4444,53 @@
         event.preventDefault();
         selectedPatientId = selectedWorklistPatientId;
         filterPatients();
+      }
+    });
+
+    const worklistHoverPrefetchTimers = new Map();
+
+    resultsPanel.addEventListener('mouseover', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) {
+        return;
+      }
+
+      const hoveredPatientId = target.closest('[data-select-worklist-patient]')?.getAttribute('data-select-worklist-patient');
+      if (!hoveredPatientId || worklistHoverPrefetchTimers.has(hoveredPatientId)) {
+        return;
+      }
+
+      const timer = window.setTimeout(() => {
+        worklistHoverPrefetchTimers.delete(hoveredPatientId);
+        const patient = allPatients.find((candidate) => formatMissing(candidate.patientId || candidate.id, 'ID not saved') === hoveredPatientId);
+        if (patient) {
+          ensureStoragePrescriptionsForPatient(patient);
+          ensureFullHistoryForPatient(patient);
+        }
+      }, 150);
+
+      worklistHoverPrefetchTimers.set(hoveredPatientId, timer);
+    });
+
+    resultsPanel.addEventListener('mouseout', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) {
+        return;
+      }
+
+      const leftPatientId = target.closest('[data-select-worklist-patient]')?.getAttribute('data-select-worklist-patient');
+      const relatedPatientId = event.relatedTarget instanceof HTMLElement
+        ? event.relatedTarget.closest('[data-select-worklist-patient]')?.getAttribute('data-select-worklist-patient')
+        : null;
+
+      if (!leftPatientId || leftPatientId === relatedPatientId) {
+        return;
+      }
+
+      const timer = worklistHoverPrefetchTimers.get(leftPatientId);
+      if (timer) {
+        window.clearTimeout(timer);
+        worklistHoverPrefetchTimers.delete(leftPatientId);
       }
     });
 
