@@ -1196,6 +1196,7 @@
           <button id="print-pdf-btn" class="btn-secondary" type="button">Print PDF</button>
           <button id="add-payment-btn" class="btn-secondary" type="button">Add Payment</button>
           <button id="whatsapp-btn" class="btn-whatsapp" type="button">WhatsApp</button>
+          <button id="edit-prescription-btn" class="btn-secondary" type="button" hidden>Edit Prescription</button>
         </div>
       </div>
       <div class="document-stage">
@@ -1306,6 +1307,7 @@
     const CLINIC_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE;
     const CLINIC_LOCAL_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE.replace(/\//g, ':');
     const clinicStorageKey = (key) => `${CLINIC_LOCAL_STORAGE_PREFIX}:${key}`;
+    const PRESCRIPTION_EDIT_WINDOW_MS = 2 * 60 * 60 * 1000;
     const STORAGE_STATS_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'storageStats'];
 
     async function getExistingPdfSize(storageRef) {
@@ -1338,6 +1340,7 @@
     const printPdfBtn = document.getElementById('print-pdf-btn');
     const addPaymentBtn = document.getElementById('add-payment-btn');
     const whatsappBtn = document.getElementById('whatsapp-btn');
+    const editPrescriptionBtn = document.getElementById('edit-prescription-btn');
     const billModal = document.getElementById('bill-modal');
     const billModalClose = document.getElementById('bill-modal-close');
     const billItemsContainer = document.getElementById('bill-items-container');
@@ -2832,6 +2835,7 @@
         pdf,
         previewBlob,
         draftId: draft?.draftId || '',
+        editId: draft?.editId || '',
         patientId,
         childName: chartRecord?.childName || '',
         parentName: chartRecord?.parentName || '',
@@ -2863,6 +2867,46 @@
       if (!isValidPatientId(patientId)) {
         return { ok: false, reason: 'Select a valid patient before saving a prescription.' };
       }
+
+      const isEditingExisting = Boolean(details.editId && details.editId === saveId);
+      let originalCreatedAt = null;
+      let originalCreatedAtIso = '';
+      let originalCreatedAtDisplay = '';
+      let filteredPatientPrescriptionHistory = null;
+
+      if (isEditingExisting) {
+        try {
+          const existingSnapshot = await getDoc(doc(db, FIREBASE_COLLECTIONS.history, saveId));
+          if (!existingSnapshot.exists()) {
+            return { ok: false, reason: 'The original prescription could not be found. It may have been removed.' };
+          }
+
+          const existingData = existingSnapshot.data();
+          const existingCreatedAtMs = existingData.createdAtIso
+            ? new Date(existingData.createdAtIso).getTime()
+            : (typeof existingData.createdAt?.toMillis === 'function' ? existingData.createdAt.toMillis() : 0);
+
+          if (!existingCreatedAtMs || Date.now() - existingCreatedAtMs > PRESCRIPTION_EDIT_WINDOW_MS) {
+            return { ok: false, reason: 'The 2-hour edit window for this prescription has expired.' };
+          }
+
+          originalCreatedAt = existingData.createdAt || null;
+          originalCreatedAtIso = existingData.createdAtIso || '';
+          originalCreatedAtDisplay = existingData.createdAtDisplay || '';
+        } catch (error) {
+          return { ok: false, reason: error.message || 'Unable to verify the original prescription.' };
+        }
+
+        try {
+          const patientSnapshot = await getDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId));
+          const existingHistoryList = Array.isArray(patientSnapshot.data()?.prescriptionHistory) ? patientSnapshot.data().prescriptionHistory : [];
+          filteredPatientPrescriptionHistory = existingHistoryList.filter((item) => (item?.id || item?.prescriptionSaveId) !== saveId);
+        } catch (error) {
+          console.warn(`Unable to load patient prescription history for edit: ${error.message}`);
+          filteredPatientPrescriptionHistory = [];
+        }
+      }
+
       const storagePath = `${CLINIC_STORAGE_PREFIX}/prescriptions/${patientId}/${fileName}`;
       const previewPath = `${CLINIC_STORAGE_PREFIX}/prescription-previews/${patientId}/${saveId}.jpg`;
       let persistedStoragePath = '';
@@ -2944,9 +2988,14 @@
         downloadURL,
         source: 'prescription-pdf',
         type: 'prescription',
-        createdAt: serverTimestamp(),
-        createdAtIso: new Date().toISOString(),
-        createdAtDisplay: new Date().toLocaleString('en-IN')
+        createdAt: originalCreatedAt || serverTimestamp(),
+        createdAtIso: originalCreatedAtIso || new Date().toISOString(),
+        createdAtDisplay: originalCreatedAtDisplay || new Date().toLocaleString('en-IN'),
+        ...(isEditingExisting ? {
+          updatedAt: serverTimestamp(),
+          updatedAtIso: new Date().toISOString(),
+          isEdited: true
+        } : {})
       };
 
       const hasVitalsForSummary = [historyRecord.weight, historyRecord.height, historyRecord.head, historyRecord.spo2, historyRecord.pulse, historyRecord.systolic, historyRecord.diastolic, historyRecord.temp]
@@ -2967,26 +3016,31 @@
         source: 'prescription-pdf'
       };
 
+      const prescriptionHistoryEntry = {
+        id: saveId,
+        prescriptionSaveId: historyRecord.prescriptionSaveId,
+        patientId,
+        fileName,
+        storagePath: historyRecord.storagePath,
+        previewImagePath: historyRecord.previewImagePath,
+        previewImageURL: historyRecord.previewImageURL,
+        downloadURL: historyRecord.downloadURL,
+        source: historyRecord.source,
+        type: historyRecord.type,
+        createdAtIso: historyRecord.createdAtIso,
+        createdAtDisplay: historyRecord.createdAtDisplay,
+        ...(isEditingExisting ? { isEdited: true } : {})
+      };
+
       const saveBatch = writeBatch(db);
       saveBatch.set(doc(db, FIREBASE_COLLECTIONS.history, saveId), historyRecord, { merge: true });
       saveBatch.set(doc(db, FIREBASE_COLLECTIONS.patients, patientId), {
         patientId,
         childName: historyRecord.childName,
         ...(hasVitalsForSummary ? { lastMeasurementRecord } : {}),
-        prescriptionHistory: arrayUnion({
-          id: saveId,
-          prescriptionSaveId: historyRecord.prescriptionSaveId,
-          patientId,
-          fileName,
-          storagePath: historyRecord.storagePath,
-          previewImagePath: historyRecord.previewImagePath,
-          previewImageURL: historyRecord.previewImageURL,
-          downloadURL: historyRecord.downloadURL,
-          source: historyRecord.source,
-          type: historyRecord.type,
-          createdAtIso: historyRecord.createdAtIso,
-          createdAtDisplay: historyRecord.createdAtDisplay
-        }),
+        prescriptionHistory: isEditingExisting
+          ? [...(filteredPatientPrescriptionHistory || []), prescriptionHistoryEntry]
+          : arrayUnion(prescriptionHistoryEntry),
         updatedAt: serverTimestamp()
       }, { merge: true });
       await saveBatch.commit();
@@ -3013,7 +3067,7 @@
         const fallbackSaveId = window.crypto?.randomUUID
           ? `rx-${patientId}-${window.crypto.randomUUID()}`
           : `rx-${patientId}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-        const saveId = details.draftId || fallbackSaveId;
+        const saveId = details.editId || details.draftId || fallbackSaveId;
         const fileName = `${saveId}.pdf`;
         const pdfBlob = pdf.output('blob');
         builtPrescriptionRecord = { ...details, patientId, childName, phone, previewBlob, saveId, fileName, pdfBlob };
@@ -3079,6 +3133,12 @@
         };
         setPreviewStatus(saveResult.warning ? `Prescription saved. ${saveResult.warning}` : 'Prescription saved');
         clearPrescriptionLocalData();
+
+        if (editPrescriptionBtn) {
+          editPrescriptionBtn.hidden = false;
+          editPrescriptionBtn.dataset.editUrl = `prescription.html?editId=${encodeURIComponent(saveId)}&patientId=${encodeURIComponent(patientId)}`;
+        }
+
         return savedPrescriptionRecord;
       })().catch((error) => {
         prescriptionSavePromise = null;
@@ -3477,6 +3537,15 @@
         whatsappBtn.textContent = 'WhatsApp';
       }
     });
+
+    if (editPrescriptionBtn) {
+      editPrescriptionBtn.addEventListener('click', () => {
+        const url = editPrescriptionBtn.dataset.editUrl;
+        if (url) {
+          window.location.href = url;
+        }
+      });
+    }
 
     async function initializePreview() {
       setPreviewStatus('Preparing preview...');

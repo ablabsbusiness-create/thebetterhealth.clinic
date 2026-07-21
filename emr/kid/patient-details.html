@@ -2000,6 +2000,23 @@
       box-shadow: 0 10px 22px rgba(5, 18, 11, 0.16);
     }
 
+    .prescription-preview-edit-chip {
+      position: static;
+      justify-self: center;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 0 16px;
+      border-radius: 999px;
+      background: #fff;
+      color: #146c34;
+      border: 1.5px solid #146c34;
+      font-size: 13px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
     .pdf-preview-modal {
       position: fixed;
       inset: 0;
@@ -2762,7 +2779,8 @@
       }
 
       .prescription-date,
-      .prescription-preview-open-chip {
+      .prescription-preview-open-chip,
+      .prescription-preview-edit-chip {
         width: 100%;
         max-width: calc(100vw - 48px);
         min-height: 38px;
@@ -2939,6 +2957,7 @@
       prescription: `${CLINIC_FIREBASE_NAMESPACE}/prescription`
     };
     const CLINIC_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE;
+    const PRESCRIPTION_EDIT_WINDOW_MS = 2 * 60 * 60 * 1000;
     const BRANDING_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'prescriptionBranding'];
     const DEFAULT_BRANDING = {
       clinicTitle: 'The Better Health Clinic',
@@ -5045,6 +5064,35 @@
       return ids.has(patientId) && !patientHasSeenActivityOnDate(patient, dateValue) && !patientIsCancelledOnDate(patient, dateValue);
     }
 
+    function getPrescriptionEntryCreatedAtMs(entry) {
+      const iso = entry?.createdAtIso;
+      if (iso) {
+        const parsed = new Date(iso).getTime();
+        if (!Number.isNaN(parsed)) {
+          return parsed;
+        }
+      }
+
+      const timestamp = entry?.createdAt;
+      if (timestamp && typeof timestamp.toMillis === 'function') {
+        return timestamp.toMillis();
+      }
+
+      return 0;
+    }
+
+    function isPrescriptionEditable(entry) {
+      const createdAtMs = getPrescriptionEntryCreatedAtMs(entry);
+      return Boolean(createdAtMs) && (Date.now() - createdAtMs) <= PRESCRIPTION_EDIT_WINDOW_MS;
+    }
+
+    function getPrescriptionEditUrl(entry) {
+      const params = new URLSearchParams();
+      params.set('editId', entry?.id || entry?.prescriptionSaveId || '');
+      params.set('patientId', entry?.patientId || '');
+      return `prescription.html?${params.toString()}`;
+    }
+
     function renderPrescriptionListHtml(patientId) {
       const entries = getPrescriptionEntries(patientId);
 
@@ -5066,6 +5114,9 @@
               const storagePath = getPrescriptionStoragePath(entry);
               const hasResolvablePdf = Boolean(downloadUrl || storagePath);
               const waitingForStorageUrl = Boolean(!downloadUrl && storagePath);
+              const editChipHtml = isPrescriptionEditable(entry)
+                ? `<a class="prescription-preview-edit-chip" href="${escapeHtml(getPrescriptionEditUrl(entry))}">Edit</a>`
+                : '';
 
               return `
                 <div class="prescription-preview-entry">
@@ -5079,6 +5130,7 @@
                         </div>
                       </div>
                       ${downloadUrl ? `<a class="prescription-preview-open-chip" href="${cardUrl}" target="_blank" rel="noopener noreferrer">Open</a>` : ''}
+                      ${editChipHtml}
                     `
                     : `
                       <div class="prescription-preview-card" data-open-prescription-url="${cardUrl}" data-preview-image-url="${cardPreviewUrl}">
@@ -5096,6 +5148,7 @@
                         </div>
                       </div>
                       ${downloadUrl ? `<a class="prescription-preview-open-chip" href="${cardUrl}" target="_blank" rel="noopener noreferrer">Open</a>` : ''}
+                      ${editChipHtml}
                     `}
                 </div>
               `;

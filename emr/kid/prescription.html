@@ -1025,6 +1025,24 @@
       display: none;
     }
 
+    .edit-mode-banner {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      margin: 0 0 14px;
+      border-radius: 12px;
+      border: 1px solid #9fd8b0;
+      background: #eaf9ef;
+      color: #146c34;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .edit-mode-banner[hidden] {
+      display: none;
+    }
+
     .medicine-edit-btn {
       min-width: 0;
       padding: 0 12px;
@@ -1888,6 +1906,8 @@
         </div>
       </div>
 
+      <div id="edit-mode-banner" class="edit-mode-banner" hidden></div>
+
       <div id="dosage-warning-banner" class="dosage-warning-banner" hidden></div>
 
       <div class="page-action-row">
@@ -2021,6 +2041,8 @@
     const CLINIC_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE;
     const CLINIC_LOCAL_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE.replace(/\//g, ':');
     const clinicStorageKey = (key) => `${CLINIC_LOCAL_STORAGE_PREFIX}:${key}`;
+    const PRESCRIPTION_EDIT_WINDOW_MS = 2 * 60 * 60 * 1000;
+    let activePrescriptionEditId = '';
 
     const menuToggle = document.getElementById('menu-toggle');
     const primaryNav = document.getElementById('primary-nav');
@@ -2038,6 +2060,7 @@
     const consultTemplateError = document.getElementById('consult-template-error');
     const consultTemplateList = document.getElementById('consult-template-list');
     const dosageWarningBanner = document.getElementById('dosage-warning-banner');
+    const editModeBanner = document.getElementById('edit-mode-banner');
     const medicineModalEdit = document.getElementById('medicine-modal-edit');
     const medicineModalTitle = document.getElementById('medicine-modal-title');
     const medicineModalSubtitle = medicineModalTitle?.parentElement?.querySelector('p');
@@ -3146,6 +3169,7 @@
 
       localStorage.setItem(PRESCRIPTION_DRAFT_STORAGE_KEY, JSON.stringify({
         draftId: getPrescriptionDraftId(validPatientId),
+        editId: activePrescriptionEditId || '',
         savedAt: new Date().toISOString(),
         expiresAt: Date.now() + PRESCRIPTION_DRAFT_TTL_MS,
         patientId: validPatientId,
@@ -4136,6 +4160,65 @@
       }
     }
 
+    function getRecordCreatedAtMs(record) {
+      if (record?.createdAtIso) {
+        const parsed = new Date(record.createdAtIso).getTime();
+        if (!Number.isNaN(parsed)) {
+          return parsed;
+        }
+      }
+
+      if (record?.createdAt && typeof record.createdAt.toMillis === 'function') {
+        return record.createdAt.toMillis();
+      }
+
+      return 0;
+    }
+
+    function showEditModeBanner(message) {
+      if (!editModeBanner) {
+        return;
+      }
+
+      editModeBanner.textContent = message;
+      editModeBanner.hidden = !message;
+    }
+
+    async function loadEditFromHistory() {
+      const editId = (new URLSearchParams(window.location.search).get('editId') || '').trim();
+
+      if (!editId || !db) {
+        return;
+      }
+
+      try {
+        const snapshot = await getDoc(doc(db, FIREBASE_COLLECTIONS.history, editId));
+        if (!snapshot.exists()) {
+          alert('This prescription could not be found for editing.');
+          return;
+        }
+
+        const record = snapshot.data();
+        const createdAtMs = getRecordCreatedAtMs(record);
+        if (!createdAtMs || Date.now() - createdAtMs > PRESCRIPTION_EDIT_WINDOW_MS) {
+          alert('The 2-hour edit window for this prescription has expired.');
+          const patientId = record.patientId || getCurrentPatientId();
+          window.location.href = patientId
+            ? `patient-details.html?patientId=${encodeURIComponent(patientId)}`
+            : 'patient-details.html';
+          return;
+        }
+
+        await applyRepeatSelections(record);
+        activePrescriptionEditId = editId;
+        const expiresAt = new Date(createdAtMs + PRESCRIPTION_EDIT_WINDOW_MS);
+        showEditModeBanner(`Editing existing prescription. Edit window closes at ${expiresAt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}.`);
+        savePrescriptionDraft();
+      } catch (error) {
+        console.warn(`Unable to load prescription for edit: ${error.message}`);
+      }
+    }
+
     function showConsultTemplateError(message) {
       consultTemplateError.textContent = message;
       consultTemplateError.classList.toggle('is-visible', Boolean(message));
@@ -4292,6 +4375,7 @@
     async function openInitialPrescriptionAction() {
       await initPrescriptionData();
       await loadRepeatFromHistory();
+      await loadEditFromHistory();
 
       if (window.location.hash === '#add-medicine') {
         history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
