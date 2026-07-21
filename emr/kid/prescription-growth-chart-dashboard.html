@@ -3015,6 +3015,8 @@
     let generatedPreviewPages = [];
     let generatedPdfBase64 = '';
     let latestChartPdfUploadResult = null;
+    let chartRevealed = false;
+    let lastRenderedChartSignature = '';
     const CHART_RENDER_MAX_WIDTH = 760;
     const CHART_POINT_RADIUS = 7;
     const GROWTH_CHART_DEBUG = new URLSearchParams(window.location.search).has('growthDebug')
@@ -4084,6 +4086,8 @@
       generatedTemplates = [];
       generatedPreviewPages = [];
       generatedPdfBase64 = '';
+      chartRevealed = false;
+      lastRenderedChartSignature = '';
       updatePreview();
       renderPreviewGallery();
       drawBaseTemplate(null);
@@ -5426,10 +5430,10 @@
     function renderPreviewGallery() {
       previewGallery.innerHTML = '';
       if (chartFullscreenOpen) {
-        chartFullscreenOpen.hidden = generatedPreviewPages.length === 0;
+        chartFullscreenOpen.hidden = !chartRevealed || generatedPreviewPages.length === 0;
       }
 
-      if (generatedPreviewPages.length === 0) {
+      if (!chartRevealed || generatedPreviewPages.length === 0) {
         return;
       }
 
@@ -5531,16 +5535,27 @@
 
     async function renderGeneratedChart() {
       generatedTemplates = buildTemplateRequests();
-      generatedPdfBase64 = '';
-      latestChartPdfUploadResult = null;
 
       if (generatedTemplates.length === 0) {
+        generatedPdfBase64 = '';
+        latestChartPdfUploadResult = null;
+        lastRenderedChartSignature = '';
         setChartPreviewMessage('No matching IAP template could be selected for the entered age, gender, and chart combination.', 'warning');
         generatedPreviewPages = [];
         renderPreviewGallery();
         drawBaseTemplate(null);
         return;
       }
+
+      const signature = JSON.stringify(buildChartGenerationPayload());
+      if (signature === lastRenderedChartSignature && generatedPreviewPages.length > 0) {
+        renderPreviewGallery();
+        setChartPreviewMessage(getChartReadyMessage(), 'ready');
+        return;
+      }
+
+      generatedPdfBase64 = '';
+      latestChartPdfUploadResult = null;
 
       try {
         if (!CAN_USE_PYTHON_CHART_SERVICE) {
@@ -5556,9 +5571,12 @@
         generatedPdfBase64 = '';
         await renderCanvasFromGeneratedPreview(generatedPreviewPages[0] || null);
 
+        lastRenderedChartSignature = signature;
         setChartPreviewMessage(getChartReadyMessage(), 'ready');
         return;
       }
+
+      lastRenderedChartSignature = signature;
 
       setChartPreviewMessage(getChartReadyMessage(), 'ready');
     }
@@ -5622,7 +5640,7 @@
     }
 
     function revealActions() {
-      downloadBtn.hidden = false;
+      downloadBtn.hidden = !chartRevealed;
       statusNote.classList.add('visible');
     }
 
@@ -5663,9 +5681,6 @@
       }
 
       autoChartPreviewInFlight = true;
-      revealActions();
-      statusNote.textContent = 'Chart is being prepared. Please wait...';
-      statusNote.classList.add('visible');
 
       try {
         await renderGeneratedChart();
@@ -5959,10 +5974,12 @@
       generateBtn.textContent = 'Making Chart...';
       statusNote.textContent = 'Chart is being prepared. Please wait...';
       statusNote.classList.add('visible');
-      revealActions();
+      chartRevealed = true;
       await renderGeneratedChart();
+      revealActions();
 
       if (generatedPreviewPages.length === 0) {
+        chartRevealed = false;
         statusNote.textContent = 'No charts were generated, so nothing was saved to history.';
         statusNote.classList.add('visible');
         generateBtn.disabled = false;

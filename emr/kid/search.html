@@ -1310,8 +1310,21 @@
     .record-table {
       width: 100%;
       min-width: 100%;
+      table-layout: fixed;
       border-collapse: separate;
       border-spacing: 4px;
+    }
+
+    .record-table .metric-name-col {
+      width: 70px;
+    }
+
+    .record-table .metric-unit-col {
+      width: 34px;
+    }
+
+    .record-table .metric-value-col {
+      width: calc((100% - 104px) / var(--history-entry-count, 1));
     }
 
     .record-table th,
@@ -1645,6 +1658,23 @@
       box-shadow: 0 10px 22px rgba(5, 18, 11, 0.16);
     }
 
+    .prescription-preview-edit-chip {
+      position: static;
+      justify-self: center;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 0 16px;
+      border-radius: 999px;
+      background: #fff;
+      color: #146c34;
+      border: 1.5px solid #146c34;
+      font-size: 13px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
     .pdf-preview-modal {
       position: fixed;
       inset: 0;
@@ -1961,7 +1991,8 @@
       }
 
       .prescription-date,
-      .prescription-preview-open-chip {
+      .prescription-preview-open-chip,
+      .prescription-preview-edit-chip {
         width: 100%;
         max-width: calc(100vw - 48px);
         min-height: 38px;
@@ -3935,6 +3966,11 @@
         </div>
         <div class="record-table-wrap">
           <table class="record-table" style="--history-entry-count: ${Math.max(filteredEntries.length, 1)};">
+            <colgroup>
+              <col class="metric-name-col">
+              <col class="metric-unit-col">
+              ${filteredEntries.map(() => `<col class="metric-value-col">`).join('')}
+            </colgroup>
             <thead>
               <tr>
                 <th></th>
@@ -3975,6 +4011,37 @@
           </table>
         </div>
       `;
+    }
+
+    const PRESCRIPTION_EDIT_WINDOW_MS = 2 * 60 * 60 * 1000;
+
+    function getPrescriptionEntryCreatedAtMs(entry) {
+      const iso = entry?.createdAtIso;
+      if (iso) {
+        const parsed = new Date(iso).getTime();
+        if (!Number.isNaN(parsed)) {
+          return parsed;
+        }
+      }
+
+      const timestamp = entry?.createdAt;
+      if (timestamp && typeof timestamp.toMillis === 'function') {
+        return timestamp.toMillis();
+      }
+
+      return 0;
+    }
+
+    function isPrescriptionEditable(entry) {
+      const createdAtMs = getPrescriptionEntryCreatedAtMs(entry);
+      return Boolean(createdAtMs) && (Date.now() - createdAtMs) <= PRESCRIPTION_EDIT_WINDOW_MS;
+    }
+
+    function getPrescriptionEditUrl(entry) {
+      const params = new URLSearchParams();
+      params.set('editId', entry?.prescriptionSaveId || entry?.id || '');
+      params.set('patientId', entry?.patientId || '');
+      return `prescription.html?${params.toString()}`;
     }
 
     function formatPrescriptionDate(entry) {
@@ -4146,6 +4213,9 @@
               const hasResolvablePdf = Boolean(downloadUrl || storagePath);
               const waitingForStorageUrl = Boolean(!downloadUrl && storagePath);
               const storageLookupPending = !storagePrescriptionPatientIdsLoaded.has(getNormalizedPatientId(patientId));
+              const editChipHtml = isPrescriptionEditable(entry)
+                ? `<a class="prescription-preview-edit-chip" href="${escapeHtml(getPrescriptionEditUrl(entry))}">Edit</a>`
+                : '';
 
               return `
                 <div class="prescription-preview-entry">
@@ -4159,6 +4229,7 @@
                         </div>
                       </div>
                       ${downloadUrl ? `<a class="prescription-preview-open-chip" href="${cardUrl}" target="_blank" rel="noopener noreferrer">Open prescription</a>` : ''}
+                      ${editChipHtml}
                     `
                     : `
                       <div class="prescription-preview-card" data-open-prescription-url="${cardUrl}" data-preview-image-url="${cardPreviewUrl}">
@@ -4178,6 +4249,7 @@
                         </div>
                       </div>
                       ${downloadUrl ? `<a class="prescription-preview-open-chip" href="${cardUrl}" target="_blank" rel="noopener noreferrer">Open prescription</a>` : ''}
+                      ${editChipHtml}
                     `}
                 </div>
               `;
