@@ -20,3 +20,5 @@ emr/template/
 
 .env.vercel.example
 main versel env.txt
+
+emr/*/scripts/compute-storage-stats.mjs
