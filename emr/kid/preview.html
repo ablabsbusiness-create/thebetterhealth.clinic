@@ -3505,6 +3505,7 @@
         const portalLink = buildPortalLink();
         const patientId = builtRecord.patientId || chartRecord?.patientId || '-';
         const patientName = chartRecord?.patientName || chartRecord?.childName || 'Patient';
+        const salutation = chartRecord?.gender === 'Female' ? 'Miss' : 'Master';
 
         let billReceiptLink = '';
         if (lastSavedBill) {
@@ -3512,19 +3513,17 @@
         }
 
         const message = [
-          `Hello ${patientName},`,
+          `Prescription for ${salutation} ${patientName}`,
           '',
-          `You can see your prescription PDF here:`,
+          `Go through the link to check your ward's latest prescription:`,
           prescriptionLink,
           '',
           ...(billReceiptLink ? ['You can see your bill/payment receipt here:', billReceiptLink, ''] : []),
-          `Patient ID: ${patientId}`,
-          `Clinic: ${branding.clinicTitle || DEFAULT_BRANDING.clinicTitle}`,
+          `Also visit the patient portal for all past prescriptions:`,
+          portalLink,
           '',
-          `Regards,`,
-          `AB Labs`,
-          '',
-          `_View all your past visits anytime: ${portalLink}_`
+          `The Better Kids Clinic`,
+          `${branding.doctorName || DEFAULT_BRANDING.doctorName}`
         ].join('\n');
         openWhatsAppChat(chartRecord?.phone || builtRecord.phone || '', message);
         ensurePrescriptionSaved().catch((error) => {

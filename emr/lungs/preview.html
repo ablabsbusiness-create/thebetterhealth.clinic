@@ -2191,19 +2191,18 @@
         const branding = getPrescriptionBranding();
         const prescriptionLink = buildShortPrescriptionLink(builtRecord.saveId);
         const portalLink = buildPortalLink();
+        const patientName = chartRecord?.patientName || chartRecord?.childName || 'Patient';
         const message = [
-          `Hello ${chartRecord?.patientName || chartRecord?.childName || 'Patient'},`,
+          `Prescription for ${patientName}`,
           '',
-          `You can see your prescription PDF here:`,
+          `Go through the link to check your latest prescription:`,
           prescriptionLink,
           '',
-          `Patient ID: ${builtRecord.patientId || chartRecord?.patientId || '-'}`,
-          `Clinic: ${branding.clinicTitle || DEFAULT_BRANDING.clinicTitle}`,
+          `Also visit the patient portal for all past prescriptions:`,
+          portalLink,
           '',
-          `Regards,`,
-          `AB Labs`,
-          '',
-          `_View all your past visits anytime: ${portalLink}_`
+          `The Better Lungs Clinic`,
+          `${branding.doctorName || DEFAULT_BRANDING.doctorName}`
         ].join('\n');
         openWhatsAppChat(chartRecord?.phone || builtRecord.phone || '', message);
         ensurePrescriptionSaved().catch((error) => {
