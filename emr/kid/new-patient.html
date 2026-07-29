@@ -1019,63 +1019,6 @@
       return formatDateInputValue(new Date(dobTime));
     }
 
-    function getAgePartsFromDob(dobValue, referenceDate = new Date()) {
-      if (!dobValue) {
-        return { years: '', months: '' };
-      }
-
-      const dob = new Date(dobValue);
-      const targetDate = referenceDate instanceof Date ? referenceDate : new Date(referenceDate);
-      if (Number.isNaN(dob.getTime()) || Number.isNaN(targetDate.getTime()) || dob > targetDate) {
-        return { years: '', months: '' };
-      }
-
-      const totalMonths = Math.max(0, ((targetDate.getTime() - dob.getTime()) / (365.25 * 24 * 60 * 60 * 1000)) * 12);
-      const years = Math.floor(totalMonths / 12);
-      const months = Math.min(11, Math.max(0, Math.round(totalMonths - (years * 12))));
-      return { years, months };
-    }
-
-    let isSyncingAgeDob = false;
-
-    function syncAgeFromDob() {
-      if (isSyncingAgeDob) {
-        return;
-      }
-
-      isSyncingAgeDob = true;
-      const ageParts = getAgePartsFromDob(parseDobInput(dobDayInput.value, dobMonthInput.value, dobYearInput.value), new Date());
-      ageYearsInput.value = ageParts.years === '' ? '' : String(ageParts.years);
-      ageMonthsInput.value = ageParts.months === '' ? '' : String(ageParts.months);
-      isSyncingAgeDob = false;
-    }
-
-    function syncDobFromAge() {
-      if (isSyncingAgeDob) {
-        return;
-      }
-
-      const ageYears = parseAgePart(ageYearsInput.value);
-      const ageMonths = parseAgePart(ageMonthsInput.value);
-      if (!Number.isFinite(ageYears) && !Number.isFinite(ageMonths)) {
-        return;
-      }
-
-      isSyncingAgeDob = true;
-      const nextDob = getDobFromAgeParts(
-        Number.isFinite(ageYears) ? ageYears : 0,
-        Number.isFinite(ageMonths) ? ageMonths : 0,
-        new Date()
-      );
-      if (nextDob) {
-        const [year, month, day] = nextDob.split('-');
-        dobDayInput.value = day || '';
-        dobMonthInput.value = month || '';
-        dobYearInput.value = year || '';
-      }
-      isSyncingAgeDob = false;
-    }
-
     async function savePatientToCloudRecords() {
       let normalizedDob = parseDobInput(dobDayInput.value, dobMonthInput.value, dobYearInput.value);
       if (!normalizedDob) {
@@ -1202,14 +1145,7 @@
     [dobDayInput, dobMonthInput, dobYearInput].forEach((input) => {
       input.addEventListener('input', () => {
         dobYearInput.setCustomValidity('');
-        syncAgeFromDob();
       });
-      input.addEventListener('change', syncAgeFromDob);
-    });
-
-    [ageYearsInput, ageMonthsInput].forEach((input) => {
-      input.addEventListener('input', syncDobFromAge);
-      input.addEventListener('change', syncDobFromAge);
     });
 
     if (menuToggle && primaryNav) {
