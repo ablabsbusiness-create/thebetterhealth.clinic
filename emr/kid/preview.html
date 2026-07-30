@@ -1293,7 +1293,7 @@
   <script type="module">
     import html2canvas from 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/+esm';
     import { jsPDF } from 'https://cdn.jsdelivr.net/npm/jspdf@3.0.3/+esm';
-    import { arrayUnion, collection, doc, getDoc, getDocs, increment, query, serverTimestamp, setDoc, where, writeBatch } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { arrayUnion, collection, deleteField, doc, getDoc, getDocs, increment, query, serverTimestamp, setDoc, where, writeBatch } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     import { getDownloadURL, getMetadata, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
     import { db, storage } from './lib/firebase-init.js';
     import {
@@ -3162,6 +3162,9 @@
         setPreviewStatus(saveResult.warning ? `Prescription saved. ${saveResult.warning}` : 'Prescription saved');
         setEnterClinicEnabled(true);
         clearPrescriptionLocalData();
+        clearSavedVitalsDraft(patientId).catch((error) => {
+          console.warn(`Unable to clear saved vitals draft: ${error.message}`);
+        });
 
         if (editPrescriptionBtn) {
           editPrescriptionBtn.hidden = false;
@@ -3206,6 +3209,32 @@
       localStorage.removeItem(CHART_RECORD_STORAGE_KEY);
       localStorage.removeItem(MEDICINE_DETAIL_STORAGE_KEY);
       localStorage.removeItem(LOCAL_PRESCRIPTION_HISTORY_KEY);
+    }
+
+    async function clearSavedVitalsDraft(patientId) {
+      const normalizedPatientId = String(patientId || '').trim().toUpperCase();
+      if (!normalizedPatientId) {
+        return;
+      }
+
+      try {
+        localStorage.removeItem(clinicStorageKey(`consultVitalsDraft:${normalizedPatientId}`));
+      } catch (error) {
+        console.warn(`Unable to remove vitals draft locally: ${error.message}`);
+      }
+
+      if (!db) {
+        return;
+      }
+
+      try {
+        await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, normalizedPatientId), {
+          activeConsultVitalsDraft: deleteField(),
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+      } catch (error) {
+        console.warn(`Unable to remove vitals draft from patient record: ${error.message}`);
+      }
     }
 
     function normalizeWhatsAppPhone(phone) {
