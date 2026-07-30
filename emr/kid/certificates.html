@@ -882,7 +882,7 @@
       }
       try {
         await seedPresetTemplatesIfNeeded();
-        const snapshot = await getDocs(query(collection(db, FIREBASE_COLLECTIONS.certificates), orderBy('createdAt', 'desc')));
+        const snapshot = await getDocs(query(collection(db, FIREBASE_COLLECTIONS.certificates), orderBy('createdAt', 'desc'), limit(200)));
         templates = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
       } catch (error) {
         console.warn(`Unable to load certificate templates: ${error.message}`);

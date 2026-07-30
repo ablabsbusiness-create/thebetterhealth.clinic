@@ -5990,28 +5990,31 @@
       latestChartPdfUploadResult = null;
       saveLocalRecord();
 
-      const saveBatch = db ? writeBatch(db) : null;
-
-      const patientMeasurementResult = await saveMeasurementsToPatientRecord(saveBatch).catch((error) => ({
-        ok: false,
-        reason: error.message
-      }));
-
-      const historyResult = await saveHistoryRecord(saveBatch).catch((error) => ({
-        ok: false,
-        reason: error.message
-      }));
-
-      if (saveBatch) {
-        await saveBatch.commit().catch((error) => {
-          console.warn(`Unable to commit patient/history batch: ${error.message}`);
-        });
-      }
-
       statusNote.textContent = 'Charts are ready. Continue to prescription.';
       statusNote.classList.add('visible');
       generateBtn.disabled = false;
       generateBtn.textContent = 'Continue';
+
+      // Cloud persistence (patient record + history) runs in the background so the
+      // doctor can hit Continue as soon as the chart/local record is ready, instead
+      // of waiting on the Firestore round-trip.
+      (async () => {
+        const saveBatch = db ? writeBatch(db) : null;
+
+        await saveMeasurementsToPatientRecord(saveBatch).catch((error) => {
+          console.warn(`Unable to save measurements in background: ${error.message}`);
+        });
+
+        await saveHistoryRecord(saveBatch).catch((error) => {
+          console.warn(`Unable to save history record in background: ${error.message}`);
+        });
+
+        if (saveBatch) {
+          await saveBatch.commit().catch((error) => {
+            console.warn(`Unable to commit patient/history batch in background: ${error.message}`);
+          });
+        }
+      })();
     });
   </script>
 </body>

@@ -4184,10 +4184,27 @@
       editModeBanner.hidden = !message;
     }
 
+    function clearStaleEditIdFromDraft() {
+      try {
+        const existingDraft = readLocalJson(PRESCRIPTION_DRAFT_STORAGE_KEY, null);
+        if (existingDraft && existingDraft.editId) {
+          existingDraft.editId = '';
+          localStorage.setItem(PRESCRIPTION_DRAFT_STORAGE_KEY, JSON.stringify(existingDraft));
+        }
+      } catch (error) {
+        console.warn(`Unable to clear stale prescription edit id: ${error.message}`);
+      }
+    }
+
     async function loadEditFromHistory() {
       const editId = (new URLSearchParams(window.location.search).get('editId') || '').trim();
 
       if (!editId || !db) {
+        // Not opening an edit link - make sure a leftover editId from a previous
+        // (possibly abandoned, or another patient's/tab's) edit session doesn't
+        // silently attach itself to this brand-new prescription's save.
+        activePrescriptionEditId = '';
+        clearStaleEditIdFromDraft();
         return;
       }
 
