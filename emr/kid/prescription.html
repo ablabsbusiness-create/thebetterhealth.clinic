@@ -2028,7 +2028,7 @@
   </div>
 
   <script type="module">
-    import { doc, getDoc, setDoc, arrayUnion, serverTimestamp, collection, getDocs, query, orderBy, deleteDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { doc, getDoc, setDoc, arrayUnion, serverTimestamp, collection, getDocs, query, orderBy, limit, deleteDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     import { db } from './lib/firebase-init.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
     const FIREBASE_COLLECTIONS = {
@@ -4283,7 +4283,7 @@
       consultTemplateList.innerHTML = '<div class="consult-template-empty">Loading templates...</div>';
 
       try {
-        const snapshot = await getDocs(query(collection(db, FIREBASE_COLLECTIONS.consultTemplates), orderBy('createdAtIso', 'desc')));
+        const snapshot = await getDocs(query(collection(db, FIREBASE_COLLECTIONS.consultTemplates), orderBy('createdAtIso', 'desc'), limit(200)));
         const templates = snapshot.docs.map((templateDoc) => ({ id: templateDoc.id, ...templateDoc.data() }));
         renderConsultTemplateList(templates);
         return templates;
