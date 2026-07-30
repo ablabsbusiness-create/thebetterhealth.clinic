@@ -2997,9 +2997,6 @@
     background: rgba(255, 255, 255, 0.78) !important;
   }
 
-  body.search-page .worklist-main {
-    display: none !important;
-  }
 }
 
 @media (max-width: 760px) {
