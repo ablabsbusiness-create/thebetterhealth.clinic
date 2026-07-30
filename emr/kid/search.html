@@ -4522,7 +4522,7 @@
                   </div>
                 </section>
               </div>
-            ` : '<div class="doctor-empty-state">Select a patient from the left list.</div>'}
+            ` : (renderedWorklistPatients.length ? '' : '<div class="doctor-empty-state">No patients to show yet.</div>')}
           </main>
         </div>
       `;
@@ -4562,6 +4562,13 @@
       renderDoctorWorklist(filteredPatients, searchValue);
       finishRenderTiming();
       setStatus(searchValue ? `Showing matches for "${searchValue}".` : 'Showing all patients.');
+    }
+
+    function scrollToSelectedPatientDetail() {
+      requestAnimationFrame(() => {
+        const target = resultsPanel.querySelector('.doctor-main-head') || resultsPanel.querySelector('.worklist-main');
+        target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
     }
 
     function openPrescriptionPreview(url, previewImageUrl = '') {
@@ -4650,6 +4657,7 @@
         }
         selectedPatientId = selectedWorklistPatientId;
         filterPatients();
+        scrollToSelectedPatientDetail();
       }
     });
 
@@ -4740,6 +4748,7 @@
         }
         selectedPatientId = selectedWorklistPatientId;
         filterPatients();
+        scrollToSelectedPatientDetail();
         return;
       }
 
@@ -4788,8 +4797,12 @@
         if (openPatientDetailsOnPhone(openProfilePatientId)) {
           return;
         }
-        selectedPatientId = selectedPatientId === openProfilePatientId ? '' : openProfilePatientId;
+        const wasOpening = selectedPatientId !== openProfilePatientId;
+        selectedPatientId = wasOpening ? openProfilePatientId : '';
         filterPatients();
+        if (wasOpening) {
+          scrollToSelectedPatientDetail();
+        }
         return;
       }
 
