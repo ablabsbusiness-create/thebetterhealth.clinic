@@ -4186,8 +4186,11 @@
       }
 
       try {
+        // setDoc with {merge: true} deep-merges nested map fields rather than
+        // replacing them, so a prior consumedAt marker must be explicitly
+        // cleared here or it would keep hiding this brand-new active draft.
         await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId), {
-          activeConsultVitalsDraft: draft,
+          activeConsultVitalsDraft: { ...draft, consumedAt: null },
           updatedAt: serverTimestamp()
         }, { merge: true });
       } catch (error) {
@@ -4262,7 +4265,7 @@
 
     function restoreVitalsDraft(patientId, cloudDraft = null) {
       const localDraft = readVitalsDraft(patientId);
-      const validCloudDraft = hasVitalsDraftValues(cloudDraft) && !isVitalsDraftExpired(cloudDraft) ? cloudDraft : null;
+      const validCloudDraft = hasVitalsDraftValues(cloudDraft) && !isVitalsDraftExpired(cloudDraft) && !cloudDraft.consumedAt ? cloudDraft : null;
       const draft = validCloudDraft && getDraftTimestamp(validCloudDraft) > getDraftTimestamp(localDraft)
         ? validCloudDraft
         : localDraft;

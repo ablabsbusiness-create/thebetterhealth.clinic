@@ -1293,7 +1293,7 @@
   <script type="module">
     import html2canvas from 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/+esm';
     import { jsPDF } from 'https://cdn.jsdelivr.net/npm/jspdf@3.0.3/+esm';
-    import { arrayUnion, collection, deleteField, doc, getDoc, getDocs, increment, query, serverTimestamp, setDoc, where, writeBatch } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { arrayUnion, collection, doc, getDoc, getDocs, increment, query, serverTimestamp, setDoc, where, writeBatch } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     import { getDownloadURL, getMetadata, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
     import { db, storage } from './lib/firebase-init.js';
     import {
@@ -3228,12 +3228,24 @@
       }
 
       try {
-        await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, normalizedPatientId), {
-          activeConsultVitalsDraft: deleteField(),
+        const patientRef = doc(db, FIREBASE_COLLECTIONS.patients, normalizedPatientId);
+        const patientSnapshot = await getDoc(patientRef);
+        const existingDraft = patientSnapshot.exists() ? patientSnapshot.data()?.activeConsultVitalsDraft : null;
+
+        if (!existingDraft) {
+          return;
+        }
+
+        // Keep the draft data (don't delete it) - just mark it consumed so the
+        // growth-chart dashboard stops showing/pre-filling it for this patient
+        // now that the visit has been prescribed. A later fresh draft save fully
+        // replaces this map and naturally drops the consumedAt marker.
+        await setDoc(patientRef, {
+          activeConsultVitalsDraft: { ...existingDraft, consumedAt: new Date().toISOString() },
           updatedAt: serverTimestamp()
         }, { merge: true });
       } catch (error) {
-        console.warn(`Unable to remove vitals draft from patient record: ${error.message}`);
+        console.warn(`Unable to mark vitals draft consumed on patient record: ${error.message}`);
       }
     }
 
