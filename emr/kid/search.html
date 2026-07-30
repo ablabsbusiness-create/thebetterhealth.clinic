@@ -2138,12 +2138,11 @@
     }
 
     function openPatientDetailsOnPhone(patientId) {
-      if (!patientId || IS_PATIENT_DETAILS_PAGE || !MOBILE_DETAIL_QUERY.matches) {
-        return false;
-      }
-
-      window.location.href = getPatientDetailsUrl(patientId);
-      return true;
+      // Previously navigated to the dedicated patient-details.html page on
+      // phone-width screens instead of expanding inline. Reverted so tapping
+      // a patient card always shows past vitals/prescriptions inline here,
+      // same as desktop.
+      return false;
     }
     let selectedWorklistDate = getTodayIsoDate();
     let selectedWorklistMode = 'seen';
