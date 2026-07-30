@@ -4,20 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Patient Details | The Better Kids Clinic EMR</title>
+  <title>Patient Payment | The Better Kids Clinic EMR</title>
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="manifest" href="/emr/kid/site.webmanifest" />
-  <meta name="description" content="Patient vitals and prescription details for The Better Kids Clinic EMR at The Better Health Clinic." />
+  <meta name="description" content="Patient billing and payment history for The Better Kids Clinic EMR at The Better Health Clinic." />
   <link rel="canonical" href="https://www.thebetterhealth.clinic/emr/kid/patient-details" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="The Better Health Clinic" />
-  <meta property="og:title" content="Patient Details | The Better Kids Clinic EMR" />
-  <meta property="og:description" content="Patient vitals and prescription details for The Better Kids Clinic EMR at The Better Health Clinic." />
+  <meta property="og:title" content="Patient Payment | The Better Kids Clinic EMR" />
+  <meta property="og:description" content="Patient billing and payment history for The Better Kids Clinic EMR at The Better Health Clinic." />
   <meta property="og:url" content="https://www.thebetterhealth.clinic/emr/kid/patient-details" />
   <meta property="og:locale" content="en_IN" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Patient Details | The Better Kids Clinic EMR" />
-  <meta name="twitter:description" content="Patient vitals and prescription details for The Better Kids Clinic EMR at The Better Health Clinic." />
+  <meta name="twitter:title" content="Patient Payment | The Better Kids Clinic EMR" />
+  <meta name="twitter:description" content="Patient billing and payment history for The Better Kids Clinic EMR at The Better Health Clinic." />
   <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -53,8 +53,8 @@
       "@type": "WebPage",
       "@id": "https://www.thebetterhealth.clinic/emr/kid/patient-details#webpage",
       "url": "https://www.thebetterhealth.clinic/emr/kid/patient-details",
-      "name": "Patient Details | The Better Kids Clinic EMR",
-      "description": "Patient vitals and prescription details for The Better Kids Clinic EMR at The Better Health Clinic.",
+      "name": "Patient Payment | The Better Kids Clinic EMR",
+      "description": "Patient billing and payment history for The Better Kids Clinic EMR at The Better Health Clinic.",
       "isPartOf": {
         "@id": "https://www.thebetterhealth.clinic/#website"
       },
@@ -1080,10 +1080,13 @@
     }
 
     .patient-profile-page {
-      width: min(1040px, calc(100vw - 32px));
+      width: min(1040px, 100%);
+      min-width: 0;
       margin: 22px auto 110px;
       display: grid;
+      grid-template-columns: minmax(0, 1fr);
       gap: 16px;
+      box-sizing: border-box;
     }
 
     .patient-profile-hero {
@@ -2102,6 +2105,45 @@
       font-weight: 800;
     }
 
+    .payment-page-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 4px;
+    }
+
+    .payment-page-eyebrow {
+      display: block;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--brand-strong);
+      margin-bottom: 4px;
+    }
+
+    .payment-page-title h2 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.2;
+    }
+
+    .payment-page-title p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .payment-page-back {
+      min-height: 42px;
+      border-radius: 12px;
+      padding: 0 16px;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
     .payment-due-panel {
       display: flex;
       align-items: center;
@@ -2398,8 +2440,13 @@
       background: rgba(255, 255, 255, 0.9);
     }
 
+    .billing-table-wrap {
+      overflow-x: auto;
+    }
+
     .billing-table {
       width: 100%;
+      min-width: 560px;
       border-collapse: collapse;
       font-size: 14px;
     }
@@ -2730,6 +2777,21 @@
 
       .doctor-patient-meta {
         justify-content: flex-start;
+      }
+
+      .payment-due-panel {
+        flex-wrap: wrap;
+        gap: 16px;
+        padding: 18px;
+      }
+
+      .payment-due-stats {
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+
+      .payment-add-bill-btn {
+        width: 100%;
       }
 
       .result-card {
@@ -5348,50 +5410,19 @@
         }
 
         const selectedPatientIdValue = formatMissing(selectedPatient.patientId || selectedPatient.id, 'ID not saved');
-        const selectedHistoryDate = historyDateFilters[selectedPatientIdValue] || '';
         const childName = getPatientDisplayName(selectedPatient);
-        const parentName = getSavedParentName(selectedPatient);
-        const phone = formatPhoneDisplay(selectedPatient.phone);
         const gender = formatMissing(selectedPatient.gender, 'Gender not saved');
         const dob = formatDateDisplay(selectedPatient.dob);
 
         resultsPanel.innerHTML = `
           <div class="patient-profile-page payment-page">
-            <div class="doctor-main-head">
-              <div>
+            <div class="payment-page-head">
+              <div class="payment-page-title">
+                <span class="payment-page-eyebrow">Patient Payment</span>
                 <h2>${childName}</h2>
                 <p>${gender} | ${dob} | ${selectedPatientIdValue}</p>
               </div>
-              <div class="doctor-patient-meta">
-                ${parentName ? `<span class="doctor-meta-chip">${parentName}</span>` : ''}
-                <span class="doctor-meta-chip">${phone}</span>
-                <a class="continue-link" href="/emr/kid/search">Back to Search</a>
-                <a class="continue-link" href="/emr/kid/vaccination?patientId=${encodeURIComponent(selectedPatientIdValue)}">Vaccination</a>
-                <a class="continue-link" href="/emr/kid/certificates?patientId=${encodeURIComponent(selectedPatientIdValue)}">Certificates</a>
-                <a class="continue-link" href="/emr/kid/prescription-growth-chart-dashboard?patientId=${encodeURIComponent(selectedPatientIdValue)}">Start Consult</a>
-              </div>
-            </div>
-
-            <div class="doctor-detail-grid">
-              <div class="doctor-detail-stack">
-                <section class="doctor-card">
-                  <div class="doctor-card-head">
-                    <h3>Vitals Trend</h3>
-                  </div>
-                  <div class="doctor-card-body is-compact">
-                    ${renderMeasurementTableHtml(selectedPatient, selectedHistoryDate) || '<p class="doctor-card-note">No vitals trend has been saved yet.</p>'}
-                  </div>
-                </section>
-              </div>
-
-              <section class="doctor-card">
-                <div class="doctor-card-head">
-                  <h3>Past Prescriptions</h3>
-                </div>
-                <div class="doctor-card-body">
-                  ${renderPrescriptionListHtml(selectedPatientIdValue)}
-                </div>
-              </section>
+              <a class="continue-link payment-page-back" href="/emr/kid/search">Back to Search</a>
             </div>
 
             <section class="payment-due-panel">
@@ -5796,35 +5827,37 @@
         }
 
         container.innerHTML = `
-          <table class="billing-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Bill No.</th>
-                <th>Receipt No.</th>
-                <th>Bill Amount</th>
-                <th>Amount Paid</th>
-                <th>Due</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${bills.map((bill) => `
+          <div class="billing-table-wrap">
+            <table class="billing-table">
+              <thead>
                 <tr>
-                  <td>${escapeHtml(bill.createdAtIso ? new Date(bill.createdAtIso).toLocaleDateString('en-IN') : '-')}</td>
-                  <td>${escapeHtml(bill.billNo || '-')}</td>
-                  <td>${escapeHtml(bill.receiptNo || '-')}</td>
-                  <td>${formatCurrency(bill.total)}</td>
-                  <td>${formatCurrency(bill.amountPaid)}</td>
-                  <td>${formatCurrency(computeBillDue(bill))}</td>
-                  <td class="billing-actions-cell">
-                    <button type="button" class="bill-row-action-btn" data-edit-bill="${escapeHtml(bill.id)}">Edit</button>
-                    <button type="button" class="bill-row-action-btn" data-download-bill="${escapeHtml(bill.id)}">Download</button>
-                  </td>
+                  <th>Date</th>
+                  <th>Bill No.</th>
+                  <th>Receipt No.</th>
+                  <th>Bill Amount</th>
+                  <th>Amount Paid</th>
+                  <th>Due</th>
+                  <th>Actions</th>
                 </tr>
-              `).join('')}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                ${bills.map((bill) => `
+                  <tr>
+                    <td>${escapeHtml(bill.createdAtIso ? new Date(bill.createdAtIso).toLocaleDateString('en-IN') : '-')}</td>
+                    <td>${escapeHtml(bill.billNo || '-')}</td>
+                    <td>${escapeHtml(bill.receiptNo || '-')}</td>
+                    <td>${formatCurrency(bill.total)}</td>
+                    <td>${formatCurrency(bill.amountPaid)}</td>
+                    <td>${formatCurrency(computeBillDue(bill))}</td>
+                    <td class="billing-actions-cell">
+                      <button type="button" class="bill-row-action-btn" data-edit-bill="${escapeHtml(bill.id)}">Edit</button>
+                      <button type="button" class="bill-row-action-btn" data-download-bill="${escapeHtml(bill.id)}">Download</button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
         `;
       } catch (error) {
         container.innerHTML = `
