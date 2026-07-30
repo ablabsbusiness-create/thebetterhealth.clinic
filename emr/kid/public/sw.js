@@ -1,6 +1,6 @@
-const CACHE_NAME = 'better-kids-emr-v6';
-const STATIC_CACHE = 'better-kids-static-v6';
-const API_CACHE = 'better-kids-api-v6';
+const CACHE_NAME = 'better-kids-emr-v7';
+const STATIC_CACHE = 'better-kids-static-v7';
+const API_CACHE = 'better-kids-api-v7';
 const CURRENT_CACHES = new Set([CACHE_NAME, STATIC_CACHE, API_CACHE]);
 
 const APP_SHELL = [
