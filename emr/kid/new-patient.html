@@ -1006,6 +1006,28 @@
       return `${year}-${month}-${day}`;
     }
 
+    function getAgePartsFromDob(dobIso, referenceDate = new Date()) {
+      const dob = new Date(dobIso);
+      if (Number.isNaN(dob.getTime())) {
+        return null;
+      }
+
+      let years = referenceDate.getFullYear() - dob.getFullYear();
+      let months = referenceDate.getMonth() - dob.getMonth();
+      if (referenceDate.getDate() < dob.getDate()) {
+        months -= 1;
+      }
+      if (months < 0) {
+        years -= 1;
+        months += 12;
+      }
+      if (years < 0) {
+        return null;
+      }
+
+      return { years, months };
+    }
+
     function getDobFromAgeParts(yearsValue, monthsValue, referenceDate = new Date()) {
       const years = Number.isFinite(yearsValue) ? yearsValue : 0;
       const months = Number.isFinite(monthsValue) ? monthsValue : 0;
@@ -1145,6 +1167,11 @@
     [dobDayInput, dobMonthInput, dobYearInput].forEach((input) => {
       input.addEventListener('input', () => {
         dobYearInput.setCustomValidity('');
+
+        const dobIso = parseDobInput(dobDayInput.value, dobMonthInput.value, dobYearInput.value);
+        const ageParts = dobIso ? getAgePartsFromDob(dobIso) : null;
+        ageYearsInput.value = ageParts ? String(ageParts.years) : '';
+        ageMonthsInput.value = ageParts ? String(ageParts.months) : '';
       });
     });
 
