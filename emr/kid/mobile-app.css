@@ -3122,3 +3122,14 @@
     display: none !important;
   }
 }
+
+/* Give the desktop/tablet top nav the same subtle grouped-pill border the
+   mobile bottom nav already has, instead of a bare row of unbordered links. */
+@media (min-width: 761px) {
+  #primary-nav,
+  .nav-links {
+    border: 1px solid rgba(20, 74, 43, 0.12);
+    border-radius: 999px;
+    padding: 4px;
+  }
+}
