@@ -1403,16 +1403,25 @@
     }
 
     async function findPatientsByPhone(enteredPhoneDigits) {
-      const snapshot = await getDocs(collection(db, FIREBASE_COLLECTIONS.patients));
-      const matches = [];
-      snapshot.forEach((docSnapshot) => {
+      // Query by a handful of likely stored formats instead of scanning the
+      // entire patients collection on every portal lookup (this page is hit
+      // by parents far more often than staff hit Search).
+      const candidates = [enteredPhoneDigits, `91${enteredPhoneDigits}`, `+91${enteredPhoneDigits}`];
+
+      const [phoneSnapshot, mobileSnapshot] = await Promise.all([
+        getDocs(query(collection(db, FIREBASE_COLLECTIONS.patients), where('phone', 'in', candidates))),
+        getDocs(query(collection(db, FIREBASE_COLLECTIONS.patients), where('mobileNumber', 'in', candidates)))
+      ]);
+
+      const matchesById = new Map();
+      [...phoneSnapshot.docs, ...mobileSnapshot.docs].forEach((docSnapshot) => {
         const data = docSnapshot.data();
         const registeredPhone = normalizePhoneForCompare(data?.phone || data?.mobileNumber || '');
         if (registeredPhone && registeredPhone === enteredPhoneDigits) {
-          matches.push({ patientId: docSnapshot.id, ...data });
+          matchesById.set(docSnapshot.id, { patientId: docSnapshot.id, ...data });
         }
       });
-      return matches;
+      return [...matchesById.values()];
     }
 
     function renderActionRow({ icon, title, subtitle, onClick }) {
