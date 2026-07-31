@@ -1437,6 +1437,23 @@
     let preparedChartRecord = null;
     let activePrescriptionBranding = null;
     const patientMeasurementHistoryCache = new Map();
+    const patientDocCache = new Map();
+
+    async function getCachedPatientSnapshot(patientId) {
+      const normalizedPatientId = String(patientId || '').trim().toUpperCase();
+      if (!normalizedPatientId || !db) {
+        return null;
+      }
+
+      if (!patientDocCache.has(normalizedPatientId)) {
+        patientDocCache.set(
+          normalizedPatientId,
+          getDoc(doc(db, FIREBASE_COLLECTIONS.patients, normalizedPatientId)).catch(() => null)
+        );
+      }
+
+      return patientDocCache.get(normalizedPatientId);
+    }
     const CHART_ASSET_VERSION = '2026-07-15-who-0to5-curves-added';
     const CHART_PREVIEW_VERSION = 'preview-rebuilt-2026-06-white-bg-bold-line';
     const CHART_RENDER_MAX_WIDTH = 1600;
@@ -1860,7 +1877,7 @@
 
       const loadPromise = (async () => {
         const [patientSnapshot, historySnapshot] = await Promise.all([
-          getDoc(doc(db, FIREBASE_COLLECTIONS.patients, normalizedPatientId)).catch(() => null),
+          getCachedPatientSnapshot(normalizedPatientId),
           getDocs(query(collection(db, FIREBASE_COLLECTIONS.history), where('patientId', '==', normalizedPatientId))).catch(() => null)
         ]);
         const entries = [];
@@ -3229,8 +3246,8 @@
 
       try {
         const patientRef = doc(db, FIREBASE_COLLECTIONS.patients, normalizedPatientId);
-        const patientSnapshot = await getDoc(patientRef);
-        const existingDraft = patientSnapshot.exists() ? patientSnapshot.data()?.activeConsultVitalsDraft : null;
+        const patientSnapshot = await getCachedPatientSnapshot(normalizedPatientId);
+        const existingDraft = patientSnapshot?.exists?.() ? patientSnapshot.data()?.activeConsultVitalsDraft : null;
 
         if (!existingDraft) {
           return;

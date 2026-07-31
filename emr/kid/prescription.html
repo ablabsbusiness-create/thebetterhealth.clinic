@@ -4068,14 +4068,20 @@
       cleanupExpiredMedicineDetails();
       renderGrowthSummary();
 
-      const localTemplates = mergeWithSavedTemplates(readPrescriptionTemplateCache() || prescriptionTemplates);
-      Object.entries(localTemplates).forEach(([sectionName, items]) => {
-        const card = sectionMap.get(sectionName);
+      // Only ever bind items that are actually stored in Firebase (or a cached
+      // copy of a previous Firebase fetch) - never the hardcoded fallback list,
+      // so bubbles never show content that isn't backed by the cloud collection.
+      const cachedCloudTemplates = readPrescriptionTemplateCache();
+      const localTemplates = cachedCloudTemplates ? mergeWithSavedTemplates(cachedCloudTemplates) : null;
+      if (localTemplates) {
+        Object.entries(localTemplates).forEach(([sectionName, items]) => {
+          const card = sectionMap.get(sectionName);
 
-        if (card) {
-          bindCardSelection(card, items);
-        }
-      });
+          if (card) {
+            bindCardSelection(card, items);
+          }
+        });
+      }
 
       try {
         const prescriptionData = mergeWithSavedTemplates(await ensurePrescriptionCollection());
@@ -4093,15 +4099,17 @@
         setSyncStatus('Cloud sync failed', true);
         console.error(`Prescription collection sync failed: ${error.message}`);
 
-        Object.entries(localTemplates).forEach(([sectionName, items]) => {
-          const card = sectionMap.get(sectionName);
+        if (localTemplates) {
+          Object.entries(localTemplates).forEach(([sectionName, items]) => {
+            const card = sectionMap.get(sectionName);
 
-          if (!card) {
-            return;
-          }
+            if (!card) {
+              return;
+            }
 
-          bindCardSelection(card, items);
-        });
+            bindCardSelection(card, items);
+          });
+        }
       }
     }
 

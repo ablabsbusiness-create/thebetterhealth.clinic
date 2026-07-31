@@ -366,9 +366,12 @@
     }
 
     .section-row.has-detail-slot {
-      grid-template-columns: minmax(0, 1fr) minmax(340px, 430px);
       position: relative;
       align-items: stretch;
+    }
+
+    .section-row.has-detail-slot.is-detail-open {
+      grid-template-columns: minmax(0, 1fr) minmax(340px, 430px);
     }
 
     .section-detail-slot {
@@ -1110,6 +1113,23 @@
       box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.1);
     }
 
+    .detail-input {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 14px;
+      border: 1px solid #dbe5f5;
+      border-radius: 14px;
+      background: #fbfdff;
+      color: var(--ink);
+      font: inherit;
+      outline: none;
+    }
+
+    .detail-input:focus {
+      border-color: rgba(22, 101, 52, 0.45);
+      box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.1);
+    }
+
     .note-area {
       display: grid;
       gap: 8px;
@@ -1289,7 +1309,8 @@
         padding: 0;
       }
 
-      .section-row.has-detail-slot {
+      .section-row.has-detail-slot,
+      .section-row.has-detail-slot.is-detail-open {
         grid-template-columns: 1fr;
       }
 
@@ -1322,6 +1343,7 @@
     }
 
   </style>
+  <link rel="stylesheet" href="mobile-app.css" />
 </head>
 <body>
   <header class="site-header">
@@ -1644,26 +1666,79 @@
     let lastAddMedicineTrigger = null;
     let pendingAddMedicineResolve = null;
     const sectionDetailSlots = new Map();
-    const DETAIL_SECTIONS = new Set(['Symptoms', 'Finding', 'Medication']);
+    const DETAIL_SECTIONS = new Set(['Symptoms', 'Finding', 'Diagnosis', 'Medication']);
     const MEDICINE_DETAIL_STORAGE_KEY = clinicStorageKey('prescriptionMedicineDetails');
     const CUSTOM_TEMPLATE_STORAGE_KEY = clinicStorageKey('prescriptionCustomTemplates');
+    const PRESCRIPTION_USAGE_STORAGE_KEY = clinicStorageKey('prescriptionUsageCounts');
     const PRESCRIPTION_TEMPLATE_CACHE_KEY = clinicStorageKey('prescriptionCloudTemplates');
     const PRESCRIPTION_DRAFT_STORAGE_KEY = clinicStorageKey('prescriptionDraft');
     const MEDICINE_DETAIL_TTL_MS = 10 * 60 * 1000;
     const PRESCRIPTION_TEMPLATE_CACHE_TTL_MS = 15 * 60 * 1000;
     const CHART_RECORD_STORAGE_KEY = clinicStorageKey('growthChartRecentRecords');
     const PRESCRIPTION_DRAFT_TTL_MS = 10 * 60 * 1000;
-    const VISIBLE_CHIP_LIMIT = 8;
+    const VISIBLE_CHIP_LIMIT = 36;
     const prescriptionTemplates = {
-      Symptoms: ['Fever', 'Cold', 'Cough', 'Vomiting', 'Loose stools'],
-      Finding: ['Throat congestion', 'Wheeze', 'Pallor', 'Dehydrated', 'Alert patient'],
-      Notes: ['Follow up advised', 'Review after 3 days', 'Vitals stable', 'Parent counselled', 'Medication explained'],
-      Diagnosis: ['Viral fever', 'URTI', 'Gastroenteritis', 'Allergic rhinitis', 'Observation advised'],
-      Investigation: ['CBC', 'CRP', 'Urine routine', 'Chest X-ray', 'Dengue test'],
-      'Past Medical History': ['Previous wheeze episodes', 'NICU stay', 'Febrile seizures', 'Asthma history', 'Drug allergy'],
-      Medication: ['Paracetamol', 'Cetirizine', 'Ondansetron', 'Azithromycin', 'ORS'],
-      Instruction: ['Plenty of fluids', 'Steam inhalation', 'Soft diet', 'Review if fever persists', 'Emergency visit if breathing worsens']
+      Symptoms: ['Fever', 'Cough', 'Cold', 'Vomiting', 'Loose stools', 'Abdominal pain', 'Normal activity', 'No fever', 'No cough', 'No vomiting', 'No breathlessness', 'Normal urine', 'Bladder and bowel normal', 'Normal development', 'Throat pain', 'Nose block', 'Itching and rashes over body', 'Fast breathing', 'Eye redness', 'Excessive crying', 'No loose stools', 'Passing hard stools', 'Nausea', 'Productive cough', 'Ear pain', 'Headache', 'Sticky eye-discharge', 'Rashes', 'Feeding well', 'Earache', 'Decreased activity', 'Decreased urine output', 'Not eating well'],
+      Finding: ['Throat congestion', 'Wheeze', 'Pallor', 'Dehydrated', 'Active child', 'Irritable child', 'Hydration fair', 'Febrile', 'Afebrile', 'Chest clear', 'Abdomen soft', 'No organomegaly', 'Tonsils enlarged', 'Skin rash present', 'Mild dehydration', 'Conjunctival congestion', 'Nasal congestion', 'Crepitations', 'Oral ulcers', 'Ear discharge', 'Mottling', 'Pulse regular', 'No cyanosis', 'Mild pallor', 'Tachypnea', 'Tonsillar exudate'],
+      Notes: ['Follow up advised', 'Review after 3 days', 'Vitals stable', 'Parent counselled', 'Medication explained', 'Diet advice given', 'Hydration explained', 'Danger signs explained', 'Return if symptoms worsen', 'Continue breastfeeding', 'Monitor urine output', 'School rest advised'],
+      Diagnosis: ['Viral fever', 'URTI', 'Gastroenteritis', 'Allergic rhinitis', 'Observation advised', 'Acute bronchitis', 'Pharyngitis', 'Bronchiolitis', 'Tonsillitis', 'Constipation', 'AGE', 'Typhoid fever', 'UTI', 'Viral exanthem'],
+      Investigation: ['CBC', 'CRP', 'Urine routine', 'Chest X-ray', 'Dengue test', 'Widal test', 'RFT', 'LFT', 'Blood culture', 'Urine culture', 'Stool routine', 'Electrolytes', 'Random blood sugar', 'Peripheral smear', 'Malaria test', 'Ultrasound abdomen', 'Throat swab', 'X-ray PNS', 'Sputum culture', 'Procalcitonin', 'Blood gas', 'Serum calcium', 'Serum sodium', 'Serum potassium'],
+      'Past Medical History': ['Previous wheeze episodes', 'NICU stay', 'Febrile seizures', 'Asthma history', 'Drug allergy', 'Previous hospitalization', 'Recurrent cold', 'Recurrent cough', 'Developmental delay', 'Birth history normal', 'Vaccination delayed', 'Family history of allergy'],
+      Medication: ['Paracetamol', 'Cetirizine', 'Ondansetron', 'Azithromycin', 'ORS', 'Amoxicillin', 'Cefixime', 'Ibuprofen', 'Salbutamol', 'Budesonide', 'Zinc', 'Probiotic', 'Vitamin D3', 'Multivitamin'],
+      Instruction: ['Plenty of fluids', 'Steam inhalation', 'Soft diet', 'Review if fever persists', 'Emergency visit if breathing worsens', 'Tepid sponging if fever', 'Small frequent feeds', 'ORS after each loose stool', 'Saline nasal drops', 'Warm saline gargle', 'Avoid dust exposure', 'Keep child hydrated']
     };
+
+    function loadPrescriptionUsageCounts() {
+      const saved = readLocalJson(PRESCRIPTION_USAGE_STORAGE_KEY, {});
+      return saved && typeof saved === 'object' ? saved : {};
+    }
+
+    function savePrescriptionUsageCounts(payload) {
+      try {
+        localStorage.setItem(PRESCRIPTION_USAGE_STORAGE_KEY, JSON.stringify(payload));
+      } catch (error) {
+        console.warn(`Unable to save prescription usage counts: ${error.message}`);
+      }
+    }
+
+    function recordPrescriptionUsage(sectionName, value) {
+      const normalizedValue = String(value || '').trim();
+      if (!sectionName || !normalizedValue) {
+        return;
+      }
+
+      const saved = loadPrescriptionUsageCounts();
+      saved[sectionName] = saved[sectionName] || {};
+      const key = normalizedValue.toLowerCase();
+      saved[sectionName][key] = Number(saved[sectionName][key] || 0) + 1;
+      savePrescriptionUsageCounts(saved);
+    }
+
+    function orderSectionItems(sectionName, items = []) {
+      const commonItems = prescriptionTemplates[sectionName] || [];
+      const commonRank = new Map(commonItems.map((item, index) => [String(item).toLowerCase(), index]));
+      const usageCounts = loadPrescriptionUsageCounts()[sectionName] || {};
+
+      return [...items].sort((left, right) => {
+        const leftKey = String(left).toLowerCase();
+        const rightKey = String(right).toLowerCase();
+        const leftCount = Number(usageCounts[leftKey] || 0);
+        const rightCount = Number(usageCounts[rightKey] || 0);
+
+        if (leftCount !== rightCount) {
+          return rightCount - leftCount;
+        }
+
+        const leftRank = commonRank.has(leftKey) ? commonRank.get(leftKey) : Number.MAX_SAFE_INTEGER;
+        const rightRank = commonRank.has(rightKey) ? commonRank.get(rightKey) : Number.MAX_SAFE_INTEGER;
+
+        if (leftRank !== rightRank) {
+          return leftRank - rightRank;
+        }
+
+        return left.localeCompare(right);
+      });
+    }
 
     function setSyncStatus(message, warning = false) {
       if (!statusChip) {
@@ -1718,6 +1793,10 @@
         return 'Select a finding and its note box will appear here.';
       }
 
+      if (sectionName === 'Diagnosis') {
+        return 'Select a diagnosis and its note box will appear here.';
+      }
+
       return 'Extra details for this section will appear here.';
     }
 
@@ -1747,7 +1826,6 @@
         if (DETAIL_SECTIONS.has(sectionName)) {
           row.classList.add('has-detail-slot');
           const slot = createSectionDetailSlot(sectionName);
-          slot.classList.add('is-ready');
           sectionDetailSlots.set(sectionName, slot);
           row.appendChild(slot);
         }
@@ -1763,13 +1841,13 @@
       sectionDetailSlots.forEach((slot, name) => {
         const placeholder = slot.querySelector('.section-side-placeholder');
         const isTarget = name === sectionName;
-        slot.classList.toggle('is-ready', DETAIL_SECTIONS.has(name));
+        const row = slot.closest('.section-row');
+        const shouldOpen = isTarget && Boolean(activePanel);
+        slot.classList.toggle('is-ready', shouldOpen);
+        row?.classList.toggle('is-detail-open', shouldOpen);
 
         if (placeholder) {
-          const hasSelections = name === 'Medication'
-            ? selectedMedicines.size > 0
-            : Boolean(prescriptionSelections[name] && prescriptionSelections[name].size > 0);
-          placeholder.hidden = (isTarget && Boolean(activePanel)) || hasSelections;
+          placeholder.hidden = true;
         }
 
         if (!isTarget) {
@@ -1962,9 +2040,13 @@
       }
 
       if (!sectionItemDetails[sectionName].has(value)) {
-        sectionItemDetails[sectionName].set(value, sectionName === 'Symptoms'
+        const initialDetail = sectionName === 'Symptoms'
           ? { days: '', severity: '', note: '' }
-          : { note: '' });
+          : { note: '' };
+        if (sectionName === 'Diagnosis') {
+          initialDetail.status = '';
+        }
+        sectionItemDetails[sectionName].set(value, initialDetail);
       }
 
       return sectionItemDetails[sectionName].get(value);
@@ -1975,17 +2057,20 @@
     }
 
     function formatSelectedItemLabel(sectionName, value) {
-      if (sectionName !== 'Symptoms') {
+      if (sectionName !== 'Symptoms' && sectionName !== 'Diagnosis') {
         return value;
       }
 
       const detail = getSectionItemDetail(sectionName, value);
       const detailParts = [];
-      if (detail.days) {
+      if (sectionName === 'Symptoms' && detail.days) {
         detailParts.push(detail.days);
       }
-      if (detail.severity) {
+      if (sectionName === 'Symptoms' && detail.severity) {
         detailParts.push(detail.severity);
+      }
+      if (sectionName === 'Diagnosis' && detail.status) {
+        detailParts.push(detail.status);
       }
       if (detail.note) {
         detailParts.push(detail.note);
@@ -2017,11 +2102,16 @@
       const detail = getSectionItemDetail(sectionName, value);
       const daysInput = selectionDetailContent.querySelector('[data-field="days"]');
       const severityInput = selectionDetailContent.querySelector('[data-field="severity"]:checked');
+      const diagnosisStatusInput = selectionDetailContent.querySelector('[data-field="diagnosis-status"]');
       const noteInput = selectionDetailContent.querySelector('[data-field="note"]');
 
       if (sectionName === 'Symptoms') {
         detail.days = daysInput?.value.trim() || '';
         detail.severity = severityInput?.value || '';
+      }
+
+      if (sectionName === 'Diagnosis') {
+        detail.status = diagnosisStatusInput?.value || '';
       }
 
       detail.note = noteInput?.value.trim() || '';
@@ -2068,7 +2158,7 @@
         });
       }
 
-      selectionDetailContent.querySelectorAll('[data-field="severity"], [data-field="note"]').forEach((element) => {
+      selectionDetailContent.querySelectorAll('[data-field="severity"], [data-field="diagnosis-status"], [data-field="note"]').forEach((element) => {
         element.addEventListener('input', syncSelectionDetailsFromDom);
         element.addEventListener('change', syncSelectionDetailsFromDom);
       });
@@ -2084,7 +2174,11 @@
       };
 
       const detail = getSectionItemDetail(sectionName, value);
-      selectionDetailTitle.textContent = sectionName === 'Symptoms' ? 'Symptom Details' : 'Finding Notes';
+      selectionDetailTitle.textContent = sectionName === 'Symptoms'
+        ? 'Symptom Details'
+        : sectionName === 'Diagnosis'
+          ? 'Diagnosis Details'
+          : `${sectionName} Notes`;
       selectionDetailSubtitle.textContent = value;
       selectionDetailContent.className = 'medicine-detail-content';
       selectionDetailContent.innerHTML = sectionName === 'Symptoms'
@@ -2127,12 +2221,26 @@
         `
         : `
           <div class="medicine-detail-card">
+            ${sectionName === 'Diagnosis' ? `
+              <div class="medicine-question">
+                <div class="question-bar">
+                  <span>Status</span>
+                  <span>Optional</span>
+                </div>
+                <select class="detail-input" data-field="diagnosis-status">
+                  <option value="">Select status</option>
+                  ${['Suspected', 'Recovering', 'Recovered', 'Under evaluation'].map((option) => `
+                    <option value="${option}" ${selectedAttr(detail.status === option)}>${option}</option>
+                  `).join('')}
+                </select>
+              </div>
+            ` : ''}
             <div class="note-area">
               <div class="question-bar">
-                <span>Notes</span>
+                <span>${sectionName === 'Diagnosis' ? 'Free text notes' : 'Notes'}</span>
                 <span>Optional</span>
               </div>
-              <textarea placeholder="Add note" data-field="note">${escapeHtml(detail.note || '')}</textarea>
+              <textarea placeholder="${sectionName === 'Diagnosis' ? 'Add diagnosis notes' : 'Add note'}" data-field="note">${escapeHtml(detail.note || '')}</textarea>
             </div>
           </div>
         `;
@@ -3130,14 +3238,14 @@
       const sectionRef = db ? doc(db, FIREBASE_COLLECTIONS.prescription, sectionName) : null;
       const selectedValues = new Set();
       prescriptionSelections[sectionName] = selectedValues;
-      let allItems = mergeUniqueItems(initialItems);
+      let allItems = orderSectionItems(sectionName, mergeUniqueItems(initialItems));
 
       function getBubbleButtons() {
         return [...card.querySelectorAll('.bubble-btn')];
       }
 
       function updateItems(items) {
-        allItems = mergeUniqueItems(allItems, items);
+        allItems = orderSectionItems(sectionName, mergeUniqueItems(allItems, items));
         applySearchFilter();
 
         if (sectionName === 'Medication' && activeMedicine && selectedValues.has(activeMedicine)) {
@@ -3147,6 +3255,8 @@
       }
 
       function toggleValue(value, shouldSelect, trigger = document.activeElement) {
+        const isNewSelection = shouldSelect && !selectedValues.has(value);
+
         getBubbleButtons().forEach((button) => {
           if (button.textContent.trim() === value) {
             button.classList.toggle('is-selected', shouldSelect);
@@ -3161,6 +3271,12 @@
 
         renderSelectedItems(selectedList, [...selectedValues], sectionName);
         savePrescriptionDraft();
+
+        if (isNewSelection) {
+          recordPrescriptionUsage(sectionName, value);
+          allItems = orderSectionItems(sectionName, allItems);
+          applySearchFilter();
+        }
 
         if (sectionName === 'Medication') {
           if (shouldSelect) {
@@ -3183,12 +3299,12 @@
           return;
         }
 
-        if ((sectionName === 'Symptoms' || sectionName === 'Finding') && shouldSelect) {
+        if ((sectionName === 'Symptoms' || sectionName === 'Finding' || sectionName === 'Diagnosis') && shouldSelect) {
           getSectionItemDetail(sectionName, value);
           openSelectionDetailModal(sectionName, value, trigger);
         }
 
-        if ((sectionName === 'Symptoms' || sectionName === 'Finding') && !shouldSelect && sectionItemDetails[sectionName]) {
+        if ((sectionName === 'Symptoms' || sectionName === 'Finding' || sectionName === 'Diagnosis') && !shouldSelect && sectionItemDetails[sectionName]) {
           sectionItemDetails[sectionName].delete(value);
           saveSelectionDetailsToDraft();
         }
@@ -3229,7 +3345,7 @@
         const exists = allItems.some((item) => item.toLowerCase() === normalizedValue.toLowerCase());
         if (!exists) {
           allItems.push(normalizedValue);
-          allItems.sort((left, right) => left.localeCompare(right));
+          allItems = orderSectionItems(sectionName, allItems);
         }
 
         rememberCustomTemplateItem(sectionName, normalizedValue, medicineMeta);
@@ -3299,7 +3415,17 @@
           return;
         }
 
-        toggleValue(selectedButton.dataset.selectedValue, false, selectedButton);
+        const selectedValue = selectedButton.dataset.selectedValue;
+        const clickedRemove = Boolean(event.target.closest('.selected-item-remove'));
+        const hasDetailPanel = sectionName === 'Symptoms' || sectionName === 'Finding' || sectionName === 'Diagnosis';
+
+        if (clickedRemove || !hasDetailPanel) {
+          toggleValue(selectedValue, false, selectedButton);
+          return;
+        }
+
+        getSectionItemDetail(sectionName, selectedValue);
+        openSelectionDetailModal(sectionName, selectedValue, selectedButton);
       });
 
       bubbleWrap.addEventListener('click', async (event) => {
@@ -3324,14 +3450,20 @@
         .then((patientRecord) => renderVitalsSummary(patientRecord))
         .catch((error) => console.warn(`Unable to load patient details for prescription: ${error.message}`));
 
-      const localTemplates = mergeWithSavedTemplates(readPrescriptionTemplateCache() || prescriptionTemplates);
-      Object.entries(localTemplates).forEach(([sectionName, items]) => {
-        const card = sectionMap.get(sectionName);
+      // Only ever bind items that are actually stored in Firebase (or a cached
+      // copy of a previous Firebase fetch) - never the hardcoded fallback list,
+      // so bubbles never show content that isn't backed by the cloud collection.
+      const cachedCloudTemplates = readPrescriptionTemplateCache();
+      const localTemplates = cachedCloudTemplates ? mergeWithSavedTemplates(cachedCloudTemplates) : null;
+      if (localTemplates) {
+        Object.entries(localTemplates).forEach(([sectionName, items]) => {
+          const card = sectionMap.get(sectionName);
 
-        if (card) {
-          bindCardSelection(card, items);
-        }
-      });
+          if (card) {
+            bindCardSelection(card, items);
+          }
+        });
+      }
 
       try {
         const prescriptionData = mergeWithSavedTemplates(await ensurePrescriptionCollection());
@@ -3349,15 +3481,17 @@
         setSyncStatus('Cloud sync failed', true);
         console.error(`Prescription collection sync failed: ${error.message}`);
 
-        Object.entries(localTemplates).forEach(([sectionName, items]) => {
-          const card = sectionMap.get(sectionName);
+        if (localTemplates) {
+          Object.entries(localTemplates).forEach(([sectionName, items]) => {
+            const card = sectionMap.get(sectionName);
 
-          if (!card) {
-            return;
-          }
+            if (!card) {
+              return;
+            }
 
-          bindCardSelection(card, items);
-        });
+            bindCardSelection(card, items);
+          });
+        }
       }
     }
 

@@ -2136,6 +2136,7 @@
     }
 
   </style>
+  <link rel="stylesheet" href="mobile-app.css" />
 </head>
 <body>
   <header class="site-header">
@@ -2282,7 +2283,8 @@
     const LOCAL_SEARCH_CACHE_KEY = clinicStorageKey('patientSearchCache');
     const SEARCH_CACHE_TTL_MS = 10 * 60 * 1000;
     const SEARCH_CACHE_PATIENT_LIMIT = 250;
-    const HISTORY_FETCH_LIMIT = 1500;
+    const HISTORY_FETCH_LIMIT = 150;
+    const PATIENTS_FETCH_LIMIT = 150;
     const PATIENTS_SYNC_CACHE_KEY = clinicStorageKey('patientsSyncCache');
     const PATIENTS_SYNC_SAFETY_BUFFER_MS = 3 * 60 * 1000;
     const HISTORY_SYNC_CACHE_KEY = clinicStorageKey('historySyncCache');
@@ -2736,7 +2738,9 @@
         }
       }
 
-      const { snapshot, usedLegacy: usedLegacyPatients } = await getDocsWithLegacyFallback(FIREBASE_COLLECTIONS.patients, 'patients');
+      const { snapshot, usedLegacy: usedLegacyPatients } = await getDocsWithLegacyFallback(
+        FIREBASE_COLLECTIONS.patients, 'patients', [orderBy('updatedAt', 'desc'), limit(PATIENTS_FETCH_LIMIT)]
+      );
       const patientRecords = snapshot.docs
         .map((docSnapshot) => ({ id: docSnapshot.id, ...docSnapshot.data() }))
         .filter((patient) => !usedLegacyPatients || recordBelongsToCurrentClinic(patient));
@@ -3297,8 +3301,14 @@
 
     function ensureFullHistoryForPatient(patient) {
       const patientId = getNormalizedPatientId(patient?.patientId || patient?.id || '');
-      if (!patientId || fullHistoryPatientIdsLoaded.has(patientId) || fullHistoryPatientLoads.has(patientId)) {
-        return;
+      if (!patientId) {
+        return Promise.resolve();
+      }
+      if (fullHistoryPatientIdsLoaded.has(patientId)) {
+        return Promise.resolve();
+      }
+      if (fullHistoryPatientLoads.has(patientId)) {
+        return fullHistoryPatientLoads.get(patientId);
       }
 
       const loadPromise = getHistoryEntriesForPatientId(patientId)
@@ -3315,6 +3325,31 @@
         });
 
       fullHistoryPatientLoads.set(patientId, loadPromise);
+      return loadPromise;
+    }
+
+    function prescriptionEntriesLookComplete(patientId) {
+      const entries = allHistory.filter((entry) => getNormalizedPatientId(entry?.patientId) === patientId
+        && (entry?.type === 'prescription' || entry?.source === 'prescription-pdf'));
+
+      if (!entries.length) {
+        return true;
+      }
+
+      return entries.every((entry) => Boolean(getPrescriptionDownloadUrl(entry)));
+    }
+
+    function ensureStoragePrescriptionsForPatientIfNeeded(patient) {
+      const patientId = getNormalizedPatientId(patient?.patientId || patient?.id || '');
+      if (!patientId) {
+        return;
+      }
+
+      Promise.resolve(ensureFullHistoryForPatient(patient)).then(() => {
+        if (!prescriptionEntriesLookComplete(patientId)) {
+          ensureStoragePrescriptionsForPatient(patient);
+        }
+      });
     }
 
     function renderPrescriptionPreviewImage(imageElement) {
@@ -4288,8 +4323,7 @@
       patients
         .filter((patient) => selectedPatientId === formatMissing(patient.patientId || patient.id, 'ID not saved'))
         .forEach((patient) => {
-          ensureStoragePrescriptionsForPatient(patient);
-          ensureFullHistoryForPatient(patient);
+          ensureStoragePrescriptionsForPatientIfNeeded(patient);
         });
     }
 
@@ -4404,8 +4438,7 @@
 
       attachPrescriptionPreviewRendering();
       if (selectedPatient) {
-        ensureStoragePrescriptionsForPatient(selectedPatient);
-        ensureFullHistoryForPatient(selectedPatient);
+        ensureStoragePrescriptionsForPatientIfNeeded(selectedPatient);
       }
     }
 
@@ -4595,8 +4628,7 @@
         worklistHoverPrefetchTimers.delete(hoveredPatientId);
         const patient = allPatients.find((candidate) => formatMissing(candidate.patientId || candidate.id, 'ID not saved') === hoveredPatientId);
         if (patient) {
-          ensureStoragePrescriptionsForPatient(patient);
-          ensureFullHistoryForPatient(patient);
+          ensureStoragePrescriptionsForPatientIfNeeded(patient);
         }
       }, 150);
 

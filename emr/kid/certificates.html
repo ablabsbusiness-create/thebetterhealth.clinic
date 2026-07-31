@@ -865,7 +865,7 @@
     }
 
     async function seedPresetTemplatesIfNeeded() {
-      const snapshot = await getDocs(collection(db, FIREBASE_COLLECTIONS.certificates));
+      const snapshot = await getDocs(query(collection(db, FIREBASE_COLLECTIONS.certificates), limit(1)));
       if (!snapshot.empty) return;
       await Promise.all(PRESET_TEMPLATES.map((tpl) => setDoc(doc(db, FIREBASE_COLLECTIONS.certificates, tpl.id), {
         title: tpl.title,
