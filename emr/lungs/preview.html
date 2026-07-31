@@ -191,6 +191,14 @@
       color: #ffffff;
     }
 
+    .nav-enter-clinic[aria-disabled="true"] {
+      background: #cbd5e1;
+      color: #64748b;
+      box-shadow: none;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
     .menu-toggle {
       display: none;
       align-items: center;
@@ -871,7 +879,7 @@
           <span class="status-dot"></span>Preparing preview...
         </div>
         <div class="preview-actions">
-          <a class="nav-link nav-enter-clinic" href="search">Enter Clinic</a>
+          <a id="enter-clinic-link" class="nav-link nav-enter-clinic" href="search" aria-disabled="true">Enter Clinic</a>
           <button id="download-pdf-btn" class="btn-primary" type="button">Download PDF</button>
           <button id="whatsapp-btn" class="btn-whatsapp" type="button">WhatsApp</button>
           <div class="print-group">
@@ -938,6 +946,14 @@
     const printBtn = document.getElementById('print-btn');
     const printModeWithHeaderBtn = document.getElementById('print-mode-with-header');
     const printModeWithoutHeaderBtn = document.getElementById('print-mode-without-header');
+    const enterClinicLink = document.getElementById('enter-clinic-link');
+
+    function setEnterClinicEnabled(enabled) {
+      if (!enterClinicLink) {
+        return;
+      }
+      enterClinicLink.setAttribute('aria-disabled', String(!enabled));
+    }
     const PRESCRIPTION_DRAFT_STORAGE_KEY = clinicStorageKey('prescriptionDraft');
     const CHART_RECORD_STORAGE_KEY = clinicStorageKey('growthChartRecentRecords');
     const LOCAL_PRESCRIPTION_HISTORY_KEY = clinicStorageKey('savedPrescriptionHistory');
@@ -2112,10 +2128,12 @@
           ...saveResult
         };
         setPreviewStatus(saveResult.warning ? `Prescription saved. ${saveResult.warning}` : 'Prescription saved');
+        setEnterClinicEnabled(true);
         return savedPrescriptionRecord;
       })().catch((error) => {
         prescriptionSavePromise = null;
-        setPreviewStatus(`Save failed: ${error.message}`);
+        setPreviewStatus(`Save failed: ${error.message}. Enter Clinic unlocked so you are not stuck here - please retry the save.`);
+        setEnterClinicEnabled(true);
         throw error;
       });
 
