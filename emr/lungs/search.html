@@ -2285,6 +2285,7 @@
     const HISTORY_FETCH_LIMIT = 1500;
     const PATIENTS_SYNC_CACHE_KEY = clinicStorageKey('patientsSyncCache');
     const PATIENTS_SYNC_SAFETY_BUFFER_MS = 3 * 60 * 1000;
+    const HISTORY_SYNC_CACHE_KEY = clinicStorageKey('historySyncCache');
 
     let allPatients = [];
     let allHistory = [];
@@ -2689,6 +2690,67 @@
       }
 
       return { patientRecords, usedLegacyPatients };
+    }
+
+    function getHistorySyncCache() {
+      const cache = readLocalJson(HISTORY_SYNC_CACHE_KEY, null);
+      if (!cache || typeof cache !== 'object' || !cache.lastSyncedAt || !cache.entriesById || typeof cache.entriesById !== 'object') {
+        return null;
+      }
+      return cache;
+    }
+
+    function saveHistorySyncCache(entriesById, lastSyncedAt) {
+      try {
+        localStorage.setItem(HISTORY_SYNC_CACHE_KEY, JSON.stringify({ lastSyncedAt, entriesById }));
+      } catch (error) {
+        localStorage.removeItem(HISTORY_SYNC_CACHE_KEY);
+        console.warn(`Unable to keep history sync cache: ${error.message}`);
+      }
+    }
+
+    async function loadHistoryRecordsWithDeltaSync() {
+      const syncCache = getHistorySyncCache();
+
+      if (syncCache) {
+        try {
+          const sinceIso = new Date(new Date(syncCache.lastSyncedAt).getTime() - PATIENTS_SYNC_SAFETY_BUFFER_MS).toISOString();
+          const deltaSnapshot = await getDocs(query(collection(db, FIREBASE_COLLECTIONS.history), where('createdAtIso', '>', sinceIso)));
+          const entriesById = { ...syncCache.entriesById };
+          deltaSnapshot.docs.forEach((docSnapshot) => {
+            const entry = normalizePrescriptionEntry({ id: docSnapshot.id, ...docSnapshot.data() });
+            const key = entry?.id || entry?.prescriptionSaveId || docSnapshot.id;
+            if (entry && key) {
+              entriesById[key] = entry;
+            }
+          });
+          saveHistorySyncCache(entriesById, new Date().toISOString());
+          return { historyRecords: Object.values(entriesById), usedLegacyHistory: false };
+        } catch (error) {
+          console.warn(`History delta sync failed, falling back to full fetch: ${error.message}`);
+        }
+      }
+
+      const { snapshot: historySnapshot, usedLegacy: usedLegacyHistory } = await getDocsWithLegacyFallback(
+        FIREBASE_COLLECTIONS.history, 'history', [orderBy('createdAtIso', 'desc'), limit(HISTORY_FETCH_LIMIT)]
+      );
+      const historyRecords = historySnapshot.docs
+        .map((docSnapshot) => normalizePrescriptionEntry({ id: docSnapshot.id, ...docSnapshot.data() }))
+        .filter((entry) => !usedLegacyHistory || recordBelongsToCurrentClinic(entry))
+        .filter(Boolean);
+
+      if (!usedLegacyHistory) {
+        const entriesById = {};
+        historyRecords.forEach((entry) => {
+          const key = entry.id || entry.prescriptionSaveId;
+          if (key) {
+            entriesById[key] = entry;
+          }
+        });
+        saveHistorySyncCache(entriesById, new Date().toISOString());
+      }
+
+      return { historyRecords, usedLegacyHistory, wasEmpty: historySnapshot.empty };
     }
 
     function recordBelongsToCurrentClinic(record) {
@@ -4801,16 +4863,8 @@
         mergeAndRenderPatients(patientRecords, [], usedLegacyPatients, false);
         setStatus(showedCache ? 'Records updated. Loading visit history...' : 'Patients loaded. Loading visit history...');
 
-        getDocsWithLegacyFallback(FIREBASE_COLLECTIONS.history, 'history', [orderBy('createdAtIso', 'desc'), limit(HISTORY_FETCH_LIMIT)])
-          .then(({ snapshot: historySnapshot, usedLegacy: usedLegacyHistory }) => {
-            const remoteHistory = historySnapshot.docs
-              .map((docSnapshot) => normalizePrescriptionEntry({
-                id: docSnapshot.id,
-                ...docSnapshot.data()
-              }))
-              .filter((entry) => !usedLegacyHistory || recordBelongsToCurrentClinic(entry))
-              .filter(Boolean);
-
+        loadHistoryRecordsWithDeltaSync()
+          .then(({ historyRecords: remoteHistory, usedLegacyHistory }) => {
             mergeAndRenderPatients(patientRecords, remoteHistory, usedLegacyPatients, usedLegacyHistory);
             if (!(usedLegacyPatients || usedLegacyHistory)) {
               setStatus('Showing all patients.');
