@@ -1,6 +1,6 @@
-const CACHE_NAME = 'better-lungs-emr-v5';
-const STATIC_CACHE = 'better-lungs-static-v5';
-const API_CACHE = 'better-lungs-api-v5';
+const CACHE_NAME = 'better-lungs-emr-v6';
+const STATIC_CACHE = 'better-lungs-static-v6';
+const API_CACHE = 'better-lungs-api-v6';
 const CURRENT_CACHES = new Set([CACHE_NAME, STATIC_CACHE, API_CACHE]);
 
 const APP_SHELL = [

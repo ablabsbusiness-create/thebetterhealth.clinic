@@ -2634,25 +2634,88 @@
       }
     }
 
-    function getPatientsSyncCache() {
-      const cache = readLocalJson(PATIENTS_SYNC_CACHE_KEY, null);
+    // The patients/history sync caches hold the full local dataset (not just
+    // deltas) so it keeps growing as the clinic adds records - localStorage's
+    // ~5-10MB per-origin quota (as low as ~5MB on iOS Safari) is not enough
+    // headroom long-term. IndexedDB has no such practical limit for this size
+    // of data, so the sync caches live there instead; a QuotaExceededError
+    // silently wiping the cache on write used to force a full refetch on
+    // every single load once the dataset got big enough to hit the cap.
+    const CACHE_DB_NAME = clinicStorageKey('cacheDb');
+    const CACHE_DB_STORE = 'kv';
+    let cacheDbPromise = null;
+
+    function openCacheDb() {
+      if (cacheDbPromise) {
+        return cacheDbPromise;
+      }
+      cacheDbPromise = new Promise((resolve, reject) => {
+        if (!window.indexedDB) {
+          reject(new Error('IndexedDB not available'));
+          return;
+        }
+        const request = indexedDB.open(CACHE_DB_NAME, 1);
+        request.onupgradeneeded = () => {
+          request.result.createObjectStore(CACHE_DB_STORE);
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+      return cacheDbPromise;
+    }
+
+    async function idbCacheGet(key) {
+      try {
+        const dbInstance = await openCacheDb();
+        return await new Promise((resolve, reject) => {
+          const tx = dbInstance.transaction(CACHE_DB_STORE, 'readonly');
+          const req = tx.objectStore(CACHE_DB_STORE).get(key);
+          req.onsuccess = () => resolve(req.result ?? null);
+          req.onerror = () => reject(req.error);
+        });
+      } catch (error) {
+        console.warn(`Cache read failed for ${key}: ${error.message}`);
+        return null;
+      }
+    }
+
+    async function idbCacheSet(key, value) {
+      try {
+        const dbInstance = await openCacheDb();
+        await new Promise((resolve, reject) => {
+          const tx = dbInstance.transaction(CACHE_DB_STORE, 'readwrite');
+          tx.objectStore(CACHE_DB_STORE).put(value, key);
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        });
+      } catch (error) {
+        console.warn(`Cache write failed for ${key}: ${error.message}`);
+      }
+    }
+
+    // One-time cleanup: these caches used to live in localStorage and could
+    // grow past quota there. Remove any leftover copy so that space is freed.
+    try {
+      localStorage.removeItem(PATIENTS_SYNC_CACHE_KEY);
+      localStorage.removeItem(HISTORY_SYNC_CACHE_KEY);
+    } catch (error) {
+      console.warn(`Unable to clear legacy localStorage sync cache: ${error.message}`);
+    }
+
+    async function getPatientsSyncCache() {
+      const cache = await idbCacheGet(PATIENTS_SYNC_CACHE_KEY);
       if (!cache || typeof cache !== 'object' || !cache.lastSyncedAt || !cache.patientsById || typeof cache.patientsById !== 'object') {
         return null;
       }
       return cache;
     }
 
-    function savePatientsSyncCache(patientsById, lastSyncedAt) {
-      try {
-        localStorage.setItem(PATIENTS_SYNC_CACHE_KEY, JSON.stringify({ lastSyncedAt, patientsById }));
-      } catch (error) {
-        localStorage.removeItem(PATIENTS_SYNC_CACHE_KEY);
-        console.warn(`Unable to keep patients sync cache: ${error.message}`);
-      }
+    async function savePatientsSyncCache(patientsById, lastSyncedAt) {
+      await idbCacheSet(PATIENTS_SYNC_CACHE_KEY, { lastSyncedAt, patientsById });
     }
 
     async function loadPatientRecordsWithDeltaSync() {
-      const syncCache = getPatientsSyncCache();
+      const syncCache = await getPatientsSyncCache();
 
       if (syncCache) {
         try {
@@ -2666,7 +2729,7 @@
               patientsById[key] = record;
             }
           });
-          savePatientsSyncCache(patientsById, new Date().toISOString());
+          await savePatientsSyncCache(patientsById, new Date().toISOString());
           return { patientRecords: Object.values(patientsById), usedLegacyPatients: false };
         } catch (error) {
           console.warn(`Patients delta sync failed, falling back to full fetch: ${error.message}`);
@@ -2686,31 +2749,26 @@
             patientsById[key] = record;
           }
         });
-        savePatientsSyncCache(patientsById, new Date().toISOString());
+        await savePatientsSyncCache(patientsById, new Date().toISOString());
       }
 
       return { patientRecords, usedLegacyPatients };
     }
 
-    function getHistorySyncCache() {
-      const cache = readLocalJson(HISTORY_SYNC_CACHE_KEY, null);
+    async function getHistorySyncCache() {
+      const cache = await idbCacheGet(HISTORY_SYNC_CACHE_KEY);
       if (!cache || typeof cache !== 'object' || !cache.lastSyncedAt || !cache.entriesById || typeof cache.entriesById !== 'object') {
         return null;
       }
       return cache;
     }
 
-    function saveHistorySyncCache(entriesById, lastSyncedAt) {
-      try {
-        localStorage.setItem(HISTORY_SYNC_CACHE_KEY, JSON.stringify({ lastSyncedAt, entriesById }));
-      } catch (error) {
-        localStorage.removeItem(HISTORY_SYNC_CACHE_KEY);
-        console.warn(`Unable to keep history sync cache: ${error.message}`);
-      }
+    async function saveHistorySyncCache(entriesById, lastSyncedAt) {
+      await idbCacheSet(HISTORY_SYNC_CACHE_KEY, { lastSyncedAt, entriesById });
     }
 
     async function loadHistoryRecordsWithDeltaSync() {
-      const syncCache = getHistorySyncCache();
+      const syncCache = await getHistorySyncCache();
 
       if (syncCache) {
         try {
@@ -2724,7 +2782,7 @@
               entriesById[key] = entry;
             }
           });
-          saveHistorySyncCache(entriesById, new Date().toISOString());
+          await saveHistorySyncCache(entriesById, new Date().toISOString());
           return { historyRecords: Object.values(entriesById), usedLegacyHistory: false };
         } catch (error) {
           console.warn(`History delta sync failed, falling back to full fetch: ${error.message}`);
@@ -2747,7 +2805,7 @@
             entriesById[key] = entry;
           }
         });
-        saveHistorySyncCache(entriesById, new Date().toISOString());
+        await saveHistorySyncCache(entriesById, new Date().toISOString());
       }
 
       return { historyRecords, usedLegacyHistory, wasEmpty: historySnapshot.empty };
