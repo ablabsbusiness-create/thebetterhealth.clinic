@@ -560,6 +560,9 @@
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
+      touch-action: manipulation;
+      -webkit-touch-callout: none;
+      user-select: none;
     }
 
     .selected-item-remove {
@@ -2106,7 +2109,10 @@
     const sectionItemDetails = {
       Symptoms: new Map(),
       Finding: new Map(),
-      Diagnosis: new Map()
+      Diagnosis: new Map(),
+      Investigation: new Map(),
+      'Past Medical History': new Map(),
+      Instruction: new Map()
     };
     const prescriptionSelections = {};
     let activeMedicine = '';
@@ -2116,7 +2122,7 @@
     let addMedicineMode = 'create';
     let editingMedicineKey = '';
     const sectionDetailSlots = new Map();
-    const DETAIL_SECTIONS = new Set(['Symptoms', 'Finding', 'Diagnosis', 'Medication']);
+    const DETAIL_SECTIONS = new Set(['Symptoms', 'Finding', 'Diagnosis', 'Investigation', 'Past Medical History', 'Instruction', 'Medication']);
     const MEDICINE_DETAIL_STORAGE_KEY = clinicStorageKey('prescriptionMedicineDetails');
     const CUSTOM_TEMPLATE_STORAGE_KEY = clinicStorageKey('prescriptionCustomTemplates');
     const PRESCRIPTION_TEMPLATE_CACHE_KEY = clinicStorageKey('prescriptionCloudTemplates');
@@ -3922,7 +3928,7 @@
           openSelectionDetailModal(sectionName, value, modalTrigger);
         }
 
-        if ((sectionName === 'Symptoms' || sectionName === 'Finding' || sectionName === 'Diagnosis') && !shouldSelect && sectionItemDetails[sectionName]) {
+        if (!shouldSelect && sectionItemDetails[sectionName]) {
           sectionItemDetails[sectionName].delete(value);
           saveSelectionDetailsToDraft();
         }
@@ -4037,6 +4043,58 @@
 
       searchInput.addEventListener('input', applySearchFilter);
 
+      // Medication keeps its existing tap behavior untouched. Every other
+      // section edits a saved chip via press-and-hold instead of a tap, so a
+      // stray tap can't silently delete or pop a modal open - the x stays as
+      // the one deliberate way to remove a chip.
+      let chipLongPressTimer = null;
+      let chipLongPressTriggered = false;
+      let chipLongPressStart = null;
+      const CHIP_LONG_PRESS_MS = 500;
+      const CHIP_LONG_PRESS_MOVE_TOLERANCE = 10;
+
+      function clearChipLongPress() {
+        clearTimeout(chipLongPressTimer);
+        chipLongPressTimer = null;
+        chipLongPressStart = null;
+      }
+
+      if (sectionName !== 'Medication') {
+        selectedList.addEventListener('pointerdown', (event) => {
+          const selectedButton = event.target.closest('.selected-item');
+
+          if (!selectedButton || event.target.closest('.selected-item-remove')) {
+            return;
+          }
+
+          chipLongPressTriggered = false;
+          clearChipLongPress();
+          chipLongPressStart = { x: event.clientX, y: event.clientY };
+          chipLongPressTimer = setTimeout(() => {
+            chipLongPressTriggered = true;
+            const selectedValue = selectedButton.dataset.selectedValue;
+            getSectionItemDetail(sectionName, selectedValue);
+            openSelectionDetailModal(sectionName, selectedValue, selectedButton);
+          }, CHIP_LONG_PRESS_MS);
+        });
+
+        selectedList.addEventListener('pointermove', (event) => {
+          if (!chipLongPressStart) {
+            return;
+          }
+
+          const dx = event.clientX - chipLongPressStart.x;
+          const dy = event.clientY - chipLongPressStart.y;
+          if (Math.hypot(dx, dy) > CHIP_LONG_PRESS_MOVE_TOLERANCE) {
+            clearChipLongPress();
+          }
+        });
+
+        ['pointerup', 'pointercancel', 'pointerleave'].forEach((eventName) => {
+          selectedList.addEventListener(eventName, clearChipLongPress);
+        });
+      }
+
       selectedList.addEventListener('click', (event) => {
         const selectedButton = event.target.closest('.selected-item');
 
@@ -4046,15 +4104,16 @@
 
         const selectedValue = selectedButton.dataset.selectedValue;
         const clickedRemove = Boolean(event.target.closest('.selected-item-remove'));
-        const hasDetailPanel = sectionName === 'Symptoms' || sectionName === 'Finding' || sectionName === 'Diagnosis';
 
-        if (clickedRemove || !hasDetailPanel) {
+        if (clickedRemove || sectionName === 'Medication') {
           toggleValue(selectedValue, false, selectedButton);
           return;
         }
 
-        getSectionItemDetail(sectionName, selectedValue);
-        openSelectionDetailModal(sectionName, selectedValue, selectedButton);
+        // A quick tap on the chip body does nothing - press and hold opens
+        // edit. Swallow the click that follows a long-press so it doesn't
+        // also fire here.
+        chipLongPressTriggered = false;
       });
 
       bubbleWrap.addEventListener('click', async (event) => {
