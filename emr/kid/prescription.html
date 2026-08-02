@@ -2737,6 +2737,12 @@
         element.addEventListener('change', syncSelectionDetailsFromDom);
       });
 
+      const noteField = selectionDetailContent.querySelector('[data-field="note"]');
+      noteField?.addEventListener('blur', () => {
+        noteField.value = formatClauseText(noteField.value);
+        syncSelectionDetailsFromDom();
+      });
+
       syncDaysQuickPickState();
     }
 
@@ -2944,6 +2950,15 @@
         .filter(Boolean)
         .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
         .join(' ');
+    }
+
+    function formatClauseText(rawValue) {
+      return String(rawValue || '')
+        .split(/\r?\n|\.\s*/)
+        .map((clause) => clause.trim().replace(/[.,]+$/, ''))
+        .filter(Boolean)
+        .map((clause) => clause.charAt(0).toUpperCase() + clause.slice(1))
+        .join(', ');
     }
 
     function renderBubbleButtons(wrap, items, addableQuery = '') {
@@ -4531,6 +4546,10 @@
 
     openInitialPrescriptionAction();
     notesInput?.addEventListener('input', () => {
+      savePrescriptionDraft();
+    });
+    notesInput?.addEventListener('blur', () => {
+      notesInput.value = formatClauseText(notesInput.value);
       savePrescriptionDraft();
     });
     continuePreviewBtn.addEventListener('click', () => {
