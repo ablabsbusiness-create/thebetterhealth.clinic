@@ -1164,7 +1164,9 @@
       }
     });
 
-    [dobDayInput, dobMonthInput, dobYearInput].forEach((input) => {
+    const dobInputSequence = [dobDayInput, dobMonthInput, dobYearInput];
+
+    dobInputSequence.forEach((input, index) => {
       input.addEventListener('input', () => {
         dobYearInput.setCustomValidity('');
 
@@ -1172,6 +1174,18 @@
         const ageParts = dobIso ? getAgePartsFromDob(dobIso) : null;
         ageYearsInput.value = ageParts ? String(ageParts.years) : '';
         ageMonthsInput.value = ageParts ? String(ageParts.months) : '';
+
+        const nextInput = dobInputSequence[index + 1];
+        if (nextInput && input.value.length >= input.maxLength) {
+          nextInput.focus();
+        }
+      });
+
+      input.addEventListener('keydown', (event) => {
+        const previousInput = dobInputSequence[index - 1];
+        if (event.key === 'Backspace' && !input.value && previousInput) {
+          previousInput.focus();
+        }
       });
     });
 
