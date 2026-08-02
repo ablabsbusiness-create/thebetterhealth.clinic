@@ -494,6 +494,24 @@
       display: none;
     }
 
+    .notes-freetext {
+      width: 100%;
+      min-height: 96px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      resize: vertical;
+      font: inherit;
+      color: var(--ink);
+      outline: none;
+    }
+
+    .notes-freetext:focus {
+      border-color: rgba(22, 101, 52, 0.55);
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12);
+    }
+
     .search-row {
       display: grid;
       grid-template-columns: minmax(0, 1fr);
@@ -1435,20 +1453,12 @@
             </div>
           </article>
 
-          <article class="rx-card">
+          <article class="rx-card" data-section-name="Notes">
             <div class="rx-card-head">
               <h2>Notes</h2>
               <p></p>
             </div>
-            <div class="search-row" data-search-section="notes">
-              <input type="text" placeholder="Search notes">
-            </div>
-            <div class="selected-list" data-selected-list>
-              <span class="selected-placeholder">Selected items will appear here.</span>
-            </div>
-            <div class="selection-divider" aria-hidden="true"></div>
-            <div class="bubble-wrap" data-bubble-wrap>
-            </div>
+            <textarea class="notes-freetext" data-notes-input placeholder="Add any notes for this visit"></textarea>
           </article>
 
           <article class="rx-card">
@@ -1627,6 +1637,7 @@
     const primaryNav = document.getElementById('primary-nav');
     const navLinks = [...document.querySelectorAll('#primary-nav .nav-link')];
     const rxCards = [...document.querySelectorAll('.rx-card')];
+    const notesInput = document.querySelector('[data-notes-input]');
     const statusChip = document.querySelector('.status-chip');
     const vitalsSummaryCard = document.getElementById('vitals-summary-card');
     const vitalsSummarySubtitle = document.getElementById('vitals-summary-subtitle');
@@ -1681,7 +1692,6 @@
     const prescriptionTemplates = {
       Symptoms: ['Fever', 'Cough', 'Cold', 'Vomiting', 'Loose stools', 'Abdominal pain', 'Normal activity', 'No fever', 'No cough', 'No vomiting', 'No breathlessness', 'Normal urine', 'Bladder and bowel normal', 'Normal development', 'Throat pain', 'Nose block', 'Itching and rashes over body', 'Fast breathing', 'Eye redness', 'Excessive crying', 'No loose stools', 'Passing hard stools', 'Nausea', 'Productive cough', 'Ear pain', 'Headache', 'Sticky eye-discharge', 'Rashes', 'Feeding well', 'Earache', 'Decreased activity', 'Decreased urine output', 'Not eating well'],
       Finding: ['Throat congestion', 'Wheeze', 'Pallor', 'Dehydrated', 'Active child', 'Irritable child', 'Hydration fair', 'Febrile', 'Afebrile', 'Chest clear', 'Abdomen soft', 'No organomegaly', 'Tonsils enlarged', 'Skin rash present', 'Mild dehydration', 'Conjunctival congestion', 'Nasal congestion', 'Crepitations', 'Oral ulcers', 'Ear discharge', 'Mottling', 'Pulse regular', 'No cyanosis', 'Mild pallor', 'Tachypnea', 'Tonsillar exudate'],
-      Notes: ['Follow up advised', 'Review after 3 days', 'Vitals stable', 'Parent counselled', 'Medication explained', 'Diet advice given', 'Hydration explained', 'Danger signs explained', 'Return if symptoms worsen', 'Continue breastfeeding', 'Monitor urine output', 'School rest advised'],
       Diagnosis: ['Viral fever', 'URTI', 'Gastroenteritis', 'Allergic rhinitis', 'Observation advised', 'Acute bronchitis', 'Pharyngitis', 'Bronchiolitis', 'Tonsillitis', 'Constipation', 'AGE', 'Typhoid fever', 'UTI', 'Viral exanthem'],
       Investigation: ['CBC', 'CRP', 'Urine routine', 'Chest X-ray', 'Dengue test', 'Widal test', 'RFT', 'LFT', 'Blood culture', 'Urine culture', 'Stool routine', 'Electrolytes', 'Random blood sugar', 'Peripheral smear', 'Malaria test', 'Ultrasound abdomen', 'Throat swab', 'X-ray PNS', 'Sputum culture', 'Procalcitonin', 'Blood gas', 'Serum calcium', 'Serum sodium', 'Serum potassium'],
       'Past Medical History': ['Previous wheeze episodes', 'NICU stay', 'Febrile seizures', 'Asthma history', 'Drug allergy', 'Previous hospitalization', 'Recurrent cold', 'Recurrent cough', 'Developmental delay', 'Birth history normal', 'Vaccination delayed', 'Family history of allergy'],
@@ -2591,7 +2601,8 @@
         patientId,
         sections,
         sectionDetails,
-        medicineDetails: details
+        medicineDetails: details,
+        notes: notesInput?.value || ''
       }));
       continuePreviewBtn.href = getPreviewTargetUrl();
     }
@@ -3465,6 +3476,10 @@
       const localTemplates = cachedCloudTemplates ? mergeWithSavedTemplates(cachedCloudTemplates) : null;
       if (localTemplates) {
         Object.entries(localTemplates).forEach(([sectionName, items]) => {
+          if (sectionName === 'Notes') {
+            return;
+          }
+
           const card = sectionMap.get(sectionName);
 
           if (card) {
@@ -3477,6 +3492,10 @@
         const prescriptionData = mergeWithSavedTemplates(await ensurePrescriptionCollection());
 
         Object.entries(prescriptionData).forEach(([sectionName, items]) => {
+          if (sectionName === 'Notes') {
+            return;
+          }
+
           const card = sectionMap.get(sectionName);
 
           if (!card) {
@@ -3491,6 +3510,10 @@
 
         if (localTemplates) {
           Object.entries(localTemplates).forEach(([sectionName, items]) => {
+            if (sectionName === 'Notes') {
+              return;
+            }
+
             const card = sectionMap.get(sectionName);
 
             if (!card) {
@@ -3515,7 +3538,8 @@
       }
 
       const hasSavedContent = Object.values(draft.sections || {}).some((items) => Array.isArray(items) && items.length)
-        || Object.keys(draft.medicineDetails || {}).length > 0;
+        || Object.keys(draft.medicineDetails || {}).length > 0
+        || Boolean(String(draft.notes || '').trim());
       if (!hasSavedContent) {
         return;
       }
@@ -3549,11 +3573,18 @@
         medicineDetails.set(medicine, { ...detail, savedAt: Date.now() });
       });
 
+      if (notesInput && typeof draft.notes === 'string') {
+        notesInput.value = draft.notes;
+      }
+
       saveMedicineDetailsToStorage();
       savePrescriptionDraft();
     }
 
     initPrescriptionData().then(restoreUnsavedDraftForCurrentPatient);
+    notesInput?.addEventListener('input', () => {
+      savePrescriptionDraft();
+    });
     continuePreviewBtn.addEventListener('click', () => {
       syncMedicineDetailsFromDom();
       savePrescriptionDraft();

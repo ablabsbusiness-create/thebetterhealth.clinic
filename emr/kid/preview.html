@@ -2652,6 +2652,9 @@
       const patientId = getValidatedPrescriptionPatientId(draft, chartRecord) || '-';
       const now = new Date().toISOString();
       const instructions = sections.Instruction || [];
+      const notesText = typeof draft?.notes === 'string' && draft.notes.trim()
+        ? draft.notes.trim()
+        : (Array.isArray(sections.Notes) ? sections.Notes.join(', ') : '');
       const branding = getPrescriptionBranding();
       applyPrescriptionLayoutStyles(branding);
       const signatureHtml = branding.signatureDataUrl
@@ -2688,7 +2691,7 @@
 
         ${renderTextRow('Symptoms', sections.Symptoms, sectionDetails.Symptoms, 'Symptoms')}
         ${renderTextRow('Finding', sections.Finding, sectionDetails.Finding, 'Finding')}
-        ${renderTextRow('Notes', sections.Notes)}
+        <p class="text-row"><strong>Notes:</strong> ${notesText ? formatMultiline(notesText) : '-'}</p>
         ${renderTextRow('Diagnosis', sections.Diagnosis)}
         ${renderTextRow('Investigation', sections.Investigation)}
         ${renderTextRow('Past Medical History', sections['Past Medical History'])}
@@ -2886,7 +2889,8 @@
         temp: chartRecord?.temp || '',
         sections: draft?.sections || {},
         sectionDetails: draft?.sectionDetails || {},
-        medicineDetails: draft?.medicineDetails || {}
+        medicineDetails: draft?.medicineDetails || {},
+        notes: draft?.notes || ''
       };
     }
 
@@ -3025,6 +3029,7 @@
         sections: details.sections || {},
         sectionDetails: details.sectionDetails || {},
         medicineDetails: details.medicineDetails || {},
+        notes: details.notes || '',
         fileName,
         storagePath: persistedStoragePath,
         previewImagePath,
