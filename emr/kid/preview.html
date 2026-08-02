@@ -1709,8 +1709,7 @@
 
     function getActivePrescriptionDraft() {
       const draft = readJson(PRESCRIPTION_DRAFT_STORAGE_KEY, null);
-      if (!draft || Number(draft.expiresAt) <= Date.now()) {
-        localStorage.removeItem(PRESCRIPTION_DRAFT_STORAGE_KEY);
+      if (!draft) {
         return null;
       }
       return draft;

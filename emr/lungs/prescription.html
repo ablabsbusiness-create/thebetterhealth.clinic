@@ -2549,7 +2549,7 @@
 
     function getPrescriptionDraftId(patientId) {
       const existingDraft = readLocalJson(PRESCRIPTION_DRAFT_STORAGE_KEY, null);
-      if (existingDraft?.draftId && existingDraft?.patientId === patientId && Number(existingDraft.expiresAt) > Date.now()) {
+      if (existingDraft?.draftId && existingDraft?.patientId === patientId) {
         return existingDraft.draftId;
       }
 
@@ -3254,7 +3254,8 @@
         }
       }
 
-      function toggleValue(value, shouldSelect, trigger = document.activeElement) {
+      function toggleValue(value, shouldSelect, trigger = document.activeElement, options = {}) {
+        const { silent = false } = options;
         const isNewSelection = shouldSelect && !selectedValues.has(value);
 
         getBubbleButtons().forEach((button) => {
@@ -3291,11 +3292,17 @@
             }
           }
 
-          renderMedicineDetails();
+          if (!silent) {
+            renderMedicineDetails();
 
-          if (shouldSelect || activeMedicine) {
-            openMedicineModal(trigger);
+            if (shouldSelect || activeMedicine) {
+              openMedicineModal(trigger);
+            }
           }
+          return;
+        }
+
+        if (silent) {
           return;
         }
 
@@ -3439,7 +3446,7 @@
       });
 
       applySearchFilter();
-      sectionBindings.set(sectionName, { updateItems });
+      sectionBindings.set(sectionName, { updateItems, toggleValue });
     }
 
     async function initPrescriptionData() {
@@ -3495,7 +3502,57 @@
       }
     }
 
-    initPrescriptionData();
+    async function restoreUnsavedDraftForCurrentPatient() {
+      const patientId = getCurrentPatientId();
+      if (!patientId) {
+        return;
+      }
+
+      const draft = readLocalJson(PRESCRIPTION_DRAFT_STORAGE_KEY, null);
+      if (!draft || draft.patientId !== patientId) {
+        return;
+      }
+
+      const hasSavedContent = Object.values(draft.sections || {}).some((items) => Array.isArray(items) && items.length)
+        || Object.keys(draft.medicineDetails || {}).length > 0;
+      if (!hasSavedContent) {
+        return;
+      }
+
+      const sections = draft.sections || {};
+      const sectionDetails = draft.sectionDetails || {};
+      const medDetails = draft.medicineDetails || {};
+
+      Object.entries(sections).forEach(([sectionName, items]) => {
+        const binding = sectionBindings.get(sectionName);
+        if (!binding || !Array.isArray(items)) {
+          return;
+        }
+
+        items.forEach((value) => {
+          binding.toggleValue(value, true, document.activeElement, { silent: true });
+        });
+      });
+
+      Object.entries(sectionDetails).forEach(([sectionName, detailMap]) => {
+        if (!sectionItemDetails[sectionName] || !detailMap) {
+          return;
+        }
+
+        Object.entries(detailMap).forEach(([item, detail]) => {
+          sectionItemDetails[sectionName].set(item, { ...detail });
+        });
+      });
+
+      Object.entries(medDetails).forEach(([medicine, detail]) => {
+        medicineDetails.set(medicine, { ...detail, savedAt: Date.now() });
+      });
+
+      saveMedicineDetailsToStorage();
+      savePrescriptionDraft();
+    }
+
+    initPrescriptionData().then(restoreUnsavedDraftForCurrentPatient);
     continuePreviewBtn.addEventListener('click', () => {
       syncMedicineDetailsFromDom();
       savePrescriptionDraft();

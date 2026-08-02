@@ -3104,7 +3104,7 @@
       }
 
       const existingDraft = readLocalJson(PRESCRIPTION_DRAFT_STORAGE_KEY, null);
-      if (existingDraft?.draftId && existingDraft?.patientId === patientId && Number(existingDraft.expiresAt) > Date.now()) {
+      if (existingDraft?.draftId && existingDraft?.patientId === patientId) {
         return existingDraft.draftId;
       }
 
@@ -4151,6 +4151,33 @@
       savePrescriptionDraft();
     }
 
+    async function restoreUnsavedDraftForCurrentPatient() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('repeatFrom') || params.get('editId')) {
+        // Those flows load their own record via applyRepeatSelections - don't
+        // also layer a leftover in-progress draft on top of it.
+        return;
+      }
+
+      const patientId = getCurrentPatientId();
+      if (!isValidPatientId(patientId)) {
+        return;
+      }
+
+      const draft = readLocalJson(PRESCRIPTION_DRAFT_STORAGE_KEY, null);
+      if (!draft || draft.patientId !== patientId) {
+        return;
+      }
+
+      const hasSavedContent = Object.values(draft.sections || {}).some((items) => Array.isArray(items) && items.length)
+        || Object.keys(draft.medicineDetails || {}).length > 0;
+      if (!hasSavedContent) {
+        return;
+      }
+
+      await applyRepeatSelections(draft);
+    }
+
     async function loadRepeatFromHistory() {
       const repeatFromId = new URLSearchParams(window.location.search).get('repeatFrom');
 
@@ -4399,6 +4426,7 @@
 
     async function openInitialPrescriptionAction() {
       await initPrescriptionData();
+      await restoreUnsavedDraftForCurrentPatient();
       await loadRepeatFromHistory();
       await loadEditFromHistory();
 
