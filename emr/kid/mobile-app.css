@@ -2625,27 +2625,27 @@
 
   body:has(#preview-status) .preview-actions {
     width: 100% !important;
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 10px !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
     align-items: stretch !important;
   }
 
   body:has(#preview-status) .preview-actions .nav-enter-clinic {
-    grid-column: 1 / -1 !important;
+    flex: 1 1 100% !important;
     width: 100% !important;
     min-width: 0 !important;
-    min-height: 42px !important;
-    height: 42px !important;
-    padding: 0 12px !important;
+    height: auto !important;
+    min-height: 44px !important;
+    padding: 0 18px !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    border-radius: 12px !important;
-    border: 1px solid rgba(15, 122, 59, 0.22) !important;
-    background: linear-gradient(180deg, #f0fff6, #dff8e8) !important;
-    color: #0f6b3a !important;
-    box-shadow: 0 8px 18px rgba(15, 122, 59, 0.1) !important;
+    border-radius: 999px !important;
+    border: 1px solid rgba(22, 101, 52, 0.35) !important;
+    background: linear-gradient(135deg, #166534, #22c55e) !important;
+    color: #ffffff !important;
+    box-shadow: 0 10px 22px rgba(22, 101, 52, 0.22) !important;
     font-size: 13px !important;
     font-weight: 800 !important;
     line-height: 1 !important;
@@ -2661,8 +2661,15 @@
     cursor: not-allowed !important;
   }
 
+  body:has(#preview-status) .preview-actions .nav-enter-clinic::before {
+    content: none !important;
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+
   body:has(#preview-status) .header-mode-toggle {
-    grid-column: 1 / -1 !important;
+    flex: 1 1 100% !important;
     width: 100% !important;
     height: 50px !important;
     min-height: 50px !important;
@@ -2687,16 +2694,32 @@
 
   body:has(#preview-status) #download-pdf-btn,
   body:has(#preview-status) #whatsapp-btn {
-    width: 100% !important;
+    flex: 1 1 0 !important;
+    width: auto !important;
     min-width: 0 !important;
-    height: 48px !important;
-    min-height: 48px !important;
-    padding: 0 8px !important;
-    border-radius: 12px !important;
+    height: auto !important;
+    min-height: 44px !important;
+    padding: 0 18px !important;
+    border-radius: 14px !important;
     font-size: 13px !important;
     line-height: 1.05 !important;
     white-space: normal !important;
     text-align: center !important;
+  }
+
+  body:has(#preview-status) .preview-actions .btn-ghost {
+    flex: 1 1 0 !important;
+    width: auto !important;
+    min-width: 0 !important;
+    min-height: 36px !important;
+    padding: 0 14px !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(22, 101, 52, 0.22) !important;
+    color: var(--brand-strong) !important;
+  }
+
+  body:has(#preview-status) .action-divider {
+    display: none !important;
   }
 
   body:has(#preview-status) .document-stage {
