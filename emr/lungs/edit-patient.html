@@ -375,7 +375,7 @@
   </main>
 
   <script type="module">
-    import { doc, getDoc, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { doc, getDoc, serverTimestamp, setDoc, waitForPendingWrites } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     import { db } from './lib/firebase-init.js';
 
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/lungs';
@@ -521,11 +521,27 @@
 
       try {
         await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId), nextRecord, { merge: true });
+
+        let syncedToServer = true;
+        try {
+          await Promise.race([
+            waitForPendingWrites(db),
+            new Promise((_, reject) => window.setTimeout(() => reject(new Error('timeout')), 8000))
+          ]);
+        } catch (syncError) {
+          syncedToServer = false;
+        }
+
         writePatientDetailCache(patientId, {
           ...nextRecord,
           updatedAt: new Date().toISOString()
         });
-        setStatus('Patient details saved.', 'ready');
+
+        if (syncedToServer) {
+          setStatus('Patient details saved.', 'ready');
+        } else {
+          setStatus('Saved on this device. Will sync to the cloud once back online.', 'error');
+        }
         window.setTimeout(() => {
           window.location.href = returnTo;
         }, 450);

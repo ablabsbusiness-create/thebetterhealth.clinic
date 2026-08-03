@@ -2239,7 +2239,7 @@
   </script>
 
   <script type="module">
-    import { collection, doc, getDocs, limit, orderBy, query, serverTimestamp, setDoc, where } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { collection, doc, getDocs, limit, orderBy, query, serverTimestamp, setDoc, waitForPendingWrites, where } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     import { getDownloadURL, getMetadata, listAll, ref } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
     import { db, storage } from './lib/firebase-init.js';
     import { PrescriptionLazyLoader } from './lib/lazy-load.js';
@@ -4543,12 +4543,25 @@
       };
 
       await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, editingPatientId), nextDetails, { merge: true });
+
+      let syncedToServer = true;
+      try {
+        await Promise.race([
+          waitForPendingWrites(db),
+          new Promise((_, reject) => window.setTimeout(() => reject(new Error('timeout')), 8000))
+        ]);
+      } catch (syncError) {
+        syncedToServer = false;
+      }
+
       allPatients = allPatients.map((patient) => (
         getNormalizedPatientId(patient?.patientId) === editingPatientId
           ? { ...patient, ...nextDetails, updatedAt: new Date().toISOString() }
           : patient
       ));
       filterPatients();
+
+      return syncedToServer;
     }
 
     resultsPanel.addEventListener('input', (event) => {
@@ -4789,8 +4802,10 @@
         patientEditStatus.textContent = 'Saving details...';
 
         try {
-          await savePatientDetailsEdit();
-          patientEditStatus.textContent = 'Patient details saved.';
+          const syncedToServer = await savePatientDetailsEdit();
+          patientEditStatus.textContent = syncedToServer
+            ? 'Patient details saved.'
+            : 'Saved on this device. Will sync to the cloud once back online.';
           closePatientEditModal();
         } catch (error) {
           patientEditStatus.textContent = error.message || 'Unable to save patient details.';
