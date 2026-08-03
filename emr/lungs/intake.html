@@ -295,7 +295,18 @@
         submitBtn.textContent = 'Send To Clinic Review';
       }
     });
-    [dobDayInput, dobMonthInput, dobYearInput].forEach((input) => input.addEventListener('input', () => { dobYearInput.setCustomValidity(''); }));
+    const dobInputSequence = [dobDayInput, dobMonthInput, dobYearInput];
+    dobInputSequence.forEach((input, index) => {
+      input.addEventListener('input', () => {
+        dobYearInput.setCustomValidity('');
+        const nextInput = dobInputSequence[index + 1];
+        if (nextInput && input.value.length >= input.maxLength) nextInput.focus();
+      });
+      input.addEventListener('keydown', (event) => {
+        const previousInput = dobInputSequence[index - 1];
+        if (event.key === 'Backspace' && !input.value && previousInput) previousInput.focus();
+      });
+    });
     submitAnotherBtn.addEventListener('click', () => { resetConfirmation(); setStatus(''); intakeForm.reset(); document.getElementById('mobile-number').focus(); });
   </script>
 </body>

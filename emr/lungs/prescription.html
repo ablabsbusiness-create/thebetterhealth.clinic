@@ -89,6 +89,7 @@
       margin: 0;
       min-height: 100vh;
       font-family: 'Outfit', system-ui, sans-serif;
+      font-size: 15px;
       color: var(--ink);
       background:
         radial-gradient(circle at top left, rgba(34, 197, 94, 0.14), transparent 28%),
@@ -106,7 +107,7 @@
     }
 
     .topbar {
-      width: min(1180px, calc(100% - 28px));
+      width: min(1180px, calc(100% - 40px));
       margin: 0 auto;
       min-height: 72px;
       display: flex;
@@ -143,7 +144,7 @@
       display: block;
       margin-top: 4px;
       color: var(--muted);
-      font-size: 12px;
+      font-size: 14px;
     }
 
     .nav-links {
@@ -167,7 +168,7 @@
       border-radius: 999px;
       color: #5f6f66;
       text-decoration: none;
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 800;
       white-space: nowrap;
       transition: background 0.18s ease, color 0.18s ease;
@@ -234,7 +235,7 @@
       border-radius: 999px;
       background: #f8fbf9;
       border: 1px solid var(--line);
-      font-size: 12px;
+      font-size: 14px;
       color: var(--muted);
       font-weight: 600;
       white-space: nowrap;
@@ -255,7 +256,7 @@
     }
 
     .page-shell {
-      width: min(1120px, calc(100% - 32px));
+      width: min(1120px, calc(100% - 48px));
       margin: 22px auto 28px;
     }
 
@@ -306,7 +307,7 @@
     .vitals-summary-head p {
       margin: 4px 0 0;
       color: var(--muted);
-      font-size: 12px;
+      font-size: 14px;
       line-height: 1.45;
     }
 
@@ -317,7 +318,7 @@
       background: #f8fbf9;
       border: 1px solid var(--line);
       color: var(--muted);
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 600;
       white-space: nowrap;
     }
@@ -339,7 +340,7 @@
 
     .vitals-summary-label {
       color: var(--muted);
-      font-size: 11px;
+      font-size: 13px;
       font-weight: 700;
       letter-spacing: 0.04em;
       text-transform: uppercase;
@@ -354,7 +355,7 @@
 
     .vitals-summary-empty {
       color: var(--muted);
-      font-size: 13px;
+      font-size: 15px;
       line-height: 1.55;
     }
 
@@ -436,7 +437,7 @@
     .section-side-placeholder p {
       margin: 0;
       color: var(--muted);
-      font-size: 13px;
+      font-size: 15px;
       line-height: 1.6;
     }
 
@@ -472,7 +473,7 @@
       display: grid;
       align-content: start;
       gap: 12px;
-      padding: 14px;
+      padding: 18px;
       border-radius: 16px;
       border: 1px solid rgba(215, 226, 217, 0.68);
       background: rgba(255, 255, 255, 0.96);
@@ -491,6 +492,24 @@
 
     .rx-card-head p {
       display: none;
+    }
+
+    .notes-freetext {
+      width: 100%;
+      min-height: 96px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      resize: vertical;
+      font: inherit;
+      color: var(--ink);
+      outline: none;
+    }
+
+    .notes-freetext:focus {
+      border-color: rgba(22, 101, 52, 0.55);
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12);
     }
 
     .search-row {
@@ -536,9 +555,12 @@
       background: var(--brand-soft);
       color: var(--brand-strong);
       font: inherit;
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 600;
       cursor: pointer;
+      touch-action: manipulation;
+      -webkit-touch-callout: none;
+      user-select: none;
     }
 
     .selected-item-remove {
@@ -549,7 +571,7 @@
       height: 18px;
       border-radius: 999px;
       background: rgba(20, 83, 45, 0.12);
-      font-size: 11px;
+      font-size: 13px;
       line-height: 1;
     }
 
@@ -559,7 +581,7 @@
 
     .selected-placeholder {
       color: var(--muted);
-      font-size: 13px;
+      font-size: 15px;
     }
 
     .bubble-wrap {
@@ -570,7 +592,7 @@
 
     .bubble-empty {
       color: var(--muted);
-      font-size: 13px;
+      font-size: 15px;
     }
 
     .add-option-btn {
@@ -581,7 +603,7 @@
       background: rgba(220, 252, 231, 0.45);
       color: var(--brand-strong);
       font: inherit;
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 700;
       cursor: pointer;
       justify-self: start;
@@ -595,7 +617,7 @@
       background: #fff;
       color: var(--ink);
       font: inherit;
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 600;
       cursor: pointer;
       transition: border-color 0.18s ease, background 0.18s ease;
@@ -665,7 +687,7 @@
     .medicine-modal-title-wrap p {
       margin: 0;
       color: var(--muted);
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 600;
       line-height: 1.2;
     }
@@ -728,7 +750,7 @@
       background: transparent;
       color: #1682d4;
       font: inherit;
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 700;
       cursor: pointer;
     }
@@ -751,7 +773,7 @@
 
     .add-medicine-field span {
       color: #52606d;
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 700;
     }
 
@@ -778,7 +800,7 @@
       display: none;
       margin: -18px 34px 28px;
       color: #b91c1c;
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 700;
     }
 
@@ -809,7 +831,7 @@
     .medicine-detail-panel p {
       margin: 2px 0 0;
       color: var(--muted);
-      font-size: 13px;
+      font-size: 15px;
       line-height: 1.4;
     }
 
@@ -819,7 +841,7 @@
       background: #f8fbf9;
       border: 1px dashed var(--line);
       color: var(--muted);
-      font-size: 13px;
+      font-size: 15px;
       line-height: 1.5;
     }
 
@@ -854,7 +876,7 @@
       border-radius: 16px;
       background: linear-gradient(180deg, #fbfdff, #f3f8ff);
       color: #475569;
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 700;
     }
 
@@ -882,7 +904,7 @@
       padding: 8px 14px;
       background: #e7eefb;
       color: #1e3a5f;
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 700;
     }
 
@@ -894,7 +916,7 @@
       background: rgba(255, 255, 255, 0.76);
       color: #1e3a5f;
       font: inherit;
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 800;
       outline: none;
     }
@@ -925,14 +947,14 @@
       align-items: center;
       padding: 0 12px;
       color: #475569;
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 700;
     }
 
     .dose-entry-row .unit-cell {
       justify-content: center;
       border-left: 1px solid #eef2f7;
-      font-size: 12px;
+      font-size: 14px;
     }
 
     .medicine-question input[type="text"] {
@@ -1003,7 +1025,7 @@
       border-bottom: 1px solid #eef2f7;
       background: #f1f5fb;
       color: #1e3a5f;
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 800;
     }
 
@@ -1033,7 +1055,7 @@
       background: #fff;
       color: #334155;
       font: inherit;
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 600;
       cursor: pointer;
       transition: background 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
@@ -1080,7 +1102,7 @@
       border-radius: 999px;
       background: #f8fafc;
       box-shadow: 0 4px 10px rgba(22, 38, 29, 0.04);
-      font-size: 13px;
+      font-size: 15px;
     }
 
     button.selection-pill {
@@ -1155,14 +1177,14 @@
 
     @media (max-width: 900px) {
       .topbar {
-        width: min(100% - 24px, 100%);
+        width: min(100% - 32px, 100%);
         min-height: auto;
         padding: 14px 0;
         flex-wrap: wrap;
       }
 
       .page-shell {
-        width: min(100% - 24px, 100%);
+        width: min(100% - 32px, 100%);
       }
 
       .content-layout {
@@ -1192,7 +1214,7 @@
 
     @media (max-width: 640px) {
       .topbar {
-        width: min(100% - 20px, 100%);
+        width: min(100% - 28px, 100%);
         padding: 12px 0;
         gap: 12px;
         align-items: stretch;
@@ -1235,7 +1257,7 @@
       }
 
       .page-shell {
-        width: min(100% - 20px, 100%);
+        width: min(100% - 28px, 100%);
         margin: 12px auto 20px;
       }
 
@@ -1302,7 +1324,7 @@
       .selection-pill {
         min-height: 44px;
         padding: 0 12px;
-        font-size: 12px;
+        font-size: 14px;
       }
 
       .content-panel {
@@ -1434,20 +1456,12 @@
             </div>
           </article>
 
-          <article class="rx-card">
+          <article class="rx-card" data-section-name="Notes">
             <div class="rx-card-head">
               <h2>Notes</h2>
               <p></p>
             </div>
-            <div class="search-row" data-search-section="notes">
-              <input type="text" placeholder="Search notes">
-            </div>
-            <div class="selected-list" data-selected-list>
-              <span class="selected-placeholder">Selected items will appear here.</span>
-            </div>
-            <div class="selection-divider" aria-hidden="true"></div>
-            <div class="bubble-wrap" data-bubble-wrap>
-            </div>
+            <textarea class="notes-freetext" data-notes-input placeholder="Add any notes for this visit"></textarea>
           </article>
 
           <article class="rx-card">
@@ -1626,6 +1640,7 @@
     const primaryNav = document.getElementById('primary-nav');
     const navLinks = [...document.querySelectorAll('#primary-nav .nav-link')];
     const rxCards = [...document.querySelectorAll('.rx-card')];
+    const notesInput = document.querySelector('[data-notes-input]');
     const statusChip = document.querySelector('.status-chip');
     const vitalsSummaryCard = document.getElementById('vitals-summary-card');
     const vitalsSummarySubtitle = document.getElementById('vitals-summary-subtitle');
@@ -1658,7 +1673,11 @@
     const medicineCatalog = new Map();
     const sectionItemDetails = {
       Symptoms: new Map(),
-      Finding: new Map()
+      Finding: new Map(),
+      Diagnosis: new Map(),
+      Investigation: new Map(),
+      'Past Medical History': new Map(),
+      Instruction: new Map()
     };
     const prescriptionSelections = {};
     let activeMedicine = '';
@@ -1666,7 +1685,7 @@
     let lastAddMedicineTrigger = null;
     let pendingAddMedicineResolve = null;
     const sectionDetailSlots = new Map();
-    const DETAIL_SECTIONS = new Set(['Symptoms', 'Finding', 'Diagnosis', 'Medication']);
+    const DETAIL_SECTIONS = new Set(['Symptoms', 'Finding', 'Diagnosis', 'Investigation', 'Past Medical History', 'Instruction', 'Medication']);
     const MEDICINE_DETAIL_STORAGE_KEY = clinicStorageKey('prescriptionMedicineDetails');
     const CUSTOM_TEMPLATE_STORAGE_KEY = clinicStorageKey('prescriptionCustomTemplates');
     const PRESCRIPTION_USAGE_STORAGE_KEY = clinicStorageKey('prescriptionUsageCounts');
@@ -1680,7 +1699,6 @@
     const prescriptionTemplates = {
       Symptoms: ['Fever', 'Cough', 'Cold', 'Vomiting', 'Loose stools', 'Abdominal pain', 'Normal activity', 'No fever', 'No cough', 'No vomiting', 'No breathlessness', 'Normal urine', 'Bladder and bowel normal', 'Normal development', 'Throat pain', 'Nose block', 'Itching and rashes over body', 'Fast breathing', 'Eye redness', 'Excessive crying', 'No loose stools', 'Passing hard stools', 'Nausea', 'Productive cough', 'Ear pain', 'Headache', 'Sticky eye-discharge', 'Rashes', 'Feeding well', 'Earache', 'Decreased activity', 'Decreased urine output', 'Not eating well'],
       Finding: ['Throat congestion', 'Wheeze', 'Pallor', 'Dehydrated', 'Active child', 'Irritable child', 'Hydration fair', 'Febrile', 'Afebrile', 'Chest clear', 'Abdomen soft', 'No organomegaly', 'Tonsils enlarged', 'Skin rash present', 'Mild dehydration', 'Conjunctival congestion', 'Nasal congestion', 'Crepitations', 'Oral ulcers', 'Ear discharge', 'Mottling', 'Pulse regular', 'No cyanosis', 'Mild pallor', 'Tachypnea', 'Tonsillar exudate'],
-      Notes: ['Follow up advised', 'Review after 3 days', 'Vitals stable', 'Parent counselled', 'Medication explained', 'Diet advice given', 'Hydration explained', 'Danger signs explained', 'Return if symptoms worsen', 'Continue breastfeeding', 'Monitor urine output', 'School rest advised'],
       Diagnosis: ['Viral fever', 'URTI', 'Gastroenteritis', 'Allergic rhinitis', 'Observation advised', 'Acute bronchitis', 'Pharyngitis', 'Bronchiolitis', 'Tonsillitis', 'Constipation', 'AGE', 'Typhoid fever', 'UTI', 'Viral exanthem'],
       Investigation: ['CBC', 'CRP', 'Urine routine', 'Chest X-ray', 'Dengue test', 'Widal test', 'RFT', 'LFT', 'Blood culture', 'Urine culture', 'Stool routine', 'Electrolytes', 'Random blood sugar', 'Peripheral smear', 'Malaria test', 'Ultrasound abdomen', 'Throat swab', 'X-ray PNS', 'Sputum culture', 'Procalcitonin', 'Blood gas', 'Serum calcium', 'Serum sodium', 'Serum potassium'],
       'Past Medical History': ['Previous wheeze episodes', 'NICU stay', 'Febrile seizures', 'Asthma history', 'Drug allergy', 'Previous hospitalization', 'Recurrent cold', 'Recurrent cough', 'Developmental delay', 'Birth history normal', 'Vaccination delayed', 'Family history of allergy'],
@@ -2163,6 +2181,12 @@
         element.addEventListener('change', syncSelectionDetailsFromDom);
       });
 
+      const noteField = selectionDetailContent.querySelector('[data-field="note"]');
+      noteField?.addEventListener('blur', () => {
+        noteField.value = formatClauseText(noteField.value);
+        syncSelectionDetailsFromDom();
+      });
+
       syncDaysQuickPickState();
     }
 
@@ -2339,6 +2363,15 @@
         .filter(Boolean)
         .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
         .join(' ');
+    }
+
+    function formatClauseText(rawValue) {
+      return String(rawValue || '')
+        .split(/\r?\n|\.\s*/)
+        .map((clause) => clause.trim().replace(/[.,]+$/, ''))
+        .filter(Boolean)
+        .map((clause) => clause.charAt(0).toUpperCase() + clause.slice(1))
+        .join(', ');
     }
 
     function renderBubbleButtons(wrap, items, addableQuery = '') {
@@ -2549,7 +2582,7 @@
 
     function getPrescriptionDraftId(patientId) {
       const existingDraft = readLocalJson(PRESCRIPTION_DRAFT_STORAGE_KEY, null);
-      if (existingDraft?.draftId && existingDraft?.patientId === patientId && Number(existingDraft.expiresAt) > Date.now()) {
+      if (existingDraft?.draftId && existingDraft?.patientId === patientId) {
         return existingDraft.draftId;
       }
 
@@ -2590,7 +2623,8 @@
         patientId,
         sections,
         sectionDetails,
-        medicineDetails: details
+        medicineDetails: details,
+        notes: notesInput?.value || ''
       }));
       continuePreviewBtn.href = getPreviewTargetUrl();
     }
@@ -3254,7 +3288,8 @@
         }
       }
 
-      function toggleValue(value, shouldSelect, trigger = document.activeElement) {
+      function toggleValue(value, shouldSelect, trigger = document.activeElement, options = {}) {
+        const { silent = false } = options;
         const isNewSelection = shouldSelect && !selectedValues.has(value);
 
         getBubbleButtons().forEach((button) => {
@@ -3291,11 +3326,17 @@
             }
           }
 
-          renderMedicineDetails();
+          if (!silent) {
+            renderMedicineDetails();
 
-          if (shouldSelect || activeMedicine) {
-            openMedicineModal(trigger);
+            if (shouldSelect || activeMedicine) {
+              openMedicineModal(trigger);
+            }
           }
+          return;
+        }
+
+        if (silent) {
           return;
         }
 
@@ -3304,7 +3345,7 @@
           openSelectionDetailModal(sectionName, value, trigger);
         }
 
-        if ((sectionName === 'Symptoms' || sectionName === 'Finding' || sectionName === 'Diagnosis') && !shouldSelect && sectionItemDetails[sectionName]) {
+        if (!shouldSelect && sectionItemDetails[sectionName]) {
           sectionItemDetails[sectionName].delete(value);
           saveSelectionDetailsToDraft();
         }
@@ -3408,6 +3449,58 @@
 
       searchInput.addEventListener('input', applySearchFilter);
 
+      // Medication keeps its existing tap behavior untouched. Every other
+      // section edits a saved chip via press-and-hold instead of a tap, so a
+      // stray tap can't silently delete or pop a modal open - the x stays as
+      // the one deliberate way to remove a chip.
+      let chipLongPressTimer = null;
+      let chipLongPressTriggered = false;
+      let chipLongPressStart = null;
+      const CHIP_LONG_PRESS_MS = 500;
+      const CHIP_LONG_PRESS_MOVE_TOLERANCE = 10;
+
+      function clearChipLongPress() {
+        clearTimeout(chipLongPressTimer);
+        chipLongPressTimer = null;
+        chipLongPressStart = null;
+      }
+
+      if (sectionName !== 'Medication') {
+        selectedList.addEventListener('pointerdown', (event) => {
+          const selectedButton = event.target.closest('.selected-item');
+
+          if (!selectedButton || event.target.closest('.selected-item-remove')) {
+            return;
+          }
+
+          chipLongPressTriggered = false;
+          clearChipLongPress();
+          chipLongPressStart = { x: event.clientX, y: event.clientY };
+          chipLongPressTimer = setTimeout(() => {
+            chipLongPressTriggered = true;
+            const selectedValue = selectedButton.dataset.selectedValue;
+            getSectionItemDetail(sectionName, selectedValue);
+            openSelectionDetailModal(sectionName, selectedValue, selectedButton);
+          }, CHIP_LONG_PRESS_MS);
+        });
+
+        selectedList.addEventListener('pointermove', (event) => {
+          if (!chipLongPressStart) {
+            return;
+          }
+
+          const dx = event.clientX - chipLongPressStart.x;
+          const dy = event.clientY - chipLongPressStart.y;
+          if (Math.hypot(dx, dy) > CHIP_LONG_PRESS_MOVE_TOLERANCE) {
+            clearChipLongPress();
+          }
+        });
+
+        ['pointerup', 'pointercancel', 'pointerleave'].forEach((eventName) => {
+          selectedList.addEventListener(eventName, clearChipLongPress);
+        });
+      }
+
       selectedList.addEventListener('click', (event) => {
         const selectedButton = event.target.closest('.selected-item');
 
@@ -3417,15 +3510,16 @@
 
         const selectedValue = selectedButton.dataset.selectedValue;
         const clickedRemove = Boolean(event.target.closest('.selected-item-remove'));
-        const hasDetailPanel = sectionName === 'Symptoms' || sectionName === 'Finding' || sectionName === 'Diagnosis';
 
-        if (clickedRemove || !hasDetailPanel) {
+        if (clickedRemove || sectionName === 'Medication') {
           toggleValue(selectedValue, false, selectedButton);
           return;
         }
 
-        getSectionItemDetail(sectionName, selectedValue);
-        openSelectionDetailModal(sectionName, selectedValue, selectedButton);
+        // A quick tap on the chip body does nothing - press and hold opens
+        // edit. Swallow the click that follows a long-press so it doesn't
+        // also fire here.
+        chipLongPressTriggered = false;
       });
 
       bubbleWrap.addEventListener('click', async (event) => {
@@ -3439,7 +3533,7 @@
       });
 
       applySearchFilter();
-      sectionBindings.set(sectionName, { updateItems });
+      sectionBindings.set(sectionName, { updateItems, toggleValue });
     }
 
     async function initPrescriptionData() {
@@ -3457,6 +3551,10 @@
       const localTemplates = cachedCloudTemplates ? mergeWithSavedTemplates(cachedCloudTemplates) : null;
       if (localTemplates) {
         Object.entries(localTemplates).forEach(([sectionName, items]) => {
+          if (sectionName === 'Notes') {
+            return;
+          }
+
           const card = sectionMap.get(sectionName);
 
           if (card) {
@@ -3469,6 +3567,10 @@
         const prescriptionData = mergeWithSavedTemplates(await ensurePrescriptionCollection());
 
         Object.entries(prescriptionData).forEach(([sectionName, items]) => {
+          if (sectionName === 'Notes') {
+            return;
+          }
+
           const card = sectionMap.get(sectionName);
 
           if (!card) {
@@ -3483,6 +3585,10 @@
 
         if (localTemplates) {
           Object.entries(localTemplates).forEach(([sectionName, items]) => {
+            if (sectionName === 'Notes') {
+              return;
+            }
+
             const card = sectionMap.get(sectionName);
 
             if (!card) {
@@ -3495,7 +3601,69 @@
       }
     }
 
-    initPrescriptionData();
+    async function restoreUnsavedDraftForCurrentPatient() {
+      const patientId = getCurrentPatientId();
+      if (!patientId) {
+        return;
+      }
+
+      const draft = readLocalJson(PRESCRIPTION_DRAFT_STORAGE_KEY, null);
+      if (!draft || draft.patientId !== patientId) {
+        return;
+      }
+
+      const hasSavedContent = Object.values(draft.sections || {}).some((items) => Array.isArray(items) && items.length)
+        || Object.keys(draft.medicineDetails || {}).length > 0
+        || Boolean(String(draft.notes || '').trim());
+      if (!hasSavedContent) {
+        return;
+      }
+
+      const sections = draft.sections || {};
+      const sectionDetails = draft.sectionDetails || {};
+      const medDetails = draft.medicineDetails || {};
+
+      Object.entries(sections).forEach(([sectionName, items]) => {
+        const binding = sectionBindings.get(sectionName);
+        if (!binding || !Array.isArray(items)) {
+          return;
+        }
+
+        items.forEach((value) => {
+          binding.toggleValue(value, true, document.activeElement, { silent: true });
+        });
+      });
+
+      Object.entries(sectionDetails).forEach(([sectionName, detailMap]) => {
+        if (!sectionItemDetails[sectionName] || !detailMap) {
+          return;
+        }
+
+        Object.entries(detailMap).forEach(([item, detail]) => {
+          sectionItemDetails[sectionName].set(item, { ...detail });
+        });
+      });
+
+      Object.entries(medDetails).forEach(([medicine, detail]) => {
+        medicineDetails.set(medicine, { ...detail, savedAt: Date.now() });
+      });
+
+      if (notesInput && typeof draft.notes === 'string') {
+        notesInput.value = draft.notes;
+      }
+
+      saveMedicineDetailsToStorage();
+      savePrescriptionDraft();
+    }
+
+    initPrescriptionData().then(restoreUnsavedDraftForCurrentPatient);
+    notesInput?.addEventListener('input', () => {
+      savePrescriptionDraft();
+    });
+    notesInput?.addEventListener('blur', () => {
+      notesInput.value = formatClauseText(notesInput.value);
+      savePrescriptionDraft();
+    });
     continuePreviewBtn.addEventListener('click', () => {
       syncMedicineDetailsFromDom();
       savePrescriptionDraft();

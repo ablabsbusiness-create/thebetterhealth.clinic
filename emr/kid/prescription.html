@@ -89,6 +89,7 @@
       margin: 0;
       min-height: 100vh;
       font-family: 'Outfit', system-ui, sans-serif;
+      font-size: 15px;
       color: var(--ink);
       background:
         radial-gradient(circle at top left, rgba(34, 197, 94, 0.14), transparent 28%),
@@ -106,7 +107,7 @@
     }
 
     .topbar {
-      width: min(1180px, calc(100% - 28px));
+      width: min(1180px, calc(100% - 40px));
       margin: 0 auto;
       min-height: 72px;
       display: flex;
@@ -143,7 +144,7 @@
       display: block;
       margin-top: 4px;
       color: var(--muted);
-      font-size: 12px;
+      font-size: 14px;
     }
 
     .nav-links {
@@ -164,7 +165,7 @@
       border-radius: 999px;
       color: #5f6f66;
       text-decoration: none;
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 800;
       white-space: nowrap;
       transition: background 0.18s ease, color 0.18s ease;
@@ -231,7 +232,7 @@
       border-radius: 999px;
       background: #f8fbf9;
       border: 1px solid var(--line);
-      font-size: 12px;
+      font-size: 14px;
       color: var(--muted);
       font-weight: 600;
       white-space: nowrap;
@@ -252,7 +253,7 @@
     }
 
     .page-shell {
-      width: min(1120px, calc(100% - 32px));
+      width: min(1120px, calc(100% - 48px));
       margin: 22px auto 28px;
     }
 
@@ -300,7 +301,7 @@
     .growth-summary-head p {
       margin: 4px 0 0;
       color: var(--muted);
-      font-size: 12px;
+      font-size: 14px;
       line-height: 1.45;
     }
 
@@ -311,7 +312,7 @@
       background: #f8fbf9;
       border: 1px solid var(--line);
       color: var(--muted);
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 600;
       white-space: nowrap;
     }
@@ -333,7 +334,7 @@
 
     .growth-summary-label {
       color: var(--muted);
-      font-size: 11px;
+      font-size: 13px;
       font-weight: 700;
       letter-spacing: 0.04em;
       text-transform: uppercase;
@@ -348,7 +349,7 @@
 
     .growth-summary-empty {
       color: var(--muted);
-      font-size: 13px;
+      font-size: 15px;
       line-height: 1.55;
     }
 
@@ -436,7 +437,7 @@
     .section-side-placeholder p {
       margin: 0;
       color: var(--muted);
-      font-size: 12px;
+      font-size: 14px;
       line-height: 1.45;
     }
 
@@ -474,7 +475,7 @@
       display: grid;
       align-content: start;
       gap: 10px;
-      padding: 12px;
+      padding: 16px;
       border-radius: 14px;
       border: 1px solid rgba(215, 226, 217, 0.68);
       background: rgba(255, 255, 255, 0.96);
@@ -493,6 +494,24 @@
 
     .rx-card-head p {
       display: none;
+    }
+
+    .notes-freetext {
+      width: 100%;
+      min-height: 96px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      resize: vertical;
+      font: inherit;
+      color: var(--ink);
+      outline: none;
+    }
+
+    .notes-freetext:focus {
+      border-color: rgba(22, 101, 52, 0.55);
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12);
     }
 
     .search-row {
@@ -538,9 +557,12 @@
       background: var(--brand-soft);
       color: var(--brand-strong);
       font: inherit;
-      font-size: 11px;
+      font-size: 13px;
       font-weight: 600;
       cursor: pointer;
+      touch-action: manipulation;
+      -webkit-touch-callout: none;
+      user-select: none;
     }
 
     .selected-item-remove {
@@ -551,7 +573,7 @@
       height: 16px;
       border-radius: 999px;
       background: rgba(20, 83, 45, 0.12);
-      font-size: 10px;
+      font-size: 13px;
       line-height: 1;
     }
 
@@ -561,7 +583,7 @@
 
     .selected-placeholder {
       color: var(--muted);
-      font-size: 13px;
+      font-size: 15px;
     }
 
     .bubble-wrap {
@@ -572,7 +594,7 @@
 
     .bubble-empty {
       color: var(--muted);
-      font-size: 13px;
+      font-size: 15px;
     }
 
     .add-option-btn {
@@ -583,7 +605,7 @@
       background: rgba(220, 252, 231, 0.45);
       color: var(--brand-strong);
       font: inherit;
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 700;
       cursor: pointer;
       justify-self: start;
@@ -597,7 +619,7 @@
       background: #fff;
       color: var(--ink);
       font: inherit;
-      font-size: 11px;
+      font-size: 13px;
       font-weight: 600;
       cursor: pointer;
       transition: border-color 0.18s ease, background 0.18s ease;
@@ -675,7 +697,7 @@
     .medicine-modal-title-wrap p {
       margin: 0;
       color: var(--muted);
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 600;
       line-height: 1.2;
     }
@@ -705,7 +727,7 @@
       background: linear-gradient(135deg, #dcfce7, #f0fdf4);
       color: #166534;
       font: inherit;
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 700;
       cursor: pointer;
       box-shadow: 0 10px 22px rgba(22, 101, 52, 0.12);
@@ -791,7 +813,7 @@
 
     .consult-template-head-titles p {
       margin: 0;
-      font-size: 12.5px;
+      font-size: 14px;
       color: var(--muted);
     }
 
@@ -814,7 +836,7 @@
     }
 
     .consult-template-save-label {
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.04em;
@@ -854,7 +876,7 @@
       color: #fff;
       font: inherit;
       font-weight: 700;
-      font-size: 13.5px;
+      font-size: 15px;
       white-space: nowrap;
       cursor: pointer;
       box-shadow: 0 12px 24px rgba(22, 101, 52, 0.24);
@@ -873,7 +895,7 @@
 
     .consult-template-error {
       color: #b91c1c;
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 700;
       display: none;
     }
@@ -883,7 +905,7 @@
     }
 
     .consult-template-section-label {
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.04em;
@@ -923,7 +945,7 @@
       background: #dcfce7;
       color: #14532d;
       font-weight: 800;
-      font-size: 14px;
+      font-size: 16px;
     }
 
     .consult-template-row-main {
@@ -941,7 +963,7 @@
     }
 
     .consult-template-row-info strong {
-      font-size: 14.5px;
+      font-size: 16px;
       color: var(--ink);
       overflow: hidden;
       text-overflow: ellipsis;
@@ -949,7 +971,7 @@
     }
 
     .consult-template-row-info span {
-      font-size: 12px;
+      font-size: 14px;
       color: var(--muted);
     }
 
@@ -971,7 +993,7 @@
       background: #f0fdf4;
       color: #14532d;
       font: inherit;
-      font-size: 12.5px;
+      font-size: 14px;
       font-weight: 700;
       cursor: pointer;
     }
@@ -989,7 +1011,7 @@
       border: 1px solid var(--line);
       background: #fff;
       color: #b91c1c;
-      font-size: 13px;
+      font-size: 15px;
       cursor: pointer;
     }
 
@@ -1001,7 +1023,7 @@
       padding: 32px 20px;
       text-align: center;
       color: var(--muted);
-      font-size: 13.5px;
+      font-size: 15px;
       border-radius: 14px;
       border: 1px dashed rgba(22, 101, 52, 0.2);
       background: rgba(237, 233, 254, 0.25);
@@ -1017,7 +1039,7 @@
       border: 1px solid #f3d98c;
       background: #fef8e7;
       color: #92660a;
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 700;
     }
 
@@ -1035,7 +1057,7 @@
       border: 1px solid #9fd8b0;
       background: #eaf9ef;
       color: #146c34;
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 700;
     }
 
@@ -1051,7 +1073,7 @@
       background: rgba(22, 163, 74, 0.08);
       color: var(--brand-strong);
       font: inherit;
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 700;
       line-height: 34px;
       cursor: pointer;
@@ -1112,7 +1134,7 @@
       background: transparent;
       color: #1682d4;
       font: inherit;
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 700;
       cursor: pointer;
     }
@@ -1135,7 +1157,7 @@
 
     .add-medicine-field span {
       color: #52606d;
-      font-size: 11px;
+      font-size: 13px;
       font-weight: 700;
     }
 
@@ -1162,7 +1184,7 @@
       display: none;
       margin: -18px 34px 28px;
       color: #b91c1c;
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 700;
     }
 
@@ -1193,7 +1215,7 @@
     .medicine-detail-panel p {
       margin: 2px 0 0;
       color: var(--muted);
-      font-size: 12px;
+      font-size: 14px;
       line-height: 1.4;
     }
 
@@ -1203,7 +1225,7 @@
       background: #f8fbf9;
       border: 1px dashed var(--line);
       color: var(--muted);
-      font-size: 13px;
+      font-size: 15px;
       line-height: 1.5;
     }
 
@@ -1238,7 +1260,7 @@
       border-radius: 14px;
       background: linear-gradient(180deg, #fbfdff, #f3f8ff);
       color: #475569;
-      font-size: 11px;
+      font-size: 13px;
       font-weight: 700;
     }
 
@@ -1266,7 +1288,7 @@
       padding: 7px 12px;
       background: #e7eefb;
       color: #1e3a5f;
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 700;
     }
 
@@ -1278,7 +1300,7 @@
       background: rgba(255, 255, 255, 0.76);
       color: #1e3a5f;
       font: inherit;
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 800;
       outline: none;
     }
@@ -1309,14 +1331,14 @@
       align-items: center;
       padding: 0 10px;
       color: #475569;
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 700;
     }
 
     .dose-entry-row .unit-cell {
       justify-content: center;
       border-left: 1px solid #eef2f7;
-      font-size: 12px;
+      font-size: 14px;
     }
 
     .medicine-question input[type="text"] {
@@ -1387,7 +1409,7 @@
       border-bottom: 1px solid #eef2f7;
       background: #f1f5fb;
       color: #1e3a5f;
-      font-size: 11px;
+      font-size: 13px;
       font-weight: 800;
     }
 
@@ -1417,7 +1439,7 @@
       background: #fff;
       color: #334155;
       font: inherit;
-      font-size: 11px;
+      font-size: 13px;
       font-weight: 600;
       cursor: pointer;
       transition: background 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
@@ -1464,7 +1486,7 @@
       border-radius: 999px;
       background: #f8fafc;
       box-shadow: 0 4px 10px rgba(22, 38, 29, 0.04);
-      font-size: 12px;
+      font-size: 14px;
     }
 
     button.selection-pill {
@@ -1539,14 +1561,14 @@
 
     @media (max-width: 900px) {
       .topbar {
-        width: min(100% - 24px, 100%);
+        width: min(100% - 32px, 100%);
         min-height: auto;
         padding: 14px 0;
         flex-wrap: wrap;
       }
 
       .page-shell {
-        width: min(100% - 24px, 100%);
+        width: min(100% - 32px, 100%);
       }
 
       .content-layout {
@@ -1579,7 +1601,7 @@
 
     @media (max-width: 640px) {
       .topbar {
-        width: min(100% - 20px, 100%);
+        width: min(100% - 28px, 100%);
         padding: 12px 0;
         gap: 12px;
         align-items: stretch;
@@ -1622,7 +1644,7 @@
       }
 
       .page-shell {
-        width: min(100% - 20px, 100%);
+        width: min(100% - 28px, 100%);
         margin: 12px auto 20px;
       }
 
@@ -1689,7 +1711,7 @@
       .selection-pill {
         min-height: 44px;
         padding: 0 12px;
-        font-size: 12px;
+        font-size: 14px;
       }
 
       .content-panel {
@@ -1833,14 +1855,7 @@
               <h2>Notes</h2>
               <p></p>
             </div>
-            <div class="search-row" data-search-section="notes">
-              <input type="text" placeholder="Search notes">
-            </div>
-            <div class="selected-list" data-selected-list>
-            </div>
-            <div class="selection-divider" aria-hidden="true"></div>
-            <div class="bubble-wrap" data-bubble-wrap>
-            </div>
+            <textarea class="notes-freetext" data-notes-input placeholder="Add any notes for this visit"></textarea>
           </article>
 
           <article class="rx-card" data-section-name="Diagnosis">
@@ -2048,6 +2063,7 @@
     const primaryNav = document.getElementById('primary-nav');
     const navLinks = [...document.querySelectorAll('#primary-nav .nav-link')];
     const rxCards = [...document.querySelectorAll('.rx-card')];
+    const notesInput = document.querySelector('[data-notes-input]');
     const statusChip = document.querySelector('.status-chip');
     const cardGrid = document.querySelector('.card-grid');
     const medicineModal = document.getElementById('medicine-modal');
@@ -2093,7 +2109,10 @@
     const sectionItemDetails = {
       Symptoms: new Map(),
       Finding: new Map(),
-      Diagnosis: new Map()
+      Diagnosis: new Map(),
+      Investigation: new Map(),
+      'Past Medical History': new Map(),
+      Instruction: new Map()
     };
     const prescriptionSelections = {};
     let activeMedicine = '';
@@ -2103,7 +2122,7 @@
     let addMedicineMode = 'create';
     let editingMedicineKey = '';
     const sectionDetailSlots = new Map();
-    const DETAIL_SECTIONS = new Set(['Symptoms', 'Finding', 'Diagnosis', 'Medication']);
+    const DETAIL_SECTIONS = new Set(['Symptoms', 'Finding', 'Diagnosis', 'Investigation', 'Past Medical History', 'Instruction', 'Medication']);
     const MEDICINE_DETAIL_STORAGE_KEY = clinicStorageKey('prescriptionMedicineDetails');
     const CUSTOM_TEMPLATE_STORAGE_KEY = clinicStorageKey('prescriptionCustomTemplates');
     const PRESCRIPTION_TEMPLATE_CACHE_KEY = clinicStorageKey('prescriptionCloudTemplates');
@@ -2117,7 +2136,6 @@
     const prescriptionTemplates = {
       Symptoms: ['Fever', 'Cough', 'Cold', 'Vomiting', 'Loose stools', 'Abdominal pain', 'Normal activity', 'No fever', 'No cough', 'No vomiting', 'No breathlessness', 'Normal urine', 'Bladder and bowel normal', 'Normal development', 'Throat pain', 'Nose block', 'Itching and rashes over body', 'Fast breathing', 'Eye redness', 'Excessive crying', 'No loose stools', 'Passing hard stools', 'Nausea', 'Productive cough', 'Ear pain', 'Headache', 'Sticky eye-discharge', 'Rashes', 'Feeding well', 'Earache', 'Decreased activity', 'Decreased urine output', 'Not eating well'],
       Finding: ['Throat congestion', 'Wheeze', 'Pallor', 'Dehydrated', 'Active child', 'Irritable child', 'Hydration fair', 'Febrile', 'Afebrile', 'Chest clear', 'Abdomen soft', 'No organomegaly', 'Tonsils enlarged', 'Skin rash present', 'Mild dehydration', 'Conjunctival congestion', 'Nasal congestion', 'Crepitations', 'Oral ulcers', 'Ear discharge', 'Mottling', 'Pulse regular', 'No cyanosis', 'Mild pallor', 'Tachypnea', 'Tonsillar exudate'],
-      Notes: ['Follow up advised', 'Review after 3 days', 'Vitals stable', 'Parent counselled', 'Medication explained', 'Diet advice given', 'Hydration explained', 'Danger signs explained', 'Return if symptoms worsen', 'Continue breastfeeding', 'Monitor urine output', 'School rest advised'],
       Diagnosis: ['Viral fever', 'URTI', 'Gastroenteritis', 'Allergic rhinitis', 'Observation advised', 'Acute bronchitis', 'Pharyngitis', 'Bronchiolitis', 'Tonsillitis', 'Constipation', 'AGE', 'Typhoid fever', 'UTI', 'Viral exanthem'],
       Investigation: ['CBC', 'CRP', 'Urine routine', 'Chest X-ray', 'Dengue test', 'Widal test', 'RFT', 'LFT', 'Blood culture', 'Urine culture', 'Stool routine', 'Electrolytes', 'Random blood sugar', 'Peripheral smear', 'Malaria test', 'Ultrasound abdomen', 'Throat swab', 'X-ray PNS', 'Sputum culture', 'Procalcitonin', 'Blood gas', 'Serum calcium', 'Serum sodium', 'Serum potassium'],
       'Past Medical History': ['Previous wheeze episodes', 'NICU stay', 'Febrile seizures', 'Asthma history', 'Drug allergy', 'Previous hospitalization', 'Recurrent cold', 'Recurrent cough', 'Developmental delay', 'Birth history normal', 'Vaccination delayed', 'Family history of allergy'],
@@ -2128,7 +2146,6 @@
       Symptoms: ['Fever', 'Cough', 'Cold', 'Vomiting', 'Loose stools', 'Abdominal pain', 'Normal activity', 'No fever', 'No cough', 'No vomiting', 'No breathlessness', 'Normal urine', 'Bladder and bowel normal', 'Normal development', 'Throat pain', 'Nose block', 'Itching and rashes over body', 'Fast breathing', 'Eye redness', 'Excessive crying', 'No loose stools', 'Passing hard stools', 'Nausea', 'Productive cough', 'Ear pain', 'Headache', 'Sticky eye-discharge', 'Rashes', 'Feeding well', 'Earache', 'Decreased activity', 'Decreased urine output', 'Not eating well'],
       'Past Medical History': ['Recurrent cough', 'Recurrent cold', 'Previous hospitalization', 'Known asthma', 'Known allergy', 'Recurrent abdominal pain', 'Recurrent UTI', 'Developmental delay', 'Birth history normal', 'No significant history', 'Vaccination delayed', 'Family history of allergy', 'Seizure history', 'Prematurity', 'NICU admission', 'Wheezing episodes', 'Frequent fever', 'Surgery history'],
       Finding: ['Febrile', 'Afebrile', 'Chest clear', 'Crepitations', 'Abdomen soft', 'No organomegaly', 'Hydration fair', 'Oral ulcers', 'Tonsils enlarged', 'Ear normal', 'Skin rash present', 'Active and playful', 'Irritable child', 'Throat congestion', 'Wheeze present', 'Mild dehydration', 'Conjunctival congestion', 'Nasal discharge', 'Pulse regular', 'No cyanosis', 'Nasal congestion', 'Mild pallor', 'Tachypnea', 'Tonsillar exudate', 'Mottling', 'Ear discharge', 'Rhonchi'],
-      Notes: ['Fever chart explained', 'Diet advice given', 'Danger signs explained', 'Hydration explained', 'Nebulization technique explained', 'Dose schedule explained', 'Follow up if symptoms worsen', 'School rest advised', 'Avoid cold drinks', 'Parent reassured', 'Monitor urine output', 'Return if breathing fast', 'Review after reports', 'Continue breastfeeding', 'Maintain hand hygiene', 'Use humidified air', 'Complete medicine course', 'Rest at home'],
       Diagnosis: ['Acute bronchitis', 'Acute gastritis', 'Tonsillitis', 'Pharyngitis', 'Bronchiolitis', 'Wheeze associated LRTI', 'Acute otitis media', 'UTI', 'Constipation', 'AGE', 'Dengue fever', 'Typhoid fever', 'Viral exanthem', 'Injury', 'Abrasion right leg', 'Viral fever', 'Allergic rhinitis', 'Acute diarrheal illness', 'Possible dehydration', 'Observation advised', 'Suspected viral infection', 'Acute febrile illness', 'Acute tonsillopharyngitis'],
       Investigation: ['CBC with smear', 'Malaria test', 'Widal test', 'LFT', 'RFT', 'Blood culture', 'Urine culture', 'Stool routine', 'Electrolytes', 'Random blood sugar', 'Throat swab', 'X-ray PNS', 'Ultrasound abdomen', 'Dengue NS1', 'CRP', 'Chest X-ray', 'Urine routine', 'Peripheral smear', 'Sputum culture', 'Procalcitonin', 'Blood gas', 'Serum calcium', 'Serum sodium', 'Serum potassium', 'Serum creatinine', 'Serum bilirubin', 'ECG', 'ECG with lead placement'],
       Medication: ['Amoxicillin', 'Amoxicillin clavulanate', 'Cefixime', 'Levocetirizine', 'Montelukast', 'Salbutamol', 'Budesonide', 'Pantoprazole', 'Domperidone', 'Zinc', 'Probiotic', 'Vitamin D3', 'Multivitamin', 'Ibuprofen', 'Paracetamol', 'Ondansetron', 'ORS', 'Cetirizine', 'Azithromycin', 'Metronidazole', 'Albendazole', 'Ferrous syrup', 'Prednisolone', 'Domperidone syrup', 'Ferrous ascorbate'],
@@ -2720,6 +2737,12 @@
         element.addEventListener('change', syncSelectionDetailsFromDom);
       });
 
+      const noteField = selectionDetailContent.querySelector('[data-field="note"]');
+      noteField?.addEventListener('blur', () => {
+        noteField.value = formatClauseText(noteField.value);
+        syncSelectionDetailsFromDom();
+      });
+
       syncDaysQuickPickState();
     }
 
@@ -2929,6 +2952,15 @@
         .join(' ');
     }
 
+    function formatClauseText(rawValue) {
+      return String(rawValue || '')
+        .split(/\r?\n|\.\s*/)
+        .map((clause) => clause.trim().replace(/[.,]+$/, ''))
+        .filter(Boolean)
+        .map((clause) => clause.charAt(0).toUpperCase() + clause.slice(1))
+        .join(', ');
+    }
+
     function renderBubbleButtons(wrap, items, addableQuery = '') {
       wrap.innerHTML = '';
       const visibleItems = items.slice(0, VISIBLE_CHIP_LIMIT);
@@ -3110,7 +3142,7 @@
       }
 
       const existingDraft = readLocalJson(PRESCRIPTION_DRAFT_STORAGE_KEY, null);
-      if (existingDraft?.draftId && existingDraft?.patientId === patientId && Number(existingDraft.expiresAt) > Date.now()) {
+      if (existingDraft?.draftId && existingDraft?.patientId === patientId) {
         return existingDraft.draftId;
       }
 
@@ -3181,7 +3213,8 @@
         patientId: validPatientId,
         sections,
         sectionDetails,
-        medicineDetails: details
+        medicineDetails: details,
+        notes: notesInput?.value || ''
       }));
       continuePreviewBtn.href = getPreviewTargetUrl();
       updateDosageWarningBanner();
@@ -3917,7 +3950,7 @@
           openSelectionDetailModal(sectionName, value, modalTrigger);
         }
 
-        if ((sectionName === 'Symptoms' || sectionName === 'Finding' || sectionName === 'Diagnosis') && !shouldSelect && sectionItemDetails[sectionName]) {
+        if (!shouldSelect && sectionItemDetails[sectionName]) {
           sectionItemDetails[sectionName].delete(value);
           saveSelectionDetailsToDraft();
         }
@@ -4038,6 +4071,58 @@
 
       searchInput.addEventListener('input', applySearchFilter);
 
+      // Medication keeps its existing tap behavior untouched. Every other
+      // section edits a saved chip via press-and-hold instead of a tap, so a
+      // stray tap can't silently delete or pop a modal open - the x stays as
+      // the one deliberate way to remove a chip.
+      let chipLongPressTimer = null;
+      let chipLongPressTriggered = false;
+      let chipLongPressStart = null;
+      const CHIP_LONG_PRESS_MS = 500;
+      const CHIP_LONG_PRESS_MOVE_TOLERANCE = 10;
+
+      function clearChipLongPress() {
+        clearTimeout(chipLongPressTimer);
+        chipLongPressTimer = null;
+        chipLongPressStart = null;
+      }
+
+      if (sectionName !== 'Medication') {
+        selectedList.addEventListener('pointerdown', (event) => {
+          const selectedButton = event.target.closest('.selected-item');
+
+          if (!selectedButton || event.target.closest('.selected-item-remove')) {
+            return;
+          }
+
+          chipLongPressTriggered = false;
+          clearChipLongPress();
+          chipLongPressStart = { x: event.clientX, y: event.clientY };
+          chipLongPressTimer = setTimeout(() => {
+            chipLongPressTriggered = true;
+            const selectedValue = selectedButton.dataset.selectedValue;
+            getSectionItemDetail(sectionName, selectedValue);
+            openSelectionDetailModal(sectionName, selectedValue, selectedButton);
+          }, CHIP_LONG_PRESS_MS);
+        });
+
+        selectedList.addEventListener('pointermove', (event) => {
+          if (!chipLongPressStart) {
+            return;
+          }
+
+          const dx = event.clientX - chipLongPressStart.x;
+          const dy = event.clientY - chipLongPressStart.y;
+          if (Math.hypot(dx, dy) > CHIP_LONG_PRESS_MOVE_TOLERANCE) {
+            clearChipLongPress();
+          }
+        });
+
+        ['pointerup', 'pointercancel', 'pointerleave'].forEach((eventName) => {
+          selectedList.addEventListener(eventName, clearChipLongPress);
+        });
+      }
+
       selectedList.addEventListener('click', (event) => {
         const selectedButton = event.target.closest('.selected-item');
 
@@ -4047,15 +4132,16 @@
 
         const selectedValue = selectedButton.dataset.selectedValue;
         const clickedRemove = Boolean(event.target.closest('.selected-item-remove'));
-        const hasDetailPanel = sectionName === 'Symptoms' || sectionName === 'Finding' || sectionName === 'Diagnosis';
 
-        if (clickedRemove || !hasDetailPanel) {
+        if (clickedRemove || sectionName === 'Medication') {
           toggleValue(selectedValue, false, selectedButton);
           return;
         }
 
-        getSectionItemDetail(sectionName, selectedValue);
-        openSelectionDetailModal(sectionName, selectedValue, selectedButton);
+        // A quick tap on the chip body does nothing - press and hold opens
+        // edit. Swallow the click that follows a long-press so it doesn't
+        // also fire here.
+        chipLongPressTriggered = false;
       });
 
       bubbleWrap.addEventListener('click', async (event) => {
@@ -4088,6 +4174,10 @@
       const localTemplates = cachedCloudTemplates ? mergeWithSavedTemplates(cachedCloudTemplates) : null;
       if (localTemplates) {
         Object.entries(localTemplates).forEach(([sectionName, items]) => {
+          if (sectionName === 'Notes') {
+            return;
+          }
+
           const card = sectionMap.get(sectionName);
 
           if (card) {
@@ -4100,6 +4190,10 @@
         const prescriptionData = mergeWithSavedTemplates(await ensurePrescriptionCollection());
 
         Object.entries(prescriptionData).forEach(([sectionName, items]) => {
+          if (sectionName === 'Notes') {
+            return;
+          }
+
           const card = sectionMap.get(sectionName);
 
           if (!card) {
@@ -4114,6 +4208,10 @@
 
         if (localTemplates) {
           Object.entries(localTemplates).forEach(([sectionName, items]) => {
+            if (sectionName === 'Notes') {
+              return;
+            }
+
             const card = sectionMap.get(sectionName);
 
             if (!card) {
@@ -4160,8 +4258,46 @@
         medicineDetails.set(medicine, { ...detail, savedAt: Date.now() });
       });
 
+      if (notesInput) {
+        if (typeof record.notes === 'string') {
+          notesInput.value = record.notes;
+        } else if (Array.isArray(sections.Notes) && sections.Notes.length) {
+          // Older saved prescriptions stored Notes as picked chips - fall back
+          // to showing them as plain text instead of dropping them silently.
+          notesInput.value = sections.Notes.join(', ');
+        }
+      }
+
       saveMedicineDetailsToStorage();
       savePrescriptionDraft();
+    }
+
+    async function restoreUnsavedDraftForCurrentPatient() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('repeatFrom') || params.get('editId')) {
+        // Those flows load their own record via applyRepeatSelections - don't
+        // also layer a leftover in-progress draft on top of it.
+        return;
+      }
+
+      const patientId = getCurrentPatientId();
+      if (!isValidPatientId(patientId)) {
+        return;
+      }
+
+      const draft = readLocalJson(PRESCRIPTION_DRAFT_STORAGE_KEY, null);
+      if (!draft || draft.patientId !== patientId) {
+        return;
+      }
+
+      const hasSavedContent = Object.values(draft.sections || {}).some((items) => Array.isArray(items) && items.length)
+        || Object.keys(draft.medicineDetails || {}).length > 0
+        || Boolean(String(draft.notes || '').trim());
+      if (!hasSavedContent) {
+        return;
+      }
+
+      await applyRepeatSelections(draft);
     }
 
     async function loadRepeatFromHistory() {
@@ -4412,6 +4548,7 @@
 
     async function openInitialPrescriptionAction() {
       await initPrescriptionData();
+      await restoreUnsavedDraftForCurrentPatient();
       await loadRepeatFromHistory();
       await loadEditFromHistory();
 
@@ -4421,6 +4558,13 @@
     }
 
     openInitialPrescriptionAction();
+    notesInput?.addEventListener('input', () => {
+      savePrescriptionDraft();
+    });
+    notesInput?.addEventListener('blur', () => {
+      notesInput.value = formatClauseText(notesInput.value);
+      savePrescriptionDraft();
+    });
     continuePreviewBtn.addEventListener('click', () => {
       syncMedicineDetailsFromDom();
       savePrescriptionDraft();
