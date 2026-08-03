@@ -3874,7 +3874,7 @@
       const selectedValues = new Set();
       prescriptionSelections[sectionName] = selectedValues;
       let allItems = orderSectionItems(sectionName, mergeUniqueItems(initialItems));
-      const hasDetailPanel = sectionName === 'Symptoms' || sectionName === 'Finding' || sectionName === 'Diagnosis';
+      const hasDetailPanel = DETAIL_SECTIONS.has(sectionName) && sectionName !== 'Medication';
 
       function getBubbleButtons() {
         return [...card.querySelectorAll('.bubble-btn')];
