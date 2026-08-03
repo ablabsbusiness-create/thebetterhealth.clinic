@@ -348,6 +348,13 @@
       white-space: nowrap;
     }
 
+    .btn-primary[hidden],
+    .btn-secondary[hidden],
+    .btn-whatsapp[hidden],
+    .btn-ghost[hidden] {
+      display: none;
+    }
+
     .nav-enter-clinic {
       min-height: 40px;
       padding: 0 16px;
@@ -378,6 +385,42 @@
       background: var(--brand);
       color: #fff;
       box-shadow: 0 12px 24px rgba(22, 101, 52, 0.18);
+    }
+
+    .action-divider {
+      width: 1px;
+      align-self: stretch;
+      min-height: 24px;
+      background: var(--line);
+      margin: 0 2px;
+    }
+
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      padding: 0 12px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      background: transparent;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .btn-ghost:hover {
+      background: #f1f5f2;
+      border-color: var(--line);
+      color: var(--brand-strong);
+    }
+
+    .btn-ghost:disabled {
+      opacity: 0.6;
+      cursor: wait;
     }
 
     .header-mode-toggle {
@@ -710,6 +753,10 @@
         padding-inline: 14px;
       }
 
+      .action-divider {
+        display: block;
+      }
+
       .preview-actions .header-mode-btn {
         padding-inline: 9px;
       }
@@ -792,33 +839,43 @@
         display: flex;
         flex-direction: column;
         align-items: stretch;
-        gap: 12px;
+        gap: 8px;
+        padding: 10px;
       }
 
       .preview-actions {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x proximity;
+        justify-content: flex-start;
+        gap: 8px;
         width: 100%;
+        padding-bottom: 2px;
+        margin-inline: -10px;
+        padding-inline: 10px;
+      }
+
+      .preview-actions::-webkit-scrollbar {
+        height: 4px;
       }
 
       .preview-actions .nav-enter-clinic,
-      .preview-actions .header-mode-toggle {
-        grid-column: 1 / -1;
-      }
-
-      .preview-actions .nav-enter-clinic {
-        width: 100%;
-      }
-
-      .preview-actions .header-mode-toggle {
-        width: 100%;
-      }
-
       .preview-actions .btn-primary,
       .preview-actions .btn-secondary,
-      .preview-actions .btn-whatsapp {
-        width: 100%;
+      .preview-actions .btn-whatsapp,
+      .preview-actions .btn-ghost,
+      .preview-actions .header-mode-toggle {
+        flex: 0 0 auto;
+        width: auto;
+        scroll-snap-align: start;
+      }
+
+      .action-divider {
+        display: block;
+        align-self: stretch;
+        flex: 0 0 auto;
       }
 
       .document-stage {
@@ -840,7 +897,7 @@
 
       .status-chip {
         width: 100%;
-        min-height: 48px;
+        min-height: 38px;
         justify-content: center;
         border-radius: 14px;
       }
@@ -1196,15 +1253,16 @@
         </div>
         <div class="preview-actions">
             <a id="enter-clinic-link" class="nav-link nav-enter-clinic" href="/emr/kid/search" aria-disabled="true">Enter Clinic</a>
+          <button id="download-pdf-btn" class="btn-primary" type="button">Download PDF</button>
+          <button id="whatsapp-btn" class="btn-whatsapp" type="button">WhatsApp</button>
+          <span class="action-divider" aria-hidden="true"></span>
           <div class="header-mode-toggle" aria-label="Prescription header mode">
             <button id="with-header-btn" class="header-mode-btn" type="button">With Header</button>
             <button id="without-header-btn" class="header-mode-btn" type="button">Without Header</button>
           </div>
-          <button id="download-pdf-btn" class="btn-primary" type="button">Download PDF</button>
-          <button id="print-pdf-btn" class="btn-secondary" type="button">Print PDF</button>
-          <button id="add-payment-btn" class="btn-secondary" type="button">Add Payment</button>
-          <button id="whatsapp-btn" class="btn-whatsapp" type="button">WhatsApp</button>
-          <button id="edit-prescription-btn" class="btn-secondary" type="button" hidden>Edit Prescription</button>
+          <button id="print-pdf-btn" class="btn-ghost" type="button">Print PDF</button>
+          <button id="add-payment-btn" class="btn-ghost" type="button">Add Payment</button>
+          <button id="edit-prescription-btn" class="btn-ghost" type="button" hidden>Edit Prescription</button>
         </div>
       </div>
       <div class="document-stage">
@@ -1688,6 +1746,11 @@
     function getPatientIdFromUrl() {
       const params = new URLSearchParams(window.location.search);
       return (params.get('patientId') || '').trim().toUpperCase();
+    }
+
+    function getEditIdFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      return (params.get('editId') || '').trim();
     }
 
     function normalizePatientId(value) {
@@ -2868,7 +2931,7 @@
         pdf,
         previewBlob,
         draftId: draft?.draftId || '',
-        editId: draft?.editId || '',
+        editId: draft?.editId || getEditIdFromUrl() || '',
         patientId,
         childName: chartRecord?.childName || '',
         parentName: chartRecord?.parentName || '',

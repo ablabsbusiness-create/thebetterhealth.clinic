@@ -341,6 +341,41 @@
       text-decoration: none;
     }
 
+    .action-divider {
+      width: 1px;
+      align-self: stretch;
+      min-height: 24px;
+      background: var(--line);
+      margin: 0 2px;
+    }
+
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 36px;
+      padding: 0 14px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      background: transparent;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .btn-ghost:hover {
+      background: #f1f5f2;
+      border-color: var(--line);
+      color: var(--brand-strong);
+    }
+
+    .btn-ghost:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
     .print-group {
       display: inline-flex;
       align-items: center;
@@ -750,12 +785,47 @@
         position: static;
         align-items: stretch;
         flex-direction: column;
+        gap: 8px;
+        padding: 10px;
       }
 
       .preview-actions {
-        display: grid;
-        grid-template-columns: 1fr;
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x proximity;
+        justify-content: flex-start;
+        gap: 8px;
         width: 100%;
+        padding-bottom: 2px;
+        margin-inline: -10px;
+        padding-inline: 10px;
+      }
+
+      .preview-actions::-webkit-scrollbar {
+        height: 4px;
+      }
+
+      .preview-actions .nav-enter-clinic,
+      .preview-actions .btn-primary,
+      .preview-actions .btn-secondary,
+      .preview-actions .btn-whatsapp,
+      .preview-actions .btn-ghost,
+      .preview-actions .print-group {
+        flex: 0 0 auto;
+        width: auto;
+        scroll-snap-align: start;
+      }
+
+      .action-divider {
+        display: block;
+        align-self: stretch;
+        flex: 0 0 auto;
+      }
+
+      .status-chip {
+        min-height: 38px;
       }
 
       .document-stage {
@@ -889,12 +959,13 @@
           <a id="enter-clinic-link" class="nav-link nav-enter-clinic" href="search" aria-disabled="true">Enter Clinic</a>
           <button id="download-pdf-btn" class="btn-primary" type="button">Download PDF</button>
           <button id="whatsapp-btn" class="btn-whatsapp" type="button">WhatsApp</button>
+          <span class="action-divider" aria-hidden="true"></span>
           <div class="print-group">
             <div class="print-switch" role="group" aria-label="Print mode">
               <button id="print-mode-with-header" class="print-switch-option is-active" type="button" aria-pressed="true">With Header</button>
               <button id="print-mode-without-header" class="print-switch-option" type="button" aria-pressed="false">Without Header</button>
             </div>
-            <button id="print-btn" class="btn-secondary" type="button">Print</button>
+            <button id="print-btn" class="btn-ghost" type="button">Print</button>
           </div>
         </div>
       </div>

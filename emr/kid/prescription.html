@@ -3085,9 +3085,15 @@
 
     function getPreviewTargetUrl() {
       const patientId = getCurrentPatientId() || getActiveChartRecord()?.patientId || '';
-      return isValidPatientId(patientId)
-        ? `/emr/kid/preview?patientId=${encodeURIComponent(patientId)}`
-        : '/emr/kid/preview';
+      const params = new URLSearchParams();
+      if (isValidPatientId(patientId)) {
+        params.set('patientId', patientId);
+      }
+      if (activePrescriptionEditId) {
+        params.set('editId', activePrescriptionEditId);
+      }
+      const query = params.toString();
+      return query ? `/emr/kid/preview?${query}` : '/emr/kid/preview';
     }
 
     function readLocalJson(key, fallback = null) {
@@ -3835,6 +3841,7 @@
       const selectedValues = new Set();
       prescriptionSelections[sectionName] = selectedValues;
       let allItems = orderSectionItems(sectionName, mergeUniqueItems(initialItems));
+      const hasDetailPanel = sectionName === 'Symptoms' || sectionName === 'Finding' || sectionName === 'Diagnosis';
 
       function getBubbleButtons() {
         return [...card.querySelectorAll('.bubble-btn')];
@@ -3925,6 +3932,12 @@
           button.addEventListener('click', () => {
             const value = button.textContent.trim();
             const isSelected = selectedValues.has(value);
+
+            if (isSelected && hasDetailPanel) {
+              getSectionItemDetail(sectionName, value);
+              openSelectionDetailModal(sectionName, value, button);
+              return;
+            }
 
             toggleValue(value, !isSelected, button);
           });
