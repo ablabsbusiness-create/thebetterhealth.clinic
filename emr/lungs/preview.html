@@ -1946,28 +1946,6 @@
       });
     }
 
-    function isMobileDownloadView() {
-      return window.matchMedia('(max-width: 768px)').matches;
-    }
-
-    function getDownloadButtonLabel() {
-      return isMobileDownloadView() ? 'Download PNG' : 'Download PDF';
-    }
-
-    function downloadBlob(blob, fileName) {
-      const objectUrl = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = objectUrl;
-      link.download = fileName;
-      link.rel = 'noopener';
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
-    }
-
-    downloadPdfBtn.textContent = getDownloadButtonLabel();
-
     function buildPdfFromCanvas(canvas) {
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
       const pageWidth = pdf.internal.pageSize.getWidth();
@@ -2265,16 +2243,11 @@
 
     downloadPdfBtn.addEventListener('click', async () => {
       downloadPdfBtn.disabled = true;
-      downloadPdfBtn.textContent = isMobileDownloadView() ? 'Preparing PNG...' : 'Preparing...';
+      downloadPdfBtn.textContent = 'Preparing...';
 
       try {
         const builtRecord = await ensurePrescriptionPdfBuilt();
-        if (isMobileDownloadView() && builtRecord.previewBlob) {
-          const pngFileName = builtRecord.fileName.replace(/\.pdf$/i, '.png');
-          downloadBlob(builtRecord.previewBlob, pngFileName);
-        } else {
-          builtRecord.pdf.save(builtRecord.fileName);
-        }
+        builtRecord.pdf.save(builtRecord.fileName);
         clearPrescriptionLocalData();
         ensurePrescriptionSaved().catch((error) => {
           console.warn(`Prescription background save failed: ${error.message}`);
@@ -2283,7 +2256,7 @@
         console.warn(`Unable to save prescription PDF: ${error.message}`);
       } finally {
         downloadPdfBtn.disabled = false;
-        downloadPdfBtn.textContent = getDownloadButtonLabel();
+        downloadPdfBtn.textContent = 'Download PDF';
       }
     });
 
