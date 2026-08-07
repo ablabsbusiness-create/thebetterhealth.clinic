@@ -2930,7 +2930,7 @@
     }
 
     function toSentenceCase(value) {
-      const trimmed = String(value || '').trim().toLowerCase();
+      const trimmed = String(value || '').trim();
       return trimmed ? trimmed.charAt(0).toUpperCase() + trimmed.slice(1) : '';
     }
 
