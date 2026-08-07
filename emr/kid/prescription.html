@@ -2609,7 +2609,7 @@
       const detail = getSectionItemDetail(sectionName, value);
       const daysInput = selectionDetailContent.querySelector('[data-field="days"]');
       const severityInput = selectionDetailContent.querySelector('[data-field="severity"]:checked');
-      const diagnosisStatusInput = selectionDetailContent.querySelector('[data-field="diagnosis-status"]');
+      const diagnosisStatusInput = selectionDetailContent.querySelector('[data-field="diagnosis-status"]:checked');
       const noteInput = selectionDetailContent.querySelector('[data-field="note"]');
 
       if (sectionName === 'Symptoms') {
@@ -2738,14 +2738,16 @@
               <div class="medicine-question">
                 <div class="question-bar">
                   <span>Status</span>
-                  <span>Optional</span>
+                  <span>Choose one</span>
                 </div>
-                <select class="detail-input" data-field="diagnosis-status">
-                  <option value="">Select status</option>
+                <div class="selection-pill-grid" aria-label="${value} status options">
                   ${['Suspected', 'Recovering', 'Recovered', 'Under evaluation'].map((option) => `
-                    <option value="${option}" ${selectedAttr(detail.status === option)}>${option}</option>
+                    <label class="option-pill selection-pill">
+                      <input type="radio" name="diagnosis-status-detail" value="${option}" data-field="diagnosis-status" ${checkedAttr(detail.status === option)}>
+                      ${option}
+                    </label>
                   `).join('')}
-                </select>
+                </div>
               </div>
             ` : ''}
             <div class="note-area">
