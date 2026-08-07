@@ -1434,6 +1434,16 @@
       grid-template-columns: repeat(5, minmax(0, 1fr));
     }
 
+    .selection-pill-grid.status-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .selection-pill-grid.status-grid .selection-pill {
+      min-height: 44px;
+      white-space: nowrap;
+    }
+
     .selection-pill {
       min-height: 36px;
       padding: 0 12px;
@@ -2740,7 +2750,7 @@
                   <span>Status</span>
                   <span>Choose one</span>
                 </div>
-                <div class="selection-pill-grid" aria-label="${value} status options">
+                <div class="selection-pill-grid status-grid" aria-label="${value} status options">
                   ${['Suspected', 'Recovering', 'Recovered', 'Under evaluation'].map((option) => `
                     <label class="option-pill selection-pill">
                       <input type="radio" name="diagnosis-status-detail" value="${option}" data-field="diagnosis-status" ${checkedAttr(detail.status === option)}>
@@ -2899,9 +2909,13 @@
         .join(', ');
     }
 
-    function renderBubbleButtons(wrap, items, addableQuery = '') {
+    function renderBubbleButtons(wrap, items, addableQuery = '', selectedValues = null) {
       wrap.innerHTML = '';
-      const visibleItems = items.slice(0, VISIBLE_CHIP_LIMIT);
+
+      const selectedItems = selectedValues ? items.filter((item) => selectedValues.has(item)) : [];
+      const unselectedItems = selectedValues ? items.filter((item) => !selectedValues.has(item)) : items;
+      const remainingSlots = Math.max(VISIBLE_CHIP_LIMIT - selectedItems.length, 0);
+      const visibleItems = [...selectedItems, ...unselectedItems.slice(0, remainingSlots)];
 
       if (!items.length) {
         if (!addableQuery) {
@@ -4027,7 +4041,7 @@
           ? toTitleCase(searchInput.value)
           : '';
 
-        renderBubbleButtons(bubbleWrap, filteredItems, addableQuery);
+        renderBubbleButtons(bubbleWrap, filteredItems, addableQuery, selectedValues);
         bindBubbleClickHandlers();
       }
 
