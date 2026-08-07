@@ -3664,12 +3664,12 @@
       }
 
       const entries = Array.isArray(patient.measurementHistory) ? [...patient.measurementHistory] : [];
+      if (patient.lastMeasurementRecord) {
+        entries.push(patient.lastMeasurementRecord);
+      }
       const vitalsDraftEntry = buildVitalsDraftMeasurementEntry(patient);
       if (vitalsDraftEntry) {
         entries.push(vitalsDraftEntry);
-      }
-      if (patient.lastMeasurementRecord) {
-        entries.push(patient.lastMeasurementRecord);
       }
       getImportedMeasurementEntries(patient).forEach((entry) => entries.push(entry));
 
