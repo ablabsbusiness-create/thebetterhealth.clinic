@@ -2316,6 +2316,7 @@
               <div class="section-head-actions">
                 <div id="record-date-chip" class="record-date-chip">Record date <span>Today</span></div>
                 <button id="add-record-btn" class="btn-secondary btn-inline" type="button">Add Record</button>
+                <button id="refresh-chart-btn" class="btn-secondary btn-inline" type="button">Refresh</button>
                 <input id="toggle-all-past-history" type="checkbox" checked hidden>
               </div>
             </div>
@@ -2678,6 +2679,7 @@
     const chartPreviewStatus = document.getElementById('chart-preview-status');
     const form = document.getElementById('chart-form');
     const addRecordBtn = document.getElementById('add-record-btn');
+    const refreshChartBtn = document.getElementById('refresh-chart-btn');
     const recordDateChip = document.getElementById('record-date-chip');
     const recordModalBackdrop = document.getElementById('record-modal-backdrop');
     const recordModal = recordModalBackdrop?.querySelector('.record-modal') || null;
@@ -5942,6 +5944,28 @@
         closeRecordDateModal();
       }
     });
+
+      function resetGeneratedChart() {
+        generatedTemplates = [];
+        generatedPreviewPages = [];
+        generatedPdfBase64 = '';
+        latestChartPdfUploadResult = null;
+        chartRevealed = false;
+        lastRenderedChartSignature = '';
+        renderPreviewGallery();
+        drawBaseTemplate(null);
+        downloadBtn.hidden = true;
+        generateBtn.disabled = false;
+        generateBtn.textContent = 'Generate Chart';
+        statusNote.textContent = 'Chart actions are ready once patient details and measurements are complete.';
+        statusNote.classList.remove('visible');
+      }
+
+      refreshChartBtn?.addEventListener('click', () => {
+        if (generatedPreviewPages.length > 0 || chartRevealed || generateBtn.textContent.trim() === 'Continue') {
+          resetGeneratedChart();
+        }
+      });
 
       generateBtn.addEventListener('click', async () => {
       if (generateBtn.textContent.trim() === 'Continue') {
