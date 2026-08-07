@@ -1057,11 +1057,11 @@ function renderPdf(entry, options = {}) {
 
   let y = 51;
   y = addInlineRow(pdf, 'Symptoms', listValues(entry.symptoms || entry.rawSymptom).join(', '), 6, y, 198);
+  y = addInlineRow(pdf, 'Past Medical History', listValues(entry.pastMedicalHistory || entry.rawPastMedicalHistory).join(', '), 6, y, 198);
   y = addInlineRow(pdf, 'Finding', listValues(entry.findings || entry.rawFinding).join(', '), 6, y, 198);
   y = addInlineRow(pdf, 'Notes', listValues(entry.notes || entry.rawNotes).join(', '), 6, y, 198);
   y = addInlineRow(pdf, 'Diagnosis', listValues(entry.diagnosis || entry.rawDiagnosis).join(', '), 6, y, 198);
   y = addInlineRow(pdf, 'Investigation', listValues(entry.investigation || entry.rawInvestigation).join(', '), 6, y, 198);
-  y = addInlineRow(pdf, 'Past Medical History', listValues(entry.pastMedicalHistory || entry.rawPastMedicalHistory).join(', '), 6, y, 198);
   y = addMedicationTable(pdf, parseMedicationRows(entry), y + 2);
   y = addInlineRow(pdf, 'Instruction', listValues(entry.instruction || entry.instructions || entry.rawInstruction).join(' | '), 6, y, 198);
   y = addGrowthCharts(pdf, entry, visitIso, y, seriesEntries);
