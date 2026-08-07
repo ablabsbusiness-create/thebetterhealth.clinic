@@ -1446,6 +1446,10 @@
       margin-bottom: 12px;
     }
 
+    .allergy-freetext {
+      min-height: 72px;
+    }
+
     .selection-pill-grid.status-grid .selection-pill {
       min-height: 44px;
       white-space: nowrap;
@@ -1774,7 +1778,7 @@
                 No
               </label>
             </div>
-            <textarea class="notes-freetext" placeholder="Allergy details (not saved)"></textarea>
+            <textarea class="notes-freetext allergy-freetext" placeholder="e.g. Penicillin, peanuts, dust"></textarea>
           </article>
 
           <article class="rx-card" data-section-name="Symptoms">
@@ -2925,6 +2929,11 @@
         .join(' ');
     }
 
+    function toSentenceCase(value) {
+      const trimmed = String(value || '').trim().toLowerCase();
+      return trimmed ? trimmed.charAt(0).toUpperCase() + trimmed.slice(1) : '';
+    }
+
     function formatClauseText(rawValue) {
       return String(rawValue || '')
         .split(/\r?\n|\.\s*/)
@@ -3989,7 +3998,7 @@
       }
 
       async function addNewItem(rawValue) {
-        let normalizedValue = toTitleCase(rawValue);
+        let normalizedValue = sectionName === 'Medication' ? toTitleCase(rawValue) : toSentenceCase(rawValue);
 
         if (!normalizedValue) {
           return;
@@ -4063,7 +4072,7 @@
           ? allItems.some((item) => item.toLowerCase() === query)
           : true;
         const addableQuery = query && !exactExists && filteredItems.length === 0
-          ? toTitleCase(searchInput.value)
+          ? (sectionName === 'Medication' ? toTitleCase(searchInput.value) : toSentenceCase(searchInput.value))
           : '';
 
         renderBubbleButtons(bubbleWrap, filteredItems, addableQuery, selectedValues);
