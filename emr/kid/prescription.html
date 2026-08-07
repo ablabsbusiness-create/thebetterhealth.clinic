@@ -544,7 +544,7 @@
     .bubble-wrap {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
+      gap: 10px;
     }
 
     .bubble-empty {
@@ -567,14 +567,14 @@
     }
 
     .bubble-btn {
-      min-height: 30px;
-      padding: 0 10px;
+      min-height: 42px;
+      padding: 0 18px;
       border: 1px solid rgba(215, 226, 217, 0.9);
       border-radius: 999px;
       background: #fff;
       color: var(--ink);
       font: inherit;
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 600;
       cursor: pointer;
       transition: border-color 0.18s ease, background 0.18s ease;
@@ -2065,7 +2065,7 @@
     const PRESCRIPTION_TEMPLATE_CACHE_TTL_MS = 15 * 60 * 1000;
     const CHART_RECORD_STORAGE_KEY = clinicStorageKey('growthChartRecentRecords');
     const PRESCRIPTION_DRAFT_TTL_MS = 10 * 60 * 1000;
-    const VISIBLE_CHIP_LIMIT = 36;
+    const VISIBLE_CHIP_LIMIT = 10;
     const prescriptionTemplates = {
       Symptoms: ['Fever', 'Cough', 'Cold', 'Vomiting', 'Loose stools', 'Abdominal pain', 'Normal activity', 'No fever', 'No cough', 'No vomiting', 'No breathlessness', 'Normal urine', 'Bladder and bowel normal', 'Normal development', 'Throat pain', 'Nose block', 'Itching and rashes over body', 'Fast breathing', 'Eye redness', 'Excessive crying', 'No loose stools', 'Passing hard stools', 'Nausea', 'Productive cough', 'Ear pain', 'Headache', 'Sticky eye-discharge', 'Rashes', 'Feeding well', 'Earache', 'Decreased activity', 'Decreased urine output', 'Not eating well'],
       Finding: ['Throat congestion', 'Wheeze', 'Pallor', 'Dehydrated', 'Active child', 'Irritable child', 'Hydration fair', 'Febrile', 'Afebrile', 'Chest clear', 'Abdomen soft', 'No organomegaly', 'Tonsils enlarged', 'Skin rash present', 'Mild dehydration', 'Conjunctival congestion', 'Nasal congestion', 'Crepitations', 'Oral ulcers', 'Ear discharge', 'Mottling', 'Pulse regular', 'No cyanosis', 'Mild pallor', 'Tachypnea', 'Tonsillar exudate'],
@@ -3854,7 +3854,7 @@
           return;
         }
 
-        if ((sectionName === 'Symptoms' || sectionName === 'Finding' || sectionName === 'Diagnosis') && shouldSelect) {
+        if (hasDetailPanel && shouldSelect) {
           getSectionItemDetail(sectionName, value);
           openSelectionDetailModal(sectionName, value, modalTrigger);
         }
