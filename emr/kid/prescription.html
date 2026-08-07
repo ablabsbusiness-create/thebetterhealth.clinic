@@ -2822,7 +2822,10 @@
       };
 
       if (addMedicineMode === 'edit' && editingMedicineKey) {
-        saveMedicineMeta(editingMedicineKey, result);
+        const newKey = result.displayName || editingMedicineKey;
+        renameMedicineEverywhere(editingMedicineKey, newKey);
+        saveMedicineMeta(newKey, result);
+        editingMedicineKey = newKey;
         savePrescriptionDraft();
         sectionBindings.get('Medication')?.refreshSelectedList?.();
         renderMedicineDetails();
@@ -3269,6 +3272,32 @@
         composition: meta.composition || detail.composition || '',
         savedAt: Date.now()
       });
+      saveMedicineDetailsToStorage();
+    }
+
+    function renameMedicineEverywhere(oldKey, newKey) {
+      if (!oldKey || !newKey || oldKey === newKey) {
+        return;
+      }
+
+      const oldDetail = medicineDetails.get(oldKey);
+      if (oldDetail) {
+        medicineDetails.set(newKey, { ...oldDetail, displayName: newKey });
+        medicineDetails.delete(oldKey);
+      }
+
+      medicineCatalog.delete(oldKey);
+
+      if (selectedMedicines.has(oldKey)) {
+        selectedMedicines.delete(oldKey);
+        selectedMedicines.add(newKey);
+      }
+
+      if (activeMedicine === oldKey) {
+        activeMedicine = newKey;
+      }
+
+      sectionBindings.get('Medication')?.renameValue?.(oldKey, newKey);
       saveMedicineDetailsToStorage();
     }
 
@@ -3801,6 +3830,28 @@
         }
       }
 
+      function renameValue(oldValue, newValue) {
+        if (!oldValue || !newValue || oldValue === newValue) {
+          return;
+        }
+
+        const index = allItems.findIndex((item) => item === oldValue);
+        if (index !== -1) {
+          allItems[index] = newValue;
+        } else if (!allItems.includes(newValue)) {
+          allItems.push(newValue);
+        }
+        allItems = orderSectionItems(sectionName, mergeUniqueItems(allItems));
+
+        if (selectedValues.has(oldValue)) {
+          selectedValues.delete(oldValue);
+          selectedValues.add(newValue);
+        }
+
+        applySearchFilter();
+        renderSelectedItems(selectedList, [...selectedValues], sectionName);
+      }
+
       function toggleValue(value, shouldSelect, trigger = document.activeElement, options = {}) {
         const { silent = false } = options;
         const isNewSelection = shouldSelect && !selectedValues.has(value);
@@ -4069,6 +4120,7 @@
       sectionBindings.set(sectionName, {
         updateItems,
         toggleValue,
+        renameValue,
         refreshSelectedList: () => renderSelectedItems(selectedList, [...selectedValues], sectionName)
       });
     }
