@@ -1439,6 +1439,13 @@
       gap: 10px;
     }
 
+    .selection-pill-grid.allergy-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      max-width: 260px;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
     .selection-pill-grid.status-grid .selection-pill {
       min-height: 44px;
       white-space: nowrap;
@@ -1752,6 +1759,24 @@
     <section class="content-panel">
       <div class="content-layout">
         <div class="card-grid">
+          <article class="rx-card" data-section-name="Allergy">
+            <div class="rx-card-head">
+              <h2>Allergy</h2>
+              <p></p>
+            </div>
+            <div class="selection-pill-grid allergy-grid" aria-label="Allergy status options">
+              <label class="option-pill selection-pill">
+                <input type="radio" name="allergy-status">
+                Yes
+              </label>
+              <label class="option-pill selection-pill">
+                <input type="radio" name="allergy-status">
+                No
+              </label>
+            </div>
+            <textarea class="notes-freetext" placeholder="Allergy details (not saved)"></textarea>
+          </article>
+
           <article class="rx-card" data-section-name="Symptoms">
             <div class="rx-card-head">
               <h2>Symptoms</h2>
