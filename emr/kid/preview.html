@@ -2751,11 +2751,11 @@
         </section>
 
         ${renderTextRow('Symptoms', sections.Symptoms, sectionDetails.Symptoms, 'Symptoms')}
+        ${renderTextRow('Past Medical History', sections['Past Medical History'])}
         ${renderTextRow('Finding', sections.Finding, sectionDetails.Finding, 'Finding')}
         <p class="text-row"><strong>Notes:</strong> ${notesText ? formatMultiline(notesText) : '-'}</p>
         ${renderTextRow('Diagnosis', sections.Diagnosis)}
         ${renderTextRow('Investigation', sections.Investigation)}
-        ${renderTextRow('Past Medical History', sections['Past Medical History'])}
 
         ${renderMedicineTable(medicineRows)}
 
