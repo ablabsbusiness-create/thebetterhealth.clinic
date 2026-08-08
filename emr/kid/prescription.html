@@ -4081,58 +4081,9 @@
 
       searchInput.addEventListener('input', applySearchFilter);
 
-      // Medication keeps its existing tap behavior untouched. Every other
-      // section edits a saved chip via press-and-hold instead of a tap, so a
-      // stray tap can't silently delete or pop a modal open - the x stays as
-      // the one deliberate way to remove a chip.
-      let chipLongPressTimer = null;
-      let chipLongPressTriggered = false;
-      let chipLongPressStart = null;
-      const CHIP_LONG_PRESS_MS = 500;
-      const CHIP_LONG_PRESS_MOVE_TOLERANCE = 10;
-
-      function clearChipLongPress() {
-        clearTimeout(chipLongPressTimer);
-        chipLongPressTimer = null;
-        chipLongPressStart = null;
-      }
-
-      if (sectionName !== 'Medication') {
-        selectedList.addEventListener('pointerdown', (event) => {
-          const selectedButton = event.target.closest('.selected-item');
-
-          if (!selectedButton || event.target.closest('.selected-item-remove')) {
-            return;
-          }
-
-          chipLongPressTriggered = false;
-          clearChipLongPress();
-          chipLongPressStart = { x: event.clientX, y: event.clientY };
-          chipLongPressTimer = setTimeout(() => {
-            chipLongPressTriggered = true;
-            const selectedValue = selectedButton.dataset.selectedValue;
-            getSectionItemDetail(sectionName, selectedValue);
-            openSelectionDetailModal(sectionName, selectedValue, selectedButton);
-          }, CHIP_LONG_PRESS_MS);
-        });
-
-        selectedList.addEventListener('pointermove', (event) => {
-          if (!chipLongPressStart) {
-            return;
-          }
-
-          const dx = event.clientX - chipLongPressStart.x;
-          const dy = event.clientY - chipLongPressStart.y;
-          if (Math.hypot(dx, dy) > CHIP_LONG_PRESS_MOVE_TOLERANCE) {
-            clearChipLongPress();
-          }
-        });
-
-        ['pointerup', 'pointercancel', 'pointerleave'].forEach((eventName) => {
-          selectedList.addEventListener(eventName, clearChipLongPress);
-        });
-      }
-
+      // Clicking a saved chip opens its edit view, the same way in every
+      // section (including Medication) - the x stays as the one dedicated
+      // way to remove a chip.
       selectedList.addEventListener('click', (event) => {
         const selectedButton = event.target.closest('.selected-item');
 
@@ -4143,15 +4094,24 @@
         const selectedValue = selectedButton.dataset.selectedValue;
         const clickedRemove = Boolean(event.target.closest('.selected-item-remove'));
 
-        if (clickedRemove || sectionName === 'Medication') {
+        if (clickedRemove) {
           toggleValue(selectedValue, false, selectedButton);
           return;
         }
 
-        // A quick tap on the chip body does nothing - press and hold opens
-        // edit. Swallow the click that follows a long-press so it doesn't
-        // also fire here.
-        chipLongPressTriggered = false;
+        if (sectionName === 'Medication') {
+          activeMedicine = selectedValue;
+          hydrateMedicineMeta(selectedValue);
+          getMedicineDetail(selectedValue);
+          renderMedicineDetails();
+          openMedicineModal(selectedButton);
+          return;
+        }
+
+        if (hasDetailPanel) {
+          getSectionItemDetail(sectionName, selectedValue);
+          openSelectionDetailModal(sectionName, selectedValue, selectedButton);
+        }
       });
 
       bubbleWrap.addEventListener('click', async (event) => {
