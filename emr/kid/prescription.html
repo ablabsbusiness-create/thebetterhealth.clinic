@@ -2376,6 +2376,24 @@
       });
     }
 
+    const MEDICINE_TYPE_ABBREVIATIONS = {
+      Syrup: 'SYP',
+      Drops: 'DROPS',
+      Tablet: 'TAB',
+      Capsule: 'CAP',
+      Suspension: 'SUSP',
+      Inhaler: 'INH',
+      Nebulization: 'NEB',
+      Injection: 'INJ',
+      'Cream/Ointment': 'OINT',
+      Other: 'OTHER'
+    };
+
+    function getMedicineTypeAbbreviation(type) {
+      const trimmedType = String(type || '').trim();
+      return MEDICINE_TYPE_ABBREVIATIONS[trimmedType] || trimmedType.toUpperCase();
+    }
+
     function buildMedicineDisplayName(meta = {}) {
       const name = toTitleCase(meta.name || '');
       const type = String(meta.type || '').trim();
@@ -2384,13 +2402,13 @@
         return name;
       }
 
+      const abbreviation = getMedicineTypeAbbreviation(type);
       const lowerName = name.toLowerCase();
-      const lowerType = type.toLowerCase();
-      if (lowerName === lowerType || lowerName.startsWith(`${lowerType} `) || lowerName.startsWith(`${lowerType} - `)) {
+      if (lowerName.startsWith(`${abbreviation.toLowerCase()}: `)) {
         return name;
       }
 
-      return `${type} ${name}`;
+      return `${abbreviation}: ${name}`;
     }
 
     function mergeUniqueItems(...lists) {
@@ -2528,9 +2546,9 @@
       const type = String(detail.type || '').trim();
       const composition = String(detail.composition || '').trim();
       const lowerBrand = String(brandName || '').toLowerCase();
-      const lowerType = type.toLowerCase();
-      const nameWithType = type && !lowerBrand.startsWith(`${lowerType} `)
-        ? `${type} ${brandName}`
+      const abbreviation = getMedicineTypeAbbreviation(type);
+      const nameWithType = type && !lowerBrand.startsWith(`${abbreviation.toLowerCase()}: `)
+        ? `${abbreviation}: ${brandName}`
         : brandName;
 
       return composition ? `${nameWithType} (${composition})` : nameWithType;
@@ -4073,7 +4091,9 @@
       function applySearchFilter() {
         const query = searchInput.value.trim().toLowerCase();
         const filteredItems = query
-          ? allItems.filter((item) => item.toLowerCase().startsWith(query))
+          ? allItems.filter((item) => sectionName === 'Medication'
+            ? item.toLowerCase().includes(query)
+            : item.toLowerCase().startsWith(query))
           : allItems;
         const exactExists = query
           ? allItems.some((item) => item.toLowerCase() === query)
