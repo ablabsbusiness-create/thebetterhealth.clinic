@@ -5961,10 +5961,82 @@
         statusNote.classList.remove('visible');
       }
 
-      refreshChartBtn?.addEventListener('click', () => {
-        if (generatedPreviewPages.length > 0 || chartRevealed || generateBtn.textContent.trim() === 'Continue') {
-          resetGeneratedChart();
+      async function generateChart() {
+        if (!patientIdInput.value.trim() || !childNameInput.value.trim() || !form.elements.gender.value || !dobInput.value) {
+          const missingDetailsMessage = 'Add child name, DOB, and gender before generating charts.';
+          setPatientHint(missingDetailsMessage);
+          statusNote.textContent = missingDetailsMessage;
+          statusNote.classList.add('visible');
+          return;
         }
+
+        const isValid = form.reportValidity();
+
+        if (getSelectedCharts().length === 0) {
+          statusNote.textContent = 'Add height, weight, or head circumference to generate charts.';
+          statusNote.classList.add('visible');
+          return;
+        }
+
+        if (!isValid) {
+          return;
+        }
+
+        generateBtn.disabled = true;
+        generateBtn.textContent = 'Making Chart...';
+        statusNote.textContent = 'Chart is being prepared. Please wait...';
+        statusNote.classList.add('visible');
+        chartRevealed = true;
+        await renderGeneratedChart();
+        revealActions();
+
+        if (generatedPreviewPages.length === 0) {
+          chartRevealed = false;
+          statusNote.textContent = 'No charts were generated, so nothing was saved to history.';
+          statusNote.classList.add('visible');
+          generateBtn.disabled = false;
+          generateBtn.textContent = 'Generate Chart';
+          return;
+        }
+
+        latestChartPdfUploadResult = null;
+        saveLocalRecord();
+
+        statusNote.textContent = 'Charts are ready. Continue to prescription.';
+        statusNote.classList.add('visible');
+        generateBtn.disabled = false;
+        generateBtn.textContent = 'Continue';
+
+        // Cloud persistence (patient record + history) runs in the background so the
+        // doctor can hit Continue as soon as the chart/local record is ready, instead
+        // of waiting on the Firestore round-trip.
+        (async () => {
+          const saveBatch = db ? writeBatch(db) : null;
+
+          await saveMeasurementsToPatientRecord(saveBatch).catch((error) => {
+            console.warn(`Unable to save measurements in background: ${error.message}`);
+          });
+
+          await saveHistoryRecord(saveBatch).catch((error) => {
+            console.warn(`Unable to save history record in background: ${error.message}`);
+          });
+
+          if (saveBatch) {
+            await saveBatch.commit().catch((error) => {
+              console.warn(`Unable to commit patient/history batch in background: ${error.message}`);
+            });
+          }
+        })();
+      }
+
+      refreshChartBtn?.addEventListener('click', async () => {
+        const hadGeneratedChart = generatedPreviewPages.length > 0 || chartRevealed || generateBtn.textContent.trim() === 'Continue';
+        if (!hadGeneratedChart) {
+          return;
+        }
+
+        resetGeneratedChart();
+        await generateChart();
       });
 
       generateBtn.addEventListener('click', async () => {
@@ -5977,71 +6049,7 @@
         return;
       }
 
-      if (!patientIdInput.value.trim() || !childNameInput.value.trim() || !form.elements.gender.value || !dobInput.value) {
-        const missingDetailsMessage = 'Add child name, DOB, and gender before generating charts.';
-        setPatientHint(missingDetailsMessage);
-        statusNote.textContent = missingDetailsMessage;
-        statusNote.classList.add('visible');
-        return;
-      }
-
-      const isValid = form.reportValidity();
-
-      if (getSelectedCharts().length === 0) {
-        statusNote.textContent = 'Add height, weight, or head circumference to generate charts.';
-        statusNote.classList.add('visible');
-        return;
-      }
-
-      if (!isValid) {
-        return;
-      }
-
-      generateBtn.disabled = true;
-      generateBtn.textContent = 'Making Chart...';
-      statusNote.textContent = 'Chart is being prepared. Please wait...';
-      statusNote.classList.add('visible');
-      chartRevealed = true;
-      await renderGeneratedChart();
-      revealActions();
-
-      if (generatedPreviewPages.length === 0) {
-        chartRevealed = false;
-        statusNote.textContent = 'No charts were generated, so nothing was saved to history.';
-        statusNote.classList.add('visible');
-        generateBtn.disabled = false;
-        generateBtn.textContent = 'Generate Chart';
-        return;
-      }
-
-      latestChartPdfUploadResult = null;
-      saveLocalRecord();
-
-      statusNote.textContent = 'Charts are ready. Continue to prescription.';
-      statusNote.classList.add('visible');
-      generateBtn.disabled = false;
-      generateBtn.textContent = 'Continue';
-
-      // Cloud persistence (patient record + history) runs in the background so the
-      // doctor can hit Continue as soon as the chart/local record is ready, instead
-      // of waiting on the Firestore round-trip.
-      (async () => {
-        const saveBatch = db ? writeBatch(db) : null;
-
-        await saveMeasurementsToPatientRecord(saveBatch).catch((error) => {
-          console.warn(`Unable to save measurements in background: ${error.message}`);
-        });
-
-        await saveHistoryRecord(saveBatch).catch((error) => {
-          console.warn(`Unable to save history record in background: ${error.message}`);
-        });
-
-        if (saveBatch) {
-          await saveBatch.commit().catch((error) => {
-            console.warn(`Unable to commit patient/history batch in background: ${error.message}`);
-          });
-        }
-      })();
+      await generateChart();
     });
   </script>
 </body>
