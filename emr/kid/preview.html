@@ -1768,8 +1768,15 @@
       return isValidPatientId(patientId) ? patientId : '';
     }
 
+    function getPrescriptionDraftStorageKey(patientId) {
+      const normalizedPatientId = normalizePatientId(patientId);
+      return isValidPatientId(normalizedPatientId)
+        ? `${PRESCRIPTION_DRAFT_STORAGE_KEY}:${normalizedPatientId}`
+        : PRESCRIPTION_DRAFT_STORAGE_KEY;
+    }
+
     function getActivePrescriptionDraft() {
-      const draft = readJson(PRESCRIPTION_DRAFT_STORAGE_KEY, null);
+      const draft = readJson(getPrescriptionDraftStorageKey(getPatientIdFromUrl()), null);
       if (!draft) {
         return null;
       }
@@ -3243,7 +3250,7 @@
         };
         setPreviewStatus(saveResult.warning ? `Prescription saved. ${saveResult.warning}` : 'Prescription saved');
         setEnterClinicEnabled(true);
-        clearPrescriptionLocalData();
+        clearPrescriptionLocalData(patientId);
         clearSavedVitalsDraft(patientId).catch((error) => {
           console.warn(`Unable to clear saved vitals draft: ${error.message}`);
         });
@@ -3286,8 +3293,8 @@
       window.setTimeout(() => URL.revokeObjectURL(pdfUrl), 30_000);
     }
 
-    function clearPrescriptionLocalData() {
-      localStorage.removeItem(PRESCRIPTION_DRAFT_STORAGE_KEY);
+    function clearPrescriptionLocalData(patientId = '') {
+      localStorage.removeItem(getPrescriptionDraftStorageKey(patientId));
       localStorage.removeItem(CHART_RECORD_STORAGE_KEY);
       localStorage.removeItem(MEDICINE_DETAIL_STORAGE_KEY);
       localStorage.removeItem(LOCAL_PRESCRIPTION_HISTORY_KEY);

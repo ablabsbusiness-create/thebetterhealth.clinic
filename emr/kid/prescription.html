@@ -2099,7 +2099,7 @@
     const CUSTOM_TEMPLATE_STORAGE_KEY = clinicStorageKey('prescriptionCustomTemplates');
     const PRESCRIPTION_TEMPLATE_CACHE_KEY = clinicStorageKey('prescriptionCloudTemplates');
     const PRESCRIPTION_USAGE_STORAGE_KEY = clinicStorageKey('prescriptionUsageCounts');
-    const PRESCRIPTION_DRAFT_STORAGE_KEY = clinicStorageKey('prescriptionDraft');
+    const PRESCRIPTION_DRAFT_STORAGE_PREFIX = clinicStorageKey('prescriptionDraft');
     const MEDICINE_DETAIL_TTL_MS = 10 * 60 * 1000;
     const PRESCRIPTION_TEMPLATE_CACHE_TTL_MS = 15 * 60 * 1000;
     const CHART_RECORD_STORAGE_KEY = clinicStorageKey('growthChartRecentRecords');
@@ -3010,6 +3010,13 @@
         && patientId !== 'ID NOT SAVED';
     }
 
+    function getPrescriptionDraftStorageKey(patientId) {
+      const normalizedPatientId = String(patientId || '').trim().toUpperCase();
+      return isValidPatientId(normalizedPatientId)
+        ? `${PRESCRIPTION_DRAFT_STORAGE_PREFIX}:${normalizedPatientId}`
+        : PRESCRIPTION_DRAFT_STORAGE_PREFIX;
+    }
+
     function stripChartPageData(record) {
       return {
         ...record,
@@ -3103,7 +3110,7 @@
         return '';
       }
 
-      const existingDraft = readLocalJson(PRESCRIPTION_DRAFT_STORAGE_KEY, null);
+      const existingDraft = readLocalJson(getPrescriptionDraftStorageKey(patientId), null);
       if (existingDraft?.draftId && existingDraft?.patientId === patientId) {
         return existingDraft.draftId;
       }
@@ -3167,7 +3174,7 @@
       const validPatientId = isValidPatientId(patientId) ? patientId : '';
       const { sections, sectionDetails, medicineDetails: details } = serializeCurrentSelections();
 
-      localStorage.setItem(PRESCRIPTION_DRAFT_STORAGE_KEY, JSON.stringify({
+      localStorage.setItem(getPrescriptionDraftStorageKey(validPatientId), JSON.stringify({
         draftId: getPrescriptionDraftId(validPatientId),
         editId: activePrescriptionEditId || '',
         savedAt: new Date().toISOString(),
@@ -4256,7 +4263,7 @@
         return;
       }
 
-      const draft = readLocalJson(PRESCRIPTION_DRAFT_STORAGE_KEY, null);
+      const draft = readLocalJson(getPrescriptionDraftStorageKey(patientId), null);
       if (!draft || draft.patientId !== patientId) {
         return;
       }
@@ -4314,10 +4321,11 @@
 
     function clearStaleEditIdFromDraft() {
       try {
-        const existingDraft = readLocalJson(PRESCRIPTION_DRAFT_STORAGE_KEY, null);
+        const draftKey = getPrescriptionDraftStorageKey(getCurrentPatientId());
+        const existingDraft = readLocalJson(draftKey, null);
         if (existingDraft && existingDraft.editId) {
           existingDraft.editId = '';
-          localStorage.setItem(PRESCRIPTION_DRAFT_STORAGE_KEY, JSON.stringify(existingDraft));
+          localStorage.setItem(draftKey, JSON.stringify(existingDraft));
         }
       } catch (error) {
         console.warn(`Unable to clear stale prescription edit id: ${error.message}`);
