@@ -1770,15 +1770,15 @@
             </div>
             <div class="selection-pill-grid allergy-grid" aria-label="Allergy status options">
               <label class="option-pill selection-pill">
-                <input type="radio" name="allergy-status">
+                <input type="radio" name="allergy-status" value="Yes" data-field="allergy-status">
                 Yes
               </label>
               <label class="option-pill selection-pill">
-                <input type="radio" name="allergy-status">
+                <input type="radio" name="allergy-status" value="No" data-field="allergy-status">
                 No
               </label>
             </div>
-            <textarea class="notes-freetext allergy-freetext" placeholder="e.g. Penicillin, peanuts, dust"></textarea>
+            <textarea id="allergy-details-input" class="notes-freetext allergy-freetext" placeholder="e.g. Penicillin, peanuts, dust"></textarea>
           </article>
 
           <article class="rx-card" data-section-name="Symptoms">
@@ -2034,12 +2034,19 @@
     const clinicStorageKey = (key) => `${CLINIC_LOCAL_STORAGE_PREFIX}:${key}`;
     const PRESCRIPTION_EDIT_WINDOW_MS = 2 * 60 * 60 * 1000;
     let activePrescriptionEditId = '';
+    // Guards against a save racing ahead of the initial draft/repeat/edit
+    // restore on page load - without this, an early click could persist a
+    // still-empty selection state and permanently wipe out whatever was
+    // saved from a previous visit before it gets a chance to be restored.
+    let prescriptionInitReady = false;
 
     const menuToggle = document.getElementById('menu-toggle');
     const primaryNav = document.getElementById('primary-nav');
     const navLinks = [...document.querySelectorAll('#primary-nav .nav-link')];
     const rxCards = [...document.querySelectorAll('.rx-card')];
     const notesInput = document.querySelector('[data-notes-input]');
+    const allergyStatusInputs = [...document.querySelectorAll('[data-field="allergy-status"]')];
+    const allergyDetailsInput = document.getElementById('allergy-details-input');
     const statusChip = document.querySelector('.status-chip');
     const cardGrid = document.querySelector('.card-grid');
     const medicineModal = document.getElementById('medicine-modal');
@@ -3203,6 +3210,10 @@
     }
 
     function savePrescriptionDraft() {
+      if (!prescriptionInitReady) {
+        return;
+      }
+
       const chartRecord = getActiveChartRecord();
       const patientId = getCurrentPatientId() || chartRecord?.patientId || '';
       const validPatientId = isValidPatientId(patientId) ? patientId : '';
@@ -3217,7 +3228,11 @@
         sections,
         sectionDetails,
         medicineDetails: details,
-        notes: notesInput?.value || ''
+        notes: notesInput?.value || '',
+        allergy: {
+          status: allergyStatusInputs.find((input) => input.checked)?.value || '',
+          details: allergyDetailsInput?.value || ''
+        }
       }));
       continuePreviewBtn.href = getPreviewTargetUrl();
       updateDosageWarningBanner();
@@ -4281,6 +4296,15 @@
         }
       }
 
+      if (record.allergy) {
+        allergyStatusInputs.forEach((input) => {
+          input.checked = input.value === record.allergy.status;
+        });
+        if (allergyDetailsInput && typeof record.allergy.details === 'string') {
+          allergyDetailsInput.value = record.allergy.details;
+        }
+      }
+
       saveMedicineDetailsToStorage();
       savePrescriptionDraft();
     }
@@ -4565,6 +4589,10 @@
       await restoreUnsavedDraftForCurrentPatient();
       await loadRepeatFromHistory();
       await loadEditFromHistory();
+      prescriptionInitReady = true;
+      // Commits whatever was restored, plus any selection the user managed
+      // to make while the restore above was still in flight.
+      savePrescriptionDraft();
 
       if (window.location.hash === '#add-medicine') {
         history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
@@ -4577,6 +4605,18 @@
     });
     notesInput?.addEventListener('blur', () => {
       notesInput.value = formatClauseText(notesInput.value);
+      savePrescriptionDraft();
+    });
+    allergyStatusInputs.forEach((input) => {
+      input.addEventListener('change', () => {
+        savePrescriptionDraft();
+      });
+    });
+    allergyDetailsInput?.addEventListener('input', () => {
+      savePrescriptionDraft();
+    });
+    allergyDetailsInput?.addEventListener('blur', () => {
+      allergyDetailsInput.value = formatClauseText(allergyDetailsInput.value);
       savePrescriptionDraft();
     });
     continuePreviewBtn.addEventListener('click', () => {

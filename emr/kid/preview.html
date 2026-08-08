@@ -2569,6 +2569,15 @@
       return `<p class="text-row"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(formatDetailedSelections(values, detailMap, sectionName))}</p>`;
     }
 
+    function formatAllergyText(allergy) {
+      const status = String(allergy?.status || '').trim();
+      const details = String(allergy?.details || '').trim();
+      if (!status && !details) {
+        return '-';
+      }
+      return [status, details].filter(Boolean).join(' - ');
+    }
+
     function formatDuration(value) {
       const rawValue = String(value || '').trim();
       const match = rawValue.match(/^(\d+)(d|w|m|y)$/i);
@@ -2757,6 +2766,7 @@
           </div>
         </section>
 
+        <p class="text-row"><strong>Allergy:</strong> ${escapeHtml(formatAllergyText(draft?.allergy))}</p>
         ${renderTextRow('Symptoms', sections.Symptoms, sectionDetails.Symptoms, 'Symptoms')}
         ${renderTextRow('Past Medical History', sections['Past Medical History'])}
         ${renderTextRow('Finding', sections.Finding, sectionDetails.Finding, 'Finding')}
