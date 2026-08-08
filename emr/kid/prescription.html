@@ -2394,6 +2394,21 @@
       return MEDICINE_TYPE_ABBREVIATIONS[trimmedType] || trimmedType.toUpperCase();
     }
 
+    const LEGACY_MEDICINE_TYPE_PREFIX_PATTERN = new RegExp(
+      `^(${Object.keys(MEDICINE_TYPE_ABBREVIATIONS).map((type) => type.replace(/[/]/g, '\\/')).join('|')})\\s+(.+)$`,
+      'i'
+    );
+
+    function normalizeLegacyMedicineTypePrefix(text) {
+      const trimmed = String(text || '').trim();
+      const match = trimmed.match(LEGACY_MEDICINE_TYPE_PREFIX_PATTERN);
+      if (!match) {
+        return trimmed;
+      }
+
+      return `${getMedicineTypeAbbreviation(match[1])}: ${match[2]}`;
+    }
+
     function buildMedicineDisplayName(meta = {}) {
       const name = toTitleCase(meta.name || '');
       const type = String(meta.type || '').trim();
@@ -2542,10 +2557,10 @@
     }
 
     function formatMedicineLabel(medicine, detail = {}) {
-      const brandName = detail.name || detail.displayName || medicine;
+      const brandName = normalizeLegacyMedicineTypePrefix(detail.name || detail.displayName || medicine);
       const type = String(detail.type || '').trim();
       const composition = String(detail.composition || '').trim();
-      const lowerBrand = String(brandName || '').toLowerCase();
+      const lowerBrand = brandName.toLowerCase();
       const abbreviation = getMedicineTypeAbbreviation(type);
       const nameWithType = type && !lowerBrand.startsWith(`${abbreviation.toLowerCase()}: `)
         ? `${abbreviation}: ${brandName}`
@@ -2961,7 +2976,7 @@
         .join(', ');
     }
 
-    function renderBubbleButtons(wrap, items, addableQuery = '', selectedValues = null) {
+    function renderBubbleButtons(wrap, items, addableQuery = '', selectedValues = null, sectionName = '') {
       wrap.innerHTML = '';
 
       const selectedItems = selectedValues ? items.filter((item) => selectedValues.has(item)) : [];
@@ -2982,7 +2997,8 @@
         const button = document.createElement('button');
         button.className = 'bubble-btn';
         button.type = 'button';
-        button.textContent = item;
+        button.dataset.value = item;
+        button.textContent = sectionName === 'Medication' ? normalizeLegacyMedicineTypePrefix(item) : item;
         wrap.appendChild(button);
       });
 
@@ -3929,7 +3945,7 @@
         const isNewSelection = shouldSelect && !selectedValues.has(value);
 
         getBubbleButtons().forEach((button) => {
-          if (button.textContent.trim() === value) {
+          if (button.dataset.value === value) {
             button.classList.toggle('is-selected', shouldSelect);
           }
         });
@@ -3992,12 +4008,12 @@
 
       function bindBubbleClickHandlers() {
         getBubbleButtons().forEach((button) => {
-          if (selectedValues.has(button.textContent.trim())) {
+          if (selectedValues.has(button.dataset.value)) {
             button.classList.add('is-selected');
           }
 
           button.addEventListener('click', () => {
-            const value = button.textContent.trim();
+            const value = button.dataset.value;
             const isSelected = selectedValues.has(value);
 
             if (isSelected && hasDetailPanel) {
@@ -4101,7 +4117,7 @@
           ? (sectionName === 'Medication' ? toTitleCase(searchInput.value) : toSentenceCase(searchInput.value))
           : '';
 
-        renderBubbleButtons(bubbleWrap, filteredItems, addableQuery, selectedValues);
+        renderBubbleButtons(bubbleWrap, filteredItems, addableQuery, selectedValues, sectionName);
         bindBubbleClickHandlers();
       }
 
