@@ -271,6 +271,53 @@
       box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.12);
     }
 
+    .save-state-banner {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      margin: 0 0 14px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: #f8fbf9;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .save-state-banner[hidden] {
+      display: none;
+    }
+
+    .save-state-banner.is-saved {
+      border-color: #9fd8b0;
+      background: #eaf9ef;
+      color: #146c34;
+    }
+
+    .save-state-banner.is-failed {
+      border-color: #f0a9a9;
+      background: #fdeceb;
+      color: #a12220;
+    }
+
+    .save-state-retry {
+      margin-left: auto;
+      min-height: 38px;
+      padding: 0 16px;
+      border: 1px solid currentColor;
+      border-radius: 12px;
+      background: #fff;
+      color: inherit;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .save-state-retry[hidden] {
+      display: none;
+    }
+
     .page-shell {
       width: min(1180px, calc(100% - 32px));
       margin: 22px auto 42px;
@@ -477,7 +524,13 @@
       color: #111827;
       box-shadow: 0 0 0 10px #242424;
       font-family: var(--rx-font-family, Arial, Helvetica, sans-serif);
-      font-size: var(--rx-font-size, 12px);
+      /* Every size inside the sheet is expressed as a multiple of --rx-fs so
+         the Font Size setting actually scales the whole prescription. calc()
+         against the variable is used instead of em because these elements
+         nest, and em would compound at each level. Ratios are relative to the
+         14px default, so the default setting renders exactly as before. */
+      --rx-fs: var(--rx-font-size, 14px);
+      font-size: var(--rx-fs);
     }
 
     body.rendering-prescription-download .rx-sheet {
@@ -505,7 +558,7 @@
 
     .clinic-title {
       margin: 0;
-      font-size: 15px;
+      font-size: calc(var(--rx-fs) * 1.07);
       line-height: 1.1;
       color: #111827;
       font-weight: 800;
@@ -515,20 +568,20 @@
       margin: 6px 0 0;
       max-width: 310px;
       color: #111827;
-      font-size: 10.5px;
+      font-size: calc(var(--rx-fs) * 0.75);
       line-height: 1.18;
     }
 
     .doctor-block {
       text-align: right;
-      font-size: 10.5px;
+      font-size: calc(var(--rx-fs) * 0.75);
       line-height: 1.18;
     }
 
     .doctor-block strong {
       display: block;
       margin-bottom: 2px;
-      font-size: 11px;
+      font-size: calc(var(--rx-fs) * 0.786);
     }
 
     .patient-band {
@@ -538,7 +591,7 @@
       margin: 12px 0 10px;
       padding: 7px 8px;
       border: 1px solid #e5e7eb;
-      font-size: 11px;
+      font-size: calc(var(--rx-fs) * 0.786);
       line-height: 1.24;
     }
 
@@ -549,7 +602,7 @@
 
     .text-row {
       margin: 3px 0;
-      font-size: 11px;
+      font-size: calc(var(--rx-fs) * 0.786);
       line-height: 1.2;
     }
 
@@ -563,7 +616,7 @@
       margin: 10px 0 8px;
       border-collapse: collapse;
       border: 1px solid #4b5563;
-      font-size: 10.5px;
+      font-size: calc(var(--rx-fs) * 0.75);
     }
 
     .medicine-table-wrap {
@@ -587,7 +640,7 @@
     .medicine-table th {
       background: #e5e7eb;
       color: #111827;
-      font-size: 10.5px;
+      font-size: calc(var(--rx-fs) * 0.75);
       font-weight: 800;
     }
 
@@ -599,7 +652,7 @@
     .medicine-table .medicine-sub {
       display: block;
       margin-top: 1px;
-      font-size: 8px;
+      font-size: calc(var(--rx-fs) * 0.571);
       font-style: italic;
       font-weight: 500;
       letter-spacing: 0.02em;
@@ -609,7 +662,7 @@
     .medicine-table .medicine-composition {
       display: block;
       margin-top: 1px;
-      font-size: 8.5px;
+      font-size: calc(var(--rx-fs) * 0.607);
       font-style: normal;
       font-weight: 600;
       letter-spacing: 0;
@@ -618,14 +671,14 @@
 
     .instructions-block {
       margin-top: 6px;
-      font-size: 10.5px;
+      font-size: calc(var(--rx-fs) * 0.75);
       line-height: 1.22;
     }
 
     .instructions-block strong {
       display: inline;
       margin: 0 4px 0 0;
-      font-size: 11px;
+      font-size: calc(var(--rx-fs) * 0.786);
     }
 
     .instructions-block p {
@@ -657,7 +710,7 @@
     .mini-chart-card strong {
       display: block;
       margin-bottom: 2px;
-      font-size: 9.5px;
+      font-size: calc(var(--rx-fs) * 0.679);
       font-weight: 700;
       color: #27352c;
     }
@@ -680,7 +733,7 @@
       gap: 18px;
       margin-top: auto;
       padding-top: 10px;
-      font-size: 10px;
+      font-size: calc(var(--rx-fs) * 0.714);
       line-height: 1.15;
     }
 
@@ -697,7 +750,7 @@
     .footer-address {
       max-width: 300px;
       text-align: right;
-      font-size: 9px;
+      font-size: calc(var(--rx-fs) * 0.643);
       line-height: 1.18;
     }
 
@@ -883,7 +936,7 @@
       .rx-sheet {
         min-height: auto;
         padding: 22px 16px;
-        font-size: 14px;
+        font-size: var(--rx-fs);
       }
 
       .patient-band,
@@ -928,7 +981,8 @@
       }
 
       .site-header,
-      .preview-workbar {
+      .preview-workbar,
+      .save-state-banner {
         display: none !important;
       }
 
@@ -963,7 +1017,9 @@
         padding: 8mm;
         border: 0;
         box-shadow: none;
-        font-size: 10px;
+        /* Follow the configured Font Size. This used to be pinned at 10px,
+           which silently shrank every browser-printed prescription. */
+        font-size: var(--rx-fs);
         overflow: visible;
       }
     }
@@ -1262,6 +1318,10 @@
           <button id="edit-prescription-btn" class="btn-ghost" type="button" hidden>Edit Prescription</button>
         </div>
       </div>
+      <div id="save-state-banner" class="save-state-banner" role="status" aria-live="polite" hidden>
+        <span id="save-state-text"></span>
+        <button id="save-retry-btn" class="save-state-retry" type="button" hidden>Retry save</button>
+      </div>
       <div class="document-stage">
         <article id="rx-sheet" class="rx-sheet"></article>
       </div>
@@ -1406,12 +1466,45 @@
     const editPrescriptionBtn = document.getElementById('edit-prescription-btn');
     const enterClinicLink = document.getElementById('enter-clinic-link');
 
+    const saveStateBanner = document.getElementById('save-state-banner');
+    const saveStateText = document.getElementById('save-state-text');
+    const saveRetryBtn = document.getElementById('save-retry-btn');
+
     function setEnterClinicEnabled(enabled) {
       if (!enterClinicLink) {
         return;
       }
       enterClinicLink.setAttribute('aria-disabled', String(!enabled));
     }
+
+    // The save runs in the background off several different buttons, so its
+    // state needs one home the doctor can actually see - the status chip alone
+    // is easy to miss, especially once printing has opened the PDF in a new tab.
+    function setSaveState(state, message) {
+      if (!saveStateBanner || !saveStateText || !saveRetryBtn) {
+        return;
+      }
+
+      saveStateBanner.hidden = false;
+      saveStateBanner.classList.toggle('is-saved', state === 'saved');
+      saveStateBanner.classList.toggle('is-failed', state === 'failed');
+      saveStateText.textContent = message;
+      saveRetryBtn.hidden = state !== 'failed';
+    }
+
+    saveRetryBtn?.addEventListener('click', async () => {
+      saveRetryBtn.disabled = true;
+      saveRetryBtn.textContent = 'Retrying...';
+
+      try {
+        await ensurePrescriptionSaved();
+      } catch (error) {
+        console.warn(`Prescription save retry failed: ${error.message}`);
+      } finally {
+        saveRetryBtn.disabled = false;
+        saveRetryBtn.textContent = 'Retry save';
+      }
+    });
     const billModal = document.getElementById('bill-modal');
     const billModalClose = document.getElementById('bill-modal-close');
     const billItemsContainer = document.getElementById('bill-items-container');
@@ -1461,6 +1554,8 @@
     const MEDICINE_DETAIL_STORAGE_KEY = clinicStorageKey('prescriptionMedicineDetails');
     const PRESCRIPTION_BRANDING_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'prescriptionBranding'];
     const CLINIC_SETTINGS_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'settings'];
+    // Keep in step with the Font Size options in settings.html.
+    const PRESCRIPTION_FONT_SIZES = [12, 14, 16, 18, 20, 22, 25];
     const DEFAULT_BRANDING = {
       sectionTitle: 'Prescription Header, Footer & Signature',
       sectionDescription: 'Set the clinic text and doctor signature used on prescription preview, print, and saved PDF.',
@@ -1618,7 +1713,7 @@
         prescriptionFontFamily: ['Arial', 'Outfit', 'Times New Roman'].includes(settings.prescriptionFontFamily)
           ? settings.prescriptionFontFamily
           : DEFAULT_BRANDING.prescriptionFontFamily,
-        prescriptionFontSize: [12, 14, 16].includes(fontSize) ? fontSize : DEFAULT_BRANDING.prescriptionFontSize,
+        prescriptionFontSize: PRESCRIPTION_FONT_SIZES.includes(fontSize) ? fontSize : DEFAULT_BRANDING.prescriptionFontSize,
         prescriptionFooterAlignment: settings.prescriptionFooterAlignment === 'right' ? 'right' : 'left',
         prescriptionMarginsCm: {
           top: normalizePrescriptionMargin(savedMargins.top, defaultMargins.top),
@@ -2736,6 +2831,11 @@
       };
     }
 
+    // The sheet is laid out at 794px = 210mm (96dpi). Capturing at 3.125x puts
+    // the raster at 300dpi so printed text stays sharp instead of tracking
+    // whatever devicePixelRatio the clinic's screen happens to have.
+    const PRESCRIPTION_CAPTURE_SCALE = 300 / 96;
+
     async function renderPrescriptionSheetCanvas(options = {}) {
       const { forceHeader = false } = options;
       document.body.classList.add('rendering-prescription-download');
@@ -2749,7 +2849,7 @@
 
         return await html2canvas(rxSheet, {
           backgroundColor: '#ffffff',
-          scale: Math.max(2, Math.min(window.devicePixelRatio || 1, 3)),
+          scale: PRESCRIPTION_CAPTURE_SCALE,
           useCORS: true,
           logging: false,
           width: 794,
@@ -2781,15 +2881,30 @@
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
-      const widthScale = pageWidth / canvas.width;
-      const heightScale = pageHeight / canvas.height;
-      const mmPerPx = Math.min(widthScale, heightScale);
-      const imageWidthMm = canvas.width * mmPerPx;
-      const imageHeightMm = canvas.height * mmPerPx;
-      const x = (pageWidth - imageWidthMm) / 2;
-      const y = 0;
 
-      pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', x, y, imageWidthMm, imageHeightMm, undefined, 'FAST');
+      // Always scale to the page width and let anything taller than A4 run on
+      // to the next page. Fitting the height as well shrank long prescriptions
+      // down to unreadable text with wide empty margins.
+      const imageWidthMm = pageWidth;
+      const imageHeightMm = (canvas.height / canvas.width) * pageWidth;
+
+      // PNG, not JPEG: the sheet is text and hairlines, and JPEG blocking
+      // shows up as fuzzy letters and halos once it is printed.
+      const imageData = canvas.toDataURL('image/png');
+
+      // Sub-millimetre overhang is rounding from the capture size, not content.
+      const PAGE_BREAK_TOLERANCE_MM = 1;
+      let renderedMm = 0;
+
+      while (renderedMm === 0 || imageHeightMm - renderedMm > PAGE_BREAK_TOLERANCE_MM) {
+        if (renderedMm > 0) {
+          pdf.addPage('a4', 'portrait');
+        }
+
+        // Shift the full-height image up so the next slice lands on this page.
+        pdf.addImage(imageData, 'PNG', 0, -renderedMm, imageWidthMm, imageHeightMm, undefined, 'FAST');
+        renderedMm += pageHeight;
+      }
 
       return pdf;
     }
@@ -3101,6 +3216,7 @@
 
       prescriptionSavePromise = (async () => {
         setPreviewStatus('Saving prescription...');
+        setSaveState('saving', 'Saving this prescription to the patient record...');
         const built = await ensurePrescriptionPdfBuilt();
         const { pdf, patientId, childName, phone, previewBlob, saveId, fileName, pdfBlob } = built;
         const saveResult = await savePrescriptionPdfToCloudStorage(fileName, {
@@ -3127,6 +3243,9 @@
           ...saveResult
         };
         setPreviewStatus(saveResult.warning ? `Prescription saved. ${saveResult.warning}` : 'Prescription saved');
+        setSaveState('saved', saveResult.warning
+          ? `Saved to the patient record. ${saveResult.warning}`
+          : 'Saved to the patient record. No further action needed before printing.');
         setEnterClinicEnabled(true);
         clearPrescriptionLocalData(patientId);
         clearSavedVitalsDraft(patientId).catch((error) => {
@@ -3142,6 +3261,7 @@
       })().catch((error) => {
         prescriptionSavePromise = null;
         setPreviewStatus(`Save failed: ${error.message}. Enter Clinic unlocked so you are not stuck here - please retry the save.`);
+        setSaveState('failed', `NOT saved to the patient record: ${error.message}`);
         setEnterClinicEnabled(true);
         throw error;
       });

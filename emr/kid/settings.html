@@ -1284,9 +1284,13 @@
               <div class="prescription-ui-field">
                 <label for="rx-ui-font-size">Font Size</label>
                 <select id="rx-ui-font-size" class="prescription-ui-select">
-                  <option>14</option>
                   <option>12</option>
+                  <option>14</option>
                   <option>16</option>
+                  <option>18</option>
+                  <option>20</option>
+                  <option>22</option>
+                  <option>25</option>
                 </select>
               </div>
             </div>
@@ -1475,6 +1479,8 @@
     const PRESCRIPTION_BRANDING_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'prescriptionBranding'];
     const CLINIC_SETTINGS_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'settings'];
     const ACCESS_COOKIE_NAME = 'clinic_session';
+    // Keep in step with the #rx-ui-font-size options above and with preview.html.
+    const PRESCRIPTION_FONT_SIZES = [12, 14, 16, 18, 20, 22, 25];
     const DEFAULT_BRANDING = {
       sectionTitle: 'Prescription Header, Footer & Signature',
       sectionDescription: 'Set the clinic text and doctor signature used on prescription preview, print, and saved PDF.',
@@ -1573,7 +1579,7 @@
         prescriptionFontFamily: ['Arial', 'Outfit', 'Times New Roman'].includes(settings.prescriptionFontFamily)
           ? settings.prescriptionFontFamily
           : DEFAULT_BRANDING.prescriptionFontFamily,
-        prescriptionFontSize: [12, 14, 16].includes(fontSize) ? fontSize : DEFAULT_BRANDING.prescriptionFontSize,
+        prescriptionFontSize: PRESCRIPTION_FONT_SIZES.includes(fontSize) ? fontSize : DEFAULT_BRANDING.prescriptionFontSize,
         prescriptionFooterAlignment: settings.prescriptionFooterAlignment === 'right' ? 'right' : 'left',
         prescriptionMarginsCm: {
           top: normalizePrescriptionMargin(savedMargins.top, defaultMargins.top),
