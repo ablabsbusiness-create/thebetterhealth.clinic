@@ -732,11 +732,11 @@
             </div>
 
             <div class="field">
-              <span class="field-label">Date of Birth <span class="required">*</span></span>
+              <span class="field-label">Date of Birth</span>
               <div class="dob-group">
-                <input id="dob-day" name="dobDay" type="text" inputmode="numeric" placeholder="DD" maxlength="2" required>
-                <input id="dob-month" name="dobMonth" type="text" inputmode="numeric" placeholder="MM" maxlength="2" required>
-                <input id="dob-year" name="dobYear" type="text" inputmode="numeric" placeholder="YYYY" maxlength="4" required>
+                <input id="dob-day" name="dobDay" type="text" inputmode="numeric" placeholder="DD" maxlength="2">
+                <input id="dob-month" name="dobMonth" type="text" inputmode="numeric" placeholder="MM" maxlength="2">
+                <input id="dob-year" name="dobYear" type="text" inputmode="numeric" placeholder="YYYY" maxlength="4">
               </div>
             </div>
 
@@ -1123,14 +1123,10 @@
       event.preventDefault();
 
       const normalizedDob = parseDobInput(dobDayInput.value, dobMonthInput.value, dobYearInput.value);
-      if (!normalizedDob) {
-        const enteredAgeYears = parseAgePart(ageYearsInput.value);
-        const enteredAgeMonths = parseAgePart(ageMonthsInput.value);
-        if (!Number.isFinite(enteredAgeYears) && !Number.isFinite(enteredAgeMonths)) {
-          dobYearInput.setCustomValidity('Please enter a valid date of birth or age.');
-        } else {
-          dobYearInput.setCustomValidity('');
-        }
+      const dobPartiallyEntered = [dobDayInput, dobMonthInput, dobYearInput]
+        .some((input) => input.value.trim());
+      if (dobPartiallyEntered && !normalizedDob) {
+        dobYearInput.setCustomValidity('Please enter a valid date of birth.');
       } else {
         dobYearInput.setCustomValidity('');
       }
