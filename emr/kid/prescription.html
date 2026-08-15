@@ -1020,6 +1020,24 @@
       display: none;
     }
 
+    .init-error-banner {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      margin: 0 0 14px;
+      border-radius: 12px;
+      border: 1px solid #f0a9a9;
+      background: #fdeceb;
+      color: #a12220;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .init-error-banner[hidden] {
+      display: none;
+    }
+
     .medicine-edit-btn {
       min-width: 0;
       padding: 0 12px;
@@ -1899,6 +1917,8 @@
 
       <div id="edit-mode-banner" class="edit-mode-banner" hidden></div>
 
+      <div id="init-error-banner" class="init-error-banner" role="alert" hidden></div>
+
       <div id="dosage-warning-banner" class="dosage-warning-banner" hidden></div>
 
       <div class="page-action-row">
@@ -2060,6 +2080,7 @@
     const consultTemplateList = document.getElementById('consult-template-list');
     const dosageWarningBanner = document.getElementById('dosage-warning-banner');
     const editModeBanner = document.getElementById('edit-mode-banner');
+    const initErrorBanner = document.getElementById('init-error-banner');
     const medicineModalEdit = document.getElementById('medicine-modal-edit');
     const medicineModalTitle = document.getElementById('medicine-modal-title');
     const medicineModalSubtitle = medicineModalTitle?.parentElement?.querySelector('p');
@@ -4584,22 +4605,49 @@
       }
     });
 
+    function showPrescriptionInitError(error) {
+      console.error(`Prescription page failed to load: ${error.message}`);
+      setSyncStatus('Page did not load fully', true);
+
+      if (initErrorBanner) {
+        initErrorBanner.textContent = 'This page did not load fully, so anything already on it may be incomplete. Please reload before you continue prescribing.';
+        initErrorBanner.hidden = false;
+      }
+    }
+
     async function openInitialPrescriptionAction() {
-      await initPrescriptionData();
-      await restoreUnsavedDraftForCurrentPatient();
-      await loadRepeatFromHistory();
-      await loadEditFromHistory();
-      prescriptionInitReady = true;
-      // Commits whatever was restored, plus any selection the user managed
-      // to make while the restore above was still in flight.
-      savePrescriptionDraft();
+      let restored = false;
+
+      try {
+        await initPrescriptionData();
+        await restoreUnsavedDraftForCurrentPatient();
+        await loadRepeatFromHistory();
+        await loadEditFromHistory();
+        restored = true;
+      } catch (error) {
+        showPrescriptionInitError(error);
+      } finally {
+        // This must be set on every path. savePrescriptionDraft() is a no-op
+        // until it is true, so a throw above used to leave the page silently
+        // discarding every edit the doctor made for the rest of the session.
+        prescriptionInitReady = true;
+      }
+
+      if (restored) {
+        // Commits whatever was restored, plus any selection the user managed
+        // to make while the restore above was still in flight. Skipped after a
+        // failure so a half-restored page cannot overwrite the stored draft.
+        savePrescriptionDraft();
+      }
 
       if (window.location.hash === '#add-medicine') {
         history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
       }
     }
 
-    openInitialPrescriptionAction();
+    openInitialPrescriptionAction().catch((error) => {
+      showPrescriptionInitError(error);
+    });
     notesInput?.addEventListener('input', () => {
       savePrescriptionDraft();
     });
