@@ -540,6 +540,13 @@
          point size. Every other ratio below is unchanged, so the size hierarchy
          across the sheet stays as designed. */
       --rx-fs: calc(var(--rx-font-size, 8px) * 1.6964);
+      /* The letterhead - clinic name, address, doctor block, footer - does not
+         follow the Font Size setting. That setting is there to make the clinical
+         content readable, and letting it drag the branding along blew the clinic
+         name up to 22pt at a 16pt body. 14px is the base the letterhead has
+         always printed at, so it is now pinned there while the ratios below keep
+         the proportions inside the header and footer unchanged. */
+      --rx-fs-chrome: 14px;
       font-size: var(--rx-fs);
     }
 
@@ -568,7 +575,7 @@
 
     .clinic-title {
       margin: 0;
-      font-size: calc(var(--rx-fs) * 1.07);
+      font-size: calc(var(--rx-fs-chrome) * 1.07);
       line-height: 1.1;
       color: #111827;
       font-weight: 800;
@@ -578,20 +585,20 @@
       margin: 6px 0 0;
       max-width: 310px;
       color: #111827;
-      font-size: calc(var(--rx-fs) * 0.75);
+      font-size: calc(var(--rx-fs-chrome) * 0.75);
       line-height: 1.18;
     }
 
     .doctor-block {
       text-align: right;
-      font-size: calc(var(--rx-fs) * 0.75);
+      font-size: calc(var(--rx-fs-chrome) * 0.75);
       line-height: 1.18;
     }
 
     .doctor-block strong {
       display: block;
       margin-bottom: 2px;
-      font-size: calc(var(--rx-fs) * 0.786);
+      font-size: calc(var(--rx-fs-chrome) * 0.786);
     }
 
     .patient-band {
@@ -747,7 +754,7 @@
          signature instead of a long gap in the middle of the sheet. */
       margin-top: 26px;
       padding-top: 10px;
-      font-size: calc(var(--rx-fs) * 0.714);
+      font-size: calc(var(--rx-fs-chrome) * 0.714);
       line-height: 1.15;
     }
 
@@ -764,7 +771,7 @@
     .footer-address {
       max-width: 300px;
       text-align: right;
-      font-size: calc(var(--rx-fs) * 0.643);
+      font-size: calc(var(--rx-fs-chrome) * 0.643);
       line-height: 1.18;
     }
 
