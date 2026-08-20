@@ -1284,13 +1284,17 @@
               <div class="prescription-ui-field">
                 <label for="rx-ui-font-size">Font Size</label>
                 <select id="rx-ui-font-size" class="prescription-ui-select">
-                  <option>12</option>
-                  <option>14</option>
-                  <option>16</option>
-                  <option>18</option>
-                  <option>20</option>
-                  <option>22</option>
-                  <option>25</option>
+                  <option value="8">8 pt</option>
+                  <option value="9">9 pt</option>
+                  <option value="10">10 pt</option>
+                  <option value="11">11 pt</option>
+                  <option value="12">12 pt</option>
+                  <option value="14">14 pt</option>
+                  <option value="16">16 pt</option>
+                  <option value="18">18 pt</option>
+                  <option value="20">20 pt</option>
+                  <option value="22">22 pt</option>
+                  <option value="25">25 pt</option>
                 </select>
               </div>
             </div>
@@ -1479,8 +1483,9 @@
     const PRESCRIPTION_BRANDING_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'prescriptionBranding'];
     const CLINIC_SETTINGS_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'settings'];
     const ACCESS_COOKIE_NAME = 'clinic_session';
-    // Keep in step with the #rx-ui-font-size options above and with preview.html.
-    const PRESCRIPTION_FONT_SIZES = [12, 14, 16, 18, 20, 22, 25];
+    // Printed point sizes for the clinical rows on the prescription. Keep in step
+    // with the #rx-ui-font-size options above and with preview.html.
+    const PRESCRIPTION_FONT_SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 25];
     const DEFAULT_BRANDING = {
       sectionTitle: 'Prescription Header, Footer & Signature',
       sectionDescription: 'Set the clinic text and doctor signature used on prescription preview, print, and saved PDF.',
@@ -1495,7 +1500,9 @@
       growthChartStandard: DEFAULT_GROWTH_CHART_STANDARD,
       prescriptionLanguage: 'English',
       prescriptionFontFamily: 'Arial',
-      prescriptionFontSize: 14,
+      // 8pt is what the old 14 setting actually printed at, so a clinic that
+      // never picked a size keeps the prescription it has always had.
+      prescriptionFontSize: 8,
       prescriptionFooterAlignment: 'left',
       prescriptionMarginsCm: {
         top: 1,

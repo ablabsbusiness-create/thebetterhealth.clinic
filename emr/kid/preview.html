@@ -527,9 +527,19 @@
       /* Every size inside the sheet is expressed as a multiple of --rx-fs so
          the Font Size setting actually scales the whole prescription. calc()
          against the variable is used instead of em because these elements
-         nest, and em would compound at each level. Ratios are relative to the
-         14px default, so the default setting renders exactly as before. */
-      --rx-fs: var(--rx-font-size, 14px);
+         nest, and em would compound at each level.
+
+         --rx-font-size is the size the doctor picked in Settings, in PRINTED
+         POINTS. Two conversions stand between that number and a CSS px value,
+         and skipping them is why "16" used to come out of the printer looking
+         like 9.5pt:
+           - the sheet is 794px wide printed at 210mm, i.e. 96dpi, so 1px = 0.75pt
+           - the clinical rows are 0.786 x --rx-fs, not 1.0
+         1 / 0.75 / 0.786 = 1.6964, so scaling the base by that lands .text-row
+         (allergy, symptoms, diagnosis, the patient band) on exactly the chosen
+         point size. Every other ratio below is unchanged, so the size hierarchy
+         across the sheet stays as designed. */
+      --rx-fs: calc(var(--rx-font-size, 8px) * 1.6964);
       font-size: var(--rx-fs);
     }
 
@@ -731,7 +741,11 @@
       justify-content: space-between;
       align-items: flex-end;
       gap: 18px;
-      margin-top: auto;
+      /* The footer follows the growth charts after a short gap rather than
+         being pushed to the bottom of the page with margin-top:auto. Any
+         leftover height on a short prescription is now blank paper below the
+         signature instead of a long gap in the middle of the sheet. */
+      margin-top: 26px;
       padding-top: 10px;
       font-size: calc(var(--rx-fs) * 0.714);
       line-height: 1.15;
@@ -1554,8 +1568,9 @@
     const MEDICINE_DETAIL_STORAGE_KEY = clinicStorageKey('prescriptionMedicineDetails');
     const PRESCRIPTION_BRANDING_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'prescriptionBranding'];
     const CLINIC_SETTINGS_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'settings'];
-    // Keep in step with the Font Size options in settings.html.
-    const PRESCRIPTION_FONT_SIZES = [12, 14, 16, 18, 20, 22, 25];
+    // Printed point sizes for the clinical rows. Keep in step with the Font Size
+    // options in settings.html.
+    const PRESCRIPTION_FONT_SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 25];
     const DEFAULT_BRANDING = {
       sectionTitle: 'Prescription Header, Footer & Signature',
       sectionDescription: 'Set the clinic text and doctor signature used on prescription preview, print, and saved PDF.',
@@ -1569,7 +1584,9 @@
       printHeaderGapCm: 0,
       prescriptionLanguage: 'English',
       prescriptionFontFamily: 'Arial',
-      prescriptionFontSize: 14,
+      // 8pt is what the old 14 setting actually printed at, so a clinic that
+      // never picked a size keeps the prescription it has always had.
+      prescriptionFontSize: 8,
       prescriptionFooterAlignment: 'left',
       prescriptionMarginsCm: {
         top: 1,
