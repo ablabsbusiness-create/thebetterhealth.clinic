@@ -1869,12 +1869,19 @@
         : PRESCRIPTION_DRAFT_STORAGE_KEY;
     }
 
+    let lastLoadedPrescriptionDraft = null;
+
     function getActivePrescriptionDraft() {
       const draft = readJson(getPrescriptionDraftStorageKey(getPatientIdFromUrl()), null);
-      if (!draft) {
-        return null;
+      if (draft) {
+        lastLoadedPrescriptionDraft = draft;
+        return draft;
       }
-      return draft;
+      // The draft is wiped from localStorage as soon as the first save lands, so
+      // anything that re-renders the sheet afterwards (header toggle, branding
+      // change) has to fall back to the copy we already read or the whole
+      // prescription redraws blank.
+      return lastLoadedPrescriptionDraft;
     }
 
     function getActiveChartRecord() {
@@ -3754,24 +3761,22 @@
       withoutHeaderBtn?.setAttribute('aria-pressed', String(!printWithHeaderEnabled));
     }
 
-    function applySavedPreviewSettings(refreshSavedPdf = false) {
+    // Header mode and the header gap only affect what is shown on screen and what
+    // the printer lays down - the stored PDF is always captured with the header
+    // forced on. Re-saving on every toggle just risked overwriting a good
+    // prescription with a re-render, so these settings apply locally only.
+    function applySavedPreviewSettings() {
       printWithHeaderEnabled = getSavedHeaderMode();
       const safeGap = getSavedPrintGapCm();
       document.documentElement.style.setProperty('--preview-header-gap', `${safeGap}cm`);
       document.body.classList.toggle('preview-without-header', !printWithHeaderEnabled);
       document.body.classList.toggle('print-with-header', printWithHeaderEnabled);
       updateHeaderModeButtons();
-      if (refreshSavedPdf) {
-        invalidateSavedPrescriptionCache();
-        ensurePrescriptionSaved().catch((error) => {
-          console.warn(`Unable to refresh prescription after settings change: ${error.message}`);
-        });
-      }
     }
 
     function setHeaderMode(enabled) {
       localStorage.setItem(PRINT_HEADER_MODE_STORAGE_KEY, String(Boolean(enabled)));
-      applySavedPreviewSettings(true);
+      applySavedPreviewSettings();
     }
 
     withHeaderBtn?.addEventListener('click', () => {
@@ -3782,10 +3787,10 @@
       setHeaderMode(false);
     });
 
-    applySavedPreviewSettings(false);
+    applySavedPreviewSettings();
     window.addEventListener('storage', (event) => {
       if (event.key === PRINT_HEADER_MODE_STORAGE_KEY || event.key === PRINT_HEADER_GAP_STORAGE_KEY) {
-        applySavedPreviewSettings(true);
+        applySavedPreviewSettings();
       }
       if (event.key === PRESCRIPTION_BRANDING_STORAGE_KEY) {
         activePrescriptionBranding = null;
