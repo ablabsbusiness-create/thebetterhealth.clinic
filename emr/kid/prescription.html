@@ -1135,7 +1135,8 @@
     }
 
     .add-medicine-field input,
-    .add-medicine-field select {
+    .add-medicine-field select,
+    .add-medicine-field textarea {
       width: 100%;
       min-height: 40px;
       padding: 0 12px;
@@ -1147,8 +1148,15 @@
       outline: none;
     }
 
+    .add-medicine-field textarea {
+      min-height: 84px;
+      padding: 10px 12px;
+      resize: vertical;
+    }
+
     .add-medicine-field input:focus,
-    .add-medicine-field select:focus {
+    .add-medicine-field select:focus,
+    .add-medicine-field textarea:focus {
       border-color: rgba(22, 101, 52, 0.45);
       box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12);
     }
@@ -1984,7 +1992,10 @@
             <h2 id="selection-detail-title">Selection Details</h2>
             <p id="selection-detail-subtitle"></p>
           </div>
-          <button id="selection-detail-close" class="modal-close-btn" type="button" aria-label="Close selection details">x</button>
+          <div class="medicine-modal-actions">
+            <button id="selection-detail-edit" class="medicine-edit-btn" type="button" aria-label="Edit selected item" hidden>Edit</button>
+            <button id="selection-detail-close" class="modal-close-btn" type="button" aria-label="Close selection details">x</button>
+          </div>
         </div>
         <div id="selection-detail-content" class="medicine-detail-content"></div>
       </aside>
@@ -2036,10 +2047,29 @@
         </form>
       </aside>
     </div>
+
+    <div id="edit-item-modal" class="medicine-modal" aria-hidden="true">
+      <aside class="add-medicine-panel" role="dialog" aria-modal="false" aria-labelledby="edit-item-title">
+        <form id="edit-item-form" class="add-medicine-form">
+          <div class="add-medicine-head">
+            <button id="edit-item-back" class="modal-close-btn add-medicine-back" type="button" aria-label="Back to details">&larr;</button>
+            <h2 id="edit-item-title">Edit Instruction</h2>
+            <button class="add-medicine-save" type="submit">Update</button>
+          </div>
+          <div class="add-medicine-body">
+            <label class="add-medicine-field is-full" for="edit-item-text">
+              <span id="edit-item-label">Instruction</span>
+              <textarea id="edit-item-text" name="text" rows="3" placeholder="Enter the instruction"></textarea>
+            </label>
+          </div>
+          <p id="edit-item-error" class="add-medicine-error" role="alert"></p>
+        </form>
+      </aside>
+    </div>
   </div>
 
   <script type="module">
-    import { doc, getDoc, setDoc, arrayUnion, serverTimestamp, collection, getDocs, query, orderBy, limit, deleteDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { doc, getDoc, setDoc, arrayUnion, arrayRemove, serverTimestamp, collection, getDocs, query, orderBy, limit, deleteDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     import { db } from './lib/firebase-init.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
     const FIREBASE_COLLECTIONS = {
@@ -2093,6 +2123,14 @@
     const selectionDetailTitle = document.getElementById('selection-detail-title');
     const selectionDetailSubtitle = document.getElementById('selection-detail-subtitle');
     const selectionDetailContent = document.getElementById('selection-detail-content');
+    const selectionDetailEdit = document.getElementById('selection-detail-edit');
+    const editItemModal = document.getElementById('edit-item-modal');
+    const editItemForm = document.getElementById('edit-item-form');
+    const editItemBack = document.getElementById('edit-item-back');
+    const editItemTitle = document.getElementById('edit-item-title');
+    const editItemLabel = document.getElementById('edit-item-label');
+    const editItemText = document.getElementById('edit-item-text');
+    const editItemError = document.getElementById('edit-item-error');
     const addMedicineModal = document.getElementById('add-medicine-modal');
     const addMedicineForm = document.getElementById('add-medicine-form');
     const addMedicineBack = document.getElementById('add-medicine-back');
@@ -2123,6 +2161,10 @@
     let editingMedicineKey = '';
     const sectionDetailSlots = new Map();
     const DETAIL_SECTIONS = new Set(['Symptoms', 'Finding', 'Diagnosis', 'Investigation', 'Past Medical History', 'Instruction', 'Medication']);
+    // Sections whose saved items can be reworded in place, the same way a
+    // medicine can be edited from its details panel.
+    const EDITABLE_ITEM_SECTIONS = new Set(['Instruction']);
+    const EDITABLE_ITEM_LABELS = { Instruction: 'Instruction' };
     const MEDICINE_DETAIL_STORAGE_KEY = clinicStorageKey('prescriptionMedicineDetails');
     const CUSTOM_TEMPLATE_STORAGE_KEY = clinicStorageKey('prescriptionCustomTemplates');
     const PRESCRIPTION_TEMPLATE_CACHE_KEY = clinicStorageKey('prescriptionCloudTemplates');
@@ -2247,7 +2289,7 @@
     }
 
     function showSectionPanel(sectionName, activePanel = null) {
-      [medicineModal, selectionDetailModal, addMedicineModal].forEach((panel) => {
+      [medicineModal, selectionDetailModal, addMedicineModal, editItemModal].forEach((panel) => {
         panel.classList.remove('is-open');
         panel.setAttribute('aria-hidden', 'true');
       });
@@ -2611,15 +2653,42 @@
 
       const merged = {};
       Object.entries(templates).forEach(([sectionName, items]) => {
-        merged[sectionName] = mergeUniqueItems(items, saved[sectionName] || [], prescriptionFallbackTemplates[sectionName] || []);
+        // Items renamed locally are hidden so the old wording can't creep back
+        // in from the fallback list or a stale cloud copy.
+        const hidden = new Set((saved.hiddenItems?.[sectionName] || []).map((item) => String(item).toLowerCase()));
+        merged[sectionName] = mergeUniqueItems(items, saved[sectionName] || [], prescriptionFallbackTemplates[sectionName] || [])
+          .filter((item) => !hidden.has(item.toLowerCase()));
       });
 
       return merged;
     }
 
+    function forgetCustomTemplateItem(sectionName, value) {
+      const normalizedValue = String(value || '').trim();
+      if (!normalizedValue) {
+        return;
+      }
+
+      const saved = loadCustomTemplates();
+      const key = normalizedValue.toLowerCase();
+
+      if (Array.isArray(saved[sectionName])) {
+        saved[sectionName] = saved[sectionName].filter((item) => String(item).toLowerCase() !== key);
+      }
+
+      saved.hiddenItems = saved.hiddenItems && typeof saved.hiddenItems === 'object' ? saved.hiddenItems : {};
+      saved.hiddenItems[sectionName] = mergeUniqueItems(saved.hiddenItems[sectionName] || [], [normalizedValue]);
+      saveCustomTemplates(saved);
+    }
+
     function rememberCustomTemplateItem(sectionName, value, medicineMeta = null) {
       const saved = loadCustomTemplates();
       saved[sectionName] = mergeUniqueItems(saved[sectionName] || [], [value]);
+
+      if (Array.isArray(saved.hiddenItems?.[sectionName])) {
+        const key = String(value).toLowerCase();
+        saved.hiddenItems[sectionName] = saved.hiddenItems[sectionName].filter((item) => String(item).toLowerCase() !== key);
+      }
 
       if (sectionName === 'Medication' && medicineMeta) {
         saved.medicineCatalog = saved.medicineCatalog || {};
@@ -2793,6 +2862,10 @@
           ? 'Diagnosis Details'
           : `${sectionName} Notes`;
       selectionDetailSubtitle.textContent = value;
+      if (selectionDetailEdit) {
+        selectionDetailEdit.hidden = !EDITABLE_ITEM_SECTIONS.has(sectionName);
+        selectionDetailEdit.setAttribute('aria-label', `Edit ${EDITABLE_ITEM_LABELS[sectionName] || sectionName}`);
+      }
       selectionDetailContent.className = 'medicine-detail-content';
       selectionDetailContent.innerHTML = sectionName === 'Symptoms'
         ? `
@@ -2873,6 +2946,118 @@
       activeSelectionDetail = null;
     }
 
+    let editingSectionItem = null;
+
+    function showEditItemError(message) {
+      editItemError.textContent = message;
+      editItemError.classList.add('is-visible');
+    }
+
+    function clearEditItemError() {
+      editItemError.textContent = '';
+      editItemError.classList.remove('is-visible');
+    }
+
+    function openEditItemModal(sectionName, value, trigger = document.activeElement) {
+      if (!EDITABLE_ITEM_SECTIONS.has(sectionName) || !value) {
+        return;
+      }
+
+      syncSelectionDetailsFromDom();
+      // The details panel is about to be swapped out, so stop treating its
+      // stale markup as the live source for note edits.
+      activeSelectionDetail = null;
+      editingSectionItem = {
+        sectionName,
+        value,
+        trigger: trigger instanceof HTMLElement ? trigger : null
+      };
+
+      const label = EDITABLE_ITEM_LABELS[sectionName] || sectionName;
+      editItemTitle.textContent = `Edit ${label}`;
+      editItemLabel.textContent = label;
+      editItemText.value = value;
+      clearEditItemError();
+      showSectionPanel(sectionName, editItemModal);
+      window.setTimeout(() => {
+        editItemText.focus();
+        editItemText.select();
+      }, 0);
+    }
+
+    function closeEditItemModal(reopenValue = null) {
+      const context = editingSectionItem;
+      editingSectionItem = null;
+      clearEditItemError();
+
+      if (!context) {
+        return;
+      }
+
+      // Hand the panel slot straight back to the details view so the flow
+      // matches the medicine edit round-trip.
+      const value = reopenValue || context.value;
+      getSectionItemDetail(context.sectionName, value);
+      openSelectionDetailModal(context.sectionName, value, context.trigger || selectionDetailEdit);
+    }
+
+    function renameSectionItemUsage(sectionName, oldValue, newValue) {
+      const saved = loadPrescriptionUsageCounts();
+      const sectionCounts = saved[sectionName];
+      const oldKey = String(oldValue).toLowerCase();
+
+      if (!sectionCounts || !(oldKey in sectionCounts)) {
+        return;
+      }
+
+      const newKey = String(newValue).toLowerCase();
+      sectionCounts[newKey] = Number(sectionCounts[newKey] || 0) + Number(sectionCounts[oldKey] || 0);
+      delete sectionCounts[oldKey];
+      savePrescriptionUsageCounts(saved);
+    }
+
+    async function renameSectionItemInCloud(sectionName, oldValue, newValue) {
+      if (!db) {
+        return;
+      }
+
+      const sectionRef = doc(db, FIREBASE_COLLECTIONS.prescription, sectionName);
+
+      try {
+        await setDoc(sectionRef, {
+          name: sectionName,
+          items: arrayRemove(oldValue),
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+        await setDoc(sectionRef, {
+          name: sectionName,
+          items: arrayUnion(newValue),
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+      } catch (error) {
+        console.error(`Unable to rename prescription item: ${error.message}`);
+      }
+    }
+
+    function renameSectionItemEverywhere(sectionName, oldValue, newValue) {
+      if (!oldValue || !newValue || oldValue === newValue) {
+        return;
+      }
+
+      const detailMap = sectionItemDetails[sectionName];
+      if (detailMap && detailMap.has(oldValue)) {
+        detailMap.set(newValue, { ...detailMap.get(oldValue) });
+        detailMap.delete(oldValue);
+      }
+
+      sectionBindings.get(sectionName)?.renameValue?.(oldValue, newValue);
+      forgetCustomTemplateItem(sectionName, oldValue);
+      rememberCustomTemplateItem(sectionName, newValue);
+      renameSectionItemUsage(sectionName, oldValue, newValue);
+      savePrescriptionDraft();
+      renameSectionItemInCloud(sectionName, oldValue, newValue);
+    }
+
     medicineModalClose.addEventListener('click', closeMedicineModal);
     medicineModalEdit.addEventListener('click', () => {
       if (!activeMedicine) {
@@ -2882,6 +3067,49 @@
       openEditMedicineModal(medicineModalEdit);
     });
     selectionDetailClose.addEventListener('click', closeSelectionDetailModal);
+    selectionDetailEdit?.addEventListener('click', () => {
+      if (!activeSelectionDetail) {
+        return;
+      }
+
+      openEditItemModal(activeSelectionDetail.sectionName, activeSelectionDetail.value, activeSelectionDetail.trigger || selectionDetailEdit);
+    });
+    editItemBack.addEventListener('click', () => closeEditItemModal());
+    editItemText.addEventListener('input', clearEditItemError);
+    editItemForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+
+      if (!editingSectionItem) {
+        return;
+      }
+
+      const { sectionName, value } = editingSectionItem;
+      const label = EDITABLE_ITEM_LABELS[sectionName] || sectionName;
+      const nextValue = toSentenceCase(editItemText.value.replace(/\s+/g, ' '));
+
+      if (!nextValue) {
+        showEditItemError(`${label} text is required.`);
+        editItemText.focus();
+        return;
+      }
+
+      if (nextValue === value) {
+        closeEditItemModal();
+        return;
+      }
+
+      const isDuplicate = nextValue.toLowerCase() !== value.toLowerCase()
+        && Boolean(sectionBindings.get(sectionName)?.hasItem?.(nextValue));
+
+      if (isDuplicate) {
+        showEditItemError(`"${nextValue}" is already saved in ${label}s.`);
+        editItemText.focus();
+        return;
+      }
+
+      renameSectionItemEverywhere(sectionName, value, nextValue);
+      closeEditItemModal(nextValue);
+    });
     addMedicineBack.addEventListener('click', () => closeAddMedicineModal(null));
     addMedicineForm.addEventListener('submit', (event) => {
       event.preventDefault();
@@ -2944,6 +3172,11 @@
     selectionDetailContent.addEventListener('change', syncSelectionDetailsFromDom);
     window.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
+        if (editItemModal.classList.contains('is-open')) {
+          closeEditItemModal();
+          return;
+        }
+
         if (addMedicineModal.classList.contains('is-open')) {
           closeAddMedicineModal(null);
           return;
@@ -4207,6 +4440,7 @@
         updateItems,
         toggleValue,
         renameValue,
+        hasItem: (candidate) => allItems.some((item) => item.toLowerCase() === String(candidate || '').trim().toLowerCase()),
         refreshSelectedList: () => renderSelectedItems(selectedList, [...selectedValues], sectionName)
       });
     }
