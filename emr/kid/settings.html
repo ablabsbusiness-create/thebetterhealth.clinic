@@ -1278,6 +1278,13 @@
                   <option>Arial</option>
                   <option>Outfit</option>
                   <option>Times New Roman</option>
+                  <option>Georgia</option>
+                  <option>Verdana</option>
+                  <option>Poppins</option>
+                  <option>Lato</option>
+                  <option>Roboto</option>
+                  <option>Open Sans</option>
+                  <option>Merriweather</option>
                 </select>
               </div>
 
@@ -1486,6 +1493,9 @@
     // Printed point sizes for the clinical rows on the prescription. Keep in step
     // with the #rx-ui-font-size options above and with preview.html.
     const PRESCRIPTION_FONT_SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 25];
+    // Keep in step with the #rx-ui-font-family options above and the
+    // matching whitelist in preview.html.
+    const PRESCRIPTION_FONT_FAMILIES = ['Arial', 'Outfit', 'Times New Roman', 'Georgia', 'Verdana', 'Poppins', 'Lato', 'Roboto', 'Open Sans', 'Merriweather'];
     const DEFAULT_BRANDING = {
       sectionTitle: 'Prescription Header, Footer & Signature',
       sectionDescription: 'Set the clinic text and doctor signature used on prescription preview, print, and saved PDF.',
@@ -1583,7 +1593,7 @@
 
       return {
         prescriptionLanguage: settings.prescriptionLanguage || DEFAULT_BRANDING.prescriptionLanguage,
-        prescriptionFontFamily: ['Arial', 'Outfit', 'Times New Roman'].includes(settings.prescriptionFontFamily)
+        prescriptionFontFamily: PRESCRIPTION_FONT_FAMILIES.includes(settings.prescriptionFontFamily)
           ? settings.prescriptionFontFamily
           : DEFAULT_BRANDING.prescriptionFontFamily,
         prescriptionFontSize: PRESCRIPTION_FONT_SIZES.includes(fontSize) ? fontSize : DEFAULT_BRANDING.prescriptionFontSize,

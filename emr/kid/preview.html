@@ -67,7 +67,7 @@
   </script><script type="module" src="./auth-guard.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Poppins:wght@400;500;600;700&family=Lato:wght@400;700&family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #eef4ef;
@@ -1578,6 +1578,9 @@
     // Printed point sizes for the clinical rows. Keep in step with the Font Size
     // options in settings.html.
     const PRESCRIPTION_FONT_SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 25];
+    // Keep in step with the #rx-ui-font-family options in settings.html and
+    // the matching whitelist there.
+    const PRESCRIPTION_FONT_FAMILIES = ['Arial', 'Outfit', 'Times New Roman', 'Georgia', 'Verdana', 'Poppins', 'Lato', 'Roboto', 'Open Sans', 'Merriweather'];
     const DEFAULT_BRANDING = {
       sectionTitle: 'Prescription Header, Footer & Signature',
       sectionDescription: 'Set the clinic text and doctor signature used on prescription preview, print, and saved PDF.',
@@ -1734,7 +1737,7 @@
 
       return {
         prescriptionLanguage: settings.prescriptionLanguage || DEFAULT_BRANDING.prescriptionLanguage,
-        prescriptionFontFamily: ['Arial', 'Outfit', 'Times New Roman'].includes(settings.prescriptionFontFamily)
+        prescriptionFontFamily: PRESCRIPTION_FONT_FAMILIES.includes(settings.prescriptionFontFamily)
           ? settings.prescriptionFontFamily
           : DEFAULT_BRANDING.prescriptionFontFamily,
         prescriptionFontSize: PRESCRIPTION_FONT_SIZES.includes(fontSize) ? fontSize : DEFAULT_BRANDING.prescriptionFontSize,
@@ -1748,14 +1751,20 @@
       };
     }
 
+    const PRESCRIPTION_FONT_STACKS = {
+      Outfit: "'Outfit', Arial, Helvetica, sans-serif",
+      'Times New Roman': "'Times New Roman', Times, serif",
+      Georgia: "Georgia, 'Times New Roman', serif",
+      Verdana: "Verdana, Geneva, sans-serif",
+      Poppins: "'Poppins', Arial, Helvetica, sans-serif",
+      Lato: "'Lato', Arial, Helvetica, sans-serif",
+      Roboto: "'Roboto', Arial, Helvetica, sans-serif",
+      'Open Sans': "'Open Sans', Arial, Helvetica, sans-serif",
+      Merriweather: "'Merriweather', Georgia, serif"
+    };
+
     function getPrescriptionFontStack(fontFamily) {
-      if (fontFamily === 'Outfit') {
-        return "'Outfit', Arial, Helvetica, sans-serif";
-      }
-      if (fontFamily === 'Times New Roman') {
-        return "'Times New Roman', Times, serif";
-      }
-      return 'Arial, Helvetica, sans-serif';
+      return PRESCRIPTION_FONT_STACKS[fontFamily] || 'Arial, Helvetica, sans-serif';
     }
 
     function applyPrescriptionLayoutStyles(settings = getPrescriptionBranding()) {
