@@ -3008,10 +3008,12 @@
       };
     }
 
-    // The sheet is laid out at 794px = 210mm (96dpi). Capturing at 3.125x puts
-    // the raster at 300dpi so printed text stays sharp instead of tracking
-    // whatever devicePixelRatio the clinic's screen happens to have.
-    const PRESCRIPTION_CAPTURE_SCALE = 300 / 96;
+    // This capture now only feeds the small preview image shown in the
+    // patient's prescription history - the stored PDF is drawn as vector text
+    // and the doctor's printout comes from the browser. 300dpi was needed when
+    // the PDF was a screenshot of this canvas; for a thumbnail it is waste, and
+    // it made every save slower and hungrier for memory.
+    const PRESCRIPTION_CAPTURE_SCALE = 2;
 
     async function renderPrescriptionSheetCanvas(options = {}) {
       const { forceHeader = false } = options;
@@ -3052,6 +3054,348 @@
           reject(new Error('Unable to create preview image.'));
         }, type, quality);
       });
+    }
+
+    // jsPDF ships Helvetica, Times and Courier. Arial is metrically compatible
+    // with Helvetica and Georgia with Times; the webfonts (Outfit, Poppins,
+    // Lato, Roboto, Open Sans) have no built-in equivalent and fall back to
+    // Helvetica rather than embedding a full TTF into every prescription.
+    const PDF_FONT_BY_FAMILY = {
+      'Times New Roman': 'times',
+      Georgia: 'times'
+    };
+
+    function getPdfFontName(fontFamily) {
+      return PDF_FONT_BY_FAMILY[fontFamily] || 'helvetica';
+    }
+
+    // Draws the prescription with jsPDF's own text and vector primitives rather
+    // than pasting a rasterised screenshot of the sheet. Text stays selectable
+    // and searchable, the file drops by an order of magnitude, and page breaks
+    // land between blocks instead of slicing a table row in half. Growth charts
+    // and the signature stay images because that is what produces them.
+    function buildVectorPdf({ draft, chartRecord, branding, patientId, forceHeader = false }) {
+      const layout = normalizePrescriptionLayout(branding);
+      const base = layout.prescriptionFontSize;
+      const font = getPdfFontName(layout.prescriptionFontFamily);
+      const margins = layout.prescriptionMarginsCm;
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const left = margins.left * 10;
+      const top = margins.top * 10;
+      const contentWidth = pageWidth - left - (margins.right * 10);
+      const pageBottom = pageHeight - (margins.bottom * 10);
+
+      // The same proportions the sheet's CSS uses, restated against the base
+      // point size so the PDF and the screen agree at any Font Size setting.
+      const SIZE = {
+        clinicTitle: base * 1.3613,
+        clinicAddress: base * 0.9542,
+        doctorName: base,
+        doctorDetails: base * 0.9542,
+        row: base,
+        table: base * 0.9542,
+        composition: base * 0.7723,
+        sub: base * 0.7265,
+        chartCaption: base * 0.8639,
+        footer: base * 0.9084,
+        footerAddress: base * 0.818
+      };
+
+      const PT_TO_MM = 25.4 / 72;
+      const lh = (size) => size * PT_TO_MM * 1.3;
+      let y = top;
+
+      const setFont = (size, style = 'normal') => {
+        pdf.setFont(font, style);
+        pdf.setFontSize(size);
+      };
+
+      const ensureSpace = (needed) => {
+        if (y + needed > pageBottom) {
+          pdf.addPage('a4', 'portrait');
+          y = top;
+        }
+      };
+
+      const baseline = (size) => y + size * PT_TO_MM;
+
+      const drawParagraph = (text, x, size, style, width, align) => {
+        const clean = String(text || '').replace(/<br\s*\/?>/gi, '\n').trim();
+        if (!clean) {
+          return;
+        }
+        setFont(size, style);
+        const lines = pdf.splitTextToSize(clean, width);
+        lines.forEach((line) => {
+          ensureSpace(lh(size));
+          setFont(size, style);
+          pdf.text(line, x, baseline(size), align ? { align } : undefined);
+          y += lh(size);
+        });
+      };
+
+      const drawLabelledRow = (label, value) => {
+        const text = String(value || '').trim();
+        if (!text || text === '-') {
+          return;
+        }
+        const labelText = label + ': ';
+        setFont(SIZE.row, 'bold');
+        const labelWidth = pdf.getTextWidth(labelText);
+        setFont(SIZE.row, 'normal');
+        const lines = pdf.splitTextToSize(text, Math.max(20, contentWidth - labelWidth));
+
+        lines.forEach((line, index) => {
+          ensureSpace(lh(SIZE.row));
+          if (index === 0) {
+            setFont(SIZE.row, 'bold');
+            pdf.text(labelText, left, baseline(SIZE.row));
+          }
+          setFont(SIZE.row, 'normal');
+          pdf.text(line, left + labelWidth, baseline(SIZE.row));
+          y += lh(SIZE.row);
+        });
+      };
+
+      // ---- header ---------------------------------------------------------
+      const showHeader = forceHeader || printWithHeaderEnabled;
+      if (showHeader) {
+        const colWidth = contentWidth * 0.55;
+        const headerTop = y;
+
+        drawParagraph(branding.clinicTitle, left, SIZE.clinicTitle, 'bold', colWidth);
+        drawParagraph(branding.clinicAddress, left, SIZE.clinicAddress, 'normal', colWidth);
+        const leftBottom = y;
+
+        y = headerTop;
+        const rightX = left + contentWidth;
+        drawParagraph(branding.doctorName, rightX, SIZE.doctorName, 'bold', contentWidth * 0.42, 'right');
+        drawParagraph(branding.doctorDetails, rightX, SIZE.doctorDetails, 'normal', contentWidth * 0.42, 'right');
+
+        y = Math.max(leftBottom, y) + 2;
+        pdf.setDrawColor(119);
+        pdf.setLineWidth(0.3);
+        pdf.line(left, y, left + contentWidth, y);
+        y += 4;
+      } else {
+        y += Number(branding.printHeaderGapCm || 0) * 10;
+      }
+
+      // ---- patient band ----------------------------------------------------
+      const bandCols = [
+        [
+          ['Name', chartRecord?.childName || '-'],
+          ['Age/Sex', formatCompactAge(chartRecord?.age || '-') + ' / ' + (chartRecord?.gender || '-')],
+          ['Office ID', patientId]
+        ],
+        [
+          ['Date', formatShortDate(new Date().toISOString())],
+          ['Mobile', chartRecord?.phone || '-']
+        ],
+        [
+          ['Weight', (chartRecord?.weight || '-') + ' kg'],
+          ['Height', (chartRecord?.height || '-') + ' cm']
+        ]
+      ];
+      const bandRows = Math.max.apply(null, bandCols.map((col) => col.length));
+      const bandHeight = bandRows * lh(SIZE.row) + 4;
+      ensureSpace(bandHeight);
+      pdf.setDrawColor(200);
+      pdf.setLineWidth(0.2);
+      pdf.rect(left, y, contentWidth, bandHeight);
+
+      const bandColWidth = contentWidth / 3;
+      bandCols.forEach((col, colIndex) => {
+        let cellY = y + 2;
+        const cellX = left + colIndex * bandColWidth + 2;
+        col.forEach((entry) => {
+          const labelText = entry[0] + ': ';
+          setFont(SIZE.row, 'bold');
+          pdf.text(labelText, cellX, cellY + SIZE.row * PT_TO_MM);
+          const labelWidth = pdf.getTextWidth(labelText);
+          setFont(SIZE.row, 'normal');
+          const valueLine = pdf.splitTextToSize(String(entry[1]), Math.max(10, bandColWidth - labelWidth - 4))[0] || '';
+          pdf.text(valueLine, cellX + labelWidth, cellY + SIZE.row * PT_TO_MM);
+          cellY += lh(SIZE.row);
+        });
+      });
+      y += bandHeight + 3;
+
+      // ---- clinical rows ---------------------------------------------------
+      const sections = draft?.sections || {};
+      const sectionDetails = draft?.sectionDetails || {};
+      const notesText = typeof draft?.notes === 'string' && draft.notes.trim()
+        ? draft.notes.trim()
+        : (Array.isArray(sections.Notes) ? sections.Notes.join(', ') : '');
+
+      drawLabelledRow('Allergy', formatAllergyText(draft?.allergy));
+      drawLabelledRow('Symptoms', formatDetailedSelections(sections.Symptoms, sectionDetails.Symptoms, 'Symptoms'));
+      drawLabelledRow('Past Medical History', formatDetailedSelections(sections['Past Medical History']));
+      drawLabelledRow('Finding', formatDetailedSelections(sections.Finding, sectionDetails.Finding, 'Finding'));
+      drawLabelledRow('Notes', notesText);
+      drawLabelledRow('Diagnosis', formatDetailedSelections(sections.Diagnosis));
+      drawLabelledRow('Investigation', formatDetailedSelections(sections.Investigation));
+
+      // ---- medicine table ---------------------------------------------------
+      const medicineRows = getMedicineRows(draft);
+      if (medicineRows.length) {
+        y += 2;
+        const colIndexWidth = contentWidth * 0.08;
+        const colNameWidth = contentWidth * 0.46;
+        const colDoseWidth = contentWidth - colIndexWidth - colNameWidth;
+        const headerHeight = lh(SIZE.table) + 2;
+
+        const drawTableHead = () => {
+          ensureSpace(headerHeight + lh(SIZE.table) * 2);
+          pdf.setFillColor(229, 231, 235);
+          pdf.setDrawColor(75);
+          pdf.setLineWidth(0.25);
+          pdf.rect(left, y, contentWidth, headerHeight, 'FD');
+          setFont(SIZE.table, 'bold');
+          pdf.text('Medication', left + colIndexWidth + colNameWidth / 2, y + headerHeight - 1.6, { align: 'center' });
+          pdf.text('Dosage', left + colIndexWidth + colNameWidth + colDoseWidth / 2, y + headerHeight - 1.6, { align: 'center' });
+          y += headerHeight;
+        };
+
+        drawTableHead();
+
+        medicineRows.forEach((row, index) => {
+          const dosageParts = [row.dose, row.timing, row.duration]
+            .map((part) => String(part || '').trim())
+            .filter(Boolean);
+          const subParts = [row.food, row.note]
+            .map((part) => String(part || '').trim())
+            .filter(Boolean);
+
+          setFont(SIZE.table, 'bold');
+          const nameLines = pdf.splitTextToSize(String(row.brandLine || row.medicineName || row.medicine), colNameWidth - 4);
+          const doseLines = pdf.splitTextToSize(dosageParts.join(' · ') || '-', colDoseWidth - 4);
+          setFont(SIZE.composition, 'normal');
+          const compLines = row.compositionLine
+            ? pdf.splitTextToSize(String(row.compositionLine), colNameWidth - 4)
+            : [];
+          setFont(SIZE.sub, 'normal');
+          const subLines = subParts.length
+            ? pdf.splitTextToSize(subParts.join(' · '), colDoseWidth - 4)
+            : [];
+
+          const nameHeight = nameLines.length * lh(SIZE.table) + compLines.length * lh(SIZE.composition);
+          const doseHeight = doseLines.length * lh(SIZE.table) + subLines.length * lh(SIZE.sub);
+          const rowHeight = Math.max(nameHeight, doseHeight) + 2;
+
+          // Keep the row whole: start a new page and repeat the head rather
+          // than splitting a medicine across the break.
+          if (y + rowHeight > pageBottom) {
+            pdf.addPage('a4', 'portrait');
+            y = top;
+            drawTableHead();
+          }
+
+          pdf.setDrawColor(75);
+          pdf.setLineWidth(0.25);
+          pdf.rect(left, y, colIndexWidth, rowHeight);
+          pdf.rect(left + colIndexWidth, y, colNameWidth, rowHeight);
+          pdf.rect(left + colIndexWidth + colNameWidth, y, colDoseWidth, rowHeight);
+
+          setFont(SIZE.table, 'bold');
+          pdf.text(String(index + 1), left + colIndexWidth / 2, y + lh(SIZE.table), { align: 'center' });
+
+          let cellY = y + 1;
+          const nameX = left + colIndexWidth + 2;
+          nameLines.forEach((line) => {
+            setFont(SIZE.table, 'bold');
+            pdf.text(line, nameX, cellY + SIZE.table * PT_TO_MM);
+            cellY += lh(SIZE.table);
+          });
+          compLines.forEach((line) => {
+            setFont(SIZE.composition, 'normal');
+            pdf.text(line, nameX, cellY + SIZE.composition * PT_TO_MM);
+            cellY += lh(SIZE.composition);
+          });
+
+          cellY = y + 1;
+          const doseX = left + colIndexWidth + colNameWidth + 2;
+          doseLines.forEach((line) => {
+            setFont(SIZE.table, 'bold');
+            pdf.text(line, doseX, cellY + SIZE.table * PT_TO_MM);
+            cellY += lh(SIZE.table);
+          });
+          subLines.forEach((line) => {
+            setFont(SIZE.sub, 'normal');
+            pdf.text(line, doseX, cellY + SIZE.sub * PT_TO_MM);
+            cellY += lh(SIZE.sub);
+          });
+
+          y += rowHeight;
+        });
+        y += 3;
+      }
+
+      // ---- instructions ------------------------------------------------------
+      const instructions = sections.Instruction || [];
+      if (instructions.length) {
+        drawLabelledRow('Instruction', formatInstructionText(instructions));
+        y += 2;
+      }
+
+      // ---- growth charts -----------------------------------------------------
+      const chartPages = (chartRecord?.chartPages || [])
+        .slice(0, 4)
+        .filter((page) => page && (page.miniDataUrl || page.dataUrl));
+      if (chartPages.length) {
+        const gap = 2;
+        const chartWidth = (contentWidth - gap * (chartPages.length - 1)) / chartPages.length;
+        const chartHeight = chartWidth / 1.38;
+        const blockHeight = chartHeight + lh(SIZE.chartCaption) + 2;
+        ensureSpace(blockHeight);
+
+        chartPages.forEach((page, index) => {
+          const x = left + index * (chartWidth + gap);
+          setFont(SIZE.chartCaption, 'bold');
+          pdf.text(chartTitle(page.label), x + chartWidth / 2, y + SIZE.chartCaption * PT_TO_MM, { align: 'center' });
+          try {
+            pdf.addImage(page.miniDataUrl || page.dataUrl, 'PNG', x, y + lh(SIZE.chartCaption), chartWidth, chartHeight, undefined, 'FAST');
+          } catch (error) {
+            console.warn('Unable to place growth chart in PDF: ' + error.message);
+          }
+        });
+        y += blockHeight + 3;
+      }
+
+      // ---- footer -------------------------------------------------------------
+      y += 6;
+      const footerTop = y;
+      const signatureWidth = 34;
+      const signatureHeight = 12;
+      if (branding.signatureDataUrl) {
+        ensureSpace(signatureHeight + lh(SIZE.footer) * 3);
+        try {
+          pdf.addImage(branding.signatureDataUrl, 'PNG', left, y, signatureWidth, signatureHeight, undefined, 'FAST');
+        } catch (error) {
+          console.warn('Unable to place signature in PDF: ' + error.message);
+        }
+        y += signatureHeight + 1;
+      } else {
+        ensureSpace(lh(SIZE.footer) * 3 + 6);
+        y += 6;
+        pdf.setDrawColor(17);
+        pdf.setLineWidth(0.3);
+        pdf.line(left, y, left + signatureWidth + 6, y);
+        y += 1.5;
+      }
+
+      drawParagraph(branding.doctorName, left, SIZE.footer, 'bold', contentWidth * 0.5);
+      drawParagraph(branding.doctorDetails, left, SIZE.footer, 'normal', contentWidth * 0.5);
+
+      const footerLeftBottom = y;
+      y = footerTop;
+      drawParagraph(branding.footerText, left + contentWidth, SIZE.footerAddress, 'normal', contentWidth * 0.45, 'right');
+      y = Math.max(footerLeftBottom, y);
+
+      return pdf;
     }
 
     function buildPdfFromCanvas(canvas) {
@@ -3100,8 +3444,11 @@
         throw new Error('Select a valid patient before saving a prescription.');
       }
       buildPreviewHtml();
+      const branding = getPrescriptionBranding();
+      // The stored PDF is drawn as vector text; the canvas is still rendered
+      // because the history list shows a preview image of the sheet.
+      const pdf = buildVectorPdf({ draft, chartRecord, branding, patientId, forceHeader });
       const sheetCanvas = await renderPrescriptionSheetCanvas({ forceHeader });
-      const pdf = buildPdfFromCanvas(sheetCanvas);
       const previewBlob = await canvasToBlob(sheetCanvas, 'image/jpeg', 0.95);
 
       return {
