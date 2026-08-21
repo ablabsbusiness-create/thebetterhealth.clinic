@@ -4030,14 +4030,6 @@
                 </label>
               `).join('')}
             </div>
-            <div class="duration-row duration-open-row" aria-label="${medicine} open-ended duration options">
-              ${['SOS', 'Till Required', 'To Continue', 'Stat'].map((value) => `
-                <label class="option-pill">
-                  <input type="radio" name="duration-${medicineSlug}" value="${value}" data-field="duration" ${checkedAttr(detail.duration === value)}>
-                  ${value}
-                </label>
-              `).join('')}
-            </div>
             <div class="duration-row duration-final-row" aria-label="${medicine} special duration options">
               ${['SoS', 'Till required', 'To Continue', 'Stat'].map((value) => `
                 <label class="option-pill">
