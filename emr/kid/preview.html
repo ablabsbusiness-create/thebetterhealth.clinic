@@ -654,11 +654,13 @@
       vertical-align: middle;
     }
 
+    /* Column labels are small, centred and unemphasised - the row content is
+       what should carry weight, not the headings. */
     .medicine-table th {
-      background: #e5e7eb;
-      color: #111827;
-      font-size: calc(var(--rx-fs) * 0.75);
-      font-weight: 800;
+      background: #f3f4f6;
+      color: #374151;
+      font-size: calc(var(--rx-fs) * 0.68);
+      font-weight: 500;
     }
 
     .medicine-table .medicine-name {
@@ -666,38 +668,50 @@
       font-weight: 800;
     }
 
+    /* The food instruction hangs under the quantity, left-aligned against the
+       cell edge rather than centred with the dose above it. */
     .medicine-table .medicine-sub {
       display: block;
       margin-top: 1px;
-      font-size: calc(var(--rx-fs) * 0.571);
+      font-size: calc(var(--rx-fs) * 0.65);
       font-style: italic;
       font-weight: 500;
-      letter-spacing: 0.02em;
-      text-transform: uppercase;
+      letter-spacing: 0;
+      text-transform: none;
+      text-align: left;
     }
 
+    /* Composition sits under the brand in small italic capitals. */
     .medicine-table .medicine-composition {
       display: block;
       margin-top: 1px;
       font-size: calc(var(--rx-fs) * 0.607);
-      font-style: normal;
-      font-weight: 600;
+      font-style: italic;
+      font-weight: 500;
       letter-spacing: 0;
-      text-transform: none;
+      text-transform: uppercase;
     }
 
-    /* The dosage cell stacks the dose phrase over the food instruction, so it
-       is left-aligned rather than centred like the old numeric columns. */
-    .medicine-table .medicine-dose {
-      text-align: left;
+    /* Dosage form ahead of the brand, in normal weight. */
+    .medicine-table .medicine-form {
+      font-weight: 400;
     }
 
-    .medicine-table .medicine-dose .medicine-sub {
-      font-style: normal;
-      font-weight: 600;
-      text-transform: none;
-      letter-spacing: 0;
+    .medicine-table .medicine-index {
+      text-align: center;
     }
+
+    .medicine-table .medicine-quantity {
+      text-align: center;
+    }
+
+    .medicine-notes {
+      margin: 4px 0 0;
+      font-size: calc(var(--rx-fs) * 0.65);
+      line-height: 1.3;
+    }
+
+
 
     .instructions-block {
       margin-top: 6px;
@@ -1561,6 +1575,14 @@
       }
       enterClinicLink.setAttribute('aria-disabled', String(!enabled));
     }
+
+    // Leaving for the patient list is the point the consult is actually over,
+    // so that is where the working data is cleared - not on save, which the
+    // doctor may well want to go back and revise.
+    enterClinicLink?.addEventListener('click', () => {
+      const patientId = getPatientIdFromUrl();
+      clearPrescriptionLocalData(patientId);
+    });
 
     // The save runs in the background off several different buttons, so its
     // state needs one home the doctor can actually see - the status chip alone
@@ -2755,7 +2777,14 @@
         ? `${nameWithType} (${strength})`
         : nameWithType;
 
-      return { brandLine, compositionLine: composition };
+      // The printed row sets the dosage form in normal weight and the brand in
+      // bold, so they are returned separately as well as joined.
+      const formPrefix = type && !lowerBrand.startsWith(`${lowerType} `) ? type : '';
+      const brandText = formPrefix
+        ? brandLine.slice(formPrefix.length + 1)
+        : brandLine;
+
+      return { brandLine, formPrefix, brandText, compositionLine: composition };
     }
 
     function formatMedicineName(medicine, detail = {}, importedName = '') {
@@ -2775,6 +2804,8 @@
           medicine,
           medicineName,
           brandLine: nameParts.brandLine,
+          formPrefix: nameParts.formPrefix,
+          brandText: nameParts.brandText,
           compositionLine: nameParts.compositionLine,
           medicineType: detail.type || '',
           dose: detail.dose || detail.doseChip || importedDose.dose || '',
@@ -2791,50 +2822,49 @@
         return '';
       }
 
-      // Two lines per cell: brand over generic on the left, and the dosage
-      // phrase over the food instruction on the right. Keeping quantity,
-      // frequency and duration together on one line lets the whole phrase
-      // wrap as a unit instead of three columns each breaking separately.
+      // Column set and cell layout follow the printed reference: the dosage
+      // form sits in normal weight ahead of the bold brand, the composition
+      // runs underneath in small italic capitals, and the food instruction
+      // hangs under Quantity rather than being merged into the dose.
       return `
         <div class="medicine-table-wrap">
         <table class="medicine-table">
           <thead>
             <tr>
               <th style="width: 7%"></th>
-              <th>Medication</th>
-              <th>Dosage</th>
+              <th style="width: 39%">Medicines</th>
+              <th style="width: 18%">Quantity</th>
+              <th style="width: 18%">Frequency</th>
+              <th style="width: 18%">Duration</th>
             </tr>
           </thead>
           <tbody>
-            ${rows.map((row, index) => {
-              const dosageParts = [row.dose, row.timing, row.duration]
-                .map((part) => String(part || '').trim())
-                .filter(Boolean);
-              const subParts = [row.food, row.note]
-                .map((part) => String(part || '').trim())
-                .filter(Boolean);
-
-              return `
+            ${rows.map((row, index) => `
               <tr>
-                <td><strong>${index + 1}</strong></td>
+                <td class="medicine-index"><strong>${index + 1}</strong></td>
                 <td class="medicine-name">
-                  ${escapeHtml(row.brandLine || row.medicineName || row.medicine)}
+                  ${row.formPrefix ? `<span class="medicine-form">${escapeHtml(row.formPrefix)}</span> ` : ''}<strong>${escapeHtml(row.brandText || row.medicineName || row.medicine)}</strong>
                   ${row.compositionLine
                     ? `<span class="medicine-composition">${escapeHtml(row.compositionLine)}</span>`
                     : ''}
                 </td>
-                <td class="medicine-dose">
-                  <strong>${escapeHtml(dosageParts.join(' · ') || '-')}</strong>
-                  ${subParts.length
-                    ? `<span class="medicine-sub">${escapeHtml(subParts.join(' · '))}</span>`
-                    : ''}
+                <td class="medicine-quantity">
+                  <strong>${escapeHtml(row.dose || '-')}</strong>
+                  ${row.food ? `<span class="medicine-sub">${escapeHtml(row.food)}</span>` : ''}
                 </td>
+                <td><strong>${escapeHtml(row.timing || '-')}</strong></td>
+                <td><strong>${escapeHtml(row.duration || '-')}</strong></td>
               </tr>
-            `;
-            }).join('')}
+            `).join('')}
           </tbody>
         </table>
         </div>
+        ${rows.some((row) => row.note)
+          ? `<p class="medicine-notes">${rows
+              .filter((row) => row.note)
+              .map((row) => `<strong>${escapeHtml(row.brandText || row.medicine)}:</strong> ${escapeHtml(row.note)}`)
+              .join(' &middot; ')}</p>`
+          : ''}
       `;
     }
 
@@ -3097,6 +3127,7 @@
         doctorDetails: base * 0.9542,
         row: base,
         table: base * 0.9542,
+        tableHead: base * 0.85,
         composition: base * 0.7723,
         sub: base * 0.7265,
         chartCaption: base * 0.8639,
@@ -3243,48 +3274,54 @@
       const medicineRows = getMedicineRows(draft);
       if (medicineRows.length) {
         y += 2;
-        const colIndexWidth = contentWidth * 0.08;
-        const colNameWidth = contentWidth * 0.46;
-        const colDoseWidth = contentWidth - colIndexWidth - colNameWidth;
-        const headerHeight = lh(SIZE.table) + 2;
+        const COLS = [0.07, 0.39, 0.18, 0.18, 0.18].map((fraction) => contentWidth * fraction);
+        const colX = [];
+        COLS.reduce((acc, width, index) => {
+          colX[index] = left + acc;
+          return acc + width;
+        }, 0);
+        const headerHeight = lh(SIZE.tableHead) + 2;
 
         const drawTableHead = () => {
           ensureSpace(headerHeight + lh(SIZE.table) * 2);
-          pdf.setFillColor(229, 231, 235);
-          pdf.setDrawColor(75);
-          pdf.setLineWidth(0.25);
+          pdf.setFillColor(243, 244, 246);
+          pdf.setDrawColor(150);
+          pdf.setLineWidth(0.2);
           pdf.rect(left, y, contentWidth, headerHeight, 'FD');
-          setFont(SIZE.table, 'bold');
-          pdf.text('Medication', left + colIndexWidth + colNameWidth / 2, y + headerHeight - 1.6, { align: 'center' });
-          pdf.text('Dosage', left + colIndexWidth + colNameWidth + colDoseWidth / 2, y + headerHeight - 1.6, { align: 'center' });
+          setFont(SIZE.tableHead, 'normal');
+          ['', 'Medicines', 'Quantity', 'Frequency', 'Duration'].forEach((label, index) => {
+            if (!label) {
+              return;
+            }
+            pdf.text(label, colX[index] + COLS[index] / 2, y + headerHeight - 1.4, { align: 'center' });
+          });
           y += headerHeight;
         };
 
         drawTableHead();
 
         medicineRows.forEach((row, index) => {
-          const dosageParts = [row.dose, row.timing, row.duration]
-            .map((part) => String(part || '').trim())
-            .filter(Boolean);
-          const subParts = [row.food, row.note]
-            .map((part) => String(part || '').trim())
-            .filter(Boolean);
+          const formPrefix = String(row.formPrefix || '').trim();
+          const brandText = String(row.brandText || row.medicineName || row.medicine || '').trim();
 
           setFont(SIZE.table, 'bold');
-          const nameLines = pdf.splitTextToSize(String(row.brandLine || row.medicineName || row.medicine), colNameWidth - 4);
-          const doseLines = pdf.splitTextToSize(dosageParts.join(' · ') || '-', colDoseWidth - 4);
-          setFont(SIZE.composition, 'normal');
+          const brandWidth = COLS[1] - 4 - (formPrefix ? pdf.getTextWidth(formPrefix + ' ') : 0);
+          const brandLines = pdf.splitTextToSize(brandText, Math.max(10, brandWidth));
+          setFont(SIZE.composition, 'italic');
           const compLines = row.compositionLine
-            ? pdf.splitTextToSize(String(row.compositionLine), colNameWidth - 4)
+            ? pdf.splitTextToSize(String(row.compositionLine).toUpperCase(), COLS[1] - 4)
             : [];
-          setFont(SIZE.sub, 'normal');
-          const subLines = subParts.length
-            ? pdf.splitTextToSize(subParts.join(' · '), colDoseWidth - 4)
-            : [];
+          setFont(SIZE.table, 'bold');
+          const doseLines = pdf.splitTextToSize(String(row.dose || '-'), COLS[2] - 3);
+          const freqLines = pdf.splitTextToSize(String(row.timing || '-'), COLS[3] - 3);
+          const durLines = pdf.splitTextToSize(String(row.duration || '-'), COLS[4] - 3);
+          setFont(SIZE.sub, 'italic');
+          const foodLines = row.food ? pdf.splitTextToSize(String(row.food), COLS[2] - 3) : [];
 
-          const nameHeight = nameLines.length * lh(SIZE.table) + compLines.length * lh(SIZE.composition);
-          const doseHeight = doseLines.length * lh(SIZE.table) + subLines.length * lh(SIZE.sub);
-          const rowHeight = Math.max(nameHeight, doseHeight) + 2;
+          const nameHeight = brandLines.length * lh(SIZE.table) + compLines.length * lh(SIZE.composition);
+          const qtyHeight = doseLines.length * lh(SIZE.table) + foodLines.length * lh(SIZE.sub);
+          const otherHeight = Math.max(freqLines.length, durLines.length) * lh(SIZE.table);
+          const rowHeight = Math.max(nameHeight, qtyHeight, otherHeight) + 2.6;
 
           // Keep the row whole: start a new page and repeat the head rather
           // than splitting a medicine across the break.
@@ -3294,44 +3331,72 @@
             drawTableHead();
           }
 
-          pdf.setDrawColor(75);
-          pdf.setLineWidth(0.25);
-          pdf.rect(left, y, colIndexWidth, rowHeight);
-          pdf.rect(left + colIndexWidth, y, colNameWidth, rowHeight);
-          pdf.rect(left + colIndexWidth + colNameWidth, y, colDoseWidth, rowHeight);
+          pdf.setDrawColor(150);
+          pdf.setLineWidth(0.2);
+          COLS.forEach((width, colIndex) => {
+            pdf.rect(colX[colIndex], y, width, rowHeight);
+          });
 
           setFont(SIZE.table, 'bold');
-          pdf.text(String(index + 1), left + colIndexWidth / 2, y + lh(SIZE.table), { align: 'center' });
+          pdf.text(String(index + 1), colX[0] + COLS[0] / 2, y + lh(SIZE.table), { align: 'center' });
 
+          // Medicines: form in normal weight, brand in bold, composition under.
           let cellY = y + 1;
-          const nameX = left + colIndexWidth + 2;
-          nameLines.forEach((line) => {
+          let nameX = colX[1] + 2;
+          if (formPrefix) {
+            setFont(SIZE.table, 'normal');
+            pdf.text(formPrefix + ' ', nameX, cellY + SIZE.table * PT_TO_MM);
+            nameX += pdf.getTextWidth(formPrefix + ' ');
+          }
+          brandLines.forEach((line, lineIndex) => {
             setFont(SIZE.table, 'bold');
-            pdf.text(line, nameX, cellY + SIZE.table * PT_TO_MM);
+            pdf.text(line, lineIndex === 0 ? nameX : colX[1] + 2, cellY + SIZE.table * PT_TO_MM);
             cellY += lh(SIZE.table);
           });
           compLines.forEach((line) => {
-            setFont(SIZE.composition, 'normal');
-            pdf.text(line, nameX, cellY + SIZE.composition * PT_TO_MM);
+            setFont(SIZE.composition, 'italic');
+            pdf.text(line, colX[1] + 2, cellY + SIZE.composition * PT_TO_MM);
             cellY += lh(SIZE.composition);
           });
 
+          // Quantity: dose centred, food instruction left-aligned beneath it.
           cellY = y + 1;
-          const doseX = left + colIndexWidth + colNameWidth + 2;
           doseLines.forEach((line) => {
             setFont(SIZE.table, 'bold');
-            pdf.text(line, doseX, cellY + SIZE.table * PT_TO_MM);
+            pdf.text(line, colX[2] + COLS[2] / 2, cellY + SIZE.table * PT_TO_MM, { align: 'center' });
             cellY += lh(SIZE.table);
           });
-          subLines.forEach((line) => {
-            setFont(SIZE.sub, 'normal');
-            pdf.text(line, doseX, cellY + SIZE.sub * PT_TO_MM);
+          foodLines.forEach((line) => {
+            setFont(SIZE.sub, 'italic');
+            pdf.text(line, colX[2] + 2, cellY + SIZE.sub * PT_TO_MM);
             cellY += lh(SIZE.sub);
+          });
+
+          // Frequency and Duration: bold, centred.
+          [[freqLines, 3], [durLines, 4]].forEach((entry) => {
+            let entryY = y + 1;
+            entry[0].forEach((line) => {
+              setFont(SIZE.table, 'bold');
+              pdf.text(line, colX[entry[1]] + COLS[entry[1]] / 2, entryY + SIZE.table * PT_TO_MM, { align: 'center' });
+              entryY += lh(SIZE.table);
+            });
           });
 
           y += rowHeight;
         });
         y += 3;
+
+        // Per-medicine notes do not fit the grid, so they run underneath it.
+        const noted = medicineRows.filter((row) => String(row.note || '').trim());
+        if (noted.length) {
+          noted.forEach((row) => {
+            drawLabelledRow(
+              String(row.brandText || row.medicine || 'Note'),
+              String(row.note).trim()
+            );
+          });
+          y += 1;
+        }
       }
 
       // ---- instructions ------------------------------------------------------
@@ -3771,7 +3836,7 @@
           ? `Saved to the patient record. ${saveResult.warning}`
           : 'Saved to the patient record. No further action needed before printing.');
         setEnterClinicEnabled(true);
-        clearPrescriptionLocalData(patientId);
+        markPrescriptionDraftSaved(patientId, saveId);
         clearSavedVitalsDraft(patientId).catch((error) => {
           console.warn(`Unable to clear saved vitals draft: ${error.message}`);
         });
@@ -3813,6 +3878,29 @@
       }, 1200);
 
       window.setTimeout(() => URL.revokeObjectURL(pdfUrl), 30_000);
+    }
+
+    // Saving no longer throws the doctor's working data away. The preview auto-
+    // saves as soon as it loads, so wiping the draft here meant pressing Back
+    // landed on an empty prescription form with every chip deselected. The
+    // draft is kept and stamped with the id of the record it produced, so
+    // going back restores the selections and continuing forward again updates
+    // that same prescription instead of creating a duplicate.
+    function markPrescriptionDraftSaved(patientId = '', saveId = '') {
+      try {
+        const draftKey = getPrescriptionDraftStorageKey(patientId);
+        const draft = readJson(draftKey, null);
+        if (!draft) {
+          return;
+        }
+
+        draft.editId = saveId || draft.editId || '';
+        draft.savedPrescriptionAt = Date.now();
+        draft.expiresAt = Date.now() + PRESCRIPTION_EDIT_WINDOW_MS;
+        localStorage.setItem(draftKey, JSON.stringify(draft));
+      } catch (error) {
+        console.warn(`Unable to mark prescription draft as saved: ${error.message}`);
+      }
     }
 
     function clearPrescriptionLocalData(patientId = '') {
