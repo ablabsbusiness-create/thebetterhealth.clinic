@@ -3473,9 +3473,17 @@
       const validPatientId = isValidPatientId(patientId) ? patientId : '';
       const { sections, sectionDetails, medicineDetails: details } = serializeCurrentSelections();
 
-      localStorage.setItem(getPrescriptionDraftStorageKey(validPatientId), JSON.stringify({
+      const draftKey = getPrescriptionDraftStorageKey(validPatientId);
+      // Carried forward, not regenerated: this stamp is what tells a later load
+      // that the draft already produced a saved prescription and is still
+      // inside its edit window. Dropping it on the first chip edit after
+      // stepping back from the preview would make the next save a duplicate.
+      const previousSavedPrescriptionAt = readLocalJson(draftKey, null)?.savedPrescriptionAt || 0;
+
+      localStorage.setItem(draftKey, JSON.stringify({
         draftId: getPrescriptionDraftId(validPatientId),
         editId: activePrescriptionEditId || '',
+        savedPrescriptionAt: previousSavedPrescriptionAt,
         savedAt: new Date().toISOString(),
         expiresAt: Date.now() + PRESCRIPTION_DRAFT_TTL_MS,
         patientId: validPatientId,
@@ -4641,6 +4649,27 @@
       editModeBanner.hidden = !message;
     }
 
+    // Returns the draft's editId only while the prescription it produced is
+    // still editable, matching the same 2-hour window the save path enforces.
+    function getEditableDraftEditId() {
+      try {
+        const draft = readLocalJson(getPrescriptionDraftStorageKey(getCurrentPatientId()), null);
+        if (!draft || !draft.editId) {
+          return '';
+        }
+
+        const savedAt = Number(draft.savedPrescriptionAt || 0);
+        if (!savedAt || Date.now() - savedAt > PRESCRIPTION_EDIT_WINDOW_MS) {
+          return '';
+        }
+
+        return draft.editId;
+      } catch (error) {
+        console.warn(`Unable to read the draft's edit id: ${error.message}`);
+        return '';
+      }
+    }
+
     function clearStaleEditIdFromDraft() {
       try {
         const draftKey = getPrescriptionDraftStorageKey(getCurrentPatientId());
@@ -4658,11 +4687,22 @@
       const editId = (new URLSearchParams(window.location.search).get('editId') || '').trim();
 
       if (!editId || !db) {
-        // Not opening an edit link - make sure a leftover editId from a previous
-        // (possibly abandoned, or another patient's/tab's) edit session doesn't
-        // silently attach itself to this brand-new prescription's save.
-        activePrescriptionEditId = '';
-        clearStaleEditIdFromDraft();
+        // Arriving with no edit link is either the doctor stepping back from
+        // the preview mid-consult, or a brand-new prescription. Tell them apart
+        // by the draft: if it was already saved and is still inside the 2-hour
+        // edit window, keep editing that record so going back and forward
+        // revises one prescription instead of piling up duplicates. Otherwise
+        // drop the id, so a stale one from an abandoned session cannot attach
+        // itself to a new prescription.
+        const adoptedEditId = getEditableDraftEditId();
+
+        if (adoptedEditId) {
+          activePrescriptionEditId = adoptedEditId;
+          showEditModeBanner('Editing the prescription you just previewed. Continue to preview again to update it.');
+        } else {
+          activePrescriptionEditId = '';
+          clearStaleEditIdFromDraft();
+        }
         return;
       }
 
