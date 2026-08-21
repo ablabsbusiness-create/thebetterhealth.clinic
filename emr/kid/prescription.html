@@ -2325,6 +2325,11 @@
 
     function closeMedicineModal() {
       syncMedicineDetailsFromDom();
+      // syncMedicineDetailsFromDom() only writes the standalone medicine-detail
+      // store, which the preview page never reads - it builds the sheet from
+      // the draft. Without this the dose, timing and duration a doctor just
+      // entered were dropped the moment they pressed Continue.
+      savePrescriptionDraft();
       updateDosageWarningBanner();
       showSectionPanel('Medication', null);
       if (medicineModalEdit) {
@@ -4064,7 +4069,10 @@
       }
     }
 
-    medicineDetailContent.addEventListener('input', syncMedicineDetailsFromDom);
+    medicineDetailContent.addEventListener('input', () => {
+      syncMedicineDetailsFromDom();
+      savePrescriptionDraft();
+    });
     medicineDetailContent.addEventListener('change', (event) => {
       const input = event.target;
       const card = input.closest('.medicine-detail-card');
@@ -4083,6 +4091,9 @@
       }
 
       syncMedicineDetailsFromDom();
+      // Also commit to the draft here, so an edit is not lost if the doctor
+      // leaves the page without closing the modal first.
+      savePrescriptionDraft();
     });
 
     function readPrescriptionTemplateCache() {
