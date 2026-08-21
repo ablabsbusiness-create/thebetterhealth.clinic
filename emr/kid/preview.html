@@ -686,6 +686,19 @@
       text-transform: none;
     }
 
+    /* The dosage cell stacks the dose phrase over the food instruction, so it
+       is left-aligned rather than centred like the old numeric columns. */
+    .medicine-table .medicine-dose {
+      text-align: left;
+    }
+
+    .medicine-table .medicine-dose .medicine-sub {
+      font-style: normal;
+      font-weight: 600;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
     .instructions-block {
       margin-top: 6px;
       font-size: calc(var(--rx-fs) * 0.75);
@@ -982,9 +995,11 @@
     }
 
     @media print {
+      /* The real @page rule is written at runtime by applyPrintPageRule() so
+         it carries the doctor's configured margins. This is only the fallback
+         for the case where that has not run yet. */
       @page {
         size: A4 portrait;
-        margin: 0;
       }
 
       :root {
@@ -993,8 +1008,11 @@
 
       html,
       body {
-        width: 210mm;
-        min-height: 297mm;
+        /* Must NOT be pinned to 210mm. @page now supplies the margins, so the
+           printable area is narrower than the sheet - forcing full page width
+           here pushed the header and footer off the right edge of the paper. */
+        width: auto;
+        min-height: 0;
         margin: 0 !important;
         padding: 0 !important;
         background: #fff;
@@ -1015,33 +1033,79 @@
         display: grid !important;
       }
 
-      body:not(.print-with-header) .rx-sheet {
-        padding-top: calc(12mm + var(--print-header-gap));
-      }
-
       .page-shell,
       .content-panel,
       .document-stage {
         width: 100%;
+        max-width: none;
         margin: 0;
         padding: 0;
         border: 0;
+        border-radius: 0;
         box-shadow: none;
         background: #fff;
+        /* An ancestor that scrolls on screen would clip the sheet on paper. */
+        overflow: visible;
+        display: block;
       }
 
       .rx-sheet {
         box-sizing: border-box;
-        width: 210mm;
-        min-height: 297mm;
+        /* Width and margins come from @page now, so the sheet itself is a
+           plain block that fills the printable area and grows as needed. */
+        width: auto;
+        min-height: 0;
         height: auto;
-        padding: 8mm;
+        padding: 0;
+        margin: 0;
         border: 0;
+        border-radius: 0;
         box-shadow: none;
         /* Follow the configured Font Size. This used to be pinned at 10px,
            which silently shrank every browser-printed prescription. */
         font-size: var(--rx-fs);
         overflow: visible;
+        /* Flex columns paginate badly - the footer's margin-top:auto would
+           strand it at the bottom of page one. Block layout lets content
+           flow across pages normally. */
+        display: block;
+      }
+
+      body:not(.print-with-header) .rx-sheet {
+        padding-top: var(--print-header-gap);
+      }
+
+      /* Nothing may be clipped or scrolled away on paper. */
+      .medicine-table-wrap {
+        overflow: visible !important;
+      }
+
+      .medicine-table-wrap .medicine-table {
+        min-width: 0;
+      }
+
+      /* Keep rows, the patient band and the footer whole across page breaks -
+         this is the part the old rasterised export could never do. */
+      .patient-band,
+      .medicine-table tr,
+      .mini-chart-card,
+      .instructions-block,
+      .rx-footer {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .medicine-table thead {
+        display: table-header-group;
+      }
+
+      .rx-footer {
+        margin-top: 12mm;
+      }
+
+      .billing-modal,
+      .modal-backdrop {
+        display: none !important;
       }
     }
 
@@ -1334,7 +1398,7 @@
             <button id="with-header-btn" class="header-mode-btn" type="button">With Header</button>
             <button id="without-header-btn" class="header-mode-btn" type="button">Without Header</button>
           </div>
-          <button id="print-pdf-btn" class="btn-ghost" type="button">Print PDF</button>
+          <button id="print-pdf-btn" class="btn-ghost" type="button">Print</button>
           <button id="add-payment-btn" class="btn-ghost" type="button">Add Payment</button>
           <button id="edit-prescription-btn" class="btn-ghost" type="button" hidden>Edit Prescription</button>
         </div>
@@ -1775,6 +1839,24 @@
       rxSheet.style.setProperty('--rx-margin-bottom', `${layout.prescriptionMarginsCm.bottom}cm`);
       rxSheet.style.setProperty('--rx-margin-left', `${layout.prescriptionMarginsCm.left}cm`);
       rxSheet.style.setProperty('--rx-margin-right', `${layout.prescriptionMarginsCm.right}cm`);
+      applyPrintPageRule(layout);
+    }
+
+    // Browser printing takes its margins from the @page rule, not from the
+    // sheet's padding, and @page cannot read CSS custom properties reliably.
+    // So the configured margins are written into a real stylesheet whenever
+    // the layout changes - the same approach Docon uses.
+    function applyPrintPageRule(layout) {
+      const margins = layout.prescriptionMarginsCm;
+      let styleEl = document.getElementById('rx-print-page-rule');
+
+      if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'rx-print-page-rule';
+        document.head.appendChild(styleEl);
+      }
+
+      styleEl.textContent = `@page { size: A4 portrait; margin: ${margins.top}cm ${margins.right}cm ${margins.bottom}cm ${margins.left}cm; }`;
     }
 
     function getPrescriptionBranding() {
@@ -2569,7 +2651,31 @@
     }
 
     function renderTextRow(label, values, detailMap = {}, sectionName = '') {
-      return `<p class="text-row"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(formatDetailedSelections(values, detailMap, sectionName))}</p>`;
+      const text = formatDetailedSelections(values, detailMap, sectionName);
+
+      // An empty section prints nothing at all rather than a bare "Label: -".
+      // A sheet full of dash-only labels is harder to read at a glance, and
+      // the doctor gains nothing from being told a section was left blank.
+      if (!text || text === '-') {
+        return '';
+      }
+
+      return `<p class="text-row"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(text)}</p>`;
+    }
+
+    function renderAllergyRow(allergy) {
+      const text = formatAllergyText(allergy);
+      if (!text || text === '-') {
+        return '';
+      }
+      return `<p class="text-row"><strong>Allergy:</strong> ${escapeHtml(text)}</p>`;
+    }
+
+    function renderNotesRow(notesText) {
+      if (!String(notesText || '').trim()) {
+        return '';
+      }
+      return `<p class="text-row"><strong>Notes:</strong> ${formatMultiline(notesText)}</p>`;
     }
 
     function formatAllergyText(allergy) {
@@ -2632,17 +2738,29 @@
       };
     }
 
-    function formatMedicineName(medicine, detail = {}, importedName = '') {
+    // Splits the medicine label into the two lines the printed row uses:
+    // the brand line (form + brand + strength) and the generic line
+    // underneath it, so the dispensing chemist can read either one.
+    function splitMedicineName(medicine, detail = {}, importedName = '') {
       const brandName = detail.name || detail.displayName || importedName || medicine;
       const type = String(detail.type || '').trim();
       const composition = String(detail.composition || '').trim();
+      const strength = String(detail.strength || '').trim();
       const lowerBrand = String(brandName || '').toLowerCase();
       const lowerType = type.toLowerCase();
       const nameWithType = type && !lowerBrand.startsWith(`${lowerType} `)
         ? `${type} ${brandName}`
         : brandName;
+      const brandLine = strength && !lowerBrand.includes(strength.toLowerCase())
+        ? `${nameWithType} (${strength})`
+        : nameWithType;
 
-      return composition ? `${nameWithType} (${composition})` : nameWithType;
+      return { brandLine, compositionLine: composition };
+    }
+
+    function formatMedicineName(medicine, detail = {}, importedName = '') {
+      const { brandLine, compositionLine } = splitMedicineName(medicine, detail, importedName);
+      return compositionLine ? `${brandLine} (${compositionLine})` : brandLine;
     }
 
     function getMedicineRows(draft) {
@@ -2652,9 +2770,12 @@
         const detail = details[medicine] || {};
         const importedDose = splitImportedMedicineDose(medicine);
         const medicineName = formatMedicineName(medicine, detail, importedDose.name);
+        const nameParts = splitMedicineName(medicine, detail, importedDose.name);
         return {
           medicine,
           medicineName,
+          brandLine: nameParts.brandLine,
+          compositionLine: nameParts.compositionLine,
           medicineType: detail.type || '',
           dose: detail.dose || detail.doseChip || importedDose.dose || '',
           timing: Array.isArray(detail.timings) ? detail.timings.join(', ') : '',
@@ -2667,9 +2788,13 @@
 
     function renderMedicineTable(rows) {
       if (!rows.length) {
-        return '<p class="empty-note">No medication selected.</p>';
+        return '';
       }
 
+      // Two lines per cell: brand over generic on the left, and the dosage
+      // phrase over the food instruction on the right. Keeping quantity,
+      // frequency and duration together on one line lets the whole phrase
+      // wrap as a unit instead of three columns each breaking separately.
       return `
         <div class="medicine-table-wrap">
         <table class="medicine-table">
@@ -2677,24 +2802,36 @@
             <tr>
               <th style="width: 7%"></th>
               <th>Medication</th>
-              <th>Quantity</th>
-              <th>Frequency</th>
-              <th>Duration</th>
+              <th>Dosage</th>
             </tr>
           </thead>
           <tbody>
-            ${rows.map((row, index) => `
+            ${rows.map((row, index) => {
+              const dosageParts = [row.dose, row.timing, row.duration]
+                .map((part) => String(part || '').trim())
+                .filter(Boolean);
+              const subParts = [row.food, row.note]
+                .map((part) => String(part || '').trim())
+                .filter(Boolean);
+
+              return `
               <tr>
                 <td><strong>${index + 1}</strong></td>
                 <td class="medicine-name">
-                  ${escapeHtml(row.medicineName || row.medicine)}
-                  ${row.note || row.food ? `<span class="medicine-sub">${escapeHtml(row.note || row.food)}</span>` : ''}
+                  ${escapeHtml(row.brandLine || row.medicineName || row.medicine)}
+                  ${row.compositionLine
+                    ? `<span class="medicine-composition">${escapeHtml(row.compositionLine)}</span>`
+                    : ''}
                 </td>
-                <td><strong>${escapeHtml(row.dose || '-')}</strong></td>
-                <td><strong>${escapeHtml(row.timing || '-')}</strong></td>
-                <td><strong>${escapeHtml(row.duration || '-')}</strong></td>
+                <td class="medicine-dose">
+                  <strong>${escapeHtml(dosageParts.join(' · ') || '-')}</strong>
+                  ${subParts.length
+                    ? `<span class="medicine-sub">${escapeHtml(subParts.join(' · '))}</span>`
+                    : ''}
+                </td>
               </tr>
-            `).join('')}
+            `;
+            }).join('')}
           </tbody>
         </table>
         </div>
@@ -2769,22 +2906,22 @@
           </div>
         </section>
 
-        <p class="text-row"><strong>Allergy:</strong> ${escapeHtml(formatAllergyText(draft?.allergy))}</p>
+        ${renderAllergyRow(draft?.allergy)}
         ${renderTextRow('Symptoms', sections.Symptoms, sectionDetails.Symptoms, 'Symptoms')}
         ${renderTextRow('Past Medical History', sections['Past Medical History'])}
         ${renderTextRow('Finding', sections.Finding, sectionDetails.Finding, 'Finding')}
-        <p class="text-row"><strong>Notes:</strong> ${notesText ? formatMultiline(notesText) : '-'}</p>
+        ${renderNotesRow(notesText)}
         ${renderTextRow('Diagnosis', sections.Diagnosis)}
         ${renderTextRow('Investigation', sections.Investigation)}
 
         ${renderMedicineTable(medicineRows)}
 
-        <section class="instructions-block">
+        ${instructions.length
+          ? `<section class="instructions-block">
           <strong>Instruction:</strong>
-          ${instructions.length
-            ? `<p>${escapeHtml(formatInstructionText(instructions))}</p>`
-            : '<p class="empty-note">No instructions selected.</p>'}
-        </section>
+          <p>${escapeHtml(formatInstructionText(instructions))}</p>
+        </section>`
+          : ''}
 
         ${renderMiniCharts(chartRecord)}
 
@@ -3670,24 +3807,24 @@
 
     printPdfBtn.addEventListener('click', async () => {
       printPdfBtn.disabled = true;
-      printPdfBtn.textContent = 'Preparing...';
+      printPdfBtn.textContent = 'Opening print...';
 
       try {
-        const builtRecord = await ensurePrescriptionPdfBuilt();
-        if (printWithHeaderEnabled) {
-          await openPdfForPrinting(builtRecord.pdf);
-        } else {
-          const downloadDetails = await buildPdf();
-          await openPdfForPrinting(downloadDetails.pdf);
-        }
+        // Print the live sheet rather than a rasterised PDF of it. The browser
+        // lays out real text and the SVG-free chart images at printer
+        // resolution, so glyphs stay sharp, the text stays selectable, and page
+        // breaks land between elements instead of slicing through a table row.
+        // The stored/WhatsApp copy is still a generated PDF - see
+        // ensurePrescriptionSaved() - because Storage needs an actual file.
+        window.print();
         ensurePrescriptionSaved().catch((error) => {
           console.warn(`Prescription background save failed: ${error.message}`);
         });
       } catch (error) {
-        console.warn(`Unable to print prescription PDF: ${error.message}`);
+        console.warn(`Unable to print prescription: ${error.message}`);
       } finally {
         printPdfBtn.disabled = false;
-        printPdfBtn.textContent = 'Print PDF';
+        printPdfBtn.textContent = 'Print';
       }
     });
 
