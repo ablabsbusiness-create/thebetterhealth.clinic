@@ -2034,8 +2034,91 @@
       return records[0] || null;
     }
 
+    // The patient band used to be filled only from the growth-chart record,
+    // which exists only when vitals were captured this visit. Going straight to
+    // the prescription left Name, Age/Sex, Mobile, Weight and Height printing
+    // as "-" even though the patient is known. The stored patient record is
+    // loaded once and used to fill whatever the chart record does not supply.
+    let activePatientRecord = null;
+
+    async function loadPatientRecordForPreview(patientId) {
+      const normalizedId = normalizePatientId(patientId);
+
+      if (!db || !isValidPatientId(normalizedId)) {
+        return null;
+      }
+
+      if (activePatientRecord && activePatientRecord.patientId === normalizedId) {
+        return activePatientRecord;
+      }
+
+      try {
+        const snapshot = await getDoc(doc(db, FIREBASE_COLLECTIONS.patients, normalizedId));
+
+        if (!snapshot.exists()) {
+          return null;
+        }
+
+        activePatientRecord = { patientId: normalizedId, ...snapshot.data() };
+        return activePatientRecord;
+      } catch (error) {
+        console.warn(`Unable to load patient details for the prescription: ${error.message}`);
+        return null;
+      }
+    }
+
+    function buildAgeFromDob(dobValue) {
+      const dob = new Date(dobValue);
+
+      if (!dobValue || Number.isNaN(dob.getTime())) {
+        return '';
+      }
+
+      const now = new Date();
+      let years = now.getFullYear() - dob.getFullYear();
+      let months = now.getMonth() - dob.getMonth();
+
+      if (now.getDate() < dob.getDate()) {
+        months -= 1;
+      }
+
+      if (months < 0) {
+        years -= 1;
+        months += 12;
+      }
+
+      if (years < 0) {
+        return '';
+      }
+
+      return years > 0 ? `${years}y ${months}m` : `${months}m`;
+    }
+
+    function withPatientFallback(chartRecord) {
+      const patient = activePatientRecord;
+
+      if (!patient) {
+        return chartRecord;
+      }
+
+      const merged = { ...(chartRecord || {}) };
+      const lastMeasurement = patient.lastMeasurementRecord || {};
+      const pick = (...values) => values.find((value) => String(value ?? '').trim()) || '';
+
+      merged.childName = pick(merged.childName, patient.childName, patient.parentName);
+      merged.parentName = pick(merged.parentName, patient.parentName);
+      merged.gender = pick(merged.gender, patient.gender);
+      merged.dob = pick(merged.dob, patient.dob);
+      merged.phone = pick(merged.phone, patient.phone, patient.mobileNumber);
+      merged.age = pick(merged.age, patient.age, buildAgeFromDob(merged.dob));
+      merged.weight = pick(merged.weight, lastMeasurement.weight);
+      merged.height = pick(merged.height, lastMeasurement.height);
+
+      return merged;
+    }
+
     function getCurrentChartRecord() {
-      return preparedChartRecord || getActiveChartRecord();
+      return withPatientFallback(preparedChartRecord || getActiveChartRecord());
     }
 
     function parseMetricValue(value) {
@@ -3201,7 +3284,10 @@
         drawParagraph(branding.clinicAddress, left, SIZE.clinicAddress, 'normal', colWidth);
         const leftBottom = y;
 
-        y = headerTop;
+        // Start the right column so its first baseline matches the clinic
+        // title's. Both columns share headerTop, but the larger title sits on
+        // a lower baseline, which left the two blocks visibly out of line.
+        y = headerTop + (SIZE.clinicTitle - SIZE.doctorName) * PT_TO_MM;
         const rightX = left + contentWidth;
         drawParagraph(branding.doctorName, rightX, SIZE.doctorName, 'bold', contentWidth * 0.42, 'right');
         drawParagraph(branding.doctorDetails, rightX, SIZE.doctorDetails, 'normal', contentWidth * 0.42, 'right');
@@ -3432,7 +3518,6 @@
 
       // ---- footer -------------------------------------------------------------
       y += 6;
-      const footerTop = y;
       const signatureWidth = 34;
       const signatureHeight = 12;
       if (branding.signatureDataUrl) {
@@ -3452,11 +3537,15 @@
         y += 1.5;
       }
 
+      // Both footer columns start here - level with the doctor's name. The
+      // address used to start above the signature, so it printed
+      // a line and a half higher than the block it sits beside.
+      const footerTextTop = y;
       drawParagraph(branding.doctorName, left, SIZE.footer, 'bold', contentWidth * 0.5);
       drawParagraph(branding.doctorDetails, left, SIZE.footer, 'normal', contentWidth * 0.5);
 
       const footerLeftBottom = y;
-      y = footerTop;
+      y = footerTextTop + (SIZE.footer - SIZE.footerAddress) * PT_TO_MM;
       drawParagraph(branding.footerText, left + contentWidth, SIZE.footerAddress, 'normal', contentWidth * 0.45, 'right');
       y = Math.max(footerLeftBottom, y);
 
@@ -4319,6 +4408,7 @@
     async function initializePreview() {
       setPreviewStatus('Preparing preview...');
       await loadPrescriptionBranding();
+      await loadPatientRecordForPreview(getPatientIdFromUrl());
       const activeRecord = getActiveChartRecord();
       preparedChartRecord = await rebuildChartPages(activeRecord);
       persistPreparedChartRecord(preparedChartRecord);
