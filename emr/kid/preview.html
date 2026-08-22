@@ -2094,6 +2094,23 @@
       return years > 0 ? `${years}y ${months}m` : `${months}m`;
     }
 
+    function isMeasuredToday(value) {
+      if (!value) {
+        return false;
+      }
+
+      const measured = new Date(value);
+
+      if (Number.isNaN(measured.getTime())) {
+        return false;
+      }
+
+      const now = new Date();
+      return measured.getFullYear() === now.getFullYear()
+        && measured.getMonth() === now.getMonth()
+        && measured.getDate() === now.getDate();
+    }
+
     function withPatientFallback(chartRecord) {
       const patient = activePatientRecord;
 
@@ -2102,17 +2119,31 @@
       }
 
       const merged = { ...(chartRecord || {}) };
-      const lastMeasurement = patient.lastMeasurementRecord || {};
       const pick = (...values) => values.find((value) => String(value ?? '').trim()) || '';
 
-      merged.childName = pick(merged.childName, patient.childName, patient.parentName);
+      // Never fall back to the parent's name. On a child's prescription the
+      // parent's name in the Name field reads as the patient, so an empty
+      // childName is left to the office ID rather than quietly substituted.
+      merged.childName = pick(
+        merged.childName,
+        patient.childName,
+        [patient.firstName, patient.middleName, patient.lastName].filter(Boolean).join(' ').trim()
+      );
       merged.parentName = pick(merged.parentName, patient.parentName);
       merged.gender = pick(merged.gender, patient.gender);
       merged.dob = pick(merged.dob, patient.dob);
       merged.phone = pick(merged.phone, patient.phone, patient.mobileNumber);
       merged.age = pick(merged.age, patient.age, buildAgeFromDob(merged.dob));
-      merged.weight = pick(merged.weight, lastMeasurement.weight);
-      merged.height = pick(merged.height, lastMeasurement.height);
+
+      // Weight and height are only borrowed from the last recorded measurement
+      // when it was taken today. An older reading printed in the vitals band
+      // looks like today's, and a stale weight is what a dose gets checked
+      // against - better to leave it blank than to state it wrongly.
+      const lastMeasurement = patient.lastMeasurementRecord || {};
+      if (isMeasuredToday(lastMeasurement.measuredAt || lastMeasurement.createdAtIso)) {
+        merged.weight = pick(merged.weight, lastMeasurement.weight);
+        merged.height = pick(merged.height, lastMeasurement.height, lastMeasurement.lengthHeight);
+      }
 
       return merged;
     }
