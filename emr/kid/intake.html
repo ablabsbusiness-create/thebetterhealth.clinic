@@ -182,8 +182,9 @@
     </section>
   </div>
   <script type="module">
-    import { addDoc, collection, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
-    import { db } from './lib/firebase-init.js';
+    // No Firebase import: this page is public, so the write goes through
+    // /api/kid/intake/submit, which validates it under admin credentials. The
+    // page therefore needs no database access of its own.
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
     const FIREBASE_COLLECTIONS = {
       patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
@@ -225,15 +226,22 @@
       const normalizedDob = parseDobInput(dobDayInput.value, dobMonthInput.value, dobYearInput.value);
       if (!normalizedDob) { dobYearInput.setCustomValidity('Please enter a valid date of birth.'); dobYearInput.reportValidity(); return; }
       dobYearInput.setCustomValidity('');
-      if (!db) { setStatus('Cloud records are not configured right now. Please tell the clinic staff.', 'error'); return; }
       submitBtn.disabled = true;
       submitBtn.textContent = 'Submitting...';
       setStatus('Sending your details to the clinic review queue...');
       const normalizedPhone = normalizePhone(intakeForm.elements.mobileNumber.value);
-      const payload = { childName: intakeForm.elements.childName.value.trim(), parentName: intakeForm.elements.parentName.value.trim(), gender: intakeForm.elements.gender.value, dob: normalizedDob, phone: normalizedPhone, mobileNumber: normalizedPhone, email: intakeForm.elements.email.value.trim(), bloodGroup: intakeForm.elements.bloodGroup.value.trim(), status: 'pending', decision: 'pending', submittedBy: 'qr-intake', submittedAt: serverTimestamp(), reviewedAt: null, reviewedBy: '', approvedPatientId: '', notes: '' };
+      const payload = { childName: intakeForm.elements.childName.value.trim(), parentName: intakeForm.elements.parentName.value.trim(), gender: intakeForm.elements.gender.value, dob: normalizedDob, mobileNumber: normalizedPhone, email: intakeForm.elements.email.value.trim(), bloodGroup: intakeForm.elements.bloodGroup.value.trim() };
       try {
-        const docRef = await addDoc(collection(db, FIREBASE_COLLECTIONS.pendingPatients), payload);
-        const queueId = docRef.id;
+        const response = await fetch('/api/kid/intake/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(result.error || 'Submission was rejected.');
+        }
+        const queueId = result.queueId;
         intakeForm.reset();
         resetConfirmation();
         intakeForm.hidden = true;
