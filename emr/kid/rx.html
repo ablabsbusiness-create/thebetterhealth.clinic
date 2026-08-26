@@ -124,9 +124,9 @@
   </main>
 
   <script type="module">
-    // No Firebase import: this page is public. /api/kid/prescriptions/<id>
-    // resolves the PDF under admin credentials and returns only a URL, so the
-    // link never carries database access with it.
+    import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
+    import { getDownloadURL, ref } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
+    import { db, storage } from './lib/firebase-init.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
     const FIREBASE_COLLECTIONS = {
       patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
@@ -174,6 +174,16 @@
       }
     }
 
+    async function resolvePrescriptionPdfUrl(record, storage) {
+      const directUrl = String(record?.downloadURL || record?.downloadUrl || record?.pdfURL || record?.pdfUrl || '').trim();
+      if (isPublicPdfUrl(directUrl)) {
+        return directUrl;
+      }
+
+      const storagePath = normalizeStoragePath(record?.storagePath || record?.fullPath || record?.filePath || record?.pdfPath || record?.path || record?.prescriptionSaveId);
+      return storagePath && storage ? getDownloadURL(ref(storage, storagePath)) : '';
+    }
+
     async function openPrescription() {
       if (!prescriptionId) {
         title.textContent = 'Prescription Not Found';
@@ -181,17 +191,23 @@
         return;
       }
 
-      try {
-        const response = await fetch(`/api/kid/prescriptions/${encodeURIComponent(prescriptionId)}`);
-        const result = await response.json().catch(() => ({}));
+      if (!db) {
+        title.textContent = 'Prescription Link Not Ready';
+        message.textContent = 'Prescription link cannot open because Cloud records are not configured.';
+        return;
+      }
 
-        if (!response.ok) {
+      try {
+        const snapshot = await getDoc(doc(db, FIREBASE_COLLECTIONS.history, prescriptionId));
+
+        if (!snapshot.exists()) {
           title.textContent = 'Prescription Not Found';
-          message.textContent = result.error || 'No saved prescription was found for this link.';
+          message.textContent = 'No saved prescription was found for this link.';
           return;
         }
 
-        const pdfUrl = result.pdfUrl;
+        const record = snapshot.data();
+        const pdfUrl = await resolvePrescriptionPdfUrl(record, storage);
         if (!pdfUrl) {
           title.textContent = 'Prescription Not Available';
           message.textContent = 'This prescription record does not have a PDF link.';
