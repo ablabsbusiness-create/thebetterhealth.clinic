@@ -14,7 +14,8 @@ const publicEntries = [
   'robots.txt',
   'sitemap.xml',
   'llms.txt',
-  'CNAME'
+  'CNAME',
+  'tos'
 ];
 
 const sharedEmrEntries = [
