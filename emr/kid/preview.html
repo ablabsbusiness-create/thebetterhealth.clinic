@@ -3529,7 +3529,12 @@
         .filter((page) => page && (page.miniDataUrl || page.dataUrl));
       if (chartPages.length) {
         const gap = 2;
-        const chartWidth = (contentWidth - gap * (chartPages.length - 1)) / chartPages.length;
+        // Always lay the charts out on a four-column grid, exactly as the
+        // sheet's CSS does. Dividing by the number of charts instead meant a
+        // single chart stretched to the full page width - about half a page
+        // tall - and pushed the footer onto a second sheet.
+        const CHART_COLUMNS = 4;
+        const chartWidth = (contentWidth - gap * (CHART_COLUMNS - 1)) / CHART_COLUMNS;
         const chartHeight = chartWidth / 1.38;
         const blockHeight = chartHeight + lh(SIZE.chartCaption) + 2;
         ensureSpace(blockHeight);
