@@ -1426,7 +1426,7 @@
 
   <script type="module">
     import { doc, getDoc, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
-    import { db } from './lib/firebase-init.js';
+    import { db, signOutClinic } from './lib/firebase-init.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
     const FIREBASE_COLLECTIONS = {
       patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
@@ -2177,6 +2177,15 @@
           console.warn('Unable to call logout endpoint:', error);
         }
 
+        // Also drop the Firebase identity. Without this the browser keeps a
+        // valid Firestore session after logout - Auth persistence outlives the
+        // 12-hour cookie, so data access would survive the page gate closing.
+        await signOutClinic();
+
+        // Note: this line is a no-op. The session cookie is HttpOnly, so it
+        // cannot be cleared from JavaScript; the logout endpoint above is what
+        // actually clears it. Left in place only to avoid changing behaviour
+        // that other code may assume.
         document.cookie = `${ACCESS_COOKIE_NAME}=; Max-Age=0; Path=/; SameSite=Strict`;
 
         const passwordPath = window.location.pathname.startsWith('/emr/kid/')

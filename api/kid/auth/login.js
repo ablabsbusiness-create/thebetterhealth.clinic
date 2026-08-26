@@ -4,6 +4,12 @@ import {
   getAccessPassword,
   isAuthConfigured
 } from '../../../emr/kid/lib/auth.js';
+import { getAdminApp } from '../_firebase-admin.js';
+
+// The browser needs a Firebase identity, not just a session cookie: the cookie
+// gates pages, but Firestore rules can only check request.auth. Minting the
+// token here means it is only obtainable after the password check.
+const CLINIC_UID = 'clinic-kid-doctor';
 
 function sendJson(res, statusCode, payload, extraHeaders = {}) {
   res.statusCode = statusCode;
@@ -70,7 +76,18 @@ export default async function handler(req, res) {
   }
 
   const token = await createSessionToken();
-  sendJson(res, 200, { ok: true }, {
+  let firebaseToken = '';
+
+  try {
+    firebaseToken = await getAdminApp().auth().createCustomToken(CLINIC_UID);
+  } catch (error) {
+    // Soft-fail while the Firestore rules are still open: a login that grants
+    // page access but no data identity is degraded, not broken. Once the rules
+    // require auth this must be treated as a hard failure instead.
+    console.error(`Unable to mint Firebase custom token: ${error.message}`);
+  }
+
+  sendJson(res, 200, { ok: true, firebaseToken }, {
     'Set-Cookie': buildSessionCookie(token)
   });
 }
