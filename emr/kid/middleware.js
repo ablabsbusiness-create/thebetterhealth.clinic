@@ -1,3 +1,9 @@
+// NOT DEPLOYED. Vercel only runs middleware from the project root, so this file
+// never executes in production — that is why every "protected" page was served
+// publicly. The deployed gate is the root-level /middleware.js. This copy is
+// kept only because the Vite dev-server plugin mirrors its behaviour; do not
+// add protection here and expect it to take effect.
+
 import {
   buildLoginRedirect,
   getDefaultProtectedPath,

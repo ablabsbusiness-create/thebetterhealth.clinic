@@ -22,12 +22,21 @@ const PROTECTED_PATHS = new Set([
   '/vacination',
   '/prescription-growth-chart-dashboard',
   '/KID/prescription-growth-chart-dashboard',
-  '/api/growth_charts'
+  '/api/growth_charts',
+  // Added: these were never listed, so they were public despite reading and
+  // writing patient data. Production is deny-by-default via the root
+  // middleware; this list keeps the dev server in agreement.
+  '/certificates',
+  '/parent-details',
+  '/pdf-viewer',
+  '/growth-chart-preview',
+  // Creates a patient record with no review step, and its API now requires a
+  // clinic session. Parents self-register through /intake instead.
+  '/new-patient'
 ]);
 
 const PUBLIC_PATHS = new Set([
   '/password',
-  '/new-patient',
   '/intake',
   '/rx',
   '/KID/rx',
