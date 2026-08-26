@@ -1,3 +1,4 @@
+import { isAuthenticatedCookieHeader, parseCookies } from '../../../emr/kid/lib/auth.js';
 import admin from 'firebase-admin';
 import { getAdminDb } from '../_firebase-admin.js';
 
@@ -129,7 +130,27 @@ async function allocatePatientId(db) {
   });
 }
 
+// Requires a clinic session. This endpoint writes to the patients collection
+// with admin credentials, so leaving it open meant anyone on the internet could
+// create records (and, via next-id, count them). Parent self-registration goes
+// through /api/kid/intake/submit instead, which lands in the review queue.
+async function requireClinicSession(req, res) {
+  const cookies = parseCookies(req.headers.cookie || '');
+  const authenticated = await isAuthenticatedCookieHeader(req.headers.cookie || '');
+
+  if (!authenticated) {
+    sendJson(res, 401, { error: 'Sign in to the clinic app first.' });
+    return false;
+  }
+
+  return true;
+}
+
 export default async function handler(req, res) {
+  if (!(await requireClinicSession(req, res))) {
+    return;
+  }
+
   if (req.method !== 'POST') {
     sendJson(res, 405, { error: 'Method not allowed.' });
     return;
