@@ -1,4 +1,4 @@
-import { isAuthenticatedCookieHeader } from '../../../emr/kid/lib/auth.js';
+import { isAuthenticatedCookieHeader, parseCookies } from '../../../emr/kid/lib/auth.js';
 import admin from 'firebase-admin';
 import { getAdminDb } from '../_firebase-admin.js';
 
@@ -135,6 +135,7 @@ async function allocatePatientId(db) {
 // create records (and, via next-id, count them). Parent self-registration goes
 // through /api/kid/intake/submit instead, which lands in the review queue.
 async function requireClinicSession(req, res) {
+  const cookies = parseCookies(req.headers.cookie || '');
   const authenticated = await isAuthenticatedCookieHeader(req.headers.cookie || '');
 
   if (!authenticated) {
