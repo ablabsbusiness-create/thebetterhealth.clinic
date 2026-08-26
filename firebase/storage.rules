@@ -1,9 +1,32 @@
 rules_version = '2';
 
+// SCOPE: kid only — see the note at the top of firestore.rules.
+//
+// *** clinics/lungs REMAINS PUBLICLY READABLE AND WRITABLE *** and is left on
+// the old rule deliberately, because the lungs app has no Firebase sign-in.
+//
+// Note on existing kid links: getDownloadURL() tokens already handed out (the
+// ?alt=media&token=... prescription links sent to parents over WhatsApp) keep
+// working after this change, because that token bypasses rules. What stops
+// working for unauthenticated callers is listAll(), getMetadata() and fresh
+// getDownloadURL() calls — which is exactly the bucket enumeration we want to
+// close. New links issued via /api/kid/prescriptions/<id> are short-lived
+// signed URLs instead.
+
 service firebase.storage {
   match /b/{bucket}/o {
-    match /clinics/{clinicId}/{allPaths=**} {
-      allow read, write: if clinicId in ['kid', 'lungs'];
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // ---- kid: authenticated only -------------------------------------------
+    match /clinics/kid/{allPaths=**} {
+      allow read, write: if isSignedIn();
+    }
+
+    // ---- lungs: unchanged, still open --------------------------------------
+    match /clinics/lungs/{allPaths=**} {
+      allow read, write: if true;
     }
 
     match /{allPaths=**} {

@@ -1,21 +1,57 @@
 rules_version = '2';
 
+// SCOPE: this phase covers the kid clinic only.
+//
+// *** lungs REMAINS PUBLICLY READABLE AND WRITABLE ***
+// clinics/lungs is deliberately left on the old, unauthenticated rule because
+// the lungs app has no Firebase sign-in and its public pages still query
+// Firestore directly. Gating it would take that clinic down. This is a scope
+// decision, not an oversight: the DPDP exposure is closed for kid and remains
+// open for lungs until lungs gets the same treatment.
+//
+// DO NOT DEPLOY UNTIL BOTH ARE TRUE FOR KID:
+//   1. The kid app signs in to Firebase Auth (done) AND a real login is
+//      confirmed to return a non-empty custom token from /api/kid/auth/login.
+//   2. The kid public pages no longer touch Firestore (done: intake, rx,
+//      portal and new-patient now go through API routes on admin credentials).
+//
+// Previously every clinic was readable on the clinic id alone, with no auth
+// condition. Verified live: an unauthenticated read of clinics/kid/... returned
+// HTTP 200.
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    function isAllowedClinic(clinicId) {
-      return clinicId in ['kid', 'lungs'];
+
+    // The kid app signs in with a custom token minted server-side by
+    // /api/kid/auth/login, only after the clinic password is verified.
+    // Server-side routes use the admin SDK and bypass these rules entirely.
+    function isSignedIn() {
+      return request.auth != null;
     }
 
-    match /clinics/{clinicId} {
-      allow read, write: if isAllowedClinic(clinicId);
+    // ---- kid: authenticated only -------------------------------------------
+    // settings.html writes the clinics/kid document itself, which matches this
+    // rule rather than the {document=**} one below, so both need the condition.
+    match /clinics/kid {
+      allow read, write: if isSignedIn();
     }
 
-    match /clinics/{clinicId}/{document=**} {
-      allow read, write: if isAllowedClinic(clinicId);
+    match /clinics/kid/{document=**} {
+      allow read, write: if isSignedIn();
+    }
+
+    // ---- lungs: unchanged, still open --------------------------------------
+    // Restore parity here as soon as the lungs app has a Firebase identity.
+    match /clinics/lungs {
+      allow read, write: if true;
+    }
+
+    match /clinics/lungs/{document=**} {
+      allow read, write: if true;
     }
 
     match /clinicSettings/{settingId} {
-      allow read, write: if isAllowedClinic(settingId);
+      allow read, write: if (settingId == 'kid' && isSignedIn()) || settingId == 'lungs';
     }
 
     match /{document=**} {
