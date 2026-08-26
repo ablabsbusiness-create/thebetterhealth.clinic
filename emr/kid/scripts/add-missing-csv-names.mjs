@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import { Buffer } from 'node:buffer';
 import { initializeApp } from 'firebase/app';
 import { collection, doc, getFirestore, setDoc } from 'firebase/firestore';
+import { signInScriptApp } from './_script-auth.mjs';
 
 const FIREBASE_CONFIG = {
   apiKey: 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
@@ -94,6 +95,7 @@ const rows = JSON.parse(await fs.readFile(INPUT_PATH, 'utf8'));
 const selectedRows = rows.filter((row) => TARGET_NAMES.has(row.patientName));
 
 const app = initializeApp(FIREBASE_CONFIG, `kid-csv-name-fix-${Date.now()}`);
+await signInScriptApp(app);
 const db = getFirestore(app);
 const nowIso = new Date().toISOString();
 const referenceDate = '2025-10-31';

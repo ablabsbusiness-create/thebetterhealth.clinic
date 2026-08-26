@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { initializeApp } from 'firebase/app';
 import { collection, getDocs, getFirestore } from 'firebase/firestore';
+import { signInScriptApp } from './_script-auth.mjs';
 import { deleteObject, getMetadata, getStorage, listAll, ref } from 'firebase/storage';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -72,6 +73,7 @@ function writeState(state) {
 
 async function main() {
   const app = initializeApp(FIREBASE_CONFIG, `kid-legacy-storage-cleanup-${Date.now()}`);
+  await signInScriptApp(app);
   const db = getFirestore(app);
   const storage = getStorage(app);
 

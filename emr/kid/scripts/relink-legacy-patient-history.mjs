@@ -10,6 +10,7 @@ import {
   serverTimestamp,
   setDoc
 } from 'firebase/firestore';
+import { signInScriptApp } from './_script-auth.mjs';
 import {
   getBytes,
   getDownloadURL,
@@ -113,6 +114,7 @@ async function copyStorageFile(storage, oldPath, newPath) {
 
 async function main() {
   const app = initializeApp(FIREBASE_CONFIG, `kid-legacy-relink-${Date.now()}`);
+  await signInScriptApp(app);
   const db = getFirestore(app);
   const storage = getStorage(app);
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');

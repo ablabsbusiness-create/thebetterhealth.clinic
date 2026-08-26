@@ -11,6 +11,7 @@ import {
   serverTimestamp,
   setDoc
 } from 'firebase/firestore';
+import { signInScriptApp } from './_script-auth.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_SOURCE_PATH = 'C:\\Users\\Minali\\Desktop\\patients_combined (1).csv';
@@ -297,6 +298,7 @@ function writeJson(filePath, value) {
 async function main() {
   const rows = parseCsv(fs.readFileSync(sourcePath, 'utf8').replace(/^\uFEFF/, ''));
   const app = initializeApp(FIREBASE_CONFIG, `patients-combined-import-${Date.now()}`);
+  await signInScriptApp(app);
   const db = getFirestore(app);
   const existingSnapshot = await getDocs(collection(db, PATIENTS_COLLECTION));
   const existingPatients = existingSnapshot.docs.map((docSnap) => ({

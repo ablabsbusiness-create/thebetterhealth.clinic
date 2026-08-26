@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { initializeApp } from 'firebase/app';
 import { collection, doc, getDocs, getFirestore, writeBatch } from 'firebase/firestore';
+import { signInScriptApp } from './_script-auth.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUTPUT_DIR = path.join(__dirname, '..', 'migration-logs');
@@ -72,6 +73,7 @@ function writeJson(filePath, value) {
 
 async function main() {
   const app = initializeApp(FIREBASE_CONFIG, `kid-backfill-last-measurement-${Date.now()}`);
+  await signInScriptApp(app);
   const db = getFirestore(app);
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
 

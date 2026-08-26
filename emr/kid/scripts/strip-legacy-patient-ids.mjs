@@ -10,6 +10,7 @@ import {
   getFirestore,
   setDoc
 } from 'firebase/firestore';
+import { signInScriptApp } from './_script-auth.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUTPUT_DIR = path.join(__dirname, '..', 'migration-logs');
@@ -38,6 +39,7 @@ function listLegacyFields(data) {
 
 async function main() {
   const app = initializeApp(FIREBASE_CONFIG, `kid-strip-legacy-${Date.now()}`);
+  await signInScriptApp(app);
   const db = getFirestore(app);
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const summaryPath = path.join(OUTPUT_DIR, `kid-strip-legacy-summary-${timestamp}.json`);

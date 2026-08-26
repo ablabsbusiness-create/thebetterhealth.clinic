@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import { initializeApp } from 'firebase/app';
 import { collection, getDocs, getFirestore } from 'firebase/firestore';
+import { signInScriptApp } from './_script-auth.mjs';
 
 const FIREBASE_CONFIG = {
   apiKey: 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
@@ -36,7 +37,9 @@ async function main() {
   const realMissing = report.missing.filter((m) => !['TBK0119', 'TBK1235', 'TBK0347'].includes(m.patientId));
   console.log('Real (non-test) still-flagged pairs:', realMissing.length);
 
-  const db = getFirestore(initializeApp(FIREBASE_CONFIG, `verify-shift-${Date.now()}`));
+  const scriptApp = initializeApp(FIREBASE_CONFIG, `verify-shift-${Date.now()}`);
+  await signInScriptApp(scriptApp);
+  const db = getFirestore(scriptApp);
   const historySnap = await getDocs(collection(db, `${CLINIC_NAMESPACE}/history`));
   const entries = historySnap.docs.map((d) => ({ id: d.id, ...d.data() }));
 

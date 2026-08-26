@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import { initializeApp } from 'firebase/app';
 import { collection, getDocs, getFirestore, query, where } from 'firebase/firestore';
+import { signInScriptApp } from './_script-auth.mjs';
 
 const FIREBASE_CONFIG = {
   apiKey: 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
@@ -36,7 +37,9 @@ function hasPrescriptionMinimumValues(entry) {
 }
 
 async function main() {
-  const db = getFirestore(initializeApp(FIREBASE_CONFIG, `recount-${Date.now()}`));
+  const scriptApp = initializeApp(FIREBASE_CONFIG, `recount-${Date.now()}`);
+  await signInScriptApp(scriptApp);
+  const db = getFirestore(scriptApp);
   const historyRef = collection(db, `${CLINIC_NAMESPACE}/history`);
   const historyQuery = query(historyRef, where('source', '==', 'csv-import'));
   const snapshot = await getDocs(historyQuery);

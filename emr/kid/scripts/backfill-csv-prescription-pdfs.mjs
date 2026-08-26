@@ -21,6 +21,7 @@ import {
   ref,
   uploadBytes
 } from 'firebase/storage';
+import { signInScriptApp } from './_script-auth.mjs';
 import { jsPDF } from 'jspdf';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -1073,6 +1074,7 @@ function renderPdf(entry, options = {}) {
 
 async function main() {
   const app = initializeApp(DEFAULT_FIREBASE_CONFIG, `kid-csv-prescription-backfill-${Date.now()}`);
+  await signInScriptApp(app);
   const db = getFirestore(app);
   const storage = getStorage(app);
 

@@ -13,6 +13,7 @@ import {
   setDoc,
   where
 } from 'firebase/firestore';
+import { signInScriptApp } from './_script-auth.mjs';
 import {
   deleteObject,
   getBytes,
@@ -248,6 +249,7 @@ async function copyStorageObject(storage, oldPath, newPath) {
 
 async function main() {
   const app = initializeApp(FIREBASE_CONFIG, `kid-patient-dedupe-${Date.now()}`);
+  await signInScriptApp(app);
   const db = getFirestore(app);
   const storage = getStorage(app);
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');

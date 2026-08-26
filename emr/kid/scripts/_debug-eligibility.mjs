@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { doc, getDoc, getFirestore } from 'firebase/firestore';
+import { signInScriptApp } from './_script-auth.mjs';
 
 const FIREBASE_CONFIG = {
   apiKey: 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
@@ -29,7 +30,9 @@ function hasVitalsContent(entry) {
 }
 
 async function main() {
-  const db = getFirestore(initializeApp(FIREBASE_CONFIG, `debug-elig-${Date.now()}`));
+  const scriptApp = initializeApp(FIREBASE_CONFIG, `debug-elig-${Date.now()}`);
+  await signInScriptApp(scriptApp);
+  const db = getFirestore(scriptApp);
   const snap = await getDoc(doc(db, `${CLINIC_NAMESPACE}/history`, 'csvImport_ef55acaa36c50257a69b70df27e4'));
   const entry = { id: snap.id, ...snap.data() };
   console.log('raw entry:', JSON.stringify(entry, null, 2));
