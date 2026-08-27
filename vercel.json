@@ -4,6 +4,16 @@
   "outputDirectory": "vercel-dist",
   "cleanUrls": true,
   "trailingSlash": false,
+  "crons": [
+    {
+      "path": "/api/cron/retention-sweep?clinic=kid",
+      "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/retention-sweep?clinic=lungs",
+      "schedule": "0 3 * * *"
+    }
+  ],
   "redirects": [
     {
       "source": "/emr",

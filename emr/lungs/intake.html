@@ -179,7 +179,7 @@
   <script type="module">
     // No Firebase import: this page is public and unauthenticated, so the
     // write happens server-side under admin credentials at
-    // /api/lungs/intake/submit instead of a direct client-side addDoc().
+    // /api/lungs/public/submit instead of a direct client-side addDoc().
     const intakeForm = document.getElementById('intake-form');
     const submitBtn = document.getElementById('submit-btn');
     const statusNote = document.getElementById('status-note');
@@ -211,7 +211,7 @@
       const patientName = intakeForm.elements.childName.value.trim();
       const payload = { childName: patientName, gender: intakeForm.elements.gender.value, dob: normalizedDob, mobileNumber: intakeForm.elements.mobileNumber.value.trim(), email: intakeForm.elements.email.value.trim(), bloodGroup: intakeForm.elements.bloodGroup.value.trim() };
       try {
-        const response = await fetch('/api/lungs/intake/submit', {
+        const response = await fetch('/api/lungs/public/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)

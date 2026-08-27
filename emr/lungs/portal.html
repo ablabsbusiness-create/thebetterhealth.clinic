@@ -1130,7 +1130,7 @@
 
   <script type="module">
     // No Firebase import: this page is public. All data comes from
-    // /api/lungs/portal/records and /api/lungs/prescriptions/<id>, both
+    // /api/lungs/public/[action] (records/submit/prescription), both
     // gated on the verified OTP session.
 
     const lookupForm = document.getElementById('lookup-form');
@@ -1380,7 +1380,7 @@
       }
 
       try {
-        const response = await fetch(`/api/lungs/prescriptions/${encodeURIComponent(record.id)}`);
+        const response = await fetch(`/api/lungs/public/prescription?id=${encodeURIComponent(record.id)}`);
         if (!response.ok) {
           return '';
         }
@@ -1561,7 +1561,7 @@
       // Ownership is enforced server-side: the endpoint only returns history
       // for a patient registered to the verified session phone.
       const response = await fetch(
-        `/api/lungs/portal/records?patientId=${encodeURIComponent(patientId)}`,
+        `/api/lungs/public/records?patientId=${encodeURIComponent(patientId)}`,
         { credentials: 'same-origin' }
       );
       const result = await response.json().catch(() => ({}));
@@ -1745,7 +1745,7 @@
 
         clearLookupState();
 
-        const recordsResponse = await fetch('/api/lungs/portal/records', { credentials: 'same-origin' });
+        const recordsResponse = await fetch('/api/lungs/public/records', { credentials: 'same-origin' });
         const recordsResult = await recordsResponse.json().catch(() => ({}));
 
         if (!recordsResponse.ok) {
@@ -1877,7 +1877,7 @@
         }
 
         setLoading(true);
-        const recordsResponse = await fetch('/api/lungs/portal/records', { credentials: 'same-origin' });
+        const recordsResponse = await fetch('/api/lungs/public/records', { credentials: 'same-origin' });
         if (!recordsResponse.ok) {
           resetToLookup();
           return;
