@@ -3,20 +3,24 @@
 // are picked up solely by the Vite dev server plugin — which is why every
 // "protected" page has been served publicly in production.
 //
-// This file is the deployed gate for the kid app. It is deny-by-default:
-// anything under the app's base path requires a session unless it is named in
-// publicPaths below. The old model was the inverse (an allowlist of protected
-// paths), so any page never added to it — /certificates, /parent-details,
-// /pdf-viewer, /growth-chart-preview — was silently public despite reading and
-// writing patient data.
+// This file is the deployed gate for both apps. It is deny-by-default:
+// anything under an app's base path requires a session unless it is named in
+// that app's publicPaths below. The old model was the inverse (an allowlist of
+// protected paths), so any page never added to it — /certificates,
+// /parent-details, /pdf-viewer, /growth-chart-preview for kid;
+// /edit-patient, /prescription-growth-chart-dashboard for lungs — was
+// silently public despite reading and writing patient data.
 //
-// lungs is deliberately out of scope for this phase and is left exactly as it
-// was, which means it still has no production route protection at all.
+// lungs previously had no production route protection at all. It now gets the
+// same treatment as kid: a Firebase custom token minted on login
+// (api/lungs/auth/login.js), Firestore/Storage rules that require it
+// (firebase/firestore.rules, firebase/storage.rules), and this route gate.
 //
 // /api/* is intentionally NOT matched here. Those routes authenticate
 // themselves; a blanket redirect would break login and the OTP flow.
 
 import * as kidAuth from './emr/kid/lib/auth.js';
+import * as lungsAuth from './emr/lungs/lib/auth.js';
 
 const APPS = [
   {
@@ -30,6 +34,17 @@ const APPS = [
       // directly, with no review step, and its API now requires a clinic
       // session. Parent self-registration goes through /intake, which lands in
       // the approvals queue.
+      '/rx',
+      '/portal',
+      '/download'
+    ])
+  },
+  {
+    base: '/emr/lungs',
+    auth: lungsAuth,
+    publicPaths: new Set([
+      '/password',
+      '/intake',
       '/rx',
       '/portal',
       '/download'
@@ -82,5 +97,5 @@ export default async function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/emr/kid', '/emr/kid/:path*']
+  matcher: ['/emr/kid', '/emr/kid/:path*', '/emr/lungs', '/emr/lungs/:path*']
 };

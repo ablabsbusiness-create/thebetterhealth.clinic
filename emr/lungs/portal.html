@@ -1129,15 +1129,9 @@
   </div>
 
   <script type="module">
-    import { collection, getDocs, orderBy, query, where } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
-    import { getDownloadURL, ref } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
-    import { db, storage } from './lib/firebase-init.js';
-
-    const CLINIC_FIREBASE_NAMESPACE = 'clinics/lungs';
-    const FIREBASE_COLLECTIONS = {
-      patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
-      history: `${CLINIC_FIREBASE_NAMESPACE}/history`
-    };
+    // No Firebase import: this page is public. All data comes from
+    // /api/lungs/portal/records and /api/lungs/prescriptions/<id>, both
+    // gated on the verified OTP session.
 
     const lookupForm = document.getElementById('lookup-form');
     const phoneNumberInput = document.getElementById('phone-number');
@@ -1378,14 +1372,20 @@
       if (isPublicPdfUrl(directUrl)) {
         return directUrl;
       }
-      const storagePath = normalizeStoragePath(
-        record?.storagePath || record?.fullPath || record?.filePath || record?.pdfPath || record?.path || record?.prescriptionSaveId
-      );
-      if (!storagePath || !storage) {
+
+      // Resolved server-side so this page needs no Storage access. The endpoint
+      // returns a short-lived signed URL rather than the permanent token.
+      if (!record?.id) {
         return '';
       }
+
       try {
-        return await getDownloadURL(ref(storage, storagePath));
+        const response = await fetch(`/api/lungs/prescriptions/${encodeURIComponent(record.id)}`);
+        if (!response.ok) {
+          return '';
+        }
+        const result = await response.json().catch(() => ({}));
+        return result?.pdfUrl || '';
       } catch {
         return '';
       }
@@ -1395,28 +1395,6 @@
       const value = entry.createdAtIso || entry.createdAt || entry.savedAt || entry.updatedAt || '';
       const parsed = new Date(value);
       return Number.isNaN(parsed.getTime()) ? 0 : parsed.getTime();
-    }
-
-    async function findPatientsByPhone(enteredPhoneDigits) {
-      // Query by a handful of likely stored formats instead of scanning the
-      // entire patients collection on every portal lookup (this page is hit
-      // by parents far more often than staff hit Search).
-      const candidates = [enteredPhoneDigits, `91${enteredPhoneDigits}`, `+91${enteredPhoneDigits}`];
-
-      const [phoneSnapshot, mobileSnapshot] = await Promise.all([
-        getDocs(query(collection(db, FIREBASE_COLLECTIONS.patients), where('phone', 'in', candidates))),
-        getDocs(query(collection(db, FIREBASE_COLLECTIONS.patients), where('mobileNumber', 'in', candidates)))
-      ]);
-
-      const matchesById = new Map();
-      [...phoneSnapshot.docs, ...mobileSnapshot.docs].forEach((docSnapshot) => {
-        const data = docSnapshot.data();
-        const registeredPhone = normalizePhoneForCompare(data?.phone || data?.mobileNumber || '');
-        if (registeredPhone && registeredPhone === enteredPhoneDigits) {
-          matchesById.set(docSnapshot.id, { patientId: docSnapshot.id, ...data });
-        }
-      });
-      return [...matchesById.values()];
     }
 
     function renderActionRow({ icon, title, subtitle, onClick }) {
@@ -1580,21 +1558,19 @@
     }
 
     async function loadHistoryEntries(patientId) {
-      const historyQuery = query(
-        collection(db, FIREBASE_COLLECTIONS.history),
-        where('patientId', '==', patientId),
-        orderBy('createdAtIso', 'desc')
+      // Ownership is enforced server-side: the endpoint only returns history
+      // for a patient registered to the verified session phone.
+      const response = await fetch(
+        `/api/lungs/portal/records?patientId=${encodeURIComponent(patientId)}`,
+        { credentials: 'same-origin' }
       );
+      const result = await response.json().catch(() => ({}));
 
-      try {
-        const snapshot = await getDocs(historyQuery);
-        return snapshot.docs.map((docSnapshot) => ({ id: docSnapshot.id, ...docSnapshot.data() }));
-      } catch {
-        const fallbackSnapshot = await getDocs(
-          query(collection(db, FIREBASE_COLLECTIONS.history), where('patientId', '==', patientId))
-        );
-        return fallbackSnapshot.docs.map((docSnapshot) => ({ id: docSnapshot.id, ...docSnapshot.data() }));
+      if (!response.ok) {
+        throw new Error(result?.error || 'Unable to load visits right now.');
       }
+
+      return result.history || [];
     }
 
     function setActiveNavTab(tab) {
@@ -1692,11 +1668,6 @@
         return;
       }
 
-      if (!db) {
-        showFormMessage('Records are not available right now. Please try again later.');
-        return;
-      }
-
       setLoading(true);
 
       try {
@@ -1722,19 +1693,10 @@
           return;
         }
 
-        const matches = await findPatientsByPhone(enteredPhone);
-
-        if (!matches.length) {
-          recordFailedAttempt();
-          showFormMessage(NO_MATCH_MESSAGE);
-          return;
-        }
-
         const e164Phone = phoneToE164(phoneNumberInput.value);
         await widgetSendOtp(`91${enteredPhone}`);
 
         pendingPhoneDigits = enteredPhone;
-        pendingPatients = matches;
 
         clearFormMessage();
         otpHint.textContent = `Enter the code sent to ${e164Phone}.`;
@@ -1782,7 +1744,24 @@
         }
 
         clearLookupState();
-        await showPatientSelect(pendingPatients);
+
+        const recordsResponse = await fetch('/api/lungs/portal/records', { credentials: 'same-origin' });
+        const recordsResult = await recordsResponse.json().catch(() => ({}));
+
+        if (!recordsResponse.ok) {
+          throw new Error(recordsResult?.error || 'Unable to load your records right now.');
+        }
+
+        const matches = recordsResult.patients || [];
+
+        if (!matches.length) {
+          recordFailedAttempt();
+          showOtpMessage(NO_MATCH_MESSAGE);
+          return;
+        }
+
+        pendingPatients = matches;
+        await showPatientSelect(matches);
       } catch (error) {
         showOtpMessage(error?.message || 'Could not verify that code. Please try again.');
       } finally {
@@ -1893,16 +1872,24 @@
 
         const result = await response.json();
         const phoneDigits = normalizePhoneForCompare(result?.phone || '');
-        if (!phoneDigits || !db) {
+        if (!phoneDigits) {
           return;
         }
 
         setLoading(true);
-        const matches = await findPatientsByPhone(phoneDigits);
+        const recordsResponse = await fetch('/api/lungs/portal/records', { credentials: 'same-origin' });
+        if (!recordsResponse.ok) {
+          resetToLookup();
+          return;
+        }
+
+        const recordsResult = await recordsResponse.json().catch(() => ({}));
+        const matches = recordsResult.patients || [];
         if (!matches.length) {
           resetToLookup();
           return;
         }
+        pendingPatients = matches;
         await showPatientSelect(matches);
       } catch {
         // No valid session to restore; leave the lookup form as-is.

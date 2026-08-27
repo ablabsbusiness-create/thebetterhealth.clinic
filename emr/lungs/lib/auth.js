@@ -13,7 +13,9 @@ const PROTECTED_PATHS = new Set([
   '/pending-approvals',
   '/reception-qr',
   '/search',
-  '/settings'
+  '/settings',
+  '/edit-patient',
+  '/prescription-growth-chart-dashboard'
 ]);
 
 const PUBLIC_PATHS = new Set([

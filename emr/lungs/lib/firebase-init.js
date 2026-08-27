@@ -5,7 +5,7 @@ import {
   persistentMultipleTabManager
 } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
 import { getStorage } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
-import { getAuth } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js';
+import { getAuth, onAuthStateChanged, signInWithCustomToken, signOut } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_LUNGS_FIREBASE_API_KEY || 'AIzaSyAm-cUFMyTFSyw8KlFOCcBKQkTKApEr5oo',
@@ -30,3 +30,53 @@ export const db = app
 export const storage = app ? getStorage(app) : null;
 
 export const auth = app ? getAuth(app) : null;
+
+// Firestore rules can only check request.auth, so the browser needs a real
+// Firebase identity. The token is minted server-side by /api/lungs/auth/login
+// only after the clinic password is verified, then persisted by the Auth SDK,
+// so later page loads restore it without another round trip.
+//
+// This module awaits that restoration at the top level, which means every page
+// importing `db` is already signed in before its first query. Without it there
+// is a race on first paint where a query goes out unauthenticated.
+export const authReady = auth
+  ? new Promise((resolve) => {
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      (user) => {
+        unsubscribe();
+        resolve(user);
+      },
+      (error) => {
+        console.warn(`Firebase auth restore failed: ${error.message}`);
+        unsubscribe();
+        resolve(null);
+      }
+    );
+  })
+  : Promise.resolve(null);
+
+export async function signInWithClinicToken(customToken) {
+  if (!auth || !customToken) {
+    return null;
+  }
+
+  const credential = await signInWithCustomToken(auth, customToken);
+  return credential.user;
+}
+
+export async function signOutClinic() {
+  if (!auth) {
+    return;
+  }
+
+  try {
+    await signOut(auth);
+  } catch (error) {
+    console.warn(`Firebase sign-out failed: ${error.message}`);
+  }
+}
+
+// Resolves to the restored user or null - never rejects, so a signed-out
+// visitor still gets a rendered page rather than a blank one.
+await authReady;

@@ -177,16 +177,9 @@
     </section>
   </div>
   <script type="module">
-    import { addDoc, collection, doc, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
-    import { db } from './lib/firebase-init.js';
-    const CLINIC_FIREBASE_NAMESPACE = 'clinics/lungs';
-    const FIREBASE_COLLECTIONS = {
-      patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
-      pendingPatients: `${CLINIC_FIREBASE_NAMESPACE}/pendingPatients`,
-      history: `${CLINIC_FIREBASE_NAMESPACE}/history`,
-      prescription: `${CLINIC_FIREBASE_NAMESPACE}/prescription`
-    };
-    const CLINIC_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE;
+    // No Firebase import: this page is public and unauthenticated, so the
+    // write happens server-side under admin credentials at
+    // /api/lungs/intake/submit instead of a direct client-side addDoc().
     const intakeForm = document.getElementById('intake-form');
     const submitBtn = document.getElementById('submit-btn');
     const statusNote = document.getElementById('status-note');
@@ -196,41 +189,6 @@
     const dobDayInput = document.getElementById('dob-day');
     const dobMonthInput = document.getElementById('dob-month');
     const dobYearInput = document.getElementById('dob-year');
-    function buildPatientId(index = 0) {
-      return `TBL${String(index).padStart(4, '0')}`;
-    }
-    async function assignUniquePatientId(patientDoc) {
-      return runTransaction(db, async (transaction) => {
-        const counterRef = doc(db, CLINIC_FIREBASE_NAMESPACE, 'counters', 'patientIds');
-        const counterSnapshot = await transaction.get(counterRef);
-        let nextSerial = Number(counterSnapshot.data()?.nextSerial);
-        if (!Number.isFinite(nextSerial) || nextSerial < 0) {
-          nextSerial = 0;
-        }
-        for (let attempts = 0; attempts < 20000; attempts += 1) {
-          const candidateId = buildPatientId(nextSerial);
-          const patientRef = doc(db, FIREBASE_COLLECTIONS.patients, candidateId);
-          const patientSnapshot = await transaction.get(patientRef);
-          if (!patientSnapshot.exists()) {
-            const now = serverTimestamp();
-            transaction.set(counterRef, {
-              prefix: 'TBL',
-              nextSerial: nextSerial + 1,
-              updatedAt: now
-            }, { merge: true });
-            transaction.set(patientRef, {
-              ...patientDoc,
-              patientId: candidateId,
-              createdAt: now,
-              updatedAt: now
-            }, { merge: true });
-            return candidateId;
-          }
-          nextSerial += 1;
-        }
-        throw new Error('Unable to assign a patient ID right now.');
-      });
-    }
     function parseDobInput(dayValue, monthValue, yearValue) {
       const day = Number.parseInt(dayValue.trim(), 10);
       const month = Number.parseInt(monthValue.trim(), 10);
@@ -247,41 +205,24 @@
       const normalizedDob = parseDobInput(dobDayInput.value, dobMonthInput.value, dobYearInput.value);
       if (!normalizedDob) { dobYearInput.setCustomValidity('Please enter a valid date of birth.'); dobYearInput.reportValidity(); return; }
       dobYearInput.setCustomValidity('');
-      if (!db) { setStatus('Cloud records are not configured right now. Please tell the clinic staff.', 'error'); return; }
       submitBtn.disabled = true;
       submitBtn.textContent = 'Submitting...';
       setStatus('Sending your details to the clinic review queue...');
       const patientName = intakeForm.elements.childName.value.trim();
-      const payload = { childName: patientName, patientName, parentName: patientName, gender: intakeForm.elements.gender.value, dob: normalizedDob, phone: intakeForm.elements.mobileNumber.value.trim(), mobileNumber: intakeForm.elements.mobileNumber.value.trim(), email: intakeForm.elements.email.value.trim(), bloodGroup: intakeForm.elements.bloodGroup.value.trim(), status: 'pending', decision: 'pending', submittedBy: 'qr-intake', submittedAt: serverTimestamp(), reviewedAt: null, reviewedBy: '', approvedPatientId: '', notes: '' };
+      const payload = { childName: patientName, gender: intakeForm.elements.gender.value, dob: normalizedDob, mobileNumber: intakeForm.elements.mobileNumber.value.trim(), email: intakeForm.elements.email.value.trim(), bloodGroup: intakeForm.elements.bloodGroup.value.trim() };
       try {
-        let queueId = '';
-        try {
-          const docRef = await addDoc(collection(db, FIREBASE_COLLECTIONS.pendingPatients), payload);
-          queueId = docRef.id;
-        } catch (error) {
-          if (!String(error?.message || '').toLowerCase().includes('insufficient permissions')) {
-            throw error;
-          }
-          queueId = await assignUniquePatientId({
-            childName: payload.childName,
-            patientName: payload.patientName,
-            parentName: payload.parentName,
-            gender: payload.gender,
-            dob: payload.dob,
-            phone: payload.phone,
-            mobileNumber: payload.mobileNumber,
-            email: payload.email,
-            bloodGroup: payload.bloodGroup,
-            status: 'pending',
-            decision: 'pending',
-            submittedBy: 'qr-intake',
-            intakeSource: 'qr-intake',
-            submittedAt: serverTimestamp(),
-            reviewedAt: null,
-            reviewedBy: '',
-            approvedPatientId: ''
-          });
+        const response = await fetch('/api/lungs/intake/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(result?.error || 'Unable to submit right now.');
         }
+
+        const queueId = result.queueId;
         intakeForm.reset();
         resetConfirmation();
         intakeForm.hidden = true;

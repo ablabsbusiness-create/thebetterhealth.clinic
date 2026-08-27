@@ -4,8 +4,14 @@ import {
   getAccessPassword,
   isAuthConfigured
 } from '../../../emr/lungs/lib/auth.js';
-import { getAdminDb } from '../_firebase-admin.js';
+import { getAdminApp, getAdminDb } from '../_firebase-admin.js';
 import { checkOtpRateLimit, getRequestIp, sanitizeRateLimitKey } from '../../_lib/otp-rate-limit.js';
+
+// The browser needs a Firebase identity, not just a session cookie: the
+// cookie gates pages, but Firestore/Storage rules can only check
+// request.auth. Minting the token here (mirroring api/kid/auth/login.js)
+// means it is only obtainable after the clinic password is verified.
+const CLINIC_UID = 'clinic-lungs-doctor';
 
 function sendJson(res, statusCode, payload, extraHeaders = {}) {
   res.statusCode = statusCode;
@@ -82,7 +88,18 @@ export default async function handler(req, res) {
   }
 
   const token = await createSessionToken();
-  sendJson(res, 200, { ok: true }, {
+  let firebaseToken = '';
+
+  try {
+    firebaseToken = await getAdminApp().auth().createCustomToken(CLINIC_UID);
+  } catch (error) {
+    // Soft-fail while the Firestore rules are still open: a login that grants
+    // page access but no data identity is degraded, not broken. Once the
+    // rules require auth this must be treated as a hard failure instead.
+    console.error(`Unable to mint Firebase custom token: ${error.message}`);
+  }
+
+  sendJson(res, 200, { ok: true, firebaseToken }, {
     'Set-Cookie': buildSessionCookie(token)
   });
 }
