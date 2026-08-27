@@ -4,7 +4,8 @@ import {
   getAccessPassword,
   isAuthConfigured
 } from '../../../emr/kid/lib/auth.js';
-import { getAdminApp } from '../_firebase-admin.js';
+import { getAdminApp, getAdminDb } from '../_firebase-admin.js';
+import { checkOtpRateLimit, getRequestIp, sanitizeRateLimitKey } from '../../_lib/otp-rate-limit.js';
 
 // The browser needs a Firebase identity, not just a session cookie: the cookie
 // gates pages, but Firestore rules can only check request.auth. Minting the
@@ -67,6 +68,16 @@ export default async function handler(req, res) {
 
   if (!isAuthConfigured()) {
     sendJson(res, 503, { error: 'Clinic access is not configured. Please contact support.' });
+    return;
+  }
+
+  const ipKey = sanitizeRateLimitKey(getRequestIp(req));
+  const { limited, retryAfterMs } = await checkOtpRateLimit(getAdminDb(), 'kidLoginAttempts', ipKey);
+
+  if (limited) {
+    sendJson(res, 429, {
+      error: `Too many attempts. Try again in ${Math.ceil(retryAfterMs / 60000)} minute(s).`
+    });
     return;
   }
 
