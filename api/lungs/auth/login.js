@@ -4,6 +4,8 @@ import {
   getAccessPassword,
   isAuthConfigured
 } from '../../../emr/lungs/lib/auth.js';
+import { getAdminDb } from '../_firebase-admin.js';
+import { checkOtpRateLimit, getRequestIp, sanitizeRateLimitKey } from '../../_lib/otp-rate-limit.js';
 
 function sendJson(res, statusCode, payload, extraHeaders = {}) {
   res.statusCode = statusCode;
@@ -61,6 +63,16 @@ export default async function handler(req, res) {
 
   if (!isAuthConfigured()) {
     sendJson(res, 503, { error: 'Clinic access is not configured. Please contact support.' });
+    return;
+  }
+
+  const ipKey = sanitizeRateLimitKey(getRequestIp(req));
+  const { limited, retryAfterMs } = await checkOtpRateLimit(getAdminDb(), 'lungsLoginAttempts', ipKey);
+
+  if (limited) {
+    sendJson(res, 429, {
+      error: `Too many attempts. Try again in ${Math.ceil(retryAfterMs / 60000)} minute(s).`
+    });
     return;
   }
 

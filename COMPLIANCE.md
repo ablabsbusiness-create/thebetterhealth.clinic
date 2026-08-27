@@ -20,7 +20,7 @@ DPDP §8(5) (reasonable security safeguards) · IT Act §43A · SPDI Rule 8
 | # | Change | Where | Evidence today |
 |---|---|---|---|
 | 1 | Require authentication in Firestore + Storage rules | `firebase/firestore.rules`, `firebase/storage.rules` | `request.auth` appears **0 times**. Verified live: unauthenticated read of `clinics/kid/…` returns **HTTP 200**; a path outside `/clinics` correctly returns 403 |
-| 2 | Per-user staff accounts (Firebase Auth) replacing the one shared clinic password | `emr/kid/lib/auth.js` | Single `CLINIC_ACCESS_PASSWORD`, 12h cookie. No attribution of who did what |
+| 2 | Per-user staff accounts (Firebase Auth) replacing the one shared clinic password | `emr/kid/lib/auth.js` | Single `CLINIC_ACCESS_PASSWORD`, 12h cookie. No attribution of who did what. Per-user accounts remain deprioritized given current clinic scale (one doctor, one staff member) — see project notes. **Brute-force lockout added regardless**: `api/kid/auth/login.js` and `api/lungs/auth/login.js` now rate-limit login attempts per IP (5 attempts / 10 minutes, reusing `api/_lib/otp-rate-limit.js`), closing the "no lockout on the shared PIN" gap independent of the per-user-accounts decision |
 | 3 | Flip route protection from allowlist to denylist | `emr/kid/lib/auth.js` `PROTECTED_PATHS` | `/certificates`, `/parent-details`, `/pdf-viewer`, `/growth-chart-preview` are **not listed at all**, so they load without the clinic password. `/certificates` reads patient data and issues medical certificates |
 | 4 | Authenticate or rate-limit patient creation | `/api/patients/create`, `/new-patient` | Both declared public — anyone can create patient records |
 | 5 | Replace permanent public prescription links with short-lived signed URLs | `/rx?i=<id>`, Storage PDFs | `/rx` is public and Storage objects are world-readable; the download token in the URL never expires |
@@ -68,12 +68,12 @@ name, DOB, phone, email and blood group with nothing establishing who they are.
 DPDP §11 (access), §12 (correction/erasure), §13 (grievance), §14 (nomination) ·
 SPDI Rule 5(6), 5(9)
 
-| # | Change |
-|---|---|
-| 17 | Machine-readable export of everything held about a patient |
-| 18 | Correction request path, and an erasure path that actually deletes (`deleteDoc` currently exists only for prescription templates and certificates — never for patient data) |
-| 19 | **Named grievance officer** with contact and response SLA, published |
-| 20 | Nomination — allow a data principal to nominate someone to exercise rights |
+| # | Change | Status |
+|---|---|---|
+| 17 | Machine-readable export of everything held about a patient | **Done** — `api/kid/portal/export.js`, wired into the portal Settings tab |
+| 18 | Correction request path, and an erasure path that actually deletes (`deleteDoc` currently exists only for prescription templates and certificates — never for patient data) | **Request path done** — `api/kid/portal/rights-request.js` logs correction/erasure requests to `clinics/kid/rightsRequests` for staff review. Not auto-deleting yet: an open retention floor (`RETENTION-DECISION.md`) means an erasure request could conflict with a still-live recordkeeping obligation, so a human reviews before anything is deleted |
+| 19 | **Named grievance officer** with contact and response SLA, published | **Done** — Aaditya Bhatnagar / ablabs.business@gmail.com, `tos/index.html` §10, 30-day response SLA stated |
+| 20 | Nomination — allow a data principal to nominate someone to exercise rights | Not started |
 
 ---
 
@@ -81,13 +81,17 @@ SPDI Rule 5(6), 5(9)
 
 DPDP §8(7)
 
-| # | Change |
-|---|---|
-| 21 | Define a retention period. Note the tension: NMC/MCI guidance is 3 years for medical records, but DPDP requires erasure once purpose is served — for minors this usually means retaining to majority + N years. Needs the lawyer's call |
-| 22 | Implement scheduled erasure or anonymisation once the period lapses |
-| 23 | State the period in the policy |
+| # | Change | Status |
+|---|---|---|
+| 21 | Define a retention period. Note the tension: NMC/MCI guidance is 3 years for medical records, but DPDP requires erasure once purpose is served — for minors this usually means retaining to majority + N years. Needs the lawyer's call | **Framed, not decided** — see `RETENTION-DECISION.md` for the options and tension laid out for a lawyer; this cannot be closed by code |
+| 22 | Implement scheduled erasure or anonymisation once the period lapses | Blocked on #21 |
+| 23 | State the period in the policy | Blocked on #21 — `tos/index.html` §7 currently references "the period required by applicable healthcare recordkeeping norms" as a placeholder pending that decision |
 
-Nothing in the codebase deletes or ages out patient data today.
+Nothing in the codebase deletes or ages out patient data today. The false
+claim that rejected/unreviewed self-check-ins are **automatically** deleted
+after 30 days has been corrected in `tos/index.html` §7 — no such job exists,
+so the policy now says so plainly instead of asserting automation that isn't
+built, and points parents to a manual deletion request in the meantime.
 
 ---
 
@@ -107,22 +111,22 @@ DPDP §8(2) (fiduciary remains liable for processors), §16 (cross-border)
 
 | # | Change | Note |
 |---|---|---|
-| 25 | Data processing agreements with Google (Firebase), MSG91, Vercel | |
-| 26 | Correct the processor list in the policy | It currently says **Firebase Phone Authentication**; the portal moved to **MSG91**. A notice naming the wrong processor is a defect in the notice itself |
-| 27 | Treat WhatsApp prescription sharing as disclosure to a third party — disclose it and gate it on consent | `preview.html` WhatsApp button |
-| 28 | Self-host or disclose CDN calls | `html2canvas`/`jsPDF` load from jsdelivr, exposing patient-device IPs to a third party |
-| 29 | Confirm and document the Firebase region for data residency | §16 permits transfer except to restricted countries; EHR Standards 2016 prefer local storage |
+| 25 | Data processing agreements with Google (Firebase), MSG91, Vercel | **Action list drafted, not executed** — see `DATA-PROCESSING-AGREEMENTS.md`. Each requires a console click-through or a direct vendor request outside this repo, so it can't be marked done from code alone |
+| 26 | Correct the processor list in the policy | Already correct — `tos/index.html` §3/§4 name **MSG91**, not Firebase Phone Auth; no stale reference found |
+| 27 | Treat WhatsApp prescription sharing as disclosure to a third party — disclose it and gate it on consent | **Done** — `tos/index.html` §4 now lists WhatsApp/Meta as a recipient |
+| 28 | Self-host or disclose CDN calls | **Disclosed** — `tos/index.html` §4 now names jsDelivr and what it can see. Self-hosting the libraries instead is still open, tracked separately from the disclosure |
+| 29 | Confirm and document the Firebase region for data residency | Still open — needs checking in the Firebase console for the `clinci-dr-gunda` project and stating the result in the policy |
 
 ---
 
 ## P7 — Documentation and organisation
 
-| # | Change |
-|---|---|
-| 30 | Rewrite the policy to reference the DPDP Act and IT Act/SPDI Rules explicitly, and add grievance, breach, correction, retention, children and cross-border sections. It currently mentions **none** of these by name |
-| 31 | Record of processing activities |
-| 32 | Staff access policy and training; revoke access on exit |
-| 33 | Assess whether §10 Significant Data Fiduciary duties are triggered (children's health data makes this plausible) — if so: DPO in India, DPIA, annual audit |
+| # | Change | Status |
+|---|---|---|
+| 30 | Rewrite the policy to reference the DPDP Act and IT Act/SPDI Rules explicitly, and add grievance, breach, correction, retention, children and cross-border sections. It currently mentions **none** of these by name | Partially addressed via the retention/sharing edits above; a full named-statute rewrite of `tos/index.html` is still open |
+| 31 | Record of processing activities | **Done** — `RECORD-OF-PROCESSING-ACTIVITIES.md` |
+| 32 | Staff access policy and training; revoke access on exit | Not started |
+| 33 | Assess whether §10 Significant Data Fiduciary duties are triggered (children's health data makes this plausible) — if so: DPO in India, DPIA, annual audit | **Done** — `SIGNIFICANT-DATA-FIDUCIARY-ASSESSMENT.md` concludes not applicable at current scale; revisit on the triggers listed there |
 
 ---
 
