@@ -4611,6 +4611,12 @@
       autoFillPatientDetails();
     }
 
+    // Carries an in-progress prescription edit through the chart step so
+    // "Edit Prescription" still lands back on that same record afterwards.
+    function getEditIdFromUrl() {
+      return (new URLSearchParams(window.location.search).get('editId') || '').trim();
+    }
+
     async function saveHistoryRecord(batch = null) {
       if (!db) {
         return { ok: false, reason: 'Cloud records are not configured.' };
@@ -6042,10 +6048,12 @@
       generateBtn.addEventListener('click', async () => {
       if (generateBtn.textContent.trim() === 'Continue') {
         const patientId = patientIdInput.value.trim().toUpperCase();
-        const targetUrl = patientId
-          ? `/emr/kid/prescription?patientId=${encodeURIComponent(patientId)}`
-          : '/emr/kid/prescription';
-        window.location.href = targetUrl;
+        const editId = getEditIdFromUrl();
+        const params = new URLSearchParams();
+        if (patientId) params.set('patientId', patientId);
+        if (editId) params.set('editId', editId);
+        const query = params.toString();
+        window.location.href = `/emr/kid/prescription${query ? `?${query}` : ''}`;
         return;
       }
 

@@ -3837,7 +3837,7 @@
           </div>
           <div class="dose-entry-row">
             <span>Dose</span>
-            <input id="dose-${medicineSlug}" type="text" placeholder="Dose" data-field="dose" value="${escapeHtml(detail.dose)}">
+            <input id="dose-${medicineSlug}" type="text" placeholder="Dose" data-field="dose" value="${escapeHtml(detail.dose)}" data-applied-unit="${escapeHtml(selectedUnit && detail.dose && detail.dose.endsWith(selectedUnit) ? selectedUnit : '')}">
           </div>
         </div>
       `;
@@ -4064,8 +4064,27 @@
       const doseChip = card.querySelector('[data-field="doseChip"]:checked');
       const doseUnit = card.querySelector('[data-field="doseUnit"]');
 
-      if (doseInput && doseChip) {
-        doseInput.value = formatDoseWithUnit(doseChip.value, doseUnit?.value || '');
+      if (!doseInput) {
+        return;
+      }
+
+      const unit = doseUnit?.value || '';
+      let baseValue = doseChip?.value || '';
+
+      if (!baseValue) {
+        // No preset chip is selected (the doctor typed the dose by hand) — reuse
+        // that value, stripping off whatever unit is currently applied so
+        // switching Size still updates the printed Quantity instead of no-op'ing.
+        const appliedUnit = doseInput.dataset.appliedUnit || '';
+        baseValue = doseInput.value.trim();
+        if (appliedUnit && baseValue.endsWith(appliedUnit)) {
+          baseValue = baseValue.slice(0, baseValue.length - appliedUnit.length).trim();
+        }
+      }
+
+      if (baseValue) {
+        doseInput.value = formatDoseWithUnit(baseValue, unit);
+        doseInput.dataset.appliedUnit = unit;
       }
     }
 
