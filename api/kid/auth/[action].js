@@ -1,4 +1,5 @@
 import {
+  buildClearedSessionCookie,
   buildSessionCookie,
   createSessionToken,
   getAccessPassword,
@@ -7,9 +8,10 @@ import {
 import { getAdminApp, getAdminDb } from '../_firebase-admin.js';
 import { checkOtpRateLimit, getRequestIp, sanitizeRateLimitKey } from '../../_lib/otp-rate-limit.js';
 
-// The browser needs a Firebase identity, not just a session cookie: the cookie
-// gates pages, but Firestore rules can only check request.auth. Minting the
-// token here means it is only obtainable after the password check.
+// Staff login + logout, consolidated into one dynamic-action route (mirrors
+// api/kid/otp/[action].js and api/kid/portal/[action].js) to stay under the
+// Vercel Hobby plan's serverless function cap.
+
 const CLINIC_UID = 'clinic-kid-doctor';
 
 function sendJson(res, statusCode, payload, extraHeaders = {}) {
@@ -48,7 +50,7 @@ async function readJsonBody(req) {
   });
 }
 
-export default async function handler(req, res) {
+async function handleLogin(req, res) {
   if (req.method !== 'POST') {
     sendJson(res, 405, { error: 'Method not allowed.' });
     return;
@@ -92,13 +94,37 @@ export default async function handler(req, res) {
   try {
     firebaseToken = await getAdminApp().auth().createCustomToken(CLINIC_UID);
   } catch (error) {
-    // Soft-fail while the Firestore rules are still open: a login that grants
-    // page access but no data identity is degraded, not broken. Once the rules
-    // require auth this must be treated as a hard failure instead.
     console.error(`Unable to mint Firebase custom token: ${error.message}`);
   }
 
   sendJson(res, 200, { ok: true, firebaseToken }, {
     'Set-Cookie': buildSessionCookie(token)
   });
+}
+
+async function handleLogout(req, res) {
+  if (req.method !== 'POST') {
+    sendJson(res, 405, { error: 'Method not allowed.' });
+    return;
+  }
+
+  sendJson(res, 200, { ok: true }, {
+    'Set-Cookie': buildClearedSessionCookie()
+  });
+}
+
+export default async function handler(req, res) {
+  const action = req.query?.action;
+
+  if (action === 'login') {
+    await handleLogin(req, res);
+    return;
+  }
+
+  if (action === 'logout') {
+    await handleLogout(req, res);
+    return;
+  }
+
+  sendJson(res, 404, { error: 'Not found.' });
 }

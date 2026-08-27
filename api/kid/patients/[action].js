@@ -2,6 +2,10 @@ import { isAuthenticatedCookieHeader } from '../../../emr/kid/lib/auth.js';
 import admin from 'firebase-admin';
 import { getAdminDb } from '../_firebase-admin.js';
 
+// next-id + create, consolidated into one dynamic-action route (mirrors
+// api/kid/otp/[action].js) to stay under the Vercel Hobby plan's serverless
+// function cap.
+
 const CLINIC_NAMESPACE = 'clinics/kid';
 const PATIENT_ID_PREFIX = 'TBK';
 const PATIENT_ID_WIDTH = 4;
@@ -117,6 +121,30 @@ function patientPayloadFromBody(body) {
   };
 }
 
+async function getNextPatientId(db) {
+  const counterRef = db.doc(`${CLINIC_NAMESPACE}/counters/patientIds`);
+  const patientsRef = db.collection(`${CLINIC_NAMESPACE}/patients`);
+  const counterSnapshot = await counterRef.get();
+  let nextSerial = Number(counterSnapshot.data()?.nextSerial || 1);
+
+  if (!Number.isFinite(nextSerial) || nextSerial < 1) {
+    nextSerial = 1;
+  }
+
+  for (let attempts = 0; attempts < 20000; attempts += 1) {
+    const patientId = formatPatientId(nextSerial);
+    const patientSnapshot = await patientsRef.doc(patientId).get();
+
+    if (!patientSnapshot.exists) {
+      return patientId;
+    }
+
+    nextSerial += 1;
+  }
+
+  throw new Error('Could not find an unused TBK patient ID.');
+}
+
 async function allocatePatientId(db) {
   const counterRef = db.doc(`${CLINIC_NAMESPACE}/counters/patientIds`);
   const patientsRef = db.collection(`${CLINIC_NAMESPACE}/patients`);
@@ -165,11 +193,22 @@ async function requireClinicSession(req, res) {
   return true;
 }
 
-export default async function handler(req, res) {
-  if (!(await requireClinicSession(req, res))) {
+async function handleNextId(req, res) {
+  if (req.method !== 'GET') {
+    sendJson(res, 405, { error: 'Method not allowed.' });
     return;
   }
 
+  try {
+    const db = getAdminDb();
+    const patientId = await getNextPatientId(db);
+    sendJson(res, 200, { ok: true, patientId });
+  } catch (error) {
+    sendJson(res, 500, { error: error.message || 'Unable to load the next patient ID.' });
+  }
+}
+
+async function handleCreate(req, res) {
   if (req.method !== 'POST') {
     sendJson(res, 405, { error: 'Method not allowed.' });
     return;
@@ -211,4 +250,24 @@ export default async function handler(req, res) {
   } catch (error) {
     sendJson(res, 500, { error: error.message || 'Unable to create patient.' });
   }
+}
+
+export default async function handler(req, res) {
+  if (!(await requireClinicSession(req, res))) {
+    return;
+  }
+
+  const action = req.query?.action;
+
+  if (action === 'next-id') {
+    await handleNextId(req, res);
+    return;
+  }
+
+  if (action === 'create') {
+    await handleCreate(req, res);
+    return;
+  }
+
+  sendJson(res, 404, { error: 'Not found.' });
 }
