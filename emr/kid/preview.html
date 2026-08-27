@@ -705,10 +705,10 @@
       text-align: center;
     }
 
-    .medicine-notes {
-      margin: 4px 0 0;
-      font-size: calc(var(--rx-fs) * 0.65);
-      line-height: 1.3;
+    .medicine-table .medicine-remark {
+      text-align: left;
+      font-weight: 500;
+      font-size: calc(var(--rx-fs) * 0.7);
     }
 
 
@@ -2921,6 +2921,65 @@
       return compositionLine ? `${brandLine} (${compositionLine})` : brandLine;
     }
 
+    const DAILY_TIMING_LABELS = { M: 'Morning', A: 'Afternoon', E: 'Evening', N: 'Night' };
+    const FREQUENCY_PHRASE_WORDS = new Set(['Once', 'Twice', 'Thrice', 'Times']);
+    const INTERVAL_HOUR_PATTERN = /^(\d+)h$/;
+    const MEAL_TIMING_PATTERN = /^(Breakfast|Lunch|Dinner) (Before|After)$/;
+
+    function joinReadable(parts) {
+      const filtered = parts.filter(Boolean);
+      if (filtered.length <= 1) {
+        return filtered.join('');
+      }
+      return `${filtered.slice(0, -1).join(', ')} & ${filtered[filtered.length - 1]}`;
+    }
+
+    function inferTimingMode(timings) {
+      if (timings.some((value) => INTERVAL_HOUR_PATTERN.test(value) || FREQUENCY_PHRASE_WORDS.has(value) || value === 'a day')) {
+        return 'interval';
+      }
+      if (timings.some((value) => MEAL_TIMING_PATTERN.test(value))) {
+        return 'meal';
+      }
+      return 'daily';
+    }
+
+    // Raw chip codes (e.g. "M, N" or "Twice, a day") are how the editor stores
+    // timing, but they read poorly on a printed prescription. This turns them
+    // into plain English for the PDF without changing how they're stored.
+    function humanizeFrequency(rawTimings, timingMode) {
+      const timings = Array.isArray(rawTimings) ? rawTimings.filter(Boolean) : [];
+      if (!timings.length) {
+        return '';
+      }
+
+      const mode = timingMode || inferTimingMode(timings);
+
+      if (mode === 'meal') {
+        return joinReadable(timings.map((value) => {
+          const match = MEAL_TIMING_PATTERN.exec(value);
+          return match ? `${match[2]} ${match[1]}` : value;
+        }));
+      }
+
+      if (mode === 'interval') {
+        const hourParts = timings
+          .filter((value) => INTERVAL_HOUR_PATTERN.test(value))
+          .map((value) => `Every ${value.replace('h', '')} hours`);
+        const hasADay = timings.includes('a day');
+        const phraseParts = timings
+          .filter((value) => FREQUENCY_PHRASE_WORDS.has(value))
+          .map((value) => (hasADay ? `${value} a day` : value));
+        const otherParts = timings.filter((value) => (
+          !INTERVAL_HOUR_PATTERN.test(value) && !FREQUENCY_PHRASE_WORDS.has(value) && value !== 'a day'
+        ));
+        return joinReadable([...hourParts, ...phraseParts, ...otherParts]);
+      }
+
+      // daily (M/A/E/N), and the fallback for anything unrecognized.
+      return joinReadable(timings.map((code) => DAILY_TIMING_LABELS[code] || code));
+    }
+
     function getMedicineRows(draft) {
       const medicines = draft?.sections?.Medication || draft?.sections?.Medicens || [];
       const details = draft?.medicineDetails || {};
@@ -2938,7 +2997,7 @@
           compositionLine: nameParts.compositionLine,
           medicineType: detail.type || '',
           dose: detail.dose || detail.doseChip || importedDose.dose || '',
-          timing: Array.isArray(detail.timings) ? detail.timings.join(', ') : '',
+          timing: humanizeFrequency(detail.timings, detail.timingMode),
           food: detail.food || '',
           duration: formatDuration(detail.duration),
           note: detail.note || ''
@@ -2960,11 +3019,12 @@
         <table class="medicine-table">
           <thead>
             <tr>
-              <th style="width: 7%"></th>
-              <th style="width: 39%">Medicines</th>
-              <th style="width: 18%">Quantity</th>
-              <th style="width: 18%">Frequency</th>
-              <th style="width: 18%">Duration</th>
+              <th style="width: 6%"></th>
+              <th style="width: 28%">Medicines</th>
+              <th style="width: 14%">Quantity</th>
+              <th style="width: 15%">Frequency</th>
+              <th style="width: 13%">Duration</th>
+              <th style="width: 24%">Remark</th>
             </tr>
           </thead>
           <tbody>
@@ -2983,17 +3043,12 @@
                 </td>
                 <td><strong>${escapeHtml(row.timing || '-')}</strong></td>
                 <td><strong>${escapeHtml(row.duration || '-')}</strong></td>
+                <td class="medicine-remark">${escapeHtml(row.note || '-')}</td>
               </tr>
             `).join('')}
           </tbody>
         </table>
         </div>
-        ${rows.some((row) => row.note)
-          ? `<p class="medicine-notes">${rows
-              .filter((row) => row.note)
-              .map((row) => `<strong>${escapeHtml(row.brandText || row.medicine)}:</strong> ${escapeHtml(row.note)}`)
-              .join(' &middot; ')}</p>`
-          : ''}
       `;
     }
 
@@ -3406,7 +3461,7 @@
       const medicineRows = getMedicineRows(draft);
       if (medicineRows.length) {
         y += 2;
-        const COLS = [0.07, 0.39, 0.18, 0.18, 0.18].map((fraction) => contentWidth * fraction);
+        const COLS = [0.06, 0.28, 0.14, 0.15, 0.13, 0.24].map((fraction) => contentWidth * fraction);
         const colX = [];
         COLS.reduce((acc, width, index) => {
           colX[index] = left + acc;
@@ -3421,7 +3476,7 @@
           pdf.setLineWidth(0.2);
           pdf.rect(left, y, contentWidth, headerHeight, 'FD');
           setFont(SIZE.tableHead, 'normal');
-          ['', 'Medicines', 'Quantity', 'Frequency', 'Duration'].forEach((label, index) => {
+          ['', 'Medicines', 'Quantity', 'Frequency', 'Duration', 'Remark'].forEach((label, index) => {
             if (!label) {
               return;
             }
@@ -3447,12 +3502,14 @@
           const doseLines = pdf.splitTextToSize(String(row.dose || '-'), COLS[2] - 3);
           const freqLines = pdf.splitTextToSize(String(row.timing || '-'), COLS[3] - 3);
           const durLines = pdf.splitTextToSize(String(row.duration || '-'), COLS[4] - 3);
+          setFont(SIZE.table, 'normal');
+          const remarkLines = row.note ? pdf.splitTextToSize(String(row.note).trim(), COLS[5] - 4) : [];
           setFont(SIZE.sub, 'italic');
           const foodLines = row.food ? pdf.splitTextToSize(String(row.food), COLS[2] - 3) : [];
 
           const nameHeight = brandLines.length * lh(SIZE.table) + compLines.length * lh(SIZE.composition);
           const qtyHeight = doseLines.length * lh(SIZE.table) + foodLines.length * lh(SIZE.sub);
-          const otherHeight = Math.max(freqLines.length, durLines.length) * lh(SIZE.table);
+          const otherHeight = Math.max(freqLines.length, durLines.length, remarkLines.length) * lh(SIZE.table);
           const rowHeight = Math.max(nameHeight, qtyHeight, otherHeight) + 2.6;
 
           // Keep the row whole: start a new page and repeat the head rather
@@ -3514,21 +3571,17 @@
             });
           });
 
+          // Remark: normal weight, left-aligned, unlike the centred bold cells.
+          let remarkY = y + 1;
+          remarkLines.forEach((line) => {
+            setFont(SIZE.table, 'normal');
+            pdf.text(line, colX[5] + 2, remarkY + SIZE.table * PT_TO_MM);
+            remarkY += lh(SIZE.table);
+          });
+
           y += rowHeight;
         });
         y += 3;
-
-        // Per-medicine notes do not fit the grid, so they run underneath it.
-        const noted = medicineRows.filter((row) => String(row.note || '').trim());
-        if (noted.length) {
-          noted.forEach((row) => {
-            drawLabelledRow(
-              String(row.brandText || row.medicine || 'Note'),
-              String(row.note).trim()
-            );
-          });
-          y += 1;
-        }
       }
 
       // ---- instructions ------------------------------------------------------
