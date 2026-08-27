@@ -38,10 +38,14 @@ built-out of the two).
 - No access/audit log exists yet distinguishing which staff member read or
   changed a given record (`COMPLIANCE.md` item #6) — this RoPA describes what
   data moves, not who specifically touched it each time.
-- This document covers the **kid** clinic only. The **lungs** clinic has a
-  materially smaller feature set (no intake, no patient creation, no portal
-  records API found in `api/lungs/`) and needs its own RoPA once those
-  features exist or are confirmed absent.
+- This document covers the **kid** clinic only. The **lungs** clinic gained
+  equivalent intake (`api/lungs/intake/submit.js`), portal records
+  (`api/lungs/portal/records.js`), and prescription-link
+  (`api/lungs/prescriptions/[id].js`) endpoints during the Firestore/Storage
+  auth-rules fix, so its data flows now closely mirror rows #1, #3, #5, and
+  #9 of this table — it still needs its own RoPA row-by-row, since field
+  names and a few flows (no consent checkbox on lungs intake; adult patients,
+  not guardians) differ from kid's.
 
 ## Maintenance
 

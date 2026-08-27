@@ -90,15 +90,19 @@ DPDP §8(7)
 
 | # | Change | Status |
 |---|---|---|
-| 21 | Define a retention period. Note the tension: NMC/MCI guidance is 3 years for medical records, but DPDP requires erasure once purpose is served — for minors this usually means retaining to majority + N years. Needs the lawyer's call | **Framed, not decided** — see `RETENTION-DECISION.md` for the options and tension laid out for a lawyer; this cannot be closed by code |
-| 22 | Implement scheduled erasure or anonymisation once the period lapses | Blocked on #21 |
-| 23 | State the period in the policy | Blocked on #21 — `tos/index.html` §7 currently references "the period required by applicable healthcare recordkeeping norms" as a placeholder pending that decision |
+| 21 | Define a retention period. Note the tension: NMC/MCI guidance is 3 years for medical records, but DPDP requires erasure once purpose is served — for minors this usually means retaining to majority + N years. Needs the lawyer's call | **Adopted 2026-08-27** (by the user, not yet lawyer-confirmed) — kid: until age 18 + 3 years (age 21); lungs: 3 years from last visit. See `RETENTION-DECISION.md` for the reasoning |
+| 22 | Implement scheduled erasure or anonymisation once the period lapses | **Built, not yet live** — `api/kid/cron/retention-sweep.js` and `api/lungs/cron/retention-sweep.js`, daily Vercel Cron jobs (`vercel.json`). Anonymizes rather than hard-deletes. Defaults to dry-run until `KID_RETENTION_SWEEP_LIVE` / `LUNGS_RETENTION_SWEEP_LIVE` is set to `true` — review a dry-run's output first |
+| 23 | State the period in the policy | **Done** — `tos/index.html` §7 now states both numbers plainly |
 
-Nothing in the codebase deletes or ages out patient data today. The false
-claim that rejected/unreviewed self-check-ins are **automatically** deleted
-after 30 days has been corrected in `tos/index.html` §7 — no such job exists,
-so the policy now says so plainly instead of asserting automation that isn't
-built, and points parents to a manual deletion request in the meantime.
+Patient records now age out via the retention sweep jobs above, once each is
+switched from dry-run to live. Rejected/unreviewed self-check-ins are a
+separate, smaller case still handled manually: the previously false claim
+that they're **automatically** deleted after 30 days has been corrected in
+`tos/index.html` §7 (no such job exists for pending intake submissions
+specifically), and it points parents to a manual deletion request in the
+meantime. A scheduled cleanup for that queue specifically hasn't been built
+— worth adding alongside the retention sweeps rather than as its own thing,
+since it's the same class of job.
 
 ---
 
