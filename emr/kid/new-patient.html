@@ -801,15 +801,15 @@
             <div class="field">
               <label for="guardian-relationship">Present guardian's relationship <span class="required">*</span></label>
               <select id="guardian-relationship" name="guardianRelationship" required>
-                <option value="" disabled selected>Select relationship</option>
-                <option value="Parent">Parent</option>
+                <option value="" disabled>Select relationship</option>
+                <option value="Parent" selected>Parent</option>
                 <option value="Legal Guardian">Legal Guardian</option>
               </select>
             </div>
 
             <div class="field field-full consent-field">
               <label class="consent-checkbox-row">
-                <input id="consent-checkbox" name="consentGiven" type="checkbox" required>
+                <input id="consent-checkbox" name="consentGiven" type="checkbox" required checked>
                 <span>Staff confirms verbal consent was obtained from the parent/guardian present to collect and process this child's personal and health data for pediatric care, per the <a href="/tos" target="_blank" rel="noopener">Privacy Policy</a>.</span>
               </label>
             </div>
