@@ -776,6 +776,41 @@
       box-shadow: var(--shadow-btn);
     }
 
+    .modal-field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .modal-field label {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .modal-field select,
+    .modal-field textarea {
+      font: inherit;
+      font-size: 13.5px;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      resize: vertical;
+    }
+
+    .modal-message {
+      margin: 0;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--muted);
+      min-height: 16px;
+    }
+
+    .modal-message.is-error {
+      color: #b91c1c;
+    }
+
     .consent-text {
       margin: -4px 0 0;
       color: var(--faint);
@@ -1129,6 +1164,30 @@
     </div>
   </div>
 
+  <div id="rights-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="rights-modal-title">
+    <div class="modal-card">
+      <h3 id="rights-modal-title">Request correction or deletion</h3>
+      <p>Tell us what you'd like changed or removed. Clinic staff review every request before acting on it — this
+        does not delete anything immediately.</p>
+      <div class="modal-field">
+        <label for="rights-type-select">Request type</label>
+        <select id="rights-type-select">
+          <option value="correction">Correct information</option>
+          <option value="erasure">Delete my data</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label for="rights-details-input">Details</label>
+        <textarea id="rights-details-input" rows="4" placeholder="What's incorrect, or what should be deleted?"></textarea>
+      </div>
+      <p id="rights-modal-message" class="modal-message" role="status"></p>
+      <div class="modal-actions">
+        <button id="rights-cancel" type="button" class="modal-btn-secondary">Cancel</button>
+        <button id="rights-submit" type="button" class="modal-btn-primary">Submit request</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     // No Firebase import: this page is public. All data comes from
     // /api/kid/portal/records and /api/kid/prescriptions/<id>, both gated on
@@ -1175,6 +1234,12 @@
     const logoutModal = document.getElementById('logout-modal');
     const logoutCancelButton = document.getElementById('logout-cancel');
     const logoutConfirmButton = document.getElementById('logout-confirm');
+    const rightsModal = document.getElementById('rights-modal');
+    const rightsCancelButton = document.getElementById('rights-cancel');
+    const rightsSubmitButton = document.getElementById('rights-submit');
+    const rightsTypeSelect = document.getElementById('rights-type-select');
+    const rightsDetailsInput = document.getElementById('rights-details-input');
+    const rightsModalMessage = document.getElementById('rights-modal-message');
 
     const NO_MATCH_MESSAGE = "We couldn't find a match for that phone number. Please check and try again.";
 
@@ -1241,6 +1306,8 @@
     const ICON_CHEVRON = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     const ICON_DOWNLOAD = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4v11m0 0-4-4m4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     const ICON_LOGOUT = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const ICON_EXPORT = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 15V3m0 0 4 4m-4-4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const ICON_RIGHTS = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z" stroke="currentColor" stroke-width="2"/><path d="M9.5 12.5 11 14l3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
     function waitForWidgetReady(timeoutMs = 8000) {
       if (typeof window.sendOtp === 'function') {
@@ -1602,11 +1669,99 @@
       }));
 
       settingsList.appendChild(renderActionRow({
+        icon: ICON_EXPORT,
+        title: 'Download my data',
+        subtitle: 'A copy of everything we hold about your linked patients',
+        onClick: handleDownloadExport
+      }));
+
+      settingsList.appendChild(renderActionRow({
+        icon: ICON_RIGHTS,
+        title: 'Request correction or deletion',
+        subtitle: 'Ask us to fix or remove your data',
+        onClick: openRightsModal
+      }));
+
+      settingsList.appendChild(renderActionRow({
         icon: ICON_LOGOUT,
         title: 'Log out',
         subtitle: 'You\'ll need to verify your phone number again',
         onClick: handleLogout
       }));
+    }
+
+    async function handleDownloadExport() {
+      try {
+        const response = await fetch('/api/kid/portal/export', { credentials: 'same-origin' });
+        const result = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(result?.error || 'Unable to export your data right now.');
+        }
+
+        const blob = new Blob([JSON.stringify(result, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `my-data-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        window.alert(error.message || 'Unable to export your data right now.');
+      }
+    }
+
+    function openRightsModal() {
+      rightsModalMessage.textContent = '';
+      rightsModalMessage.classList.remove('is-error');
+      rightsDetailsInput.value = '';
+      rightsTypeSelect.value = 'correction';
+      rightsModal.classList.add('is-visible');
+    }
+
+    function closeRightsModal() {
+      rightsModal.classList.remove('is-visible');
+    }
+
+    async function submitRightsRequest() {
+      const details = rightsDetailsInput.value.trim();
+
+      if (!details) {
+        rightsModalMessage.textContent = 'Please describe your request.';
+        rightsModalMessage.classList.add('is-error');
+        return;
+      }
+
+      rightsSubmitButton.disabled = true;
+
+      try {
+        const response = await fetch('/api/kid/portal/rights-request', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: rightsTypeSelect.value,
+            patientId: currentPatientId || '',
+            details
+          })
+        });
+        const result = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(result?.error || 'Unable to submit your request right now.');
+        }
+
+        rightsModalMessage.classList.remove('is-error');
+        rightsModalMessage.textContent = result?.message || 'Request submitted.';
+        window.setTimeout(closeRightsModal, 1800);
+      } catch (error) {
+        rightsModalMessage.classList.add('is-error');
+        rightsModalMessage.textContent = error.message || 'Unable to submit your request right now.';
+      } finally {
+        rightsSubmitButton.disabled = false;
+      }
     }
 
     async function handleDownloadLatest() {
@@ -1855,6 +2010,8 @@
     otpForm.addEventListener('submit', handleOtpVerify);
     otpBack.addEventListener('click', resetToLookup);
     patientSelectLogoutButton.addEventListener('click', handleLogout);
+    rightsCancelButton.addEventListener('click', closeRightsModal);
+    rightsSubmitButton.addEventListener('click', submitRightsRequest);
 
     prescriptionsTab?.addEventListener('click', (event) => {
       event.preventDefault();
