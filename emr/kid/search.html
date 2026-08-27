@@ -4239,6 +4239,12 @@
         uniqueEntries.push(entry);
       });
 
+      uniqueEntries.sort((left, right) => {
+        const leftTime = Date.parse(left.createdAtIso || '') || 0;
+        const rightTime = Date.parse(right.createdAtIso || '') || 0;
+        return rightTime - leftTime;
+      });
+
       return uniqueEntries;
     }
 
@@ -4369,6 +4375,9 @@
               const editChipHtml = isPrescriptionEditable(entry)
                 ? `<a class="prescription-preview-edit-chip" href="${escapeHtml(getPrescriptionEditUrl(entry))}">Edit</a>`
                 : '';
+              const isLatestEntry = index === 0;
+              const previewLoadingAttr = isLatestEntry ? 'eager' : 'lazy';
+              const previewFetchPriorityAttr = isLatestEntry ? 'high' : 'low';
 
               return `
                 <div class="prescription-preview-entry">
@@ -4378,7 +4387,7 @@
                       <div class="prescription-preview-card" data-open-prescription-url="${cardUrl}" data-preview-image-url="${cardPreviewUrl}">
                         <div class="prescription-preview-surface">
                           <div class="prescription-preview-placeholder">Preparing preview...</div>
-                          <img class="prescription-preview-frame" data-preview-image-url="${cardPreviewUrl}" alt="Prescription preview ${index + 1}" loading="eager" decoding="async" fetchpriority="high">
+                          <img class="prescription-preview-frame" data-preview-image-url="${cardPreviewUrl}" alt="Prescription preview ${index + 1}" loading="${previewLoadingAttr}" decoding="async" fetchpriority="${previewFetchPriorityAttr}">
                         </div>
                       </div>
                       ${downloadUrl ? `<a class="prescription-preview-open-chip" href="${cardUrl}" target="_blank" rel="noopener noreferrer">Open prescription</a>` : ''}
@@ -4390,7 +4399,7 @@
                           ${shouldEmbedPdf
                             ? `
                               <div class="prescription-preview-placeholder">Loading prescription preview...</div>
-                              <iframe class="prescription-preview-embed" data-preview-pdf-url="${embeddedPdfUrl}" title="Prescription PDF preview ${index + 1}" loading="eager" fetchpriority="high"></iframe>
+                              <iframe class="prescription-preview-embed" data-preview-pdf-url="${embeddedPdfUrl}" title="Prescription PDF preview ${index + 1}" loading="${previewLoadingAttr}" fetchpriority="${previewFetchPriorityAttr}"></iframe>
                             `
                             : waitingForStorageUrl
                               ? '<div class="prescription-preview-placeholder is-static">Loading prescription PDF...</div>'

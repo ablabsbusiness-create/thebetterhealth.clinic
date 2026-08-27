@@ -3343,9 +3343,9 @@
       }
     }
 
-    function getLatestPatientMetric(patientRecord = null, metricKey) {
+    function getLastVisitRecord(patientRecord = null) {
       if (!patientRecord) {
-        return '';
+        return null;
       }
 
       const entries = Array.isArray(patientRecord.measurementHistory)
@@ -3358,9 +3358,12 @@
 
       return entries
         .filter(Boolean)
-        .sort((left, right) => getHistoryTimestamp(right) - getHistoryTimestamp(left))
-        .map((entry) => getMeasurementMetricValue(entry, metricKey))
-        .find(Boolean) || '';
+        .sort((left, right) => getHistoryTimestamp(right) - getHistoryTimestamp(left))[0] || null;
+    }
+
+    function getLatestPatientMetric(patientRecord = null, metricKey) {
+      const lastVisit = getLastVisitRecord(patientRecord);
+      return lastVisit ? getMeasurementMetricValue(lastVisit, metricKey) : '';
     }
 
     function formatPageMetaMetric(value, unit) {
