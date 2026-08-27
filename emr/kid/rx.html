@@ -158,110 +158,9 @@
       border-radius: 4px;
     }
 
-    body.pdf-ready {
-      display: block;
-      padding: 0;
-    }
-
-    #pdf-topbar {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 3;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      height: 52px;
-      padding: 0 16px;
-      padding-top: env(safe-area-inset-top);
-      background: rgba(255, 255, 255, 0.92);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border-bottom: 1px solid var(--line);
-    }
-
-    #pdf-topbar strong {
-      font-size: 14px;
-      font-weight: 700;
-      letter-spacing: -0.01em;
-    }
-
-    #open-original-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 7px 14px;
-      border-radius: 999px;
-      background: var(--brand);
-      color: #ffffff;
-      font-size: 13px;
-      font-weight: 700;
-      text-decoration: none;
-      transition: transform 150ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 150ms cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    #open-original-link:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(22, 101, 52, 0.28);
-    }
-
-    #open-original-link:active {
-      transform: translateY(0);
-    }
-
-    #open-original-link svg {
-      width: 14px;
-      height: 14px;
-    }
-
-    body.pdf-ready #pdf-topbar {
-      display: flex;
-    }
-
-    #viewer-frame {
-      display: none;
-      position: fixed;
-      top: 52px;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      width: 100%;
-      height: calc(100% - 52px);
-      border: 0;
-      opacity: 0;
-      transition: opacity 200ms cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    body.pdf-ready #viewer-frame {
-      display: block;
-      opacity: 1;
-    }
-
-    body.pdf-ready .panel {
-      display: none;
-    }
-
-    @media print {
-      #pdf-topbar {
-        display: none !important;
-      }
-
-      #viewer-frame {
-        top: 0;
-        height: 100%;
-      }
-    }
-
     @media (prefers-reduced-motion: reduce) {
       .spinner {
         animation-duration: 1.6s;
-      }
-
-      #open-original-link,
-      #viewer-frame {
-        transition: none;
       }
     }
   </style>
@@ -273,15 +172,6 @@
     <h1 id="title">Opening prescription</h1>
     <p id="message">Please wait while we open the prescription.</p>
   </main>
-  <div id="pdf-topbar">
-    <strong>Prescription</strong>
-    <a id="open-original-link" href="#" target="_blank" rel="noopener noreferrer">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path></svg>
-      Open original
-    </a>
-  </div>
-  <iframe id="viewer-frame" title="Prescription PDF"></iframe>
-
   <script type="module">
     // No Firebase import: this page is public. /api/kid/prescriptions/<id>
     // resolves the PDF under admin credentials and returns only a URL, so the
@@ -299,8 +189,6 @@
     const panelIcon = document.getElementById('panel-icon');
     const title = document.getElementById('title');
     const message = document.getElementById('message');
-    const viewerFrame = document.getElementById('viewer-frame');
-    const openOriginalLink = document.getElementById('open-original-link');
     const params = new URLSearchParams(window.location.search);
     const prescriptionId = (params.get('i') || '').trim();
 
@@ -309,10 +197,6 @@
       panelIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><line x1="12" y1="8" x2="12" y2="13"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
       title.textContent = titleText;
       message.textContent = messageText;
-    }
-
-    function getPdfViewerUrl(pdfUrl) {
-      return pdfUrl ? `pdf-viewer.html?url=${encodeURIComponent(pdfUrl)}&embed=1` : '';
     }
 
     function isPublicPdfUrl(value) {
@@ -353,17 +237,8 @@
           return;
         }
 
-        // Render the PDF inside this same page (rather than redirecting to
-        // pdf-viewer.html/the raw file) so the link the parent opened stays
-        // on /emr/kid/rx the whole time, and every page of the prescription
-        // renders full-screen instead of just the first.
-        const viewerUrl = getPdfViewerUrl(pdfUrl);
-        message.innerHTML = `Loading prescription PDF. If it does not appear, <a href="${pdfUrl}" target="_blank" rel="noopener noreferrer">tap here</a>.`;
-        openOriginalLink.href = pdfUrl;
-        viewerFrame.src = viewerUrl;
-        viewerFrame.addEventListener('load', () => {
-          document.body.classList.add('pdf-ready');
-        }, { once: true });
+        message.innerHTML = `Redirecting to the prescription. If it does not open, <a href="${pdfUrl}" target="_blank" rel="noopener noreferrer">tap here</a>.`;
+        window.location.replace(pdfUrl);
       } catch (error) {
         showError('Unable to open prescription', error.message || 'Something went wrong while opening the prescription.');
       }
