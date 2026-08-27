@@ -1,5 +1,6 @@
 import { verifyAccessToken, isMsg91Configured } from '../_msg91.js';
 import { getAdminDb } from '../_firebase-admin.js';
+import { getAdminDb as getLungsAdminDb } from '../../lungs/_firebase-admin.js';
 import { checkOtpRateLimit, getRequestIp, sanitizeRateLimitKey } from '../../_lib/otp-rate-limit.js';
 import {
   createPatientSessionToken,
@@ -54,12 +55,12 @@ function normalizePhoneDigits(value) {
   return digits.length > 10 ? digits.slice(-10) : digits;
 }
 
-async function hasPatientForPhone(db, phoneDigits) {
+async function hasPatientForPhone(db, phoneDigits, collectionPath = PATIENTS_COLLECTION) {
   const candidates = [phoneDigits, `91${phoneDigits}`, `+91${phoneDigits}`];
 
   const [byPhone, byMobile] = await Promise.all([
-    db.collection(PATIENTS_COLLECTION).where('phone', 'in', candidates).get(),
-    db.collection(PATIENTS_COLLECTION).where('mobileNumber', 'in', candidates).get()
+    db.collection(collectionPath).where('phone', 'in', candidates).get(),
+    db.collection(collectionPath).where('mobileNumber', 'in', candidates).get()
   ]);
 
   for (const snapshot of [...byPhone.docs, ...byMobile.docs]) {
@@ -72,6 +73,64 @@ async function hasPatientForPhone(db, phoneDigits) {
   }
 
   return false;
+}
+
+function isExistenceCheckAuthorized(req) {
+  const expected = String(process.env.MSG91_EXISTENCE_CHECK_SECRET || '').trim();
+  if (!expected) {
+    return true;
+  }
+  return req.headers['x-existence-check-secret'] === expected;
+}
+
+// Called directly by MSG91's widget (server-to-server) as its "User
+// Existence Validation" hook, before MSG91 sends an OTP at all. One widget
+// is shared between the kid and lungs portals, so a number counts as
+// registered if either clinic has it - this is a defense-in-depth check
+// against someone invoking the MSG91 widget's sendOtp directly, bypassing
+// the per-clinic handleCheck() above, which remains the authoritative,
+// correctly-scoped gate for each portal's own lookup flow.
+async function handleUserExists(req, res) {
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-store');
+
+  const identifier = String(req.query?.identifier || '');
+
+  if (req.method !== 'GET' || !isExistenceCheckAuthorized(req)) {
+    res.statusCode = 200;
+    res.end(JSON.stringify({ user_found: false, identifier }));
+    return;
+  }
+
+  const phoneDigits = normalizePhoneDigits(identifier);
+
+  if (phoneDigits.length !== 10) {
+    res.statusCode = 200;
+    res.end(JSON.stringify({ user_found: false, identifier }));
+    return;
+  }
+
+  try {
+    const rateLimit = await checkOtpRateLimit(getAdminDb(), 'otpExistenceRateLimitsByPhone', phoneDigits);
+
+    if (rateLimit.limited) {
+      res.statusCode = 200;
+      res.end(JSON.stringify({ user_found: false, identifier }));
+      return;
+    }
+
+    const [foundInKid, foundInLungs] = await Promise.all([
+      hasPatientForPhone(getAdminDb(), phoneDigits),
+      hasPatientForPhone(getLungsAdminDb(), phoneDigits, 'clinics/lungs/patients')
+    ]);
+
+    res.statusCode = 200;
+    res.end(JSON.stringify({ user_found: foundInKid || foundInLungs, identifier }));
+  } catch (error) {
+    console.error(`User existence check failed: ${error.message}`);
+    res.statusCode = 200;
+    res.end(JSON.stringify({ user_found: false, identifier }));
+  }
 }
 
 async function handleCheck(req, res) {
@@ -201,6 +260,11 @@ async function handleLogout(req, res) {
 
 export default async function handler(req, res) {
   const action = req.query?.action;
+
+  if (action === 'user-exists') {
+    await handleUserExists(req, res);
+    return;
+  }
 
   if (action === 'check') {
     await handleCheck(req, res);
