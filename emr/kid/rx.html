@@ -90,29 +90,72 @@
     }
 
     .panel {
-      width: min(460px, 100%);
-      padding: 28px 24px;
-      border-radius: 24px;
+      width: min(400px, 100%);
+      padding: 32px 28px;
+      border-radius: 20px;
       border: 1px solid var(--line);
       background: rgba(255, 255, 255, 0.95);
       box-shadow: 0 18px 45px rgba(22, 38, 29, 0.08);
       text-align: center;
     }
 
+    .panel-icon {
+      display: grid;
+      place-items: center;
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 18px;
+      border-radius: 50%;
+      background: rgba(22, 101, 52, 0.1);
+    }
+
+    .spinner {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2.5px solid rgba(22, 101, 52, 0.18);
+      border-top-color: var(--brand);
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .panel-icon svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .panel.is-error .panel-icon {
+      background: rgba(220, 38, 38, 0.1);
+    }
+
     h1 {
-      margin: 0 0 10px;
-      font-size: 24px;
+      margin: 0 0 6px;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
     }
 
     p {
       margin: 0;
+      font-size: 14px;
       color: var(--muted);
-      line-height: 1.6;
+      line-height: 1.55;
     }
 
     a {
       color: var(--brand);
       font-weight: 700;
+      text-underline-offset: 2px;
+    }
+
+    a:focus-visible,
+    #open-original-link:focus-visible {
+      outline: 2px solid var(--brand);
+      outline-offset: 2px;
+      border-radius: 4px;
     }
 
     body.pdf-ready {
@@ -136,15 +179,65 @@
     body.pdf-ready .panel {
       display: none;
     }
+
+    #open-original-link {
+      display: none;
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      z-index: 3;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: var(--brand);
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      box-shadow: 0 10px 24px rgba(22, 101, 52, 0.28);
+      transition: transform 150ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 150ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #open-original-link:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 28px rgba(22, 101, 52, 0.32);
+    }
+
+    #open-original-link:active {
+      transform: translateY(0);
+    }
+
+    body.pdf-ready #open-original-link {
+      display: inline-flex;
+    }
+
+    @media print {
+      #open-original-link {
+        display: none !important;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .spinner {
+        animation-duration: 1.6s;
+      }
+
+      #open-original-link {
+        transition: none;
+      }
+    }
   </style>
   <link rel="stylesheet" href="mobile-app.css" />
 </head>
 <body>
-  <main class="panel">
-    <h1 id="title">Opening Prescription</h1>
+  <main class="panel" id="panel">
+    <div class="panel-icon" id="panel-icon"><div class="spinner" role="status" aria-label="Loading"></div></div>
+    <h1 id="title">Opening prescription</h1>
     <p id="message">Please wait while we open the prescription.</p>
   </main>
   <iframe id="viewer-frame" title="Prescription PDF"></iframe>
+  <a id="open-original-link" href="#" target="_blank" rel="noopener noreferrer">Open original PDF</a>
 
   <script type="module">
     // No Firebase import: this page is public. /api/kid/prescriptions/<id>
@@ -159,11 +252,21 @@
     };
     const CLINIC_STORAGE_PREFIX = CLINIC_FIREBASE_NAMESPACE;
 
+    const panel = document.getElementById('panel');
+    const panelIcon = document.getElementById('panel-icon');
     const title = document.getElementById('title');
     const message = document.getElementById('message');
     const viewerFrame = document.getElementById('viewer-frame');
+    const openOriginalLink = document.getElementById('open-original-link');
     const params = new URLSearchParams(window.location.search);
     const prescriptionId = (params.get('i') || '').trim();
+
+    function showError(titleText, messageText) {
+      panel.classList.add('is-error');
+      panelIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><line x1="12" y1="8" x2="12" y2="13"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+      title.textContent = titleText;
+      message.textContent = messageText;
+    }
 
     function getPdfViewerUrl(pdfUrl) {
       return pdfUrl ? `pdf-viewer.html?url=${encodeURIComponent(pdfUrl)}&embed=1` : '';
@@ -188,8 +291,7 @@
 
     async function openPrescription() {
       if (!prescriptionId) {
-        title.textContent = 'Prescription Not Found';
-        message.textContent = 'This prescription link is missing an ID.';
+        showError('Prescription not found', 'This prescription link is missing an ID.');
         return;
       }
 
@@ -198,15 +300,13 @@
         const result = await response.json().catch(() => ({}));
 
         if (!response.ok) {
-          title.textContent = 'Prescription Not Found';
-          message.textContent = result.error || 'No saved prescription was found for this link.';
+          showError('Prescription not found', result.error || 'No saved prescription was found for this link.');
           return;
         }
 
         const pdfUrl = result.pdfUrl;
         if (!pdfUrl) {
-          title.textContent = 'Prescription Not Available';
-          message.textContent = 'This prescription record does not have a PDF link.';
+          showError('Prescription not available', 'This prescription record does not have a PDF link.');
           return;
         }
 
@@ -216,13 +316,13 @@
         // renders full-screen instead of just the first.
         const viewerUrl = getPdfViewerUrl(pdfUrl);
         message.innerHTML = `Loading prescription PDF. If it does not appear, <a href="${pdfUrl}" target="_blank" rel="noopener noreferrer">tap here</a>.`;
+        openOriginalLink.href = pdfUrl;
         viewerFrame.src = viewerUrl;
         viewerFrame.addEventListener('load', () => {
           document.body.classList.add('pdf-ready');
         }, { once: true });
       } catch (error) {
-        title.textContent = 'Unable To Open Prescription';
-        message.textContent = error.message || 'Something went wrong while opening the prescription.';
+        showError('Unable to open prescription', error.message || 'Something went wrong while opening the prescription.');
       }
     }
 
