@@ -368,7 +368,8 @@
 
     input[type="text"],
     input[type="tel"],
-    input[type="email"] {
+    input[type="email"],
+    select {
       width: 100%;
       min-height: 48px;
       padding: 0 14px;
@@ -414,6 +415,31 @@
 
     .required {
       color: #b91c1c;
+    }
+
+    .consent-field {
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: #f8fbf9;
+      border: 1px solid var(--line);
+    }
+
+    .consent-checkbox-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink);
+      line-height: 1.5;
+      cursor: pointer;
+    }
+
+    .consent-checkbox-row input {
+      width: auto;
+      min-height: auto;
+      margin-top: 2px;
+      flex: none;
     }
 
     .radio-row {
@@ -771,6 +797,22 @@
               <label for="email">Email</label>
               <input id="email" name="email" type="email" placeholder="Enter email address">
             </div>
+
+            <div class="field">
+              <label for="guardian-relationship">Present guardian's relationship <span class="required">*</span></label>
+              <select id="guardian-relationship" name="guardianRelationship" required>
+                <option value="" disabled selected>Select relationship</option>
+                <option value="Parent">Parent</option>
+                <option value="Legal Guardian">Legal Guardian</option>
+              </select>
+            </div>
+
+            <div class="field field-full consent-field">
+              <label class="consent-checkbox-row">
+                <input id="consent-checkbox" name="consentGiven" type="checkbox" required>
+                <span>Staff confirms verbal consent was obtained from the parent/guardian present to collect and process this child's personal and health data for pediatric care, per the <a href="/tos" target="_blank" rel="noopener">Privacy Policy</a>.</span>
+              </label>
+            </div>
           </div>
         </form>
 
@@ -814,6 +856,8 @@
     const dobYearInput = document.getElementById('dob-year');
     const ageYearsInput = document.getElementById('age-years');
     const ageMonthsInput = document.getElementById('age-months');
+    const guardianRelationshipSelect = document.getElementById('guardian-relationship');
+    const consentCheckbox = document.getElementById('consent-checkbox');
     const searchParams = new URLSearchParams(window.location.search);
     function setSaveStatus(message, tone = '') {
       if (!saveStatus) {
@@ -988,7 +1032,9 @@
         phone: normalizedPhone,
         mobileNumber: normalizedPhone,
         email: newPatientForm.elements.email.value.trim(),
-        bloodGroup: newPatientForm.elements.bloodGroup.value.trim()
+        bloodGroup: newPatientForm.elements.bloodGroup.value.trim(),
+        guardianRelationship: guardianRelationshipSelect.value,
+        consentGiven: consentCheckbox.checked
       };
 
       sessionStorage.setItem('newPatientDraft', JSON.stringify(patientRecord));

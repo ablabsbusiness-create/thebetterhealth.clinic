@@ -5,6 +5,10 @@ import { getAdminDb } from '../_firebase-admin.js';
 const CLINIC_NAMESPACE = 'clinics/kid';
 const PATIENT_ID_PREFIX = 'TBK';
 const PATIENT_ID_WIDTH = 4;
+const VALID_RELATIONSHIPS = ['Parent', 'Legal Guardian'];
+// Bumped whenever tos/index.html's "Last updated" date changes, so every
+// consent record says which version of the notice was in effect.
+const POLICY_VERSION = '2026-08-27';
 
 function sendJson(res, statusCode, payload) {
   res.statusCode = statusCode;
@@ -68,6 +72,7 @@ function patientPayloadFromBody(body) {
   const gender = clean(patient.gender);
   const dob = clean(patient.dob);
   const phone = normalizePhone(patient.mobileNumber || patient.phone);
+  const guardianRelationship = clean(patient.consentRelationship || patient.guardianRelationship);
 
   if (!childName) {
     throw new Error('Child name is required.');
@@ -85,6 +90,14 @@ function patientPayloadFromBody(body) {
     throw new Error('Phone number is required.');
   }
 
+  if (!VALID_RELATIONSHIPS.includes(guardianRelationship)) {
+    throw new Error('A parent/guardian relationship is required for consent.');
+  }
+
+  if (patient.consentGiven !== true) {
+    throw new Error('Consent to collect and process this data is required.');
+  }
+
   return {
     childName,
     parentName: clean(patient.parentName),
@@ -93,7 +106,14 @@ function patientPayloadFromBody(body) {
     phone,
     mobileNumber: phone,
     email: clean(patient.email),
-    bloodGroup: clean(patient.bloodGroup)
+    bloodGroup: clean(patient.bloodGroup),
+    consentGiven: true,
+    // The original consent timestamp lives on the sourcing pendingPatients doc
+    // (JSON transport can't carry a Firestore Timestamp), so this just marks
+    // when the record entered the patients collection with consent confirmed.
+    consentAt: admin.firestore.FieldValue.serverTimestamp(),
+    consentRelationship: guardianRelationship,
+    policyVersion: clean(patient.policyVersion) || POLICY_VERSION
   };
 }
 

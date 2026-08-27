@@ -7,11 +7,11 @@
   <title>Privacy Policy &amp; Terms of Service | The Better Health Clinic</title>
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <meta name="robots" content="noindex, follow" />
-  <meta name="description" content="Privacy Policy and Terms of Service for The Better Health Clinic, including how we use Firebase Phone Authentication (OTP) to verify patients." />
+  <meta name="description" content="Privacy Policy and Terms of Service for The Better Health Clinic, including how we use OTP (via MSG91) to verify patients." />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="The Better Health Clinic" />
   <meta property="og:title" content="Privacy Policy & Terms of Service | The Better Health Clinic" />
-  <meta property="og:description" content="Privacy Policy and Terms of Service for The Better Health Clinic, including how we use Firebase Phone Authentication (OTP) to verify patients." />
+  <meta property="og:description" content="Privacy Policy and Terms of Service for The Better Health Clinic, including how we use OTP (via MSG91) to verify patients." />
   <meta property="og:url" content="https://www.thebetterhealth.clinic/tos" />
   <meta property="og:locale" content="en_IN" />
   <link rel="canonical" href="https://www.thebetterhealth.clinic/tos" />
@@ -136,7 +136,7 @@
         how we use phone number verification (OTP) to sign you in, and the terms that apply when you use our
         website and services.
       </p>
-      <p class="text-sm text-stone-500 mt-2">Last updated: 12 July 2026</p>
+      <p class="text-sm text-stone-500 mt-2">Last updated: 27 August 2026</p>
     </div>
 
     <div class="grid lg:grid-cols-[220px_1fr] gap-10">
@@ -155,6 +155,8 @@
             <a href="#pp-retention">Data retention</a>
             <a href="#pp-security">Security</a>
             <a href="#pp-rights">Your rights &amp; choices</a>
+            <a href="#pp-grievance">Grievance Officer</a>
+            <a href="#pp-breach">Data breach notification</a>
           </nav>
           <p class="text-xs font-bold tracking-widest uppercase text-stone-500 mb-2">Terms of Service</p>
           <nav class="toc">
@@ -180,33 +182,34 @@
             The Better Health Clinic ("we", "us", "our") operates thebetterhealth.clinic and provides pediatric
             care (The Better Kids Clinic) and pulmonary/lung care (The Better Lungs Clinic) in Arekere MICO Layout,
             Bengaluru. This Privacy Policy describes how we collect, use, and safeguard information when you visit
-            our website, book an appointment, or sign in using your phone number.
+            our website, book an appointment, or sign in using your phone number, and is written to meet our
+            obligations under the <strong>Digital Personal Data Protection Act, 2023 (DPDP Act)</strong> and the
+            <strong>Information Technology Act, 2000</strong> together with the Sensitive Personal Data or
+            Information Rules, 2011 (SPDI Rules).
           </p>
 
           <h3 id="pp-info-we-collect" class="text-lg mt-6 mb-2 text-stone-900">1. Information we collect</h3>
           <ul class="list-disc pl-5 space-y-1">
             <li><strong>Contact details</strong>: name, phone number, and (if provided) email address, when you book an appointment or contact us.</li>
-            <li><strong>Phone verification data</strong>: your phone number and the one-time password (OTP) verification status when you sign in via Firebase Phone Authentication.</li>
+            <li><strong>Phone verification data</strong>: your phone number and the one-time password (OTP) verification status when you sign in via MSG91.</li>
             <li><strong>Patient &amp; health information</strong>: details you or your child's guardian share with our doctors, such as symptoms, vitals, and visit history, recorded as part of clinical care.</li>
             <li><strong>Usage data</strong>: basic technical information such as browser type, device, and pages visited, collected automatically for site functioning and security.</li>
           </ul>
 
-          <h3 id="pp-phone-auth" class="text-lg mt-6 mb-2 text-stone-900">2. Phone number sign-in (OTP) via Firebase</h3>
+          <h3 id="pp-phone-auth" class="text-lg mt-6 mb-2 text-stone-900">2. Phone number sign-in (OTP)</h3>
           <p>
-            To let you securely access appointment or patient-related features, we use
-            <strong>Firebase Phone Authentication</strong>, a service provided by Google. When you sign in:
+            To let you securely access patient portal features, we use <strong>MSG91</strong>, an OTP delivery
+            provider, to verify your phone number. When you sign in:
           </p>
           <ul class="list-disc pl-5 space-y-1 mt-2">
-            <li>You enter your phone number and we (via Firebase) send a one-time password (OTP) by SMS to verify that number belongs to you.</li>
-            <li>Firebase's invisible reCAPTCHA may run in your browser to confirm you are not a bot before an OTP is sent.</li>
-            <li>Once verified, Firebase issues a secure authentication token that identifies your session; we do not receive or store your OTP code itself.</li>
-            <li>Your phone number and Firebase user ID are stored so we can recognize you on return visits and link you to your appointment or patient records.</li>
+            <li>You enter your phone number and we (via MSG91) send a one-time password (OTP) by SMS to verify that number belongs to you.</li>
+            <li>Once verified, we start a secure session identifying you as the parent/guardian of the linked patient record; we do not retain the OTP code itself.</li>
+            <li>Your phone number is stored so we can recognize you on return visits and link you to your child's appointment or patient records.</li>
             <li>Standard SMS charges from your carrier may apply to receiving the OTP.</li>
           </ul>
           <p class="mt-2">
-            Firebase (Google) processes this data under its own privacy terms as our authentication provider. See
-            <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener noreferrer">Firebase's Privacy and Security policy</a>
-            for details on how Google handles this data.
+            MSG91 processes your phone number and the OTP delivery under its own privacy terms as our SMS
+            provider. Patient records themselves are stored in Google Firebase, described in section 5 below.
           </p>
 
           <h3 id="pp-how-we-use" class="text-lg mt-6 mb-2 text-stone-900">3. How we use your information</h3>
@@ -223,7 +226,9 @@
             We do not sell your personal or health information. We share limited data only with:
           </p>
           <ul class="list-disc pl-5 space-y-1 mt-2">
-            <li><strong>Firebase / Google Cloud</strong>: for phone authentication, secure data storage, and hosting.</li>
+            <li><strong>Google Firebase / Google Cloud</strong>: for secure data storage and hosting of patient and account records.</li>
+            <li><strong>MSG91</strong>: for delivering the OTP SMS used to verify your phone number.</li>
+            <li><strong>Vercel</strong>: for hosting this website and its booking/portal functionality.</li>
             <li><strong>Our clinical staff and doctors</strong>: for the purpose of providing your care.</li>
             <li><strong>Law enforcement or regulators</strong>: only when required by applicable Indian law.</li>
           </ul>
@@ -246,6 +251,11 @@
 
           <h3 id="pp-retention" class="text-lg mt-6 mb-2 text-stone-900">7. Data retention</h3>
           <p>
+            A self-check-in submitted online that is rejected, or never reviewed by clinic staff, is automatically
+            and permanently deleted <strong>30 days</strong> after submission or rejection — it never became a
+            patient record and serves no further purpose once that window passes.
+          </p>
+          <p class="mt-2">
             We retain contact and authentication data for as long as your account is active, and medical records for
             the period required by applicable healthcare recordkeeping norms in India. You may request deletion of
             non-clinical account data at any time, subject to our legal and medical recordkeeping obligations.
@@ -261,10 +271,28 @@
 
           <h3 id="pp-rights" class="text-lg mt-6 mb-2 text-stone-900">9. Your rights &amp; choices</h3>
           <ul class="list-disc pl-5 space-y-1">
-            <li>You may request access to, correction of, or deletion of your personal data by contacting us below.</li>
-            <li>You may sign out of a phone-verified session at any time; this revokes the associated Firebase token.</li>
+            <li>You may request access to, correction of, or deletion of your personal data by contacting our Grievance Officer below.</li>
+            <li>You may sign out of a phone-verified session at any time; this revokes the associated session token.</li>
             <li>You may ask us to stop using your phone number for reminders or non-essential communication.</li>
+            <li><strong>Withdrawing consent</strong> is as easy as giving it: contact the Grievance Officer below, or call the clinic directly, to withdraw consent for any processing that is not required for an ongoing course of care.</li>
           </ul>
+
+          <h3 id="pp-grievance" class="text-lg mt-6 mb-2 text-stone-900">10. Grievance Officer</h3>
+          <p>
+            Under the DPDP Act, 2023, our Grievance Officer for data protection queries and complaints is:
+          </p>
+          <ul class="list-disc pl-5 space-y-1 mt-2">
+            <li><strong>Name</strong>: Aaditya Bhatnagar</li>
+            <li><strong>Email</strong>: <a href="mailto:ablabs.business@gmail.com">ablabs.business@gmail.com</a></li>
+            <li><strong>Response time</strong>: we aim to acknowledge and resolve grievances within 30 days.</li>
+          </ul>
+
+          <h3 id="pp-breach" class="text-lg mt-6 mb-2 text-stone-900">11. Data breach notification</h3>
+          <p>
+            In the event of a personal data breach, we will notify the Data Protection Board of India and affected
+            patients or guardians as required under the DPDP Act, 2023. The Grievance Officer above is the point of
+            contact for coordinating that response.
+          </p>
         </section>
 
         <!-- TERMS OF SERVICE -->
@@ -295,7 +323,7 @@
 
           <h3 id="tos-accounts" class="text-lg mt-6 mb-2 text-stone-900">4. Accounts &amp; OTP responsibility</h3>
           <p>
-            When you sign in using Firebase Phone Authentication, you are responsible for keeping access to your
+            When you sign in using phone number OTP verification, you are responsible for keeping access to your
             registered phone number secure, as OTPs sent to that number are used to verify your identity. Notify us
             immediately if you believe your phone number or account access has been compromised or if you change
             your registered number.

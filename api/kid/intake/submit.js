@@ -12,6 +12,10 @@ import { getAdminDb } from '../_firebase-admin.js';
 const CLINIC_NAMESPACE = 'clinics/kid';
 const PENDING_COLLECTION = `${CLINIC_NAMESPACE}/pendingPatients`;
 const MAX_FIELD_LENGTH = 120;
+const VALID_RELATIONSHIPS = ['Parent', 'Legal Guardian'];
+// Bumped whenever tos/index.html's "Last updated" date changes, so every
+// consent record says which version of the notice was in effect.
+const POLICY_VERSION = '2026-08-27';
 
 function sendJson(res, statusCode, payload) {
   res.statusCode = statusCode;
@@ -84,6 +88,7 @@ export default async function handler(req, res) {
   const phone = normalizePhone(body.mobileNumber || body.phone);
   const dob = clean(body.dob);
   const gender = clean(body.gender);
+  const guardianRelationship = clean(body.guardianRelationship);
 
   if (!childName) {
     sendJson(res, 400, { error: 'Child name is required.' });
@@ -105,6 +110,16 @@ export default async function handler(req, res) {
     return;
   }
 
+  if (!VALID_RELATIONSHIPS.includes(guardianRelationship)) {
+    sendJson(res, 400, { error: 'Select your relationship to the child.' });
+    return;
+  }
+
+  if (body.consentGiven !== true) {
+    sendJson(res, 400, { error: 'Consent to collect and process this data is required.' });
+    return;
+  }
+
   // Only these fields are persisted. Status/decision are set here, never taken
   // from the request, so a submission cannot arrive pre-approved.
   const record = {
@@ -123,7 +138,11 @@ export default async function handler(req, res) {
     reviewedAt: null,
     reviewedBy: '',
     approvedPatientId: '',
-    notes: ''
+    notes: '',
+    consentGiven: true,
+    consentAt: admin.firestore.FieldValue.serverTimestamp(),
+    consentRelationship: guardianRelationship,
+    policyVersion: POLICY_VERSION
   };
 
   try {
