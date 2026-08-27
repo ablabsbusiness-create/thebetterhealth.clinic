@@ -114,6 +114,28 @@
       color: var(--brand);
       font-weight: 700;
     }
+
+    body.pdf-ready {
+      display: block;
+      padding: 0;
+    }
+
+    #viewer-frame {
+      display: none;
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    body.pdf-ready #viewer-frame {
+      display: block;
+    }
+
+    body.pdf-ready .panel {
+      display: none;
+    }
   </style>
   <link rel="stylesheet" href="mobile-app.css" />
 </head>
@@ -122,6 +144,7 @@
     <h1 id="title">Opening Prescription</h1>
     <p id="message">Please wait while we open the prescription.</p>
   </main>
+  <iframe id="viewer-frame" title="Prescription PDF"></iframe>
 
   <script type="module">
     // No Firebase import: this page is public. /api/kid/prescriptions/<id>
@@ -138,6 +161,7 @@
 
     const title = document.getElementById('title');
     const message = document.getElementById('message');
+    const viewerFrame = document.getElementById('viewer-frame');
     const params = new URLSearchParams(window.location.search);
     const prescriptionId = (params.get('i') || '').trim();
 
@@ -147,18 +171,6 @@
 
     function isPublicPdfUrl(value) {
       return /^(https?:|blob:|data:)/i.test(String(value || '').trim());
-    }
-
-    function isMobilePdfPreview() {
-      return window.matchMedia('(max-width: 640px), (pointer: coarse)').matches;
-    }
-
-    function getGoogleDocsViewerUrl(pdfUrl) {
-      return pdfUrl ? `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(pdfUrl)}` : '';
-    }
-
-    function getPrescriptionViewerUrl(pdfUrl) {
-      return isMobilePdfPreview() ? (pdfUrl || '') : getPdfViewerUrl(pdfUrl);
     }
 
     function normalizeStoragePath(value) {
@@ -198,9 +210,16 @@
           return;
         }
 
-        const viewerUrl = getPrescriptionViewerUrl(pdfUrl);
-        message.innerHTML = `Redirecting to prescription PDF. If it does not open automatically, <a href="${viewerUrl}">tap here</a>.`;
-        window.location.replace(viewerUrl);
+        // Render the PDF inside this same page (rather than redirecting to
+        // pdf-viewer.html/the raw file) so the link the parent opened stays
+        // on /emr/kid/rx the whole time, and every page of the prescription
+        // renders full-screen instead of just the first.
+        const viewerUrl = getPdfViewerUrl(pdfUrl);
+        message.innerHTML = `Loading prescription PDF. If it does not appear, <a href="${pdfUrl}" target="_blank" rel="noopener noreferrer">tap here</a>.`;
+        viewerFrame.src = viewerUrl;
+        viewerFrame.addEventListener('load', () => {
+          document.body.classList.add('pdf-ready');
+        }, { once: true });
       } catch (error) {
         title.textContent = 'Unable To Open Prescription';
         message.textContent = error.message || 'Something went wrong while opening the prescription.';
