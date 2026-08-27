@@ -146,11 +146,5 @@
       "source": "/emr/lungs/pdf-viewer",
       "destination": "/emr/lungs/pdf-viewer.html"
     }
-  ],
-  "crons": [
-    {
-      "path": "/api/kid/cron/purge-pending",
-      "schedule": "0 3 * * *"
-    }
   ]
 }
