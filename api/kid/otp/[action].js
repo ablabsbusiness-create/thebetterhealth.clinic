@@ -91,8 +91,22 @@ function isExistenceCheckAuthorized(req) {
 // the per-clinic handleCheck() above, which remains the authoritative,
 // correctly-scoped gate for each portal's own lookup flow.
 async function handleUserExists(req, res) {
-  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  // MSG91's dashboard validates this URL with a browser-side fetch when the
+  // widget config is saved (in addition to the real server-to-server call
+  // when an OTP is actually requested), so it needs CORS headers or the
+  // dashboard reports the API as broken even though it works fine.
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'x-existence-check-secret, Content-Type');
   res.setHeader('Cache-Control', 'no-store');
+
+  if (req.method === 'OPTIONS') {
+    res.statusCode = 204;
+    res.end();
+    return;
+  }
+
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
 
   const identifier = String(req.query?.identifier || '');
 
