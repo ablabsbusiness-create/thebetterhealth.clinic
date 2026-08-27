@@ -1678,10 +1678,28 @@
       setLoading(true);
 
       try {
-        // Deliberately no patient lookup before the OTP. Checking first meant
-        // anyone could type a number and learn from the response whether that
-        // family attends this clinic. Records are fetched after verification,
-        // keyed off the session rather than the typed number.
+        const checkResponse = await fetch('/api/kid/otp/check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: enteredPhone })
+        });
+        const checkResult = await checkResponse.json().catch(() => ({}));
+
+        if (checkResponse.status === 429) {
+          showFormMessage(checkResult?.error || 'Too many attempts. Please try again later.');
+          return;
+        }
+
+        if (!checkResponse.ok) {
+          throw new Error(checkResult?.error || 'Something went wrong. Please try again.');
+        }
+
+        if (!checkResult?.exists) {
+          recordFailedAttempt();
+          showFormMessage(NO_MATCH_MESSAGE);
+          return;
+        }
+
         const e164Phone = phoneToE164(phoneNumberInput.value);
         await widgetSendOtp(`91${enteredPhone}`);
 

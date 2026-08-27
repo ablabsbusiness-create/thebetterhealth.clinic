@@ -1700,6 +1700,28 @@
       setLoading(true);
 
       try {
+        const checkResponse = await fetch('/api/lungs/otp/check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: enteredPhone })
+        });
+        const checkResult = await checkResponse.json().catch(() => ({}));
+
+        if (checkResponse.status === 429) {
+          showFormMessage(checkResult?.error || 'Too many attempts. Please try again later.');
+          return;
+        }
+
+        if (!checkResponse.ok) {
+          throw new Error(checkResult?.error || 'Something went wrong. Please try again.');
+        }
+
+        if (!checkResult?.exists) {
+          recordFailedAttempt();
+          showFormMessage(NO_MATCH_MESSAGE);
+          return;
+        }
+
         const matches = await findPatientsByPhone(enteredPhone);
 
         if (!matches.length) {
