@@ -23,6 +23,30 @@ different directions.
   states "retain until age 18 + N years" for paediatric records; that
   synthesis is exactly what needs a lawyer's judgment.
 
+## What's changed: the DPDP Rules 2025 are now in force
+
+Checked 2026-08-27. The **DPDP Rules 2025 were notified on 13 November
+2025** ([source](https://www.india-briefing.com/news/dpdp-rules-2025-india-data-protection-law-compliance-40769.html/)),
+which sharpens two things this document previously had to leave open:
+
+- The Rules set a **minimum retention floor of one year** for personal
+  data, traffic data, and processing logs generally. That's a floor, not
+  an answer for medical records specifically — it doesn't resolve the
+  3-years-vs-purpose-served tension above, but it does rule out "delete
+  almost immediately" as ever being compliant.
+- **Full substantive compliance — including retention limits — becomes
+  enforceable 13 May 2027** (18 months after notification). That is a real
+  operational deadline now, not a someday item: whichever option the
+  lawyer picks needs to be implemented before then.
+- **Significant Data Fiduciary threshold rules are still expected in
+  2026, not yet published** as of this check — see
+  `SIGNIFICANT-DATA-FIDUCIARY-ASSESSMENT.md`, whose "not yet notified"
+  conclusion still holds but should be re-checked as that 2026 window
+  closes.
+
+None of this picks an option below for the lawyer — it just means the
+choice has a hard deadline attached now.
+
 ## Options to put in front of the lawyer
 
 1. **3 years from last visit** (bare NMC minimum) — simplest to implement,
@@ -62,4 +86,6 @@ Once a period is chosen:
 ## Status
 
 Open. No scheduled job exists. Flag to the user: this item needs a lawyer
-engaged before it can be closed, not more code.
+engaged before it can be closed, not more code — and now has a real
+deadline: **13 May 2027**, when DPDP Rules 2025 retention obligations
+become enforceable.

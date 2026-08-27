@@ -11,6 +11,13 @@ Two things matter for scope:
 - This is a **paediatric** practice, so nearly every data principal is a child.
   DPDP §9 applies to almost the entire database, not an edge case.
 
+**Deadline, confirmed 2026-08-27:** the DPDP Rules 2025 were notified
+13 November 2025. Full substantive compliance — notice, consent, security
+safeguards, breach reporting, data principal rights, retention limits, and
+Significant Data Fiduciary duties if triggered — becomes enforceable
+**13 May 2027**. This is no longer an open-ended "should get to this
+eventually" list.
+
 ---
 
 ## P0 — Security. Nothing else counts until these are done
@@ -19,11 +26,11 @@ DPDP §8(5) (reasonable security safeguards) · IT Act §43A · SPDI Rule 8
 
 | # | Change | Where | Evidence today |
 |---|---|---|---|
-| 1 | Require authentication in Firestore + Storage rules | `firebase/firestore.rules`, `firebase/storage.rules` | `request.auth` appears **0 times**. Verified live: unauthenticated read of `clinics/kid/…` returns **HTTP 200**; a path outside `/clinics` correctly returns 403 |
+| 1 | Require authentication in Firestore + Storage rules | `firebase/firestore.rules`, `firebase/storage.rules` | **Done for both clinics.** `clinics/kid` and `clinics/lungs` now both require `request.auth != null`. Closing this for lungs required more than a rules edit: lungs never signed in to Firebase Auth at all (only a session cookie), and `intake.html`/`portal.html` queried Firestore directly from the browser — both fixed (custom token minted in `api/lungs/auth/login.js`, `signInWithClinicToken` wired into `emr/lungs/password.html`/`lib/firebase-init.js`, and `intake.html`/`portal.html` moved to `api/lungs/intake/submit.js` and `api/lungs/portal/records.js` + `api/lungs/prescriptions/[id].js` on admin credentials). `portal.html`'s pre-OTP `findPatientsByPhone()` call — which let anyone probe whether a phone number was a lungs patient before verifying the code — was removed in the same pass; records are now only fetched after OTP verification, scoped to the session phone |
 | 2 | Per-user staff accounts (Firebase Auth) replacing the one shared clinic password | `emr/kid/lib/auth.js` | Single `CLINIC_ACCESS_PASSWORD`, 12h cookie. No attribution of who did what. Per-user accounts remain deprioritized given current clinic scale (one doctor, one staff member) — see project notes. **Brute-force lockout added regardless**: `api/kid/auth/login.js` and `api/lungs/auth/login.js` now rate-limit login attempts per IP (5 attempts / 10 minutes, reusing `api/_lib/otp-rate-limit.js`), closing the "no lockout on the shared PIN" gap independent of the per-user-accounts decision |
-| 3 | Flip route protection from allowlist to denylist | `emr/kid/lib/auth.js` `PROTECTED_PATHS` | `/certificates`, `/parent-details`, `/pdf-viewer`, `/growth-chart-preview` are **not listed at all**, so they load without the clinic password. `/certificates` reads patient data and issues medical certificates |
+| 3 | Flip route protection from allowlist to denylist | `emr/kid/lib/auth.js` `PROTECTED_PATHS` | `/certificates`, `/parent-details`, `/pdf-viewer`, `/growth-chart-preview` are **not listed at all**, so they load without the clinic password. `/certificates` reads patient data and issues medical certificates. **Same class of bug found and fixed in lungs**: root `middleware.js` (the file Vercel actually deploys — the per-app `emr/kid/middleware.js` / `emr/lungs/middleware.js` copies are dev-only) only listed a kid app entry; lungs had **no production route protection at all**. It now has a matching `APPS` entry, and `emr/lungs/lib/auth.js`'s own `PROTECTED_PATHS` gained `/edit-patient` and `/prescription-growth-chart-dashboard`, which were missing there too |
 | 4 | Authenticate or rate-limit patient creation | `/api/patients/create`, `/new-patient` | Both declared public — anyone can create patient records |
-| 5 | Replace permanent public prescription links with short-lived signed URLs | `/rx?i=<id>`, Storage PDFs | `/rx` is public and Storage objects are world-readable; the download token in the URL never expires |
+| 5 | Replace permanent public prescription links with short-lived signed URLs | `/rx?i=<id>`, Storage PDFs | `/rx` is public and Storage objects are world-readable; the download token in the URL never expires. **`api/lungs/prescriptions/[id].js`** now exists, mirroring `api/kid/prescriptions/[id].js`, so lungs prescription links also resolve to short-lived signed URLs instead of a live client Storage read |
 | 6 | Add an access/audit log — who read or changed which record, and when | new | No audit trail exists. Expected by SPDI Rule 8 and the EHR Standards 2016 |
 | 7 | Enable Firebase App Check | Firebase console + `lib/firebase-init.js` | API key is hardcoded in the client bundle (unavoidable for web) and nothing binds it to your origins |
 | 8 | Document encryption in transit/at rest | policy | Firebase provides both by default; it needs stating, not building |

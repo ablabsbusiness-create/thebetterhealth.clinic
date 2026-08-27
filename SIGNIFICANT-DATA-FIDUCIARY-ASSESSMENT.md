@@ -19,6 +19,16 @@ rules operationalizing §10 were still pending at time of writing. This means
 no data fiduciary, including this clinic, is currently a *designated* SDF,
 because the designation mechanism itself has not been switched on.
 
+**Update, checked 2026-08-27:** the broader DPDP Rules 2025 were notified
+13 November 2025, but SDF-specific threshold rules are reported as still
+**expected sometime in 2026, not yet published**
+([source](https://www.dpdpa.com/blogs/significant_data_fiduciary_sdf_dpdpa_guide.html)).
+The conclusion below still holds, but this is exactly the kind of thing
+that can change without warning during 2026 — worth a re-check, not just
+an annual one, until those thresholds actually land. Full DPDP substantive
+enforcement (SDF duties included) becomes mandatory 13 May 2027 regardless
+of when the thresholds are published.
+
 ## Why this is still worth assessing now
 
 Two factors specific to this practice make it a plausible future candidate
