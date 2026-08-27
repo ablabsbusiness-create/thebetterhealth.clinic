@@ -1541,6 +1541,21 @@
       }
     }
 
+    // Editing and re-saving a prescription overwrites the same storagePath.
+    // Firebase mints a fresh download token on every upload unless told to
+    // keep the old one — without this, any URL already handed out (search's
+    // prescription preview, a cached history record) breaks the moment the
+    // edit is saved, since Storage now requires auth and an unrecognized
+    // token no longer falls through to an open bucket the way it used to.
+    async function getExistingDownloadToken(storageRef) {
+      try {
+        const metadata = await getMetadata(storageRef);
+        return String(metadata?.customMetadata?.firebaseStorageDownloadTokens || '').split(',')[0].trim();
+      } catch (error) {
+        return '';
+      }
+    }
+
     function recordPdfStorageStat(oldSize, newBytes) {
       if (!db) {
         return;
@@ -3749,10 +3764,14 @@
             throw new Error('Headered prescription PDF is not available.');
           }
           const storageRef = ref(storage, storagePath);
-          const existingSize = await getExistingPdfSize(storageRef);
+          const [existingSize, existingToken] = await Promise.all([
+            getExistingPdfSize(storageRef),
+            getExistingDownloadToken(storageRef)
+          ]);
           await uploadBytes(storageRef, pdfBlob, {
             contentType: 'application/pdf',
-            contentDisposition: 'inline'
+            contentDisposition: 'inline',
+            ...(existingToken ? { customMetadata: { firebaseStorageDownloadTokens: existingToken } } : {})
           });
           downloadURL = await getDownloadURL(storageRef);
           persistedStoragePath = storagePath;
@@ -3765,9 +3784,11 @@
         if (details.previewBlob) {
           try {
             const previewRef = ref(storage, previewPath);
+            const existingPreviewToken = await getExistingDownloadToken(previewRef);
             await uploadBytes(previewRef, details.previewBlob, {
               contentType: 'image/jpeg',
-              contentDisposition: 'inline'
+              contentDisposition: 'inline',
+              ...(existingPreviewToken ? { customMetadata: { firebaseStorageDownloadTokens: existingPreviewToken } } : {})
             });
             previewImageURL = await getDownloadURL(previewRef);
             previewImagePath = previewPath;
@@ -4198,9 +4219,11 @@
         const pdfBlob = pdf.output('blob');
         const storagePath = `${CLINIC_STORAGE_PREFIX}/billReceipts/${patientId}/${fileName}`;
         const storageRef = ref(storage, storagePath);
+        const existingReceiptToken = await getExistingDownloadToken(storageRef);
         await uploadBytes(storageRef, pdfBlob, {
           contentType: 'application/pdf',
-          contentDisposition: 'inline'
+          contentDisposition: 'inline',
+          ...(existingReceiptToken ? { customMetadata: { firebaseStorageDownloadTokens: existingReceiptToken } } : {})
         });
         return await getDownloadURL(storageRef);
       } catch (error) {

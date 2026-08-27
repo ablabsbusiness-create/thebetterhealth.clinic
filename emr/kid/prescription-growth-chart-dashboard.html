@@ -2634,6 +2634,22 @@
       }
     }
 
+    // This file is always saved to the same fixed path (one "latest" chart PDF
+    // per patient), so every save overwrites the previous file. Firebase mints
+    // a fresh download token on every upload unless told to keep the old one —
+    // without this, any URL already handed out (a stored history record, a
+    // shared link) breaks the moment the chart is regenerated, since Storage
+    // now requires auth and an unrecognized token no longer falls through to
+    // an open bucket the way it used to.
+    async function getExistingDownloadToken(storageRef) {
+      try {
+        const metadata = await getMetadata(storageRef);
+        return String(metadata?.customMetadata?.firebaseStorageDownloadTokens || '').split(',')[0].trim();
+      } catch (error) {
+        return '';
+      }
+    }
+
     function recordPdfStorageStat(oldSize, newBytes) {
       if (!db) {
         return;
@@ -4822,12 +4838,16 @@
       const fileName = `${patientId}-latest.pdf`;
       const storagePath = `${CLINIC_STORAGE_PREFIX}/chart-pdfs/${patientId}/${fileName}`;
       const storageRef = ref(storage, storagePath);
+      const [existingSize, existingToken] = await Promise.all([
+        getExistingPdfSize(storageRef),
+        getExistingDownloadToken(storageRef)
+      ]);
       const metadata = {
         contentType: 'application/pdf',
-        contentDisposition: 'inline'
+        contentDisposition: 'inline',
+        ...(existingToken ? { customMetadata: { firebaseStorageDownloadTokens: existingToken } } : {})
       };
 
-      const existingSize = await getExistingPdfSize(storageRef);
       await uploadBytes(storageRef, pdfBlob, metadata);
       recordPdfStorageStat(existingSize, pdfBlob.size);
       const downloadURL = await getDownloadURL(storageRef);
