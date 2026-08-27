@@ -2104,6 +2104,7 @@
     const fullHistoryPatientIdsLoaded = new Set();
     const fullHistoryPatientLoads = new Map();
     const prescriptionDownloadUrlLoads = new Map();
+    const prescriptionDownloadUrlRefreshed = new Set();
     const historyDateFilters = {};
     const historyShowAll = {};
     const historyPageIndexes = {};
@@ -2720,7 +2721,20 @@
       const existingUrl = getPrescriptionDownloadUrl(entry);
       const storagePath = getPrescriptionStoragePath(entry);
 
-      if (existingUrl || !storage || !storagePath || prescriptionDownloadUrlLoads.has(storagePath)) {
+      // A cached downloadURL can go stale: if the object at storagePath was
+      // ever overwritten (a re-saved prescription, a regenerated growth
+      // chart), its download token rotates and the old cached URL now 403s
+      // under the auth-required Storage rules instead of silently working
+      // the way it did when the bucket was open to everyone. So the first
+      // time a storagePath is seen this session, refresh it in the
+      // background rather than trusting a possibly-stale cached URL forever
+      // — return the cached URL immediately for instant display, and let
+      // the fresh fetch self-heal it (via scheduleFilterPatientsRefresh) if
+      // it turns out to differ. prescriptionDownloadUrlRefreshed caps this
+      // at once per storagePath per page load, since entry.downloadURL
+      // getting overwritten below would otherwise re-trigger this on every
+      // subsequent re-render.
+      if (!storage || !storagePath || prescriptionDownloadUrlLoads.has(storagePath) || prescriptionDownloadUrlRefreshed.has(storagePath)) {
         return existingUrl;
       }
 
@@ -2729,24 +2743,30 @@
       // Configure CORS: gsutil cors set cors.json gs://YOUR_BUCKET_NAME
       const loadPromise = getDownloadURL(ref(storage, storagePath))
         .then((downloadURL) => {
-          entry.downloadURL = downloadURL;
-          allHistory.forEach((historyEntry) => {
-            if (getPrescriptionStoragePath(historyEntry) === storagePath) {
-              historyEntry.downloadURL = downloadURL;
-            }
-          });
-          prescriptionDownloadUrlLoads.delete(storagePath);
-          scheduleFilterPatientsRefresh();
+          prescriptionDownloadUrlRefreshed.add(storagePath);
+          if (downloadURL !== existingUrl) {
+            entry.downloadURL = downloadURL;
+            allHistory.forEach((historyEntry) => {
+              if (getPrescriptionStoragePath(historyEntry) === storagePath) {
+                historyEntry.downloadURL = downloadURL;
+              }
+            });
+            prescriptionDownloadUrlLoads.delete(storagePath);
+            scheduleFilterPatientsRefresh();
+          } else {
+            prescriptionDownloadUrlLoads.delete(storagePath);
+          }
           return downloadURL;
         })
         .catch((error) => {
+          prescriptionDownloadUrlRefreshed.add(storagePath);
           prescriptionDownloadUrlLoads.delete(storagePath);
           console.warn(`Unable to resolve prescription PDF URL for ${storagePath}: ${error.message}`);
-          return '';
+          return existingUrl;
         });
 
       prescriptionDownloadUrlLoads.set(storagePath, loadPromise);
-      return '';
+      return existingUrl;
     }
 
     function getPrescriptionPreviewImageUrl(entry) {
