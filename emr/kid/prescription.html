@@ -1406,40 +1406,43 @@
       grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
+    /* Slot labels sit above their boxes, the way Docon lays this row out and
+       the way the meal head row above already works. */
+    .timing-count-head-row {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .timing-count-row {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      padding: 7px 12px;
+      border-bottom: 1px solid #eef2f7;
+      background: #fbfdff;
+    }
+
     .timing-count-cell {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 4px;
-      min-height: 28px;
-      border-right: 1px solid #eef2f7;
-      border-bottom: 1px solid #eef2f7;
-      background: #fff;
     }
 
-    .timing-count-label {
-      font-size: 12px;
-      font-weight: 700;
-      color: #64748b;
-    }
-
-    .timing-count-input {
-      width: 34px;
-      min-height: 24px;
-      padding: 0 2px;
-      border: 1px solid #dfe6ef;
+    /* Deliberately outweighs `.medicine-question input[type="text"]`, which
+       strips the border and stretches the field across its whole cell. */
+    .medicine-question .timing-count-row input[type="text"].timing-count-input {
+      width: min(58px, 100%);
+      min-height: 26px;
+      padding: 0 6px;
+      border: 1px solid #cbd5e1;
       border-radius: 6px;
       background: #fff;
-      text-align: center;
-      font: inherit;
-      font-size: 13px;
-      font-weight: 700;
       color: var(--ink);
+      text-align: center;
+      font-size: 14px;
+      font-weight: 700;
     }
 
-    .timing-count-input:focus {
-      outline: none;
-      box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.18);
+    .medicine-question .timing-count-row input[type="text"].timing-count-input:focus {
+      border-color: #166534;
+      box-shadow: 0 0 0 2px rgba(22, 101, 52, 0.16);
     }
 
     .option-pill {
@@ -3999,13 +4002,17 @@
     // Numeric mode: the same four M/A/E/N slots, but each takes a dose count
     // rather than a tick, so "2 at night" is expressible. Prints as 1-0-1-0.
     function renderNumericTimingOptions(medicine, medicineSlug, detail) {
+      const slots = [['M', 'Morning'], ['A', 'Afternoon'], ['E', 'Evening'], ['N', 'Night']];
+
       return `
-        <div class="timing-row timing-main-row timing-count-row" aria-label="${escapeHtml(medicine)} timing dose counts">
-          ${['M', 'A', 'E', 'N'].map((value) => `
-            <label class="timing-count-cell">
-              <span class="timing-count-label">${value}</span>
-              <input type="text" inputmode="decimal" class="timing-count-input" data-field="timingCount" data-slot="${value}" value="${escapeHtml(getSlotCount(detail, value))}" placeholder="0" aria-label="${escapeHtml(medicine)} ${value} dose count">
-            </label>
+        <div class="timing-row timing-count-head-row" aria-hidden="true">
+          ${slots.map(([slot]) => `<span class="meal-head-cell">${slot}</span>`).join('')}
+        </div>
+        <div class="timing-row timing-count-row" aria-label="${escapeHtml(medicine)} dose count per slot">
+          ${slots.map(([slot, slotLabel]) => `
+            <span class="timing-count-cell">
+              <input type="text" inputmode="decimal" class="timing-count-input" data-field="timingCount" data-slot="${slot}" value="${escapeHtml(getSlotCount(detail, slot))}" placeholder="0" aria-label="${escapeHtml(medicine)} ${slotLabel} dose count">
+            </span>
           `).join('')}
         </div>
         ${renderFoodTimingRows(medicine, medicineSlug, detail)}
