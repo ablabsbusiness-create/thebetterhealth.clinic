@@ -3654,11 +3654,10 @@
         const existingDetail = getMedicineDetail(medicine);
         const effectiveTimingMode = timingMode?.value || existingDetail.timingMode || 'daily';
 
-        // The M/A/E/N row is number inputs, not checkboxes, so it never
-        // touches `timings` directly - a slot only counts as "on" once its
-        // number is greater than zero, and that's what drives `timings` for
-        // the daily mode (interval/meal modes still read straight off their
-        // own checkboxes above).
+        // Numeric mode's row is number inputs rather than checkboxes, so it
+        // never fills `timings` directly - a slot counts as "on" once its
+        // number is above zero. Every other mode (daily M/A/E/N, interval,
+        // meal) still reads straight off its own checkboxes.
         const timingCounts = { ...existingDetail.timingCounts };
         card.querySelectorAll('[data-field="timingCount"]').forEach((input) => {
           const slot = input.dataset.slot;
@@ -3666,7 +3665,7 @@
             timingCounts[slot] = input.value.trim();
           }
         });
-        const dailyTimings = ['M', 'A', 'E', 'N'].filter((slot) => {
+        const numericTimings = ['M', 'A', 'E', 'N'].filter((slot) => {
           const parsed = Number.parseFloat(timingCounts[slot]);
           return Number.isFinite(parsed) && parsed > 0;
         });
@@ -3676,7 +3675,7 @@
           dose: doseInput?.value || '',
           doseChip: doseChip?.value || '',
           doseUnit: doseUnit?.value || existingDetail.doseUnit || '',
-          timings: effectiveTimingMode === 'daily' ? dailyTimings : timings,
+          timings: effectiveTimingMode === 'numeric' ? numericTimings : timings,
           timingMode: effectiveTimingMode,
           timingCounts,
           food: food?.value || '',
@@ -3796,7 +3795,7 @@
       }
     };
 
-    const TIMING_MODE_ORDER = ['daily', 'interval', 'meal'];
+    const TIMING_MODE_ORDER = ['daily', 'numeric', 'interval', 'meal'];
 
     function checkedAttr(condition) {
       return condition ? 'checked' : '';
@@ -3905,27 +3904,8 @@
       `;
     }
 
-    // A slot's saved count wins; a plain old on/off record (no timingCounts
-    // yet) falls back to "1" for a checked slot, "" for an unchecked one -
-    // same on-screen result, just not typed as a quantity until edited.
-    function getSlotCount(detail, slot) {
-      const saved = detail.timingCounts && detail.timingCounts[slot];
-      if (saved !== undefined && saved !== null && saved !== '') {
-        return String(saved);
-      }
-      return detail.timings.includes(slot) ? '1' : '';
-    }
-
-    function renderDailyTimingOptions(medicine, medicineSlug, detail) {
+    function renderFoodTimingRows(medicine, medicineSlug, detail) {
       return `
-        <div class="timing-row timing-main-row timing-count-row" aria-label="${escapeHtml(medicine)} timing dose counts">
-          ${['M', 'A', 'E', 'N'].map((value) => `
-            <label class="timing-count-cell">
-              <span class="timing-count-label">${value}</span>
-              <input type="text" inputmode="decimal" class="timing-count-input" data-field="timingCount" data-slot="${value}" value="${escapeHtml(getSlotCount(detail, value))}" placeholder="0" aria-label="${escapeHtml(medicine)} ${value} dose count">
-            </label>
-          `).join('')}
-        </div>
         <div class="timing-row timing-food-row" aria-label="${escapeHtml(medicine)} food timing options">
           ${['Before Food', 'With Food', 'After Food'].map((value) => `
             <label class="option-pill">
@@ -3942,6 +3922,47 @@
             </label>
           `).join('')}
         </div>
+      `;
+    }
+
+    function renderDailyTimingOptions(medicine, medicineSlug, detail) {
+      return `
+        <div class="timing-row timing-main-row" aria-label="${escapeHtml(medicine)} timing options">
+          ${['M', 'A', 'E', 'N'].map((value) => `
+            <label class="option-pill">
+              <input type="checkbox" name="timing-${medicineSlug}" value="${value}" data-field="timing" ${checkedAttr(detail.timings.includes(value))}>
+              ${value}
+            </label>
+          `).join('')}
+        </div>
+        ${renderFoodTimingRows(medicine, medicineSlug, detail)}
+      `;
+    }
+
+    // A slot's saved count wins; a record that only ever used the M/A/E/N
+    // checkboxes falls back to "1" for a checked slot, "" for an unchecked
+    // one, so switching a medicine to numeric keeps the schedule it had.
+    function getSlotCount(detail, slot) {
+      const saved = detail.timingCounts && detail.timingCounts[slot];
+      if (saved !== undefined && saved !== null && saved !== '') {
+        return String(saved);
+      }
+      return detail.timings.includes(slot) ? '1' : '';
+    }
+
+    // Numeric mode: the same four M/A/E/N slots, but each takes a dose count
+    // rather than a tick, so "2 at night" is expressible. Prints as 1-0-1-0.
+    function renderNumericTimingOptions(medicine, medicineSlug, detail) {
+      return `
+        <div class="timing-row timing-main-row timing-count-row" aria-label="${escapeHtml(medicine)} timing dose counts">
+          ${['M', 'A', 'E', 'N'].map((value) => `
+            <label class="timing-count-cell">
+              <span class="timing-count-label">${value}</span>
+              <input type="text" inputmode="decimal" class="timing-count-input" data-field="timingCount" data-slot="${value}" value="${escapeHtml(getSlotCount(detail, value))}" placeholder="0" aria-label="${escapeHtml(medicine)} ${value} dose count">
+            </label>
+          `).join('')}
+        </div>
+        ${renderFoodTimingRows(medicine, medicineSlug, detail)}
       `;
     }
 
@@ -4015,7 +4036,9 @@
         ? renderIntervalTimingOptions(medicine, medicineSlug, detail)
         : timingMode === 'meal'
           ? renderMealTimingOptions(medicine, medicineSlug, detail)
-          : renderDailyTimingOptions(medicine, medicineSlug, detail);
+          : timingMode === 'numeric'
+            ? renderNumericTimingOptions(medicine, medicineSlug, detail)
+            : renderDailyTimingOptions(medicine, medicineSlug, detail);
 
       return `
         <div class="medicine-question">
@@ -4023,6 +4046,7 @@
             <span>Timing</span>
             <select class="timing-mode-select" data-field="timingMode" aria-label="${escapeHtml(medicine)} timing mode">
               <option value="daily" ${selectedAttr(timingMode === 'daily')}>M A E N</option>
+              <option value="numeric" ${selectedAttr(timingMode === 'numeric')}>1-0-1-0</option>
               <option value="interval" ${selectedAttr(timingMode === 'interval')}>Hourly / Daily</option>
               <option value="meal" ${selectedAttr(timingMode === 'meal')}>Meals</option>
             </select>

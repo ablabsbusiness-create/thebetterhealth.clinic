@@ -2953,14 +2953,15 @@
 
       const mode = timingMode || inferTimingMode(timings);
 
-      // Numeric slot format (e.g. "1-0-1-0") only maps cleanly onto the
+      // The 1-0-1-0 slot format only maps cleanly onto the
       // Morning/Afternoon/Evening/Night schedule - interval and meal timings
-      // stay as text regardless of the setting. A saved per-slot count (from
-      // the M/A/E/N number boxes) prints as its actual number - "2" tablets
-      // at night prints as "2", same as Docon's dosage-schedule boxes - and
-      // falls back to a plain 1/0 flag for older records saved before
-      // per-slot counts existed.
-      if (frequencyFormat === 'numeric' && mode === 'daily') {
+      // stay as text either way. Two things can ask for it: the medicine's own
+      // "1-0-1-0" timing mode, which always prints this way, or the clinic's
+      // Frequency Format setting applied to a plain M/A/E/N medicine. A saved
+      // per-slot count prints as its actual number ("2" at night prints as 2,
+      // same as Docon's dosage-schedule boxes), falling back to a 1/0 flag for
+      // medicines that only ever used the checkboxes.
+      if (mode === 'numeric' || (frequencyFormat === 'numeric' && mode === 'daily')) {
         return DAILY_TIMING_ORDER.map((code) => {
           const savedCount = timingCounts && timingCounts[code];
           const parsedCount = Number.parseFloat(savedCount);
