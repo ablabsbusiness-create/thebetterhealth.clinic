@@ -2201,7 +2201,10 @@
     // medicine can be edited from its details panel.
     const EDITABLE_ITEM_SECTIONS = new Set(['Instruction']);
     const EDITABLE_ITEM_LABELS = { Instruction: 'Instruction' };
-    const MEDICINE_DETAIL_STORAGE_KEY = clinicStorageKey('prescriptionMedicineDetails');
+    // Per-patient, exactly like the draft below. A single shared key used to
+    // let one patient's doses reappear on the next patient's prescription
+    // while the 10-minute TTL was still running.
+    const MEDICINE_DETAIL_STORAGE_PREFIX = clinicStorageKey('prescriptionMedicineDetails');
     const CUSTOM_TEMPLATE_STORAGE_KEY = clinicStorageKey('prescriptionCustomTemplates');
     const PRESCRIPTION_TEMPLATE_CACHE_KEY = clinicStorageKey('prescriptionCloudTemplates');
     const PRESCRIPTION_USAGE_STORAGE_KEY = clinicStorageKey('prescriptionUsageCounts');
@@ -3353,6 +3356,13 @@
         : PRESCRIPTION_DRAFT_STORAGE_PREFIX;
     }
 
+    function getMedicineDetailStorageKey(patientId = getCurrentPatientId()) {
+      const normalizedPatientId = String(patientId || '').trim().toUpperCase();
+      return isValidPatientId(normalizedPatientId)
+        ? `${MEDICINE_DETAIL_STORAGE_PREFIX}:${normalizedPatientId}`
+        : MEDICINE_DETAIL_STORAGE_PREFIX;
+    }
+
     function stripChartPageData(record) {
       return {
         ...record,
@@ -3487,8 +3497,13 @@
         sections[sectionName] = [...selectedSet];
       });
 
+      // Only the medicines actually on this prescription. The map can still
+      // hold details for a medicine that was picked and then removed, and
+      // writing those into the draft put them back on the printed sheet.
       medicineDetails.forEach((detail, medicine) => {
-        details[medicine] = { ...detail };
+        if (selectedMedicines.has(medicine)) {
+          details[medicine] = { ...detail };
+        }
       });
 
       const sectionDetails = {};
@@ -3571,7 +3586,18 @@
 
     function loadMedicineDetailsFromStorage() {
       try {
-        const savedPayload = JSON.parse(localStorage.getItem(MEDICINE_DETAIL_STORAGE_KEY) || '{}');
+        const patientId = getCurrentPatientId();
+        const savedBlob = JSON.parse(localStorage.getItem(getMedicineDetailStorageKey(patientId)) || '{}');
+
+        // Newer blobs stamp the patient they belong to. The stamp is the
+        // backstop for the unscoped fallback key used when a prescription is
+        // started without a patient id, and it also discards anything written
+        // by the old build that shared one key across every patient.
+        if (!savedBlob.medicines || String(savedBlob.patientId || '') !== patientId) {
+          return;
+        }
+
+        const savedPayload = savedBlob.medicines;
         const now = Date.now();
 
         Object.entries(savedPayload).forEach(([medicine, detail]) => {
@@ -3620,7 +3646,11 @@
         }
       });
 
-      localStorage.setItem(MEDICINE_DETAIL_STORAGE_KEY, JSON.stringify(payload));
+      const patientId = getCurrentPatientId();
+      localStorage.setItem(
+        getMedicineDetailStorageKey(patientId),
+        JSON.stringify({ patientId, medicines: payload })
+      );
     }
 
     function cleanupExpiredMedicineDetails() {
@@ -3633,6 +3663,22 @@
       });
 
       saveMedicineDetailsToStorage();
+    }
+
+    // The build before medicine details were scoped per patient wrote a bare
+    // map of medicine name to detail under the unscoped key. Nothing reads
+    // that shape any more, so drop it rather than leaving one patient's doses
+    // sitting in storage. A current unscoped blob is left alone - it is the
+    // fallback for a prescription started without a patient id.
+    function removeLegacyMedicineDetailStore() {
+      try {
+        const legacy = JSON.parse(localStorage.getItem(MEDICINE_DETAIL_STORAGE_PREFIX) || 'null');
+        if (legacy && typeof legacy === 'object' && !legacy.medicines) {
+          localStorage.removeItem(MEDICINE_DETAIL_STORAGE_PREFIX);
+        }
+      } catch {
+        localStorage.removeItem(MEDICINE_DETAIL_STORAGE_PREFIX);
+      }
     }
 
     function syncMedicineDetailsFromDom() {
@@ -4584,6 +4630,7 @@
     }
 
     async function initPrescriptionData() {
+      removeLegacyMedicineDetailStore();
       loadMedicineDetailsFromStorage();
       cleanupExpiredMedicineDetails();
       renderGrowthSummary();

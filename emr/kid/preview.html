@@ -1671,7 +1671,8 @@
     const PRESCRIPTION_BRANDING_STORAGE_KEY = clinicStorageKey('prescriptionBrandingSettings');
     const PRESCRIPTION_BRANDING_CACHED_AT_KEY = clinicStorageKey('prescriptionBrandingCachedAt');
     const PRESCRIPTION_BRANDING_TTL_MS = 24 * 60 * 60 * 1000;
-    const MEDICINE_DETAIL_STORAGE_KEY = clinicStorageKey('prescriptionMedicineDetails');
+    // Per-patient, matching how prescription.html writes it.
+    const MEDICINE_DETAIL_STORAGE_PREFIX = clinicStorageKey('prescriptionMedicineDetails');
     const PRESCRIPTION_BRANDING_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'prescriptionBranding'];
     const CLINIC_SETTINGS_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'settings'];
     // Printed point sizes for the clinical rows. Keep in step with the Font Size
@@ -2016,6 +2017,13 @@
       return isValidPatientId(normalizedPatientId)
         ? `${PRESCRIPTION_DRAFT_STORAGE_KEY}:${normalizedPatientId}`
         : PRESCRIPTION_DRAFT_STORAGE_KEY;
+    }
+
+    function getMedicineDetailStorageKey(patientId) {
+      const normalizedPatientId = normalizePatientId(patientId);
+      return isValidPatientId(normalizedPatientId)
+        ? `${MEDICINE_DETAIL_STORAGE_PREFIX}:${normalizedPatientId}`
+        : MEDICINE_DETAIL_STORAGE_PREFIX;
     }
 
     let lastLoadedPrescriptionDraft = null;
@@ -4126,7 +4134,7 @@
     function clearPrescriptionLocalData(patientId = '') {
       localStorage.removeItem(getPrescriptionDraftStorageKey(patientId));
       localStorage.removeItem(CHART_RECORD_STORAGE_KEY);
-      localStorage.removeItem(MEDICINE_DETAIL_STORAGE_KEY);
+      localStorage.removeItem(getMedicineDetailStorageKey(patientId));
       localStorage.removeItem(LOCAL_PRESCRIPTION_HISTORY_KEY);
     }
 
