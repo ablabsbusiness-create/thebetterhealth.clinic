@@ -1224,12 +1224,21 @@
       box-shadow: none;
     }
 
+    /* A column stack, not a grid: as a grid the tracks were compressed to fit
+       max-height, and because each question hides its own overflow it was
+       allowed to shrink to nothing and lose its bottom rows. Flex items that
+       refuse to shrink keep their content height, so this scrolls instead. */
     .medicine-table-body {
-      display: grid;
+      display: flex;
+      flex-direction: column;
       gap: 10px;
       max-height: calc(98vh - 250px);
       overflow-y: auto;
       scrollbar-width: thin;
+    }
+
+    .medicine-table-body > .medicine-question {
+      flex: 0 0 auto;
     }
 
     .medicine-meta-strip {
