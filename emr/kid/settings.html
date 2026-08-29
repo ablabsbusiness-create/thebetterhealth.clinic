@@ -1205,28 +1205,6 @@
           <div id="usage-caption" class="usage-caption">0% of 2.5 GB free storage used</div>
         </article>
 
-        <div id="print-settings" class="settings-divider">Print</div>
-        <article class="stat-card setting-card">
-          <div class="setting-card-head">
-            <div class="setting-card-title">
-              <div>
-                <strong>Print Without Header</strong>
-                <div class="setting-copy">Blank top space for header-free print and PDF output.</div>
-              </div>
-            </div>
-          </div>
-          <div class="setting-card-body">
-            <div class="setting-control">
-              <label class="setting-input-wrap" for="print-gap-setting-input">
-                Gap (cm)
-                <input id="print-gap-setting-input" type="number" min="0" max="10" step="0.1" value="0">
-              </label>
-              <button id="save-print-gap-btn" class="setting-save" type="button">Save Setting</button>
-            </div>
-            <div id="print-gap-setting-status" class="setting-status">Current saved gap: 0.0 cm</div>
-          </div>
-        </article>
-
         <div id="growth-chart-settings" class="settings-divider">Growth Charts</div>
         <article class="stat-card setting-card">
           <div class="setting-card-head">
@@ -1312,6 +1290,15 @@
                 <button class="is-active" type="button" data-footer-align="left">Left</button>
                 <button type="button" data-footer-align="right">Right</button>
               </div>
+            </div>
+
+            <div class="prescription-ui-field">
+              <label>Frequency Format</label>
+              <div class="prescription-ui-segment" aria-label="Medicine frequency format preview">
+                <button class="is-active" type="button" data-frequency-format="text">Morning, Night</button>
+                <button type="button" data-frequency-format="numeric">1-0-1-0</button>
+              </div>
+              <div class="setting-copy">Numeric shows Morning-Afternoon-Evening-Night as a dash-separated sequence, using the actual dose count typed into each M/A/E/N box in the medicine editor (e.g. "2" tablets at night prints as 2, not just 1). Only applies to the M/A/E/N timing mode; interval and meal timings always print as text.</div>
             </div>
 
             <div class="prescription-ui-section-title">Paper Size</div>
@@ -1445,13 +1432,10 @@
     const pdfSize = document.getElementById('pdf-size');
     const usageFill = document.getElementById('usage-fill');
     const usageCaption = document.getElementById('usage-caption');
-    const printGapSettingInput = document.getElementById('print-gap-setting-input');
-    const savePrintGapBtn = document.getElementById('save-print-gap-btn');
     const growthChartStandardSelect = document.getElementById('growth-chart-standard-select');
     const saveGrowthChartStandardBtn = document.getElementById('save-growth-chart-standard-btn');
     const growthChartStandardStatus = document.getElementById('growth-chart-standard-status');
     const signOutBtn = document.getElementById('sign-out-btn');
-    const printGapSettingStatus = document.getElementById('print-gap-setting-status');
     const clinicTitleInput = document.getElementById('clinic-title-input');
     const clinicAddressInput = document.getElementById('clinic-address-input');
     const doctorNameInput = document.getElementById('doctor-name-input');
@@ -1467,6 +1451,7 @@
     const rxFontFamilySelect = document.getElementById('rx-ui-font-family');
     const rxFontSizeSelect = document.getElementById('rx-ui-font-size');
     const rxFooterAlignButtons = [...document.querySelectorAll('[data-footer-align]')];
+    const rxFrequencyFormatButtons = [...document.querySelectorAll('[data-frequency-format]')];
     const rxMarginInputs = {
       top: document.getElementById('rx-ui-margin-top'),
       bottom: document.getElementById('rx-ui-margin-bottom'),
@@ -1481,7 +1466,6 @@
     const cloudSavePopupClose = document.getElementById('cloud-save-popup-close');
     const FIREBASE_FREE_STORAGE_BYTES = 2.5 * 1024 * 1024 * 1024;
     const FIREBASE_STORAGE_LABEL = '2.5 GB';
-    const PRINT_HEADER_GAP_STORAGE_KEY = clinicStorageKey('previewPrintHeaderGapCm');
     const GROWTH_CHART_STANDARD_STORAGE_KEY = clinicStorageKey('growthChartStandard');
     const DEFAULT_GROWTH_CHART_STANDARD = 'IAP';
     const PRESCRIPTION_BRANDING_STORAGE_KEY = clinicStorageKey('prescriptionBrandingSettings');
@@ -1504,9 +1488,6 @@
       doctorName: 'Dr. Gunda Srinivas',
       doctorDetails: 'MBBS, DCH, DNB - Paediatrics, PGDDN, FPEM\n71826',
       footerText: 'The Better Health Clinic - Paediatrician #118, 5th Cross, Omkar Nagar Akere,\nBannerghatta road 560076 Bengaluru Karnataka',
-      printWithoutHeaderTitle: 'Print Without Header',
-      printWithoutHeaderDescription: 'Choose how much blank top space to leave when you print or save without the prescription header.',
-      printHeaderGapCm: 0,
       growthChartStandard: DEFAULT_GROWTH_CHART_STANDARD,
       prescriptionLanguage: 'English',
       prescriptionFontFamily: 'Arial',
@@ -1514,6 +1495,7 @@
       // never picked a size keeps the prescription it has always had.
       prescriptionFontSize: 8,
       prescriptionFooterAlignment: 'left',
+      prescriptionFrequencyFormat: 'text',
       prescriptionMarginsCm: {
         top: 1,
         bottom: 0.7,
@@ -1567,14 +1549,6 @@
     }
 
 
-    function normalizePrintGapCm(value) {
-      const parsedValue = Number.parseFloat(String(value ?? ''));
-      if (!Number.isFinite(parsedValue) || parsedValue < 0) {
-        return 0;
-      }
-      return Math.min(parsedValue, 10);
-    }
-
     function normalizePrescriptionMargin(value, fallbackValue) {
       const parsedValue = Number.parseFloat(String(value ?? ''));
       if (!Number.isFinite(parsedValue) || parsedValue < 0) {
@@ -1598,6 +1572,7 @@
           : DEFAULT_BRANDING.prescriptionFontFamily,
         prescriptionFontSize: PRESCRIPTION_FONT_SIZES.includes(fontSize) ? fontSize : DEFAULT_BRANDING.prescriptionFontSize,
         prescriptionFooterAlignment: settings.prescriptionFooterAlignment === 'right' ? 'right' : 'left',
+        prescriptionFrequencyFormat: settings.prescriptionFrequencyFormat === 'numeric' ? 'numeric' : 'text',
         prescriptionMarginsCm: {
           top: normalizePrescriptionMargin(savedMargins.top, defaultMargins.top),
           bottom: normalizePrescriptionMargin(savedMargins.bottom, defaultMargins.bottom),
@@ -1616,12 +1591,22 @@
       });
     }
 
+    function setFrequencyFormatControl(format) {
+      const safeFormat = format === 'numeric' ? 'numeric' : 'text';
+      rxFrequencyFormatButtons.forEach((button) => {
+        const isActive = button.dataset.frequencyFormat === safeFormat;
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-pressed', String(isActive));
+      });
+    }
+
     function populatePrescriptionLayoutForm(settings = readBrandingSettings()) {
       const layout = normalizePrescriptionLayout(settings);
       if (rxLanguageSelect) rxLanguageSelect.value = layout.prescriptionLanguage;
       if (rxFontFamilySelect) rxFontFamilySelect.value = layout.prescriptionFontFamily;
       if (rxFontSizeSelect) rxFontSizeSelect.value = String(layout.prescriptionFontSize);
       setFooterAlignmentControl(layout.prescriptionFooterAlignment);
+      setFrequencyFormatControl(layout.prescriptionFrequencyFormat);
       Object.entries(layout.prescriptionMarginsCm).forEach(([key, value]) => {
         if (rxMarginInputs[key]) {
           rxMarginInputs[key].value = String(value);
@@ -1631,11 +1616,13 @@
 
     function collectPrescriptionLayoutForm() {
       const activeFooterButton = rxFooterAlignButtons.find((button) => button.classList.contains('is-active'));
+      const activeFrequencyFormatButton = rxFrequencyFormatButtons.find((button) => button.classList.contains('is-active'));
       return normalizePrescriptionLayout({
         prescriptionLanguage: rxLanguageSelect?.value || DEFAULT_BRANDING.prescriptionLanguage,
         prescriptionFontFamily: rxFontFamilySelect?.value || DEFAULT_BRANDING.prescriptionFontFamily,
         prescriptionFontSize: rxFontSizeSelect?.value || DEFAULT_BRANDING.prescriptionFontSize,
         prescriptionFooterAlignment: activeFooterButton?.dataset.footerAlign || DEFAULT_BRANDING.prescriptionFooterAlignment,
+        prescriptionFrequencyFormat: activeFrequencyFormatButton?.dataset.frequencyFormat || DEFAULT_BRANDING.prescriptionFrequencyFormat,
         prescriptionMarginsCm: {
           top: rxMarginInputs.top?.value,
           bottom: rxMarginInputs.bottom?.value,
@@ -1643,50 +1630,6 @@
           right: rxMarginInputs.right?.value
         }
       });
-    }
-
-    function getSavedPrintGapCm() {
-      const localValue = localStorage.getItem(PRINT_HEADER_GAP_STORAGE_KEY);
-      const brandingValue = readBrandingSettings().printHeaderGapCm;
-      return normalizePrintGapCm(localValue ?? brandingValue);
-    }
-
-    function updatePrintGapSettingStatus(value, message) {
-      const safeValue = Number.isFinite(value) ? value : 0;
-      if (printGapSettingInput) {
-        printGapSettingInput.value = safeValue.toFixed(1);
-      }
-      if (printGapSettingStatus) {
-        printGapSettingStatus.textContent = message || `Current saved gap: ${safeValue.toFixed(1)} cm`;
-      }
-    }
-
-    async function savePrintGapSetting() {
-      const parsedValue = Number.parseFloat(printGapSettingInput.value);
-      const safeValue = Number.isFinite(parsedValue) && parsedValue >= 0 ? Math.min(parsedValue, 10) : 0;
-      localStorage.setItem(PRINT_HEADER_GAP_STORAGE_KEY, String(safeValue));
-      const nextSettings = cacheBrandingSettings({
-        ...readBrandingSettings(),
-        printWithoutHeaderTitle: DEFAULT_BRANDING.printWithoutHeaderTitle,
-        printWithoutHeaderDescription: DEFAULT_BRANDING.printWithoutHeaderDescription,
-        printHeaderGapCm: safeValue
-      });
-
-      if (db) {
-        await saveClinicSettingsToCloud(nextSettings);
-        const confirmedSnapshot = await getDoc(doc(db, ...CLINIC_SETTINGS_DOC_PATH));
-        const confirmedValue = normalizePrintGapCm(confirmedSnapshot.data()?.printHeaderGapCm);
-        localStorage.setItem(PRINT_HEADER_GAP_STORAGE_KEY, String(confirmedValue));
-        cacheBrandingSettings({
-          ...readBrandingSettings(),
-          printHeaderGapCm: confirmedValue
-        });
-        updatePrintGapSettingStatus(confirmedValue, `Saved gap: ${confirmedValue.toFixed(1)} cm to cloud records`);
-        showCloudSavePopup('Print gap saved.');
-        return;
-      }
-
-      updatePrintGapSettingStatus(safeValue, `Saved gap: ${safeValue.toFixed(1)} cm in this browser`);
     }
 
     function normalizeGrowthChartStandard(value) {
@@ -1765,11 +1708,6 @@
         clinicNamespace: CLINIC_FIREBASE_NAMESPACE,
         settingsVersion: 1,
         sections: {
-          print: {
-            printWithoutHeaderTitle: normalizedSettings.printWithoutHeaderTitle,
-            printWithoutHeaderDescription: normalizedSettings.printWithoutHeaderDescription,
-            printHeaderGapCm: normalizePrintGapCm(normalizedSettings.printHeaderGapCm)
-          },
           prescriptionLayout: normalizePrescriptionLayout(normalizedSettings),
           branding: {
             sectionTitle: normalizedSettings.sectionTitle,
@@ -1837,8 +1775,6 @@
           ...snapshot.data(),
           signatureDataUrl: snapshot.data().signatureDataUrl || cachedSettings.signatureDataUrl || ''
         });
-        localStorage.setItem(PRINT_HEADER_GAP_STORAGE_KEY, String(normalizePrintGapCm(firestoreSettings.printHeaderGapCm)));
-        updatePrintGapSettingStatus(normalizePrintGapCm(firestoreSettings.printHeaderGapCm));
         localStorage.setItem(GROWTH_CHART_STANDARD_STORAGE_KEY, normalizeGrowthChartStandard(firestoreSettings.growthChartStandard));
         updateGrowthChartStandardStatus(normalizeGrowthChartStandard(firestoreSettings.growthChartStandard));
         populateBrandingForm(firestoreSettings);
@@ -1893,9 +1829,6 @@
         doctorName: doctorNameInput?.value.trim() || DEFAULT_BRANDING.doctorName,
         doctorDetails: doctorDetailsInput?.value.trim() || DEFAULT_BRANDING.doctorDetails,
         footerText: footerTextInput?.value.trim() || DEFAULT_BRANDING.footerText,
-        printWithoutHeaderTitle: DEFAULT_BRANDING.printWithoutHeaderTitle,
-        printWithoutHeaderDescription: DEFAULT_BRANDING.printWithoutHeaderDescription,
-        printHeaderGapCm: getSavedPrintGapCm(),
         growthChartStandard: getSavedGrowthChartStandard(),
         ...collectPrescriptionLayoutForm(),
         signatureDataUrl: current.signatureDataUrl || ''
@@ -2023,26 +1956,6 @@
       });
     }
 
-    if (savePrintGapBtn && printGapSettingInput) {
-      updatePrintGapSettingStatus(getSavedPrintGapCm());
-      savePrintGapBtn.addEventListener('click', async () => {
-        savePrintGapBtn.disabled = true;
-        try {
-          await savePrintGapSetting();
-        } catch (error) {
-          updatePrintGapSettingStatus(getSavedPrintGapCm(), `Saved locally, but Cloud save failed: ${error.message}`);
-        } finally {
-          savePrintGapBtn.disabled = false;
-        }
-      });
-      printGapSettingInput.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter') {
-          event.preventDefault();
-          savePrintGapBtn.click();
-        }
-      });
-    }
-
     if (saveGrowthChartStandardBtn && growthChartStandardSelect) {
       updateGrowthChartStandardStatus(getSavedGrowthChartStandard());
       saveGrowthChartStandardBtn.addEventListener('click', async () => {
@@ -2110,6 +2023,12 @@
     rxFooterAlignButtons.forEach((button) => {
       button.addEventListener('click', () => {
         setFooterAlignmentControl(button.dataset.footerAlign);
+      });
+    });
+
+    rxFrequencyFormatButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        setFrequencyFormatControl(button.dataset.frequencyFormat);
       });
     });
 

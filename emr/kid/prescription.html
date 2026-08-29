@@ -1406,6 +1406,42 @@
       grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
+    .timing-count-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      min-height: 28px;
+      border-right: 1px solid #eef2f7;
+      border-bottom: 1px solid #eef2f7;
+      background: #fff;
+    }
+
+    .timing-count-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #64748b;
+    }
+
+    .timing-count-input {
+      width: 34px;
+      min-height: 24px;
+      padding: 0 2px;
+      border: 1px solid #dfe6ef;
+      border-radius: 6px;
+      background: #fff;
+      text-align: center;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .timing-count-input:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.18);
+    }
+
     .option-pill {
       display: inline-flex;
       align-items: center;
@@ -3522,6 +3558,7 @@
           doseUnit: '',
           timings: [],
           timingMode: 'daily',
+          timingCounts: { M: '', A: '', E: '', N: '' },
           food: '',
           duration: '',
           note: '',
@@ -3553,6 +3590,12 @@
             doseUnit: detail.doseUnit || '',
             timings: Array.isArray(detail.timings) ? detail.timings : [],
             timingMode: detail.timingMode || 'daily',
+            timingCounts: {
+              M: detail.timingCounts?.M || '',
+              A: detail.timingCounts?.A || '',
+              E: detail.timingCounts?.E || '',
+              N: detail.timingCounts?.N || ''
+            },
             food: detail.food || '',
             duration: detail.duration || '',
             note: detail.note || '',
@@ -3609,14 +3652,33 @@
         const duration = card.querySelector('[data-field="duration"]:checked');
         const note = card.querySelector('[data-field="note"]');
         const existingDetail = getMedicineDetail(medicine);
+        const effectiveTimingMode = timingMode?.value || existingDetail.timingMode || 'daily';
+
+        // The M/A/E/N row is number inputs, not checkboxes, so it never
+        // touches `timings` directly - a slot only counts as "on" once its
+        // number is greater than zero, and that's what drives `timings` for
+        // the daily mode (interval/meal modes still read straight off their
+        // own checkboxes above).
+        const timingCounts = { ...existingDetail.timingCounts };
+        card.querySelectorAll('[data-field="timingCount"]').forEach((input) => {
+          const slot = input.dataset.slot;
+          if (slot) {
+            timingCounts[slot] = input.value.trim();
+          }
+        });
+        const dailyTimings = ['M', 'A', 'E', 'N'].filter((slot) => {
+          const parsed = Number.parseFloat(timingCounts[slot]);
+          return Number.isFinite(parsed) && parsed > 0;
+        });
 
         medicineDetails.set(medicine, {
           ...existingDetail,
           dose: doseInput?.value || '',
           doseChip: doseChip?.value || '',
           doseUnit: doseUnit?.value || existingDetail.doseUnit || '',
-          timings,
-          timingMode: timingMode?.value || existingDetail.timingMode || 'daily',
+          timings: effectiveTimingMode === 'daily' ? dailyTimings : timings,
+          timingMode: effectiveTimingMode,
+          timingCounts,
           food: food?.value || '',
           duration: duration?.value || '',
           note: note?.value || '',
@@ -3843,13 +3905,24 @@
       `;
     }
 
+    // A slot's saved count wins; a plain old on/off record (no timingCounts
+    // yet) falls back to "1" for a checked slot, "" for an unchecked one -
+    // same on-screen result, just not typed as a quantity until edited.
+    function getSlotCount(detail, slot) {
+      const saved = detail.timingCounts && detail.timingCounts[slot];
+      if (saved !== undefined && saved !== null && saved !== '') {
+        return String(saved);
+      }
+      return detail.timings.includes(slot) ? '1' : '';
+    }
+
     function renderDailyTimingOptions(medicine, medicineSlug, detail) {
       return `
-        <div class="timing-row timing-main-row" aria-label="${escapeHtml(medicine)} timing options">
+        <div class="timing-row timing-main-row timing-count-row" aria-label="${escapeHtml(medicine)} timing dose counts">
           ${['M', 'A', 'E', 'N'].map((value) => `
-            <label class="option-pill">
-              <input type="checkbox" name="timing-${medicineSlug}" value="${value}" data-field="timing" ${checkedAttr(detail.timings.includes(value))}>
-              ${value}
+            <label class="timing-count-cell">
+              <span class="timing-count-label">${value}</span>
+              <input type="text" inputmode="decimal" class="timing-count-input" data-field="timingCount" data-slot="${value}" value="${escapeHtml(getSlotCount(detail, value))}" placeholder="0" aria-label="${escapeHtml(medicine)} ${value} dose count">
             </label>
           `).join('')}
         </div>
@@ -4103,6 +4176,9 @@
       if (input.matches('[data-field="timingMode"]') && card) {
         card.querySelectorAll('[data-field="timing"], [data-field="food"]').forEach((field) => {
           field.checked = false;
+        });
+        card.querySelectorAll('[data-field="timingCount"]').forEach((field) => {
+          field.value = '';
         });
         syncMedicineDetailsFromDom();
         renderMedicineDetails();

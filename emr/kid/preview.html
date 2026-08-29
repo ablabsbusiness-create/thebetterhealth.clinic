@@ -80,7 +80,6 @@
       --brand-strong: #14532d;
       --shadow: 0 18px 45px rgba(22, 38, 29, 0.08);
       --radius-lg: 24px;
-      --preview-header-gap: 0cm;
     }
 
     * { box-sizing: border-box; }
@@ -561,7 +560,7 @@
     }
 
     body.preview-without-header .rx-sheet {
-      padding-top: calc(var(--rx-margin-top, 38px) + var(--preview-header-gap));
+      padding-top: var(--rx-margin-top, 38px);
     }
 
     .rx-sheet-header {
@@ -668,8 +667,8 @@
       font-weight: 800;
     }
 
-    /* The food instruction hangs under the quantity, left-aligned against the
-       cell edge rather than centred with the dose above it. */
+    /* The food instruction hangs under the frequency, centred beneath the
+       timing above it. */
     .medicine-table .medicine-sub {
       display: block;
       margin-top: 1px;
@@ -678,7 +677,7 @@
       font-weight: 500;
       letter-spacing: 0;
       text-transform: none;
-      text-align: left;
+      text-align: center;
     }
 
     /* Composition sits under the brand in small italic capitals. */
@@ -1669,7 +1668,6 @@
     const CHART_RECORD_STORAGE_KEY = clinicStorageKey('growthChartRecentRecords');
     const LOCAL_PRESCRIPTION_HISTORY_KEY = clinicStorageKey('savedPrescriptionHistory');
     const PRINT_HEADER_MODE_STORAGE_KEY = clinicStorageKey('previewPrintWithHeader');
-    const PRINT_HEADER_GAP_STORAGE_KEY = clinicStorageKey('previewPrintHeaderGapCm');
     const PRESCRIPTION_BRANDING_STORAGE_KEY = clinicStorageKey('prescriptionBrandingSettings');
     const PRESCRIPTION_BRANDING_CACHED_AT_KEY = clinicStorageKey('prescriptionBrandingCachedAt');
     const PRESCRIPTION_BRANDING_TTL_MS = 24 * 60 * 60 * 1000;
@@ -1690,15 +1688,13 @@
       doctorName: 'Dr. Gunda Srinivas',
       doctorDetails: 'MBBS, DCH, DNB - Paediatrics, PGDDN, FPEM\n71826',
       footerText: 'The Better Health Clinic - Paediatrician #118, 5th Cross, Omkar Nagar Akere,\nBannerghatta road 560076 Bengaluru Karnataka',
-      printWithoutHeaderTitle: 'Print Without Header',
-      printWithoutHeaderDescription: 'Choose how much blank top space to leave when you print or save without the prescription header.',
-      printHeaderGapCm: 0,
       prescriptionLanguage: 'English',
       prescriptionFontFamily: 'Arial',
       // 8pt is what the old 14 setting actually printed at, so a clinic that
       // never picked a size keeps the prescription it has always had.
       prescriptionFontSize: 8,
       prescriptionFooterAlignment: 'left',
+      prescriptionFrequencyFormat: 'text',
       prescriptionMarginsCm: {
         top: 1,
         bottom: 0.7,
@@ -1843,6 +1839,7 @@
           : DEFAULT_BRANDING.prescriptionFontFamily,
         prescriptionFontSize: PRESCRIPTION_FONT_SIZES.includes(fontSize) ? fontSize : DEFAULT_BRANDING.prescriptionFontSize,
         prescriptionFooterAlignment: settings.prescriptionFooterAlignment === 'right' ? 'right' : 'left',
+        prescriptionFrequencyFormat: settings.prescriptionFrequencyFormat === 'numeric' ? 'numeric' : 'text',
         prescriptionMarginsCm: {
           top: normalizePrescriptionMargin(savedMargins.top, defaultMargins.top),
           bottom: normalizePrescriptionMargin(savedMargins.bottom, defaultMargins.bottom),
@@ -2922,6 +2919,7 @@
     }
 
     const DAILY_TIMING_LABELS = { M: 'Morning', A: 'Afternoon', E: 'Evening', N: 'Night' };
+    const DAILY_TIMING_ORDER = ['M', 'A', 'E', 'N'];
     const FREQUENCY_PHRASE_WORDS = new Set(['Once', 'Twice', 'Thrice', 'Times']);
     const INTERVAL_HOUR_PATTERN = /^(\d+)h$/;
     const MEAL_TIMING_PATTERN = /^(Breakfast|Lunch|Dinner) (Before|After)$/;
@@ -2947,13 +2945,31 @@
     // Raw chip codes (e.g. "M, N" or "Twice, a day") are how the editor stores
     // timing, but they read poorly on a printed prescription. This turns them
     // into plain English for the PDF without changing how they're stored.
-    function humanizeFrequency(rawTimings, timingMode) {
+    function humanizeFrequency(rawTimings, timingMode, frequencyFormat = 'text', timingCounts = null) {
       const timings = Array.isArray(rawTimings) ? rawTimings.filter(Boolean) : [];
       if (!timings.length) {
         return '';
       }
 
       const mode = timingMode || inferTimingMode(timings);
+
+      // Numeric slot format (e.g. "1-0-1-0") only maps cleanly onto the
+      // Morning/Afternoon/Evening/Night schedule - interval and meal timings
+      // stay as text regardless of the setting. A saved per-slot count (from
+      // the M/A/E/N number boxes) prints as its actual number - "2" tablets
+      // at night prints as "2", same as Docon's dosage-schedule boxes - and
+      // falls back to a plain 1/0 flag for older records saved before
+      // per-slot counts existed.
+      if (frequencyFormat === 'numeric' && mode === 'daily') {
+        return DAILY_TIMING_ORDER.map((code) => {
+          const savedCount = timingCounts && timingCounts[code];
+          const parsedCount = Number.parseFloat(savedCount);
+          if (Number.isFinite(parsedCount) && parsedCount > 0) {
+            return String(parsedCount);
+          }
+          return timings.includes(code) ? '1' : '0';
+        }).join('-');
+      }
 
       if (mode === 'meal') {
         return joinReadable(timings.map((value) => {
@@ -2980,7 +2996,7 @@
       return joinReadable(timings.map((code) => DAILY_TIMING_LABELS[code] || code));
     }
 
-    function getMedicineRows(draft) {
+    function getMedicineRows(draft, frequencyFormat = 'text') {
       const medicines = draft?.sections?.Medication || draft?.sections?.Medicens || [];
       const details = draft?.medicineDetails || {};
       return medicines.map((medicine) => {
@@ -2997,7 +3013,7 @@
           compositionLine: nameParts.compositionLine,
           medicineType: detail.type || '',
           dose: detail.dose || detail.doseChip || importedDose.dose || '',
-          timing: humanizeFrequency(detail.timings, detail.timingMode),
+          timing: humanizeFrequency(detail.timings, detail.timingMode, frequencyFormat, detail.timingCounts),
           food: detail.food || '',
           duration: formatDuration(detail.duration),
           note: detail.note || ''
@@ -3013,7 +3029,7 @@
       // Column set and cell layout follow the printed reference: the dosage
       // form sits in normal weight ahead of the bold brand, the composition
       // runs underneath in small italic capitals, and the food instruction
-      // hangs under Quantity rather than being merged into the dose.
+      // hangs under Frequency in a small font below the timing.
       return `
         <div class="medicine-table-wrap">
         <table class="medicine-table">
@@ -3039,9 +3055,11 @@
                 </td>
                 <td class="medicine-quantity">
                   <strong>${escapeHtml(row.dose || '-')}</strong>
+                </td>
+                <td>
+                  <strong>${escapeHtml(row.timing || '-')}</strong>
                   ${row.food ? `<span class="medicine-sub">${escapeHtml(row.food)}</span>` : ''}
                 </td>
-                <td><strong>${escapeHtml(row.timing || '-')}</strong></td>
                 <td><strong>${escapeHtml(row.duration || '-')}</strong></td>
                 <td class="medicine-remark">${escapeHtml(row.note || '-')}</td>
               </tr>
@@ -3079,14 +3097,14 @@
       const chartRecord = getCurrentChartRecord();
       const sections = draft?.sections || {};
       const sectionDetails = draft?.sectionDetails || {};
-      const medicineRows = getMedicineRows(draft);
+      const branding = getPrescriptionBranding();
+      const medicineRows = getMedicineRows(draft, normalizePrescriptionLayout(branding).prescriptionFrequencyFormat);
       const patientId = getValidatedPrescriptionPatientId(draft, chartRecord) || '-';
       const now = new Date().toISOString();
       const instructions = sections.Instruction || [];
       const notesText = typeof draft?.notes === 'string' && draft.notes.trim()
         ? draft.notes.trim()
         : (Array.isArray(sections.Notes) ? sections.Notes.join(', ') : '');
-      const branding = getPrescriptionBranding();
       applyPrescriptionLayoutStyles(branding);
       const signatureHtml = branding.signatureDataUrl
         ? `<img class="signature-image" src="${escapeHtml(branding.signatureDataUrl)}" alt="Doctor signature">`
@@ -3398,8 +3416,6 @@
         pdf.setLineWidth(0.3);
         pdf.line(left, y, left + contentWidth, y);
         y += 4;
-      } else {
-        y += Number(branding.printHeaderGapCm || 0) * 10;
       }
 
       // ---- patient band ----------------------------------------------------
@@ -3458,7 +3474,7 @@
       drawLabelledRow('Investigation', formatDetailedSelections(sections.Investigation));
 
       // ---- medicine table ---------------------------------------------------
-      const medicineRows = getMedicineRows(draft);
+      const medicineRows = getMedicineRows(draft, layout.prescriptionFrequencyFormat);
       if (medicineRows.length) {
         y += 2;
         const COLS = [0.06, 0.28, 0.14, 0.15, 0.13, 0.24].map((fraction) => contentWidth * fraction);
@@ -3505,11 +3521,12 @@
           setFont(SIZE.table, 'normal');
           const remarkLines = row.note ? pdf.splitTextToSize(String(row.note).trim(), COLS[5] - 4) : [];
           setFont(SIZE.sub, 'italic');
-          const foodLines = row.food ? pdf.splitTextToSize(String(row.food), COLS[2] - 3) : [];
+          const foodLines = row.food ? pdf.splitTextToSize(String(row.food), COLS[3] - 3) : [];
 
           const nameHeight = brandLines.length * lh(SIZE.table) + compLines.length * lh(SIZE.composition);
-          const qtyHeight = doseLines.length * lh(SIZE.table) + foodLines.length * lh(SIZE.sub);
-          const otherHeight = Math.max(freqLines.length, durLines.length, remarkLines.length) * lh(SIZE.table);
+          const qtyHeight = doseLines.length * lh(SIZE.table);
+          const freqHeight = freqLines.length * lh(SIZE.table) + foodLines.length * lh(SIZE.sub);
+          const otherHeight = Math.max(freqHeight, durLines.length * lh(SIZE.table), remarkLines.length * lh(SIZE.table));
           const rowHeight = Math.max(nameHeight, qtyHeight, otherHeight) + 2.6;
 
           // Keep the row whole: start a new page and repeat the head rather
@@ -3548,17 +3565,12 @@
             cellY += lh(SIZE.composition);
           });
 
-          // Quantity: dose centred, food instruction left-aligned beneath it.
+          // Quantity: dose centred.
           cellY = y + 1;
           doseLines.forEach((line) => {
             setFont(SIZE.table, 'bold');
             pdf.text(line, colX[2] + COLS[2] / 2, cellY + SIZE.table * PT_TO_MM, { align: 'center' });
             cellY += lh(SIZE.table);
-          });
-          foodLines.forEach((line) => {
-            setFont(SIZE.sub, 'italic');
-            pdf.text(line, colX[2] + 2, cellY + SIZE.sub * PT_TO_MM);
-            cellY += lh(SIZE.sub);
           });
 
           // Frequency and Duration: bold, centred.
@@ -3569,6 +3581,14 @@
               pdf.text(line, colX[entry[1]] + COLS[entry[1]] / 2, entryY + SIZE.table * PT_TO_MM, { align: 'center' });
               entryY += lh(SIZE.table);
             });
+          });
+
+          // Food instruction: small italic, centred beneath the frequency.
+          let foodY = y + 1 + freqLines.length * lh(SIZE.table);
+          foodLines.forEach((line) => {
+            setFont(SIZE.sub, 'italic');
+            pdf.text(line, colX[3] + COLS[3] / 2, foodY + SIZE.sub * PT_TO_MM, { align: 'center' });
+            foodY += lh(SIZE.sub);
           });
 
           // Remark: normal weight, left-aligned, unlike the centred bold cells.
@@ -4532,23 +4552,6 @@
 
     let printWithHeaderEnabled = true;
 
-    function getSavedPrintGapCm() {
-      const brandingGap = getPrescriptionBranding().printHeaderGapCm;
-      if (brandingGap !== undefined && brandingGap !== null && brandingGap !== '') {
-        const parsedBrandingGap = Number.parseFloat(String(brandingGap));
-        if (Number.isFinite(parsedBrandingGap) && parsedBrandingGap >= 0) {
-          return Math.min(parsedBrandingGap, 10);
-        }
-      }
-
-      const rawValue = localStorage.getItem(PRINT_HEADER_GAP_STORAGE_KEY);
-      const parsedValue = Number.parseFloat(rawValue || '');
-      if (!Number.isFinite(parsedValue) || parsedValue < 0) {
-        return 0;
-      }
-      return Math.min(parsedValue, 10);
-    }
-
     function getSavedHeaderMode() {
       const rawValue = localStorage.getItem(PRINT_HEADER_MODE_STORAGE_KEY);
       return rawValue !== 'false';
@@ -4568,14 +4571,12 @@
       withoutHeaderBtn?.setAttribute('aria-pressed', String(!printWithHeaderEnabled));
     }
 
-    // Header mode and the header gap only affect what is shown on screen and what
-    // the printer lays down - the stored PDF is always captured with the header
-    // forced on. Re-saving on every toggle just risked overwriting a good
-    // prescription with a re-render, so these settings apply locally only.
+    // Header mode only affects what is shown on screen and what the printer
+    // lays down - the stored PDF is always captured with the header forced
+    // on. Re-saving on every toggle just risked overwriting a good
+    // prescription with a re-render, so this setting applies locally only.
     function applySavedPreviewSettings() {
       printWithHeaderEnabled = getSavedHeaderMode();
-      const safeGap = getSavedPrintGapCm();
-      document.documentElement.style.setProperty('--preview-header-gap', `${safeGap}cm`);
       document.body.classList.toggle('preview-without-header', !printWithHeaderEnabled);
       document.body.classList.toggle('print-with-header', printWithHeaderEnabled);
       updateHeaderModeButtons();
@@ -4596,7 +4597,7 @@
 
     applySavedPreviewSettings();
     window.addEventListener('storage', (event) => {
-      if (event.key === PRINT_HEADER_MODE_STORAGE_KEY || event.key === PRINT_HEADER_GAP_STORAGE_KEY) {
+      if (event.key === PRINT_HEADER_MODE_STORAGE_KEY) {
         applySavedPreviewSettings();
       }
       if (event.key === PRESCRIPTION_BRANDING_STORAGE_KEY) {

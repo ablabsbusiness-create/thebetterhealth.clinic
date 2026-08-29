@@ -367,6 +367,41 @@ This is a real workflow difference. Their doctor tunes what prints *for this
 prescription* at the moment of printing; ours has one global header on/off in
 Settings.
 
+### 3.7b The numeric "1-0-1-1" dosage schedule, found live (2026-08-29)
+
+The dosage editor's **`switch`** link (`<a data-qa-id="switch">`, next to the
+"Default Timing"/"Default Dosage" heading) cycles the timing widget through
+**three** modes, not two:
+
+1. **Frequency chips** — `4h 6h 8h 12h 48h` | `Once Twice Thrice 4 times 5
+   times` | `Before Food After Food Empty Stomach Bedtime` (the "Default
+   Timing" state).
+2. **Meal-based** — Breakfast/Lunch/Dinner × Before/After radios ("Default
+   Dosage").
+3. **Numeric M/A/E/N slots** — four free-text boxes labelled Morning,
+   Afternoon, Evening, Night (`data-qa-id="dose"`, plain `<input type=text>`,
+   no maxlength), plus Before Food/After Food checkboxes below them. This is
+   the one that matches what "1-1-1-1" means to a doctor.
+
+Each box takes any number, not just 0/1 — tested by setting Night to `2` and
+confirming it took. So `2-1-1-1` (two at breakfast, one the rest of the day)
+is valid, not just a 0/1 flag per slot.
+
+A **readonly summary input** sits to the right of the switch link and
+recomputes live as the four boxes change: typing Morning=0, Afternoon=1,
+Evening=1, Night=2 produced the string **`0 - 1 - 1 - 2`** — the four values
+joined with `" - "` (spaces around the dash) in fixed Morning → Afternoon →
+Evening → Night order. This is almost certainly what fills the
+`dosageSchedule` field noted in §2.3 (there stored as `"0,0,0,0,0,0"`, a
+six-slot comma-joined variant — the four-slot UI value likely maps onto the
+first four of those six slots).
+
+**How this compares to what we built:** `emr/kid`'s new Frequency Format
+setting (`preview.html:2948`) prints the same four slots as `1-0-1-0`
+(no spaces, compact) rather than Docon's `1 - 0 - 1 - 0`. Purely a spacing
+choice — worth flagging to the doctor if he wants to match Docon's spacing
+exactly, otherwise no functional gap.
+
 ### 3.8 Consult screen shape
 
 Tabs: **Consult · Vaccination · Growth · Reports · Attachment**, with
