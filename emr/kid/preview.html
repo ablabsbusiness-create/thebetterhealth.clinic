@@ -1117,7 +1117,11 @@
       }
 
       .billing-modal,
-      .modal-backdrop {
+      .modal-backdrop,
+      /* Parked off-canvas at left: -10000px for html2canvas to capture. Off
+         screen is not off paper - leave it in the print flow and it can push
+         out a stray blank page. */
+      #receipt-sheet-holder {
         display: none !important;
       }
     }
