@@ -1673,8 +1673,6 @@
     const LOCAL_PRESCRIPTION_HISTORY_KEY = clinicStorageKey('savedPrescriptionHistory');
     const PRINT_HEADER_MODE_STORAGE_KEY = clinicStorageKey('previewPrintWithHeader');
     const PRESCRIPTION_BRANDING_STORAGE_KEY = clinicStorageKey('prescriptionBrandingSettings');
-    const PRESCRIPTION_BRANDING_CACHED_AT_KEY = clinicStorageKey('prescriptionBrandingCachedAt');
-    const PRESCRIPTION_BRANDING_TTL_MS = 24 * 60 * 60 * 1000;
     // Per-patient, matching how prescription.html writes it.
     const MEDICINE_DETAIL_STORAGE_PREFIX = clinicStorageKey('prescriptionMedicineDetails');
     const PRESCRIPTION_BRANDING_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'prescriptionBranding'];
@@ -1927,11 +1925,12 @@
         return cachedBranding;
       }
 
-      const cachedAt = Number(localStorage.getItem(PRESCRIPTION_BRANDING_CACHED_AT_KEY) || 0);
-      if (cachedAt && Date.now() - cachedAt < PRESCRIPTION_BRANDING_TTL_MS) {
-        return cachedBranding;
-      }
-
+      // No TTL on this read. The cache above is only a fallback for a failed or
+      // offline fetch - the cloud copy is always consulted before a prescription
+      // is drawn. A 24h TTL used to sit here, and it meant a margin or font
+      // changed in Settings on one machine kept printing at the old value on
+      // every other machine in the clinic for up to a day, with nothing on
+      // screen to say so. One document read per preview is worth more than that.
       try {
         let snapshot = await getDoc(doc(db, ...CLINIC_SETTINGS_DOC_PATH));
         if (!snapshot.exists()) {
@@ -1940,7 +1939,6 @@
         if (!snapshot.exists()) {
           return cachedBranding;
         }
-        localStorage.setItem(PRESCRIPTION_BRANDING_CACHED_AT_KEY, String(Date.now()));
         return cachePrescriptionBranding({
           ...snapshot.data(),
           signatureDataUrl: snapshot.data().signatureDataUrl || cachedBranding.signatureDataUrl || ''

@@ -1469,7 +1469,6 @@
     const GROWTH_CHART_STANDARD_STORAGE_KEY = clinicStorageKey('growthChartStandard');
     const DEFAULT_GROWTH_CHART_STANDARD = 'IAP';
     const PRESCRIPTION_BRANDING_STORAGE_KEY = clinicStorageKey('prescriptionBrandingSettings');
-    const PRESCRIPTION_BRANDING_CACHED_AT_KEY = clinicStorageKey('prescriptionBrandingCachedAt');
     const CLINIC_DOC_PATH = CLINIC_FIREBASE_NAMESPACE.split('/');
     const PRESCRIPTION_BRANDING_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'prescriptionBranding'];
     const CLINIC_SETTINGS_DOC_PATH = [CLINIC_FIREBASE_NAMESPACE, 'clinicSettings', 'settings'];
@@ -1697,7 +1696,6 @@
         ...normalizePrescriptionLayout(settings)
       };
       localStorage.setItem(PRESCRIPTION_BRANDING_STORAGE_KEY, JSON.stringify(normalizedSettings));
-      localStorage.setItem(PRESCRIPTION_BRANDING_CACHED_AT_KEY, String(Date.now()));
       return normalizedSettings;
     }
 
