@@ -3015,6 +3015,7 @@
     import { collection, doc, getDoc, getDocs, limit, orderBy, query, serverTimestamp, setDoc, where } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     import { getDownloadURL, getMetadata, listAll, ref } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
     import { db, storage } from './lib/firebase-init.js';
+    import { isAppointmentCancelled, isMeasurementEntryCancelled, isPrescriptionEntryCancelled } from './lib/cancelled-visits.js';
     import {
       ITEM_PRESET_OPTIONS,
       PAYMENT_METHOD_OPTIONS,
@@ -3370,6 +3371,7 @@
         status: patient.status || '',
         lastMeasurementRecord: patient.lastMeasurementRecord || null,
         measurementHistory: Array.isArray(patient.measurementHistory) ? patient.measurementHistory.slice(0, 2) : [],
+        cancelledVisits: patient.cancelledVisits || null,
         cachedAt: new Date().toISOString()
       }));
     }
@@ -4866,7 +4868,7 @@
     }
 
     function getPatientVisitEntriesForDate(patient, dateValue) {
-      return getMeasurementEntries(patient).filter((entry) => getIsoDatePart(entry.createdAtIso) === dateValue);
+      return getVisibleMeasurementEntries(patient).filter((entry) => getIsoDatePart(entry.createdAtIso) === dateValue);
     }
 
     function getPatientAppointmentDates(patient) {
@@ -4883,11 +4885,11 @@
     }
 
     function patientHasAppointmentOnDate(patient, dateValue) {
-      return getPatientAppointmentDates(patient).includes(dateValue);
+      return getPatientAppointmentDates(patient).includes(dateValue) && !isAppointmentCancelled(patient, dateValue);
     }
 
     function getLatestMeasurementForDate(patient, dateValue) {
-      return getPatientVisitEntriesForDate(patient, dateValue)[0] || getMeasurementEntries(patient)[0] || null;
+      return getPatientVisitEntriesForDate(patient, dateValue)[0] || getVisibleMeasurementEntries(patient)[0] || null;
     }
 
     function getQueuedPatientIdSet(dateValue) {
@@ -4941,7 +4943,7 @@
     }
 
     function renderMeasurementHtml(patient) {
-      const entries = getMeasurementEntries(patient).slice(0, 3);
+      const entries = getVisibleMeasurementEntries(patient).slice(0, 3);
 
       if (entries.length === 0) {
         return '<p>No chart measurements have been saved for this patient yet.</p>';
@@ -4962,7 +4964,7 @@
     }
 
     function renderMeasurementTableHtml(patient, selectedDate = '') {
-      const entries = getMeasurementEntries(patient);
+      const entries = getVisibleMeasurementEntries(patient);
       if (entries.length === 0 && !selectedDate) {
         return '';
       }
@@ -5128,7 +5130,23 @@
     }
 
     function getPrescriptionEntries(patientId) {
-      return prescriptionHistoryByPatientId.get(getNormalizedPatientId(patientId)) || [];
+      const owner = findPatientByNormalizedId(patientId);
+      return (prescriptionHistoryByPatientId.get(getNormalizedPatientId(patientId)) || [])
+        .filter((entry) => !isPrescriptionEntryCancelled(entry, owner));
+    }
+
+    function findPatientByNormalizedId(patientId) {
+      const normalizedPatientId = getNormalizedPatientId(patientId);
+      return normalizedPatientId
+        ? allPatients.find((entry) => getNormalizedPatientId(entry?.patientId || entry?.id) === normalizedPatientId) || null
+        : null;
+    }
+
+    // Everything the screens show. getMeasurementEntries keeps cancelled
+    // visits because its result is written back on a vitals edit, and dropping
+    // them there would erase records that must be retained.
+    function getVisibleMeasurementEntries(patient) {
+      return getMeasurementEntries(patient).filter((entry) => !isMeasurementEntryCancelled(patient, entry));
     }
 
     function createMeasurementEntryKey(entry) {
@@ -5153,7 +5171,7 @@
     }
 
     function getEditableMeasurementEntries(patient, selectedDate = '') {
-      const entries = getMeasurementEntries(patient);
+      const entries = getVisibleMeasurementEntries(patient);
       if (selectedDate) {
         const matches = entries.filter((entry) => getIsoDatePart(entry.createdAtIso) === selectedDate);
         return matches.length ? matches.slice(0, 6) : [buildBlankMeasurementEntry(selectedDate)];
@@ -5205,14 +5223,16 @@
       });
     }
 
-    function getPrescriptionEntriesForDate(patientId, dateValue) {
-      return prescriptionHistoryByPatientDate.get(`${getNormalizedPatientId(patientId)}|${dateValue}`) || [];
+    function getPrescriptionEntriesForDate(patientId, dateValue, patient = null) {
+      const owner = patient || findPatientByNormalizedId(patientId);
+      return (prescriptionHistoryByPatientDate.get(`${getNormalizedPatientId(patientId)}|${dateValue}`) || [])
+        .filter((entry) => !isPrescriptionEntryCancelled(entry, owner));
     }
 
     function patientHasSeenActivityOnDate(patient, dateValue) {
       const patientId = String(patient?.patientId || '').trim();
       return getPatientVisitEntriesForDate(patient, dateValue).length > 0
-        || (patientId && getPrescriptionEntriesForDate(patientId, dateValue).length > 0);
+        || (patientId && getPrescriptionEntriesForDate(patientId, dateValue, patient).length > 0);
     }
 
     function patientIsQueuedOnDate(patient, dateValue, queuedIds = null) {
@@ -5222,7 +5242,7 @@
       }
 
       const ids = queuedIds || getQueuedPatientIdSet(dateValue);
-      return ids.has(patientId) && !patientHasSeenActivityOnDate(patient, dateValue) && !patientIsCancelledOnDate(patient, dateValue);
+      return ids.has(patientId) && !patientHasSeenActivityOnDate(patient, dateValue) && !patientIsCancelledOnDate(patient, dateValue) && !isAppointmentCancelled(patient, dateValue);
     }
 
     function getPrescriptionEntryCreatedAtMs(entry) {

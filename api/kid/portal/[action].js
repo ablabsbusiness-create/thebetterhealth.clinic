@@ -165,7 +165,9 @@ async function handleRecords(req, res) {
         .get();
     }
 
-    const history = snapshot.docs.map((entry) => {
+    // A visit staff deleted stays in the records (retention) but is no longer
+    // shown. The DPDP export below still includes it, flagged cancelled.
+    const history = snapshot.docs.filter((entry) => entry.data()?.cancelled !== true).map((entry) => {
       const data = entry.data();
       return {
         id: entry.id,

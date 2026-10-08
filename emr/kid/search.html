@@ -882,6 +882,105 @@
       box-shadow: 0 10px 20px rgba(21, 128, 61, 0.16);
     }
 
+    .cancel-visit-btn {
+      min-height: 42px;
+      padding: 0 16px;
+      border-radius: 12px;
+      border: 1.5px solid #b42318;
+      background: #fff;
+      color: #b42318;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .cancel-visit-btn:hover {
+      background: #fef3f2;
+    }
+
+    .cancel-visit-btn:disabled {
+      opacity: 0.5;
+      cursor: wait;
+    }
+
+    .cancel-visit-dialog {
+      width: min(420px, calc(100vw - 32px));
+      padding: 0;
+      border: 0;
+      border-radius: 16px;
+      box-shadow: 0 24px 60px rgba(5, 18, 11, 0.28);
+    }
+
+    .cancel-visit-dialog::backdrop {
+      background: rgba(5, 18, 11, 0.45);
+    }
+
+    .cancel-visit-form {
+      display: grid;
+      gap: 10px;
+      padding: 20px;
+    }
+
+    .cancel-visit-form h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .cancel-visit-summary {
+      margin: 0;
+      font-weight: 700;
+    }
+
+    .cancel-visit-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .cancel-visit-form label {
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .cancel-visit-form input {
+      min-height: 44px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      font: inherit;
+      font-size: 16px;
+    }
+
+    .cancel-visit-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .cancel-visit-actions button {
+      min-height: 42px;
+      padding: 0 18px;
+      border-radius: 12px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .cancel-visit-keep {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .cancel-visit-confirm {
+      border: 0;
+      background: #b42318;
+      color: #fff;
+    }
+
     .doctor-detail-grid {
       display: grid;
       grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
@@ -2074,6 +2173,7 @@
     import { getDownloadURL, getMetadata, listAll, ref } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
     import { db, storage } from './lib/firebase-init.js';
     import { PrescriptionLazyLoader } from './lib/lazy-load.js';
+    import { getVisitCancelDeadline, isAppointmentCancelled, isMeasurementEntryCancelled, isPrescriptionEntryCancelled } from './lib/cancelled-visits.js';
     import { startPerfMonitor, markAppTiming } from './lib/perf-monitor.js';
     startPerfMonitor(document.title);
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
@@ -2323,6 +2423,7 @@
         status: patient.status || '',
         lastMeasurementRecord: patient.lastMeasurementRecord || null,
         measurementHistory: Array.isArray(patient.measurementHistory) ? patient.measurementHistory.slice(0, 2) : [],
+        cancelledVisits: patient.cancelledVisits || null,
         cachedAt: new Date().toISOString()
       }));
     }
@@ -3835,6 +3936,13 @@
       return sortedEntries;
     }
 
+    // Everything the screens show. getMeasurementEntries keeps cancelled
+    // visits because its result is written back on a vitals edit, and dropping
+    // them there would erase records that must be retained.
+    function getVisibleMeasurementEntries(patient) {
+      return getMeasurementEntries(patient).filter((entry) => !isMeasurementEntryCancelled(patient, entry));
+    }
+
     function isMeasurementHistoryEntry(entry) {
       if (!entry || typeof entry !== 'object') {
         return false;
@@ -4049,7 +4157,7 @@
     }
 
     function getPatientVisitEntriesForDate(patient, dateValue) {
-      return getMeasurementEntries(patient).filter((entry) => getMeasurementEntryDate(entry) === dateValue);
+      return getVisibleMeasurementEntries(patient).filter((entry) => getMeasurementEntryDate(entry) === dateValue);
     }
 
     function getPatientAppointmentDates(patient) {
@@ -4066,11 +4174,11 @@
     }
 
     function patientHasAppointmentOnDate(patient, dateValue) {
-      return getPatientAppointmentDates(patient).includes(dateValue);
+      return getPatientAppointmentDates(patient).includes(dateValue) && !isAppointmentCancelled(patient, dateValue);
     }
 
     function getLatestMeasurementForDate(patient, dateValue) {
-      return getPatientVisitEntriesForDate(patient, dateValue)[0] || getMeasurementEntries(patient)[0] || null;
+      return getPatientVisitEntriesForDate(patient, dateValue)[0] || getVisibleMeasurementEntries(patient)[0] || null;
     }
 
     function getWorklistCounts(patients, dateValue) {
@@ -4108,7 +4216,7 @@
     }
 
     function renderMeasurementHtml(patient) {
-      const entries = getMeasurementEntries(patient).slice(0, 3);
+      const entries = getVisibleMeasurementEntries(patient).slice(0, 3);
 
       if (entries.length === 0) {
         return '<p>No chart measurements have been saved for this patient yet.</p>';
@@ -4129,7 +4237,7 @@
     }
 
     function renderMeasurementTableHtml(patient, selectedDate = '') {
-      const entries = getMeasurementEntries(patient);
+      const entries = getVisibleMeasurementEntries(patient);
       if (entries.length === 0 && !selectedDate) {
         return '';
       }
@@ -4342,6 +4450,7 @@
       const entries = [...mapEntries, ...patientEntries];
       const uniqueEntries = [];
       const seenKeys = new Set();
+      const owner = patient || findPatientById(normalizedPatientId);
 
       entries.forEach((entry, index) => {
         const key = getPrescriptionEntryKey(entry, index);
@@ -4349,6 +4458,9 @@
           return;
         }
         seenKeys.add(key);
+        if (isPrescriptionEntryCancelled(entry, owner)) {
+          return;
+        }
         uniqueEntries.push(entry);
       });
 
@@ -4383,7 +4495,7 @@
     }
 
     function getEditableMeasurementEntries(patient, selectedDate = '') {
-      const entries = getMeasurementEntries(patient);
+      const entries = getVisibleMeasurementEntries(patient);
       if (selectedDate) {
         const matches = entries.filter((entry) => getIsoDatePart(entry.createdAtIso) === selectedDate);
         return matches.length ? matches.slice(0, 6) : [buildBlankMeasurementEntry(selectedDate)];
@@ -4435,8 +4547,10 @@
       });
     }
 
-    function getPrescriptionEntriesForDate(patientId, dateValue) {
-      const entries = prescriptionHistoryByPatientDate.get(`${getNormalizedPatientId(patientId)}|${dateValue}`) || [];
+    function getPrescriptionEntriesForDate(patientId, dateValue, patient = null) {
+      const normalizedPatientId = getNormalizedPatientId(patientId);
+      const entries = prescriptionHistoryByPatientDate.get(`${normalizedPatientId}|${dateValue}`) || [];
+      const owner = patient || findPatientById(normalizedPatientId);
       const uniqueEntries = [];
       const seenKeys = new Set();
 
@@ -4446,16 +4560,179 @@
           return;
         }
         seenKeys.add(key);
+        if (isPrescriptionEntryCancelled(entry, owner)) {
+          return;
+        }
         uniqueEntries.push(entry);
       });
 
       return uniqueEntries;
     }
 
+    // ---- Delete (cancel) a visit ------------------------------------------
+    // Hides the appointment, vitals and prescriptions recorded for one date.
+    // Nothing is erased: see lib/cancelled-visits.js.
+
+    function getVisitCancelState(patient, dateValue) {
+      if (!patient || !dateValue) {
+        return null;
+      }
+      const patientId = getNormalizedPatientId(patient.patientId || patient.id || '');
+      const measurements = getPatientVisitEntriesForDate(patient, dateValue);
+      const prescriptions = patientId ? getPrescriptionEntriesForDate(patientId, dateValue, patient) : [];
+      const hasAppointment = patientHasAppointmentOnDate(patient, dateValue);
+      if (!measurements.length && !prescriptions.length && !hasAppointment) {
+        return null;
+      }
+      const deadline = getVisitCancelDeadline([...measurements, ...prescriptions]);
+      return { patientId, measurements, prescriptions, hasAppointment, deadline, canCancel: Date.now() < deadline };
+    }
+
+    function renderVisitCancelButtonHtml(patient, dateValue) {
+      const state = getVisitCancelState(patient, dateValue);
+      if (!state?.canCancel) {
+        return '';
+      }
+      const label = state.measurements.length || state.prescriptions.length ? 'Delete visit' : 'Cancel appointment';
+      return `<button class="cancel-visit-btn" type="button" data-cancel-visit-patient="${escapeHtml(state.patientId)}" data-cancel-visit-date="${escapeHtml(dateValue)}">${label}</button>`;
+    }
+
+    function askVisitCancelReason({ title, summary }) {
+      return new Promise((resolve) => {
+        const dialog = document.createElement('dialog');
+        dialog.className = 'cancel-visit-dialog';
+        dialog.innerHTML = `
+          <form method="dialog" class="cancel-visit-form">
+            <h3>${escapeHtml(title)}</h3>
+            <p class="cancel-visit-summary">${escapeHtml(summary)}</p>
+            <p class="cancel-visit-note">It will be hidden from the worklist, vitals and past prescriptions. A copy is kept in the records as the law requires.</p>
+            <label for="cancel-visit-reason">Reason</label>
+            <input id="cancel-visit-reason" type="text" maxlength="200" placeholder="e.g. Wrong patient, duplicate entry" required>
+            <div class="cancel-visit-actions">
+              <button type="button" class="cancel-visit-keep" value="keep">Keep</button>
+              <button type="submit" class="cancel-visit-confirm" value="confirm">Delete</button>
+            </div>
+          </form>
+        `;
+        const input = dialog.querySelector('input');
+        dialog.querySelector('.cancel-visit-keep').addEventListener('click', () => dialog.close('keep'));
+        dialog.addEventListener('close', () => {
+          const reason = input.value.trim();
+          dialog.remove();
+          resolve(dialog.returnValue === 'confirm' && reason ? reason : null);
+        });
+        document.body.appendChild(dialog);
+        dialog.showModal();
+        input.focus();
+      });
+    }
+
+    async function handleCancelVisitClick(button) {
+      const patient = findPatientById(button.dataset.cancelVisitPatient);
+      const dateValue = button.dataset.cancelVisitDate || '';
+      const state = getVisitCancelState(patient, dateValue);
+      if (!state) {
+        return;
+      }
+      if (!state.canCancel) {
+        setStatus('This visit is more than 24 hours old and can no longer be deleted.', 'warning');
+        filterPatients();
+        return;
+      }
+
+      const parts = [];
+      if (state.hasAppointment) parts.push('the appointment');
+      if (state.measurements.length) parts.push(`${state.measurements.length} vitals ${state.measurements.length === 1 ? 'entry' : 'entries'}`);
+      if (state.prescriptions.length) parts.push(`${state.prescriptions.length} ${state.prescriptions.length === 1 ? 'prescription' : 'prescriptions'}`);
+      const reason = await askVisitCancelReason({
+        title: `${parts.length > 1 || state.measurements.length || state.prescriptions.length ? 'Delete visit' : 'Cancel appointment'} on ${formatDateDisplay(dateValue, dateValue)}?`,
+        summary: `${getPatientDisplayName(patient)}: ${parts.join(', ')}.`
+      });
+      if (!reason) {
+        return;
+      }
+
+      button.disabled = true;
+      try {
+        await cancelPatientVisit(patient, dateValue, state, reason);
+        setStatus(`Visit on ${formatDateDisplay(dateValue, dateValue)} deleted.`);
+      } catch (error) {
+        console.error('Unable to delete visit', error);
+        setStatus(`Could not delete the visit: ${error.message}`, 'warning');
+        button.disabled = false;
+      }
+    }
+
+    async function cancelPatientVisit(patient, dateValue, state, reason) {
+      if (!db) {
+        throw new Error('Cloud records are not available.');
+      }
+      // Re-check at save time: the dialog may have been open past the deadline.
+      if (Date.now() >= state.deadline) {
+        throw new Error('this visit is now more than 24 hours old');
+      }
+
+      const cancelledAt = new Date().toISOString();
+      const storagePaths = state.prescriptions.map(getPrescriptionStoragePath).filter(Boolean);
+      const cancellation = {
+        cancelledAt,
+        reason,
+        appointmentCancelled: state.hasAppointment,
+        measurementCount: state.measurements.length,
+        prescriptionIds: state.prescriptions.map((entry) => entry.prescriptionSaveId || entry.id || '').filter(Boolean),
+        storagePaths
+      };
+      const nextPatient = {
+        ...patient,
+        cancelledVisits: { ...(patient.cancelledVisits || {}), [dateValue]: cancellation }
+      };
+      // Other screens prefill from lastMeasurementRecord, so point it at the
+      // latest vitals that are still visible.
+      const latestVisible = getMeasurementEntries(patient).find((entry) => !isMeasurementEntryCancelled(nextPatient, entry)) || null;
+
+      await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, state.patientId), {
+        cancelledVisits: { [dateValue]: cancellation },
+        lastMeasurementRecord: latestVisible,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      // Flag each prescription's own history document too, so the parent
+      // portal and share links hide it without needing the patient record.
+      // Prescriptions found only in Storage have a path as their id, not a
+      // document, and are covered by storagePaths above.
+      const historyIds = state.prescriptions
+        .map((entry) => String(entry.id || '').trim())
+        .filter((id) => id && !id.includes('/'));
+      await Promise.all(historyIds.map((id) => setDoc(doc(db, FIREBASE_COLLECTIONS.history, id), {
+        cancelled: true,
+        cancelledAt,
+        cancelReason: reason
+      }, { merge: true })));
+
+      allHistory.forEach((entry) => {
+        if (historyIds.includes(String(entry.id || '').trim())) {
+          entry.cancelled = true;
+        }
+      });
+      allPatients = allPatients.map((entry) => (entry === patient
+        ? { ...nextPatient, lastMeasurementRecord: latestVisible }
+        : entry));
+      rebuildHistoryIndexes();
+      saveSearchCache();
+      filterPatients();
+    }
+
+    function findPatientById(patientId) {
+      const normalizedPatientId = getNormalizedPatientId(patientId);
+      return normalizedPatientId
+        ? allPatients.find((entry) => getNormalizedPatientId(entry?.patientId || entry?.id) === normalizedPatientId) || null
+        : null;
+    }
+
     function patientHasSeenActivityOnDate(patient, dateValue) {
       const patientId = String(patient?.patientId || '').trim();
       return getPatientVisitEntriesForDate(patient, dateValue).length > 0
-        || (patientId && getPrescriptionEntriesForDate(patientId, dateValue).length > 0);
+        || (patientId && getPrescriptionEntriesForDate(patientId, dateValue, patient).length > 0);
     }
 
     function patientIsQueuedOnDate(patient, dateValue) {
@@ -4744,6 +5021,7 @@
                   <a class="continue-link" href="/emr/kid/patient-details?patientId=${encodeURIComponent(selectedPatientIdValue)}">Payments</a>
                   <a class="continue-link" href="/emr/kid/certificates?patientId=${encodeURIComponent(selectedPatientIdValue)}">Certificates</a>
                   <a class="continue-link" href="/emr/kid/prescription-growth-chart-dashboard?patientId=${encodeURIComponent(selectedPatientIdValue)}">Start Consult</a>
+                  ${renderVisitCancelButtonHtml(selectedPatient, selectedWorklistDate)}
                 </div>
               </div>
 
@@ -4955,6 +5233,12 @@
     resultsPanel.addEventListener('click', (event) => {
       const target = event.target;
       if (!(target instanceof HTMLElement)) {
+        return;
+      }
+
+      const cancelVisitButton = target.closest('[data-cancel-visit-patient]');
+      if (cancelVisitButton) {
+        handleCancelVisitClick(cancelVisitButton);
         return;
       }
 

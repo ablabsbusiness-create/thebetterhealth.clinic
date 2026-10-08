@@ -227,7 +227,7 @@
         const result = await response.json().catch(() => ({}));
 
         if (!response.ok) {
-          showError('Prescription not found', result.error || 'No saved prescription was found for this link.');
+          showError(response.status === 410 ? 'Prescription cancelled' : 'Prescription not found', result.error || 'No saved prescription was found for this link.');
           return;
         }
 

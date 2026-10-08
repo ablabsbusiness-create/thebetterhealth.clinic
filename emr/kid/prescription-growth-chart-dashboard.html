@@ -2613,6 +2613,7 @@
     import { addDoc, arrayUnion, collection, deleteField, doc, getDoc, getDocs, increment, query, serverTimestamp, setDoc, where, writeBatch } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     import { getDownloadURL, getMetadata, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
     import { db, storage } from './lib/firebase-init.js';
+    import { isMeasurementEntryCancelled } from './lib/cancelled-visits.js';
     const CLINIC_FIREBASE_NAMESPACE = 'clinics/kid';
     const FIREBASE_COLLECTIONS = {
       patients: `${CLINIC_FIREBASE_NAMESPACE}/patients`,
@@ -2733,6 +2734,9 @@
     const HISTORY_PAGE_SIZE = 6;
     const metricHistoryCountState = Object.fromEntries(Object.keys(metricInputs).map((key) => [key, 11]));
     let patientGrowthHistory = [];
+    // Vitals from visits staff deleted (lib/cancelled-visits.js): kept out of
+    // every view, but written back with the rest so they are never erased.
+    let hiddenGrowthHistory = [];
     let currentPatientRecord = null;
     let recordModalSelectedDate = '';
     let activeHistoryEditKey = '';
@@ -3306,6 +3310,7 @@
 
       return entries
         .filter(Boolean)
+        .filter((entry) => entry?.cancelled !== true && !isMeasurementEntryCancelled(patientRecord, entry))
         .sort((left, right) => getHistoryTimestamp(right) - getHistoryTimestamp(left))[0] || null;
     }
 
@@ -3358,6 +3363,7 @@
 
       return entries
         .filter(Boolean)
+        .filter((entry) => entry?.cancelled !== true && !isMeasurementEntryCancelled(patientRecord, entry))
         .sort((left, right) => getHistoryTimestamp(right) - getHistoryTimestamp(left))[0] || null;
     }
 
@@ -3594,12 +3600,12 @@
       const latestEntry = nextEntries[0] || null;
 
       await setDoc(doc(db, FIREBASE_COLLECTIONS.patients, patientId), {
-        measurementHistory: nextEntries,
+        measurementHistory: normalizeGrowthHistory([...nextEntries, ...hiddenGrowthHistory]),
         ...(latestEntry ? { lastMeasurementRecord: latestEntry } : {}),
         updatedAt: serverTimestamp()
       }, { merge: true });
 
-      setPatientGrowthHistory(nextEntries);
+      setPatientGrowthHistory([...nextEntries, ...hiddenGrowthHistory]);
       if (recordModalSelectedDate) {
         renderRecordModalContent();
         updateRecordGridNavState();
@@ -4068,7 +4074,10 @@
     }
 
     function setPatientGrowthHistory(entries = []) {
-      patientGrowthHistory = normalizeGrowthHistory(entries);
+      const normalizedEntries = normalizeGrowthHistory(entries);
+      const isHidden = (entry) => entry?.cancelled === true || isMeasurementEntryCancelled(currentPatientRecord, entry);
+      hiddenGrowthHistory = normalizedEntries.filter(isHidden);
+      patientGrowthHistory = normalizedEntries.filter((entry) => !isHidden(entry));
       activeHistoryEditKey = '';
       historyPageIndex = 0;
       renderHistoryDrawer();
@@ -4751,7 +4760,7 @@
         await setDoc(patientRef, patientPatch, { merge: true });
       }
 
-      setPatientGrowthHistory([measurementEntry, ...patientGrowthHistory]);
+      setPatientGrowthHistory([measurementEntry, ...patientGrowthHistory, ...hiddenGrowthHistory]);
       updatePageMeta({
         patientId,
         childName: childNameInput.value.trim(),

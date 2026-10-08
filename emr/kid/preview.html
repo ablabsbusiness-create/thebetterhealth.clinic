@@ -1513,6 +1513,7 @@
     import { arrayUnion, collection, doc, getDoc, getDocs, increment, query, serverTimestamp, setDoc, where, writeBatch } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
     import { getDownloadURL, getMetadata, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js';
     import { db, storage } from './lib/firebase-init.js';
+    import { isMeasurementEntryCancelled } from './lib/cancelled-visits.js';
     import {
       ITEM_PRESET_OPTIONS,
       PAYMENT_METHOD_OPTIONS,
@@ -2325,9 +2326,11 @@
           getDocs(query(collection(db, FIREBASE_COLLECTIONS.history), where('patientId', '==', normalizedPatientId))).catch(() => null)
         ]);
         const entries = [];
+        let cancelledVisits = null;
 
         if (patientSnapshot?.exists?.()) {
           const patientRecord = patientSnapshot.data();
+          cancelledVisits = patientRecord.cancelledVisits || null;
           if (Array.isArray(patientRecord.measurementHistory)) {
             entries.push(...patientRecord.measurementHistory);
           }
@@ -2343,6 +2346,8 @@
         const deduped = new Map();
         entries
           .filter(hasMeasurementValue)
+          // Leave out vitals from visits staff deleted (lib/cancelled-visits.js).
+          .filter((entry) => entry?.cancelled !== true && !isMeasurementEntryCancelled({ cancelledVisits }, entry))
           .forEach((entry) => {
             const normalizedEntry = normalizeMetricEntry(entry, { patientId: normalizedPatientId });
             const key = getMeasurementEntryKey(normalizedEntry);
@@ -2351,7 +2356,7 @@
             }
           });
 
-        return [...deduped.values()].sort((left, right) => getRecordTimestamp(right) - getRecordTimestamp(left));
+        return Object.assign([...deduped.values()].sort((left, right) => getRecordTimestamp(right) - getRecordTimestamp(left)), { cancelledVisits });
       })();
 
       patientMeasurementHistoryCache.set(normalizedPatientId, loadPromise);
@@ -2368,7 +2373,9 @@
         console.warn(`Unable to load past vitals for prescription charts: ${error.message}`);
         return [];
       });
-      const existingHistory = Array.isArray(record.measurementHistory) ? record.measurementHistory : [];
+      // The chart record may carry vitals copied in before a visit was deleted.
+      const existingHistory = (Array.isArray(record.measurementHistory) ? record.measurementHistory : [])
+        .filter((entry) => !isMeasurementEntryCancelled({ cancelledVisits: remoteHistory.cancelledVisits }, entry));
       const byKey = new Map();
 
       [...existingHistory, ...remoteHistory].forEach((entry) => {

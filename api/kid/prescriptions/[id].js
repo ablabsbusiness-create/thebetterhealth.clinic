@@ -87,6 +87,11 @@ export default async function handler(req, res) {
       return;
     }
 
+    if (snapshot.data()?.cancelled === true) {
+      sendJson(res, 410, { error: 'This prescription was cancelled by the clinic. Please contact the clinic for the current one.' });
+      return;
+    }
+
     const pdfUrl = await resolvePdfUrl(snapshot.data());
 
     if (!pdfUrl) {
