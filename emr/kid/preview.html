@@ -1921,7 +1921,10 @@
 
     async function loadPrescriptionBranding() {
       const cachedBranding = cachePrescriptionBranding(readJson(PRESCRIPTION_BRANDING_STORAGE_KEY, {}));
-      if (!db) {
+      // Opened from Settings' "Preview RX": show the choices the doctor is
+      // trying out. Reading the cloud here replaced them with the saved
+      // values, so every font looked like whatever was last saved.
+      if (!db || new URLSearchParams(window.location.search).has('settingsPreview')) {
         return cachedBranding;
       }
 
@@ -3300,13 +3303,84 @@
     }
 
     // jsPDF ships Helvetica, Times and Courier. Arial is metrically compatible
-    // with Helvetica and Georgia with Times; the webfonts (Outfit, Poppins,
-    // Lato, Roboto, Open Sans) have no built-in equivalent and fall back to
-    // Helvetica rather than embedding a full TTF into every prescription.
+    // with Helvetica and Georgia with Times, and Georgia/Verdana are system
+    // fonts that cannot be redistributed, so those use the built-ins. The
+    // webfonts are embedded from public/fonts (jsPDF subsets them to the glyphs
+    // used); without this every webfont choice printed as plain Helvetica.
     const PDF_FONT_BY_FAMILY = {
       'Times New Roman': 'times',
       Georgia: 'times'
     };
+
+    const PDF_EMBEDDED_FONT_FILES = {
+      Outfit: { normal: 'Outfit-Regular.ttf', bold: 'Outfit-Bold.ttf', italic: 'Outfit-Regular.ttf' },
+      Poppins: { normal: 'Poppins-Regular.ttf', bold: 'Poppins-Bold.ttf', italic: 'Poppins-Italic.ttf' },
+      Lato: { normal: 'Lato-Regular.ttf', bold: 'Lato-Bold.ttf', italic: 'Lato-Italic.ttf' },
+      Roboto: { normal: 'Roboto-Regular.ttf', bold: 'Roboto-Bold.ttf', italic: 'Roboto-Italic.ttf' },
+      'Open Sans': { normal: 'OpenSans-Regular.ttf', bold: 'OpenSans-Bold.ttf', italic: 'OpenSans-Italic.ttf' },
+      Merriweather: { normal: 'Merriweather-Regular.ttf', bold: 'Merriweather-Bold.ttf', italic: 'Merriweather-Italic.ttf' }
+    };
+
+    const PDF_FONT_BASE_URL = '/emr/kid/fonts/';
+    const pdfFontFileLoads = new Map();
+
+    function loadPdfFontFile(fileName) {
+      if (!pdfFontFileLoads.has(fileName)) {
+        const load = fetch(`${PDF_FONT_BASE_URL}${fileName}`)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}`);
+            }
+            return response.arrayBuffer();
+          })
+          .then((buffer) => {
+            const bytes = new Uint8Array(buffer);
+            // A TrueType file starts 00 01 00 00; anything else (an auth
+            // redirect page, say) would make jsPDF throw mid-save.
+            if (bytes.length < 4 || bytes[0] !== 0 || bytes[1] !== 1 || bytes[2] !== 0 || bytes[3] !== 0) {
+              throw new Error(`${fileName} is not a TrueType font`);
+            }
+            let binary = '';
+            for (let index = 0; index < bytes.length; index += 0x8000) {
+              binary += String.fromCharCode.apply(null, bytes.subarray(index, index + 0x8000));
+            }
+            return btoa(binary);
+          });
+        load.catch(() => pdfFontFileLoads.delete(fileName));
+        pdfFontFileLoads.set(fileName, load);
+      }
+      return pdfFontFileLoads.get(fileName);
+    }
+
+    // Resolves to the TTF data for a webfont choice, or null for the families
+    // drawn with a built-in font. A failed download also returns null so the
+    // prescription still saves, in Helvetica, rather than not at all.
+    async function loadPdfEmbeddedFont(fontFamily) {
+      const files = PDF_EMBEDDED_FONT_FILES[fontFamily];
+      if (!files) {
+        return null;
+      }
+
+      try {
+        const styles = Object.keys(files);
+        const data = await Promise.all(styles.map((style) => loadPdfFontFile(files[style])));
+        return {
+          family: fontFamily,
+          files: Object.fromEntries(styles.map((style, index) => [style, { fileName: files[style], data: data[index] }]))
+        };
+      } catch (error) {
+        console.warn(`Unable to load ${fontFamily} for the PDF, using Helvetica: ${error.message}`);
+        return null;
+      }
+    }
+
+    function registerPdfEmbeddedFont(pdf, embeddedFont) {
+      Object.entries(embeddedFont.files).forEach(([style, { fileName, data }]) => {
+        pdf.addFileToVFS(fileName, data);
+        pdf.addFont(fileName, embeddedFont.family, style);
+      });
+      return embeddedFont.family;
+    }
 
     function getPdfFontName(fontFamily) {
       return PDF_FONT_BY_FAMILY[fontFamily] || 'helvetica';
@@ -3317,12 +3391,14 @@
     // and searchable, the file drops by an order of magnitude, and page breaks
     // land between blocks instead of slicing a table row in half. Growth charts
     // and the signature stay images because that is what produces them.
-    function buildVectorPdf({ draft, chartRecord, branding, patientId, forceHeader = false }) {
+    function buildVectorPdf({ draft, chartRecord, branding, patientId, forceHeader = false, embeddedFont = null }) {
       const layout = normalizePrescriptionLayout(branding);
       const base = layout.prescriptionFontSize;
-      const font = getPdfFontName(layout.prescriptionFontFamily);
       const margins = layout.prescriptionMarginsCm;
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const font = embeddedFont
+        ? registerPdfEmbeddedFont(pdf, embeddedFont)
+        : getPdfFontName(layout.prescriptionFontFamily);
 
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
@@ -3736,9 +3812,12 @@
       const branding = getPrescriptionBranding();
       // The stored PDF is drawn as vector text; the canvas is still rendered
       // because the history list shows a preview image of the sheet.
-      const pdf = buildVectorPdf({ draft, chartRecord, branding, patientId, forceHeader });
+      const embeddedFont = await loadPdfEmbeddedFont(normalizePrescriptionLayout(branding).prescriptionFontFamily);
+      const pdf = buildVectorPdf({ draft, chartRecord, branding, patientId, forceHeader, embeddedFont });
       const sheetCanvas = await renderPrescriptionSheetCanvas({ forceHeader });
-      const previewBlob = await canvasToBlob(sheetCanvas, 'image/jpeg', 0.95);
+      // 0.85 is indistinguishable at thumbnail size and roughly a quarter
+      // smaller than 0.95, which made the history list slow on tablets.
+      const previewBlob = await canvasToBlob(sheetCanvas, 'image/jpeg', 0.85);
 
       return {
         pdf,

@@ -2033,7 +2033,9 @@
     if (previewRxSettingsBtn) {
       previewRxSettingsBtn.addEventListener('click', () => {
         cacheBrandingSettings(collectBrandingForm());
-        window.open('/emr/kid/preview', '_blank', 'noopener,noreferrer');
+        // settingsPreview tells the preview to draw these unsaved choices
+        // instead of reloading the saved ones from the cloud.
+        window.open('/emr/kid/preview?settingsPreview=1', '_blank', 'noopener,noreferrer');
       });
     }
 
