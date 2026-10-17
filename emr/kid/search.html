@@ -732,6 +732,11 @@
       line-height: 1.4;
     }
 
+    .worklist-item-age {
+      color: var(--ink);
+      font-weight: 700;
+    }
+
     .worklist-item-sub {
       display: flex;
       flex-wrap: wrap;
@@ -3508,6 +3513,33 @@
       });
     }
 
+    function formatCurrentAge(patient, referenceDate = new Date()) {
+      const dob = new Date(patient?.dob || patient?.dateOfBirth || '');
+      if (Number.isNaN(dob.getTime()) || dob > referenceDate) {
+        return String(patient?.ageText || '').trim();
+      }
+
+      let years = referenceDate.getFullYear() - dob.getFullYear();
+      let months = referenceDate.getMonth() - dob.getMonth();
+      let days = referenceDate.getDate() - dob.getDate();
+      if (days < 0) {
+        months -= 1;
+        days += new Date(referenceDate.getFullYear(), referenceDate.getMonth(), 0).getDate();
+      }
+      if (months < 0) {
+        years -= 1;
+        months += 12;
+      }
+
+      if (years === 0 && months === 0) {
+        return `${days} day${days === 1 ? '' : 's'}`;
+      }
+      if (years === 0) {
+        return `${months} mo${days ? ` ${days} d` : ''}`;
+      }
+      return `${years} yr${years === 1 ? '' : 's'}${months ? ` ${months} mo` : ''}`;
+    }
+
     function formatVisiblePatientId(value) {
       const patientId = getNormalizedPatientId(value);
       return /^TBK\d+$/i.test(patientId) ? patientId : '';
@@ -4860,6 +4892,7 @@
       const patientId = formatVisiblePatientId(patient.patientId || patient.id);
       const gender = formatMissing(patient.gender, 'Gender not saved');
       const dob = formatDateDisplay(patient.dob);
+      const age = formatCurrentAge(patient);
       const phone = formatPhoneDisplay(patient.phone);
       const isActive = selectedPatientId === patientId;
       const parentNameValue = getSavedParentName(patient);
@@ -4879,7 +4912,7 @@
               <div class="worklist-item-ident">
                 <div class="worklist-item-title">
                   <h3 class="worklist-item-name">${childName}</h3>
-                  <div class="worklist-item-meta">${gender} | ${dob}</div>
+                  <div class="worklist-item-meta">${gender}${age ? ` | <strong class="worklist-item-age">${escapeHtml(age)}</strong>` : ''} | ${dob}</div>
                 </div>
               </div>
               ${phoneHtml}
